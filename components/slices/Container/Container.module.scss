@@ -1,0 +1,61 @@
+@import '../../../styles/abstracts/tokens';
+@import '../../../styles/abstracts/mixins';
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: space(lg);
+  padding-right: space(lg);
+  width: 100%;
+  overflow: hidden;
+
+  @include respond-to(sm) {
+    max-width: breakpoint(sm);
+  }
+
+  @include respond-to(md) {
+    max-width: breakpoint(md);
+  }
+
+  @include respond-to(lg) {
+    max-width: breakpoint(lg);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  @include respond-to(xl) {
+    max-width: breakpoint(xl);
+  }
+}
+
+.outerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 space(md);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+}
+
+.innerContainer {
+  position: relative;
+  width: 100%;
+  padding: space(md) 0;
+  border-radius: radius(sm);
+  background-position: center;
+  background-repeat: no-repeat;
+
+  @include respond-to(lg) {
+    max-width: 1140px;
+  }
+
+  @include respond-to(xl) {
+    max-width: 1200px;
+  }
+
+  @media only screen and (min-width: 1400px) {
+    max-width: 1320px;
+  }
+}

@@ -1,0 +1,142 @@
+@import '../../../styles/abstracts/tokens';
+@import '../../../styles/abstracts/mixins';
+
+.card {
+  display: block;
+  background-color: hsl(var(--surface-primary));
+  border-radius: radius(lg);
+  overflow: hidden;
+  border: 1px solid hsl(var(--border-primary));
+  box-shadow: shadow(sm);
+  transition: map-get($transitions, all);
+  text-decoration: none;
+  color: inherit;
+  
+  @include hover {
+    box-shadow: shadow(md);
+    transform: translateY(-2px);
+  }
+}
+
+.imageContainer {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  
+  &:hover .image {
+    transform: scale(1.05);
+  }
+}
+
+.image {
+  object-fit: cover;
+  transition: map-get($transitions, transform);
+}
+
+.badge {
+  position: absolute;
+  top: space(2);
+  left: space(2);
+  z-index: z(base);
+}
+
+.featuredBadge {
+  @include text-style(xs, bold);
+  background-color: hsl(var(--warning));
+  color: hsl(var(--text-inverse));
+  padding: space(1) space(2);
+  border-radius: radius(full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.promotedTag {
+  position: absolute;
+  top: space(2);
+  right: space(2);
+  @include text-style(xs, bold);
+  background-color: hsl(var(--primary));
+  color: hsl(var(--text-inverse));
+  padding: space(1) space(2);
+  border-radius: radius(full);
+  z-index: z(base);
+}
+
+.content {
+  padding: space(md);
+  display: flex;
+  flex-direction: column;
+  gap: space(2);
+}
+
+.title {
+  @include text-style(lg, bold);
+  color: hsl(var(--text-primary));
+  @include line-clamp(2);
+  margin: 0;
+}
+
+.price {
+  @include text-style(xl, bold);
+  color: hsl(var(--primary));
+}
+
+.details {
+  @include flex-between;
+  gap: space(2);
+  flex-wrap: wrap;
+}
+
+.condition {
+  @include text-style(sm, medium);
+  background-color: hsl(var(--bg-secondary));
+  color: hsl(var(--text-secondary));
+  padding: space(1) space(2);
+  border-radius: radius(full);
+}
+
+.location {
+  @include text-style(sm);
+  color: hsl(var(--text-muted));
+  @include flex-center;
+  gap: space(1);
+}
+
+.meta {
+  padding-top: space(2);
+  border-top: 1px solid hsl(var(--border-primary));
+}
+
+.date {
+  @include text-style(xs);
+  color: hsl(var(--text-muted));
+}
+
+// Responsive design
+@include respond-below(sm) {
+  .card {
+    border-radius: radius(md);
+  }
+  
+  .content {
+    padding: space(3);
+  }
+  
+  .details {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+// RTL support
+[dir="rtl"] {
+  .badge {
+    left: auto;
+    right: space(2);
+  }
+  
+  .promotedTag {
+    right: auto;
+    left: space(2);
+  }
+}

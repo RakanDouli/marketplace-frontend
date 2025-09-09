@@ -1,0 +1,158 @@
+// ===================================
+// MIXINS - Clean Modern Patterns
+// ===================================
+
+// Media Queries (your responsive approach but modern)
+@mixin respond-to($breakpoint) {
+  @media (min-width: breakpoint($breakpoint)) {
+    @content;
+  }
+}
+
+@mixin respond-below($breakpoint) {
+  @media (max-width: breakpoint($breakpoint) - 1px) {
+    @content;
+  }
+}
+
+// RTL Support (learning from your Arabic support)
+@mixin rtl {
+  [dir="rtl"] & {
+    @content;
+  }
+}
+
+@mixin ltr {
+  [dir="ltr"] & {
+    @content;
+  }
+}
+
+// Typography
+@mixin font-family($family) {
+  font-family: get($font-families, $family);
+}
+
+@mixin text-style($size: base, $weight: normal, $height: normal) {
+  font-size: text($size);
+  font-weight: weight($weight);
+  line-height: get($line-heights, $height);
+}
+
+// Layout (inspired by your container system)
+@mixin container($size: xl) {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: space(md);
+  
+  @if map-has-key($container-max-widths, $size) {
+    max-width: get($container-max-widths, $size);
+  }
+  
+  @include respond-to(lg) {
+    padding-inline: space(lg);
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin grid-center {
+  display: grid;
+  place-items: center;
+}
+
+// Visual effects
+@mixin focus-ring($color: primary) {
+  &:focus-visible {
+    outline: 2px solid hsl(var(--#{$color}));
+    outline-offset: 2px;
+    border-radius: radius(sm);
+  }
+}
+
+@mixin button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Loading spinner
+@mixin spinner($size: 1rem, $thickness: 2px) {
+  width: $size;
+  height: $size;
+  border: $thickness solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Text utilities
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Hover/focus states
+@mixin hover {
+  @media (hover: hover) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+@mixin focus {
+  &:focus-visible {
+    @content;
+  }
+}
+
+@mixin active {
+  &:active {
+    @content;
+  }
+}

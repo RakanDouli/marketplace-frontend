@@ -1,0 +1,9 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#F3F4F6"/>
+  <path d="M100 120L80 140H320L300 120H240L220 100H180L160 120H100Z" fill="#9CA3AF"/>
+  <circle cx="120" cy="180" r="20" fill="#6B7280"/>
+  <circle cx="280" cy="180" r="20" fill="#6B7280"/>
+  <rect x="90" y="140" width="220" height="40" fill="#E5E7EB"/>
+  <path d="M200 160L210 150H190L200 160Z" fill="#9CA3AF"/>
+  <text x="200" y="220" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="16">Car Image</text>
+</svg>

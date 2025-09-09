@@ -1,0 +1,142 @@
+@import '../../../styles/abstracts/tokens';
+@import '../../../styles/abstracts/mixins';
+
+.container {
+  position: fixed;
+  top: space(4);
+  right: space(4);
+  z-index: z(toast);
+  display: flex;
+  flex-direction: column;
+  gap: space(2);
+  max-width: 400px;
+  width: 100%;
+  
+  @include respond-below(md) {
+    left: space(4);
+    right: space(4);
+    max-width: none;
+  }
+}
+
+.toast {
+  @include flex-between;
+  background-color: hsl(var(--surface-raised));
+  border-radius: radius(md);
+  box-shadow: shadow(lg);
+  border: 1px solid hsl(var(--border-primary));
+  padding: space(4);
+  gap: space(3);
+  animation: slideIn 0.3s ease-out;
+  
+  &.success {
+    border-left: 4px solid hsl(var(--success));
+  }
+  
+  &.error {
+    border-left: 4px solid hsl(var(--error));
+  }
+  
+  &.warning {
+    border-left: 4px solid hsl(var(--warning));
+  }
+  
+  &.info {
+    border-left: 4px solid hsl(var(--info));
+  }
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  @include text-style(sm, semibold);
+  color: hsl(var(--text-primary));
+  margin-bottom: space(0.5);
+}
+
+.message {
+  @include text-style(sm);
+  color: hsl(var(--text-secondary));
+  @include line-clamp(3);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: space(2);
+  flex-shrink: 0;
+}
+
+.actionButton {
+  @include button-reset;
+  @include text-style(sm, medium);
+  color: hsl(var(--primary));
+  padding: space(1) space(2);
+  border-radius: radius(sm);
+  transition: map-get($transitions, colors);
+  
+  @include hover {
+    background-color: hsl(var(--primary) / 0.1);
+  }
+  
+  @include focus {
+    @include focus-ring;
+  }
+}
+
+.closeButton {
+  @include button-reset;
+  @include flex-center;
+  width: 24px;
+  height: 24px;
+  border-radius: radius(sm);
+  color: hsl(var(--text-muted));
+  transition: map-get($transitions, colors);
+  
+  @include hover {
+    background-color: hsl(var(--bg-tertiary));
+    color: hsl(var(--text-primary));
+  }
+  
+  @include focus {
+    @include focus-ring;
+  }
+}
+
+.icon {
+  @include flex-center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-right: space(2);
+  
+  &.success {
+    color: hsl(var(--success));
+  }
+  
+  &.error {
+    color: hsl(var(--error));
+  }
+  
+  &.warning {
+    color: hsl(var(--warning));
+  }
+  
+  &.info {
+    color: hsl(var(--info));
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

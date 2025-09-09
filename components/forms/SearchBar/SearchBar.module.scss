@@ -1,0 +1,161 @@
+@import '../../../styles/abstracts/tokens';
+@import '../../../styles/abstracts/mixins';
+
+.searchContainer {
+  background-color: hsl(var(--surface-primary));
+  border-radius: radius(lg);
+  padding: space(md);
+  border: 1px solid hsl(var(--border-primary));
+  box-shadow: shadow(sm);
+}
+
+.mainSearch {
+  @include flex-between;
+  gap: space(md);
+  margin-bottom: space(md);
+  
+  @include respond-below(md) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.searchInputGroup {
+  display: flex;
+  flex: 1;
+  gap: space(2);
+  
+  @include respond-below(md) {
+    flex-direction: column;
+  }
+}
+
+.searchInput {
+  flex: 1;
+  padding: space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--surface-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(base);
+  transition: map-get($transitions, colors);
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+  
+  &::placeholder {
+    color: hsl(var(--text-muted));
+  }
+}
+
+.searchButton {
+  flex-shrink: 0;
+  
+  @include respond-below(md) {
+    width: 100%;
+  }
+}
+
+.advancedToggle {
+  flex-shrink: 0;
+  @include flex-center;
+  gap: space(1);
+  
+  @include respond-below(md) {
+    width: 100%;
+  }
+}
+
+.arrow {
+  font-size: text(sm);
+  transition: map-get($transitions, transform);
+  
+  &.arrowUp {
+    transform: rotate(180deg);
+  }
+}
+
+.advancedFilters {
+  border-top: 1px solid hsl(var(--border-primary));
+  padding-top: space(md);
+  display: flex;
+  flex-direction: column;
+  gap: space(md);
+}
+
+.filterRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: space(md);
+  
+  @include respond-below(sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: space(1);
+}
+
+.label {
+  @include text-style(sm, medium);
+  color: hsl(var(--text-secondary));
+}
+
+.select,
+.input {
+  padding: space(2.5) space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--surface-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(base);
+  transition: map-get($transitions, colors);
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+  
+  &::placeholder {
+    color: hsl(var(--text-muted));
+  }
+}
+
+.select {
+  cursor: pointer;
+  
+  option {
+    background-color: hsl(var(--surface-primary));
+    color: hsl(var(--text-primary));
+  }
+}
+
+.filterActions {
+  @include flex-center;
+  gap: space(3);
+  padding-top: space(md);
+  border-top: 1px solid hsl(var(--border-primary));
+  
+  @include respond-below(sm) {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+.applyButton {
+  min-width: 120px;
+}
+
+.resetButton {
+  min-width: 120px;
+}

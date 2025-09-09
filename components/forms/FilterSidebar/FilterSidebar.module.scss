@@ -1,0 +1,248 @@
+@import '../../../styles/abstracts/tokens';
+@import '../../../styles/abstracts/mixins';
+
+.sidebar {
+  width: 280px;
+  background-color: hsl(var(--surface-primary));
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(lg);
+  padding: space(md);
+  height: fit-content;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  
+  @include respond-below(lg) {
+    width: 100%;
+    max-height: none;
+    margin-bottom: space(lg);
+  }
+}
+
+.header {
+  @include flex-center;
+  gap: space(2);
+  margin-bottom: space(lg);
+  padding-bottom: space(md);
+  border-bottom: 1px solid hsl(var(--border-primary));
+}
+
+.headerIcon {
+  font-size: text(lg);
+  color: hsl(var(--primary));
+}
+
+.title {
+  @include text-style(lg, bold);
+  color: hsl(var(--text-primary));
+  margin: 0;
+}
+
+.filterSection {
+  margin-bottom: space(lg);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.filterHeader {
+  @include flex-center;
+  gap: space(2);
+  margin-bottom: space(md);
+}
+
+.filterIcon {
+  font-size: text(base);
+  color: hsl(var(--text-secondary));
+}
+
+.filterTitle {
+  @include text-style(base, medium);
+  color: hsl(var(--text-primary));
+  margin: 0;
+  flex: 1;
+}
+
+.filterContent {
+  margin-left: space(6); // Align with title after icon
+}
+
+// Checkbox styles
+.checkboxLabel {
+  @include flex-center;
+  gap: space(2);
+  margin-bottom: space(2);
+  cursor: pointer;
+  justify-content: flex-start;
+  
+  @include hover {
+    .checkboxText {
+      color: hsl(var(--primary));
+    }
+  }
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 2px solid hsl(var(--border-primary));
+  border-radius: radius(sm);
+  cursor: pointer;
+  
+  &:checked {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+  }
+}
+
+.checkboxText {
+  @include text-style(sm);
+  color: hsl(var(--text-secondary));
+  transition: map-get($transitions, colors);
+}
+
+// Price inputs
+.priceInputs {
+  @include flex-center;
+  gap: space(2);
+}
+
+.priceInput {
+  flex: 1;
+  padding: space(2) space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(sm);
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+  }
+  
+  &::placeholder {
+    color: hsl(var(--text-muted));
+  }
+}
+
+.priceSeparator {
+  @include text-style(sm);
+  color: hsl(var(--text-muted));
+}
+
+// Year inputs
+.yearInputs {
+  @include flex-center;
+  gap: space(2);
+}
+
+.yearInput {
+  flex: 1;
+  padding: space(2) space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(sm);
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+  }
+  
+  &::placeholder {
+    color: hsl(var(--text-muted));
+  }
+}
+
+.yearSeparator {
+  @include text-style(sm);
+  color: hsl(var(--text-muted));
+}
+
+// Loading text
+.loadingText {
+  @include text-style(sm);
+  color: hsl(var(--text-muted));
+  text-align: center;
+  padding: space(2);
+}
+
+// Brand select
+.brandSelect {
+  width: 100%;
+  padding: space(2) space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(sm);
+  cursor: pointer;
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+  }
+}
+
+// Model select
+.modelSelect {
+  width: 100%;
+  padding: space(2) space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(sm);
+  cursor: pointer;
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+  }
+  
+  &:disabled {
+    background-color: hsl(var(--surface-secondary));
+    color: hsl(var(--text-muted));
+    cursor: not-allowed;
+    border-color: hsl(var(--border-secondary));
+  }
+}
+
+// Location select
+.locationSelect {
+  width: 100%;
+  padding: space(2) space(3);
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: radius(md);
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  @include text-style(sm);
+  cursor: pointer;
+  
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+  }
+}
+
+// RTL Support
+[dir="rtl"] {
+  .header {
+    flex-direction: row-reverse;
+  }
+  
+  .filterHeader {
+    flex-direction: row-reverse;
+  }
+  
+  .filterContent {
+    margin-left: 0;
+    margin-right: space(6);
+  }
+  
+  .checkboxLabel {
+    flex-direction: row-reverse;
+  }
+}

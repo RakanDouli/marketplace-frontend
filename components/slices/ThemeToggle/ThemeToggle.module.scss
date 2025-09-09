@@ -1,0 +1,15 @@
+@import '../../../styles/abstracts/tokens';
+@import '../../../styles/abstracts/mixins';
+
+.themeToggle {
+  font-size: text(lg);
+  transition: map-get($transitions, transform);
+  
+  @include hover {
+    transform: scale(1.1);
+  }
+  
+  @include active {
+    transform: scale(0.95);
+  }
+}
