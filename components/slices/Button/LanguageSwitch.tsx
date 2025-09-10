@@ -47,7 +47,7 @@ export const LanguageSwitch: React.FC = () => {
         aria-expanded={isOpen}
       >
         <Languages size={16} />
-        <span>{currentLanguage.nativeName} ss</span>
+
         <ChevronDown
           size={14}
           className={`${styles.chevron} ${isOpen ? styles.open : ""}`}

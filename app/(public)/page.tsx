@@ -8,6 +8,7 @@ import { Button } from "@/components/slices/Button/Button";
 import { Header } from "@/components/Header/Header";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useNotificationStore } from "@/stores";
+import { SubmitButton } from "@/components/slices/Button";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -32,7 +33,6 @@ export default function HomePage() {
   return (
     <main style={{ paddingTop: "70px" }}>
       <Header />
-
       {/* Hero Section */}
       <Container size="xl" backgroundImage="" overlay>
         <TextSection
@@ -59,7 +59,6 @@ export default function HomePage() {
           </div>
         </TextSection>
       </Container>
-
       {/* Features Section */}
       <Container size="lg" padding>
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
@@ -99,6 +98,9 @@ export default function HomePage() {
         </div>
       </Container>
 
+      <SubmitButton onClick={handleBrowseCars} variant="primary" type="submit">
+        Save Changes
+      </SubmitButton>
       {/* Image Gallery Section */}
       <Container
         size="full"

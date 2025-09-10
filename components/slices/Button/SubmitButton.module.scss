@@ -1,0 +1,135 @@
+.submitButton {
+  width: 150px;
+  height: 50px;
+  background: none;
+  border: 4px solid $primary;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 100ms;
+  position: relative;
+  outline: none;
+
+  &.loading {
+    outline: none;
+    border: 2px solid $secondary;
+    width: 50px;
+    border-left: 4px solid $secondary;
+    border-bottom: 4px solid $secondary;
+    animation: spin 2s forwards;
+
+    .text {
+      color: transparent;
+    }
+  }
+
+  &.success {
+    width: 50px;
+    border: 4px solid $success;
+
+    .text {
+      color: transparent;
+    }
+
+    .checkIcon {
+      fill: $success;
+    }
+  }
+
+  &.error {
+    width: 50px;
+    border: 4px solid $error;
+
+    .text {
+      color: transparent;
+    }
+
+    .errorIcon {
+      stroke: $error;
+      opacity: 1;
+    }
+  }
+
+  &:hover {
+    border-color: $secondary;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &:focus {
+      animation: none;
+      width: 150px;
+      border: 4px solid $primary;
+    }
+  }
+}
+
+.text,
+.checkIcon,
+.errorIcon {
+  position: absolute;
+  color: $text;
+  fill: transparent;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: $weight-bold;
+  font-size: $font-sm;
+  user-select: none;
+}
+
+.checkIcon,
+.errorIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.errorIcon {
+  opacity: 0;
+  stroke: transparent;
+}
+
+@keyframes spin {
+  80% {
+    border: 4px solid transparent;
+    border-left: 4px solid $text;
+  }
+  100% {
+    transform: rotate(1080deg);
+    border: 4px solid $text;
+  }
+}
+
+@keyframes check {
+  to {
+    fill: $success;
+  }
+}
+
+// Variant styles
+.submitButton--secondary {
+  border-color: $secondary;
+  
+  &.loading {
+    border-color: $primary;
+    border-left-color: $primary;
+    border-bottom-color: $primary;
+  }
+}
+
+.submitButton--outline {
+  border-color: $border;
+  
+  .text {
+    color: $text-muted;
+  }
+  
+  &.loading {
+    border-color: $primary;
+    border-left-color: $primary;
+    border-bottom-color: $primary;
+  }
+}
