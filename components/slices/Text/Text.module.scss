@@ -1,0 +1,83 @@
+ 
+
+// Base text styles
+%text-base {
+  margin: 0;
+  line-height: $line-normal;
+  color: hsl(var(--text));
+}
+
+// Header base styles
+%header-base {
+  @extend %text-base;
+  font-family: $font-headers;
+}
+
+// Body text base styles  
+%body-base {
+  @extend %text-base;
+  font-family: $font-body;
+}
+
+// Heading variants
+.h1 {
+  @extend %text-base;
+  font-size: $font-6xl;
+  font-weight: $weight-bold;
+  line-height: $line-tight;
+  margin-bottom: $space-lg;
+}
+
+.h2 {
+  @extend %text-base;
+  font-size: $font-4xl;
+  font-weight: $weight-bold;
+  line-height: $line-tight;
+  margin-bottom: $space-md;
+}
+
+.h3 {
+  @extend %text-base;
+  font-size: $font-2xl;
+  font-weight: $weight-semibold;
+  line-height: $line-snug;
+  margin-bottom: $space-sm;
+}
+
+.h4 {
+  @extend %text-base;
+  font-size: $font-xl;
+  font-weight: $weight-semibold;
+  line-height: $line-snug;
+  margin-bottom: $space-sm;
+}
+
+// Body text variants
+.paragraph {
+  @extend %text-base;
+  font-size: $font-base;
+  font-weight: $weight-normal;
+  margin-bottom: $space-md;
+}
+
+.small {
+  @extend %text-base;
+  font-size: $font-sm;
+  font-weight: $weight-normal;
+  color: hsl(var(--text-muted));
+}
+
+// Navigation link
+.navlink {
+  @extend %text-base;
+  font-size: $font-base;
+  font-weight: $weight-medium;
+  text-decoration: none;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    color: hsl(var(--primary));
+  }
+}
+
+

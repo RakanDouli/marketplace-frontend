@@ -128,6 +128,36 @@
     "showAll": "Show All",
     "hideAll": "Hide All"
   },
+  "homepage": {
+    "hero": {
+      "title": "Welcome to Syrian Marketplace",
+      "subtitle": "The best place to buy and sell cars",
+      "description": "Best platform for buying and selling cars in Syria. Find quality vehicles, place bids, and connect with sellers across Syria."
+    },
+    "features": {
+      "title": "Why Choose Us?",
+      "easyToUse": {
+        "title": "Easy to Use",
+        "description": "Simple and easy interface to find your perfect car"
+      },
+      "safeSecure": {
+        "title": "Safe & Secure", 
+        "description": "Safe transactions with verified sellers"
+      },
+      "bestPrices": {
+        "title": "Best Prices",
+        "description": "Competitive prices and great daily offers"
+      }
+    },
+    "featured": {
+      "title": "Featured Cars",
+      "description": "Browse the latest cars available for sale"
+    },
+    "notifications": {
+      "browseCars": "Browse cars functionality coming soon!",
+      "addListing": "Add listing functionality coming soon!"
+    }
+  },
   "seo": {
     "defaultTitle": "Syrian Car Marketplace - Buy & Sell Cars in Syria",
     "defaultDescription": "Best platform for buying and selling cars in Syria. Find quality vehicles, place bids, and connect with sellers across Syria.",

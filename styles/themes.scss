@@ -1,0 +1,146 @@
+// ===================================
+// MODERN THEME SYSTEM
+// ===================================
+
+// Base color definitions (HSL values for alpha support)
+:root {
+  // Syrian brand colors
+  --primary-hsl: 214 69% 32%;
+  --secondary-hsl: 350 84% 44%;
+  
+  // Semantic colors
+  --success-hsl: 142 76% 36%;
+  --warning-hsl: 38 92% 50%;
+  --error-hsl: 0 84% 60%;
+  --info-hsl: 217 91% 60%;
+}
+
+// Light theme (default)
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  
+  // Brand colors
+  --primary: var(--primary-hsl);
+  --secondary: var(--secondary-hsl);
+  --success: var(--success-hsl);
+  --warning: var(--warning-hsl);
+  --error: var(--error-hsl);
+  --info: var(--info-hsl);
+  
+  // Backgrounds
+  --bg-primary: 0 0% 100%;        // White
+  --bg-secondary: 210 20% 98%;    // Gray 50
+  --bg-tertiary: 220 14% 96%;     // Gray 100
+  --bg-accent: 214 100% 97%;      // Blue tinted
+  
+  // Text colors
+  --text-primary: 222 84% 5%;     // Gray 900
+  --text-secondary: 215 14% 34%;  // Gray 600
+  --text-muted: 218 11% 65%;      // Gray 400
+  --text-inverse: 0 0% 100%;      // White
+  
+  // Borders
+  --border-primary: 220 13% 91%;  // Gray 200
+  --border-secondary: 216 12% 84%; // Gray 300
+  --border-accent: var(--primary-hsl);
+  
+  // Surfaces
+  --surface-primary: var(--bg-primary);
+  --surface-secondary: var(--bg-secondary);
+  --surface-raised: 0 0% 100%;
+  --surface-accent: var(--bg-tertiary);
+  
+  // Shadows
+  --shadow-color: 220 3% 15%;
+  --shadow-strength: 1%;
+}
+
+// Dark theme
+[data-theme="dark"] {
+  color-scheme: dark;
+  
+  // Brand colors (adjusted for dark mode)
+  --primary: 217 91% 60%;          // Lighter blue
+  --secondary: 0 84% 60%;          // Adjusted red
+  --success: var(--success-hsl);
+  --warning: var(--warning-hsl);
+  --error: 0 93% 94%;              // Lighter red
+  --info: 217 91% 70%;             // Lighter blue
+  
+  // Backgrounds
+  --bg-primary: 222 84% 5%;        // Gray 900
+  --bg-secondary: 217 19% 12%;     // Gray 800
+  --bg-tertiary: 215 28% 17%;      // Gray 700
+  --bg-accent: 215 28% 12%;        // Dark blue
+  
+  // Text colors
+  --text-primary: 210 20% 98%;     // Gray 50
+  --text-secondary: 220 13% 69%;   // Gray 300
+  --text-muted: 215 14% 52%;       // Gray 500
+  --text-inverse: 222 84% 5%;      // Dark
+  
+  // Borders
+  --border-primary: 215 28% 17%;   // Gray 700
+  --border-secondary: 215 14% 34%; // Gray 600
+  --border-accent: var(--primary);
+  
+  // Surfaces
+  --surface-primary: var(--bg-secondary);
+  --surface-secondary: var(--bg-tertiary);
+  --surface-raised: 215 28% 25%;
+  --surface-accent: var(--bg-tertiary);
+  
+  // Shadows
+  --shadow-color: 0 0% 0%;
+  --shadow-strength: 25%;
+}
+
+// System preference detection
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    // Duplicate dark theme properties for system preference
+    color-scheme: dark;
+    
+    --primary: 217 91% 60%;
+    --secondary: 0 84% 60%;
+    --success: var(--success-hsl);
+    --warning: var(--warning-hsl);
+    --error: 0 93% 94%;
+    --info: 217 91% 70%;
+    
+    --bg-primary: 222 84% 5%;
+    --bg-secondary: 217 19% 12%;
+    --bg-tertiary: 215 28% 17%;
+    --bg-accent: 215 28% 12%;
+    
+    --text-primary: 210 20% 98%;
+    --text-secondary: 220 13% 69%;
+    --text-muted: 215 14% 52%;
+    --text-inverse: 222 84% 5%;
+    
+    --border-primary: 215 28% 17%;
+    --border-secondary: 215 14% 34%;
+    --border-accent: var(--primary);
+    
+    --surface-primary: var(--bg-secondary);
+    --surface-secondary: var(--bg-tertiary);
+    --surface-raised: 215 28% 25%;
+    --surface-accent: var(--bg-tertiary);
+    
+    --shadow-color: 0 0% 0%;
+    --shadow-strength: 25%;
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

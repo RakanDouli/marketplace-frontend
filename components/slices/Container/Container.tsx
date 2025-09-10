@@ -1,61 +1,53 @@
 import React from 'react';
 import styles from './Container.module.scss';
 
-interface ContainerProps {
-  /** Use outer container wrapper */
-  outer?: boolean;
-  /** Inner container with max-width constraints */
-  inner?: boolean;
-  /** Custom padding using our spacing tokens */
-  padding?: string;
-  /** Background color (CSS custom property or hex) */
-  backgroundColor?: string;
-  /** Background image URL */
-  backgroundImage?: string;
-  /** Background size property */
-  backgroundSize?: 'cover' | 'contain' | 'auto';
-  /** Background position */
-  backgroundPosition?: string;
-  /** Additional CSS classes */
-  className?: string;
-  /** Child components */
+export interface ContainerProps {
   children: React.ReactNode;
+  size?: "sm" | "md" | "lg" | "xl" | "full";
+  backgroundImage?: string;
+  outerBackgroundImage?: string;
+  backgroundColor?: string;
+  outerBackgroundColor?: string;
+  padding?: boolean;
+  overlay?: boolean;
+  className?: string;
 }
 
 export const Container: React.FC<ContainerProps> = ({
-  outer = false,
-  inner = false,
-  padding,
-  backgroundColor,
+  children,
+  size = "lg",
   backgroundImage,
-  backgroundSize = 'cover',
-  backgroundPosition = 'center',
-  className = '',
-  children
+  outerBackgroundImage,
+  backgroundColor,
+  outerBackgroundColor = "transparent",
+  padding = true,
+  overlay = false,
+  className = "",
 }) => {
-  // Determine container type - stick to consistent class naming
-  let containerClass = styles.container; // Default flexible container
-  
-  if (outer) {
-    containerClass = styles.outerContainer;
-  } else if (inner) {
-    containerClass = styles.innerContainer;
-  }
-  
+  const outerStyles = {
+    backgroundColor: outerBackgroundColor,
+    backgroundImage: outerBackgroundImage ? `url(${outerBackgroundImage})` : undefined,
+  };
+
+  const innerStyles = {
+    backgroundColor: backgroundColor,
+    backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+  };
+
   return (
-    <div
-      className={`${containerClass} ${className}`}
-      style={{
-        ...(backgroundColor && { backgroundColor }),
-        ...(backgroundImage && {
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize,
-          backgroundPosition
-        }),
-        ...(padding && { padding })
-      }}
+    <div 
+      className={`${styles.outerContainer} ${className}`.trim()}
+      style={outerStyles}
     >
-      {children}
+      <div 
+        className={`${styles.innerContainer} ${styles[size]} ${!padding ? styles.noPadding : ''}`}
+        style={innerStyles}
+      >
+        {backgroundImage && overlay && <div className={styles.overlay} />}
+        <div className={styles.content}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 };

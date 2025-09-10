@@ -1,48 +1,117 @@
-import React, { forwardRef } from 'react';
-import styles from './Button.module.scss';
+import React, { forwardRef, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import styles from "./Button.module.scss";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "success" | "danger" | "ghost" | "outline";
+  size?: "sm" | "md" | "lg";
   loading?: boolean;
   icon?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  arrow?: boolean | string;
+  href?: string;
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  disabled = false,
-  icon,
-  children,
-  className = '',
-  ...props
-}, ref) => {
-  const isDisabled = loading || disabled;
-  
-  return (
-    <button
-      ref={ref}
-      disabled={isDisabled}
-      className={`${styles.button} ${styles[variant]} ${styles[size]} ${className} ${isDisabled ? styles.disabled : ''}`}
-      {...props}
-    >
-      {loading ? (
-        <>
-          <span className={styles.spinner}></span>
-          {children}
-        </>
-      ) : (
-        <>
-          {icon && <span className={styles.icon}>{icon}</span>}
-          {children}
-        </>
-      )}
-    </button>
-  );
-});
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      variant = "primary",
+      size = "md",
+      loading = false,
+      disabled = false,
+      icon,
+      children,
+      arrow,
+      href,
+      className = "",
+      onMouseEnter,
+      ...props
+    },
+    ref
+  ) => {
+    const [rippleCoords, setRippleCoords] = useState({ x: -1, y: -1 });
+    const isDisabled = loading || disabled;
 
-Button.displayName = 'Button';
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setRippleCoords({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      onMouseEnter?.(e);
+    };
+
+    const buttonContent = (
+      <>
+        {/* Ripple effect */}
+        <span 
+          className={`${styles.round} ${styles.ripple}`}
+          style={{ left: `${rippleCoords.x}px`, top: `${rippleCoords.y}px` }}
+        />
+
+        {/* Loading state */}
+        {loading ? (
+          <div className={styles.loadingIcon}>
+            <Loader2 size={20} className={styles.spinner} />
+          </div>
+        ) : (
+          <>
+            {/* Content */}
+            {children && (
+              <span className={styles.title}>
+                {icon && <span className={styles.icon}>{icon}</span>}
+                {children}
+              </span>
+            )}
+            
+            {/* No content - just icon button */}
+            {!children && icon && <span className={styles.icon}>{icon}</span>}
+
+            {/* Arrow */}
+            {arrow !== undefined && arrow !== false && (
+              <div className={styles.arrow}>
+                <ArrowRight className={styles.arrowRight} size={20} />
+                <ArrowLeft className={styles.arrowLeft} size={20} />
+              </div>
+            )}
+          </>
+        )}
+      </>
+    );
+
+    // If href provided, render as Link
+    if (href && !isDisabled) {
+      return (
+        <Link
+          href={href}
+          className={`${styles.btn} ${children ? styles.btnPadding : ''} ${
+            styles[`btn--${variant}`]
+          } ${className} ${loading ? styles.loading : ''}`}
+        >
+          {buttonContent}
+        </Link>
+      );
+    }
+
+    // Regular button
+    return (
+      <button
+        ref={ref}
+        disabled={isDisabled}
+        className={`${styles.btn} ${children ? styles.btnPadding : ''} ${
+          styles[`btn--${variant}`]
+        } ${className} ${loading ? styles.loading : ''}`}
+        onMouseEnter={handleMouseEnter}
+        aria-label={loading ? 'Loading...' : (children ? String(children) : 'Button')}
+        {...props}
+      >
+        {buttonContent}
+      </button>
+    );
+  }
+);
+
+Button.displayName = "Button";
 
 export default Button;

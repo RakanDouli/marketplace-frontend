@@ -1,0 +1,23 @@
+// ===================================
+// TYPOGRAPHY SYSTEM - Font Families Only
+// ===================================
+
+@import 'variables';
+
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
+// Body font family
+body {
+  font-family: $font-body;
+}
+
+// Headers font family
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-headers;
+}
+
+// Paragraphs font family
+p {
+  font-family: $font-body;
+}

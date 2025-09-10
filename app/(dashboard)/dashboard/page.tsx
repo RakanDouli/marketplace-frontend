@@ -1,10 +1,11 @@
 'use client';
 
-import { useI18n } from '@/contexts/I18nContext';
+import { useTranslation, useLanguage } from '@/hooks/useTranslation';
 import { Button } from '@/components/slices';
 
 export default function UserDashboardPage() {
-  const { t, language } = useI18n();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const userStats = [
     {

@@ -1,0 +1,83 @@
+ 
+
+// Flex direction variants
+.flex {
+  &_row {
+    flex-direction: row;
+  }
+
+  &_row-reverse {
+    flex-direction: row-reverse;
+  }
+  
+  &_column {
+    flex-direction: column;
+  }
+  
+  &_column-reverse {
+    flex-direction: column-reverse;
+  }
+}
+
+// Background styling
+.textSectionBg {
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--surface));
+}
+
+.textSection {
+  border-radius: $radius-sm;
+  gap: $space-md;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: $space-md;
+  display: flex;
+  align-items: center;
+
+  @media screen and (max-width: $breakpoint-md) {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: $space-md;
+    gap: $space-sm;
+  }
+
+  // Alignment variants
+  .align {
+    &_center {
+      align-items: center;
+      text-align: center;
+    }
+
+    &_start {
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    &_end {
+      align-items: flex-end;
+      text-align: right;
+    }
+  }
+
+  .imgContainer {
+    width: 40%;
+
+    @media screen and (max-width: $breakpoint-md) {
+      width: 100%;
+    }
+
+    .image {
+      object-fit: cover;
+      width: 100%;
+      height: auto;
+      max-height: 400px;
+      border-radius: $radius-sm;
+    }
+  }
+}

@@ -1,6 +1,7 @@
-// Export all stores and their selectors
+// Export all stores and their selectors (alphabetically sorted)
 export * from './authStore';
-export * from './listingsStore';
 export * from './bidsStore';
 export * from './categoriesStore';
+export * from './listingsStore';
+export * from './notificationStore';
 export * from './types';

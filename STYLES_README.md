@@ -1,618 +1,384 @@
 # Syrian Marketplace Frontend - Styles Documentation
 
-## 🎯 **Overview**
+## 🎯 **Current Architecture Overview**
 
-This document explains our **modern SCSS design system** for the Syrian automotive marketplace. The system is built using **7-1 architecture** with **CSS custom properties** and **design tokens**, optimized for Syrian users with Arabic-first approach.
+This document explains our **clean, modern SCSS system** for the Syrian marketplace. The system is built with **direct SCSS variables** and **responsive typography** using CSS `clamp()`, optimized for Arabic/English bilingual support.
 
 ---
 
-## 📁 **Architecture - Modern React + SCSS**
+## 📁 **Architecture - Clean & Simple**
 
 ### **Global Styles Structure**
 ```
 styles/
-├── abstracts/          # Design system foundation
-│   ├── _tokens.scss    # Design tokens (colors, spacing, typography)
-│   └── _mixins.scss    # Reusable SCSS patterns
-├── base/               # Base styles
-│   ├── _reset.scss     # Modern CSS reset
-│   └── _typography.scss # Typography system
-├── themes/             # Theme definitions
-│   └── _themes.scss    # Light/dark themes with CSS custom properties
-└── main.scss           # Main entry point
+├── variables.scss      # All design tokens (spacing, colors, fonts, etc.)
+├── typography.scss     # Font families only (headers vs body)
+├── base.scss          # CSS reset and base styles
+├── themes.scss        # Light/dark theme definitions
+└── main.scss          # Main entry point (imports all above)
 ```
 
-### **Component Styles Structure**
+### **Component Styles Structure** 
 ```
-components/
-├── slices/
-│   ├── Button/
-│   │   ├── Button.tsx           # React component
-│   │   ├── Button.module.scss   # Component-specific styles
-│   │   └── index.ts            # Exports
-│   └── Container/
-│       ├── Container.tsx
-│       ├── Container.module.scss
-│       └── index.ts
-├── forms/
-│   └── ContactForm/
-│       ├── ContactForm.tsx
-│       └── ContactForm.module.scss
-└── cards/
-    └── ListingCard/
-        ├── ListingCard.tsx
-        └── ListingCard.module.scss
+components/slices/
+├── Text/
+│   ├── Text.tsx               # React component with variants
+│   ├── Text.module.scss       # Responsive typography with clamp()
+│   └── index.ts              # Exports
+├── Button/
+│   ├── Button.tsx             # Button component
+│   ├── Button.module.scss     # Button styles + ThemeToggle + LanguageSelector
+│   └── index.ts              # Exports
+├── Container/
+│   ├── Container.tsx          # Layout container
+│   ├── Container.module.scss  # Container styles
+│   └── index.ts
+└── [other slices...]
 ```
 
-**Why This Approach:**
-- ✅ **Co-location** - Styles live next to components
-- ✅ **CSS Modules** - Automatic scoping, no naming conflicts
-- ✅ **Maintainability** - Easy to find and update component styles
-- ✅ **Tree-shaking** - Unused styles are automatically removed
+**Key Principles:**
+- ✅ **Each .module.scss imports `../../../styles/variables`** at the top
+- ✅ **Typography uses direct clamp() values** (no font-size variables)
+- ✅ **Font families managed in typography.scss** (headers vs body)
+- ✅ **CSS custom properties** for themes with HSL values
+- ✅ **Direct SCSS variables** like `$space-md`, `$weight-bold` (no functions)
 
-### **Global vs Component Styles**
+---
 
-**Global Styles (`styles/`) - Use for:**
-- ✅ Design tokens and variables
-- ✅ Base styles (reset, typography)
-- ✅ Theme definitions
-- ✅ Utility classes (.flex, .text-center, etc.)
-- ✅ System-wide patterns
+## 🎨 **Design Tokens (variables.scss)**
 
-**Component Styles (`.module.scss`) - Use for:**
-- ✅ Component-specific styling
-- ✅ Component states and variants
-- ✅ Component layout and positioning
-- ✅ Component animations and transitions
-
-**Example:**
+### **Spacing System - Direct Variables**
 ```scss
-// ❌ DON'T put in global styles
-.button-primary { }
-.card-header { }
-.modal-overlay { }
+// Simple, direct spacing variables
+$space-xs: 0.25rem;     // 4px
+$space-sm: 0.5rem;      // 8px  
+$space-md: 1rem;        // 16px
+$space-lg: 2rem;        // 32px
+$space-xl: 4rem;        // 64px
+$space-xxl: 8rem;       // 128px
+```
 
-// ✅ DO put in component .module.scss
-.button { }  // Button.module.scss
-.header { }  // Card.module.scss  
-.overlay { } // Modal.module.scss
+### **Typography - Responsive Clamp Variables** 
+```scss
+// Font sizes with responsive clamp() - used directly in Text.module.scss
+$font-xs: clamp(0.75rem, 0.5vw, 0.8rem);    // 12–13px
+$font-sm: clamp(0.875rem, 0.6vw, 0.95rem);  // 14–15px
+$font-base: clamp(1rem, 0.8vw, 1.1rem);     // 16–18px
+$font-lg: clamp(1.125rem, 1vw, 1.25rem);    // 18–20px
+$font-xl: clamp(1.25rem, 1.2vw, 1.4rem);    // 20–22px
+$font-2xl: clamp(1.5rem, 1.5vw, 1.75rem);   // 24–28px
+$font-3xl: clamp(1.875rem, 2vw, 2.25rem);   // 30–36px
+$font-4xl: clamp(2.25rem, 2.5vw, 2.75rem);  // 36–44px
+$font-5xl: clamp(3rem, 3.5vw, 3.75rem);     // 48–60px
+$font-6xl: clamp(3.75rem, 4.5vw, 4.5rem);   // 60–72px
+```
+
+### **Font Weights & Line Heights**
+```scss
+// Font weights - Direct SCSS variables
+$weight-normal: 400;
+$weight-medium: 500;
+$weight-semibold: 600;
+$weight-bold: 700;
+
+// Line heights - Direct SCSS variables
+$line-none: 1;
+$line-tight: 1.25;
+$line-snug: 1.375;
+$line-normal: 1.5;
+$line-relaxed: 1.625;
+$line-loose: 2;
+```
+
+### **Font Families**
+```scss
+// Two main font families - used in typography.scss
+$font-headers: 'Beiruti', 'Cairo', 'Segoe UI', Tahoma, Geneva, sans-serif;
+$font-body: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+```
+
+### **Colors & Layout**
+```scss
+// Brand colors
+$syrian-blue: hsl(214, 69%, 32%);
+$syrian-red: hsl(350, 84%, 44%);
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Border radius
+$radius-sm: 0.25rem;
+$radius-md: 0.5rem;
+$radius-lg: 0.75rem;
+$radius-full: 9999px;
+
+// Layout dimensions
+$header-height: 80px;
+$header-height-mobile: 70px;
 ```
 
 ---
 
-## 🎨 **Design Tokens**
+## 🔤 **Typography System**
 
-### **Color System**
+### **Font Management (typography.scss)**
 ```scss
-// Syrian brand colors
-$syrian-blue: hsl(214, 69%, 32%);    // Primary - Syrian flag blue
-$syrian-red: hsl(350, 84%, 44%);     // Secondary - Syrian flag red
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 
-// Semantic colors
-$success: hsl(142, 76%, 36%);        // Green for successful actions
-$warning: hsl(38, 92%, 50%);         // Amber for warnings
-$error: hsl(0, 84%, 60%);            // Red for errors
-$info: hsl(217, 91%, 60%);           // Blue for information
+// Body font family
+body {
+  font-family: $font-body; // Rubik
+}
+
+// Headers font family  
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-headers; // Beiruti
+}
+
+// Paragraphs font family
+p {
+  font-family: $font-body; // Rubik
+}
 ```
 
-### **Spacing System**
+### **Text Component (Text.module.scss)**
+The Text slice handles all font sizes with responsive clamp values:
+
 ```scss
-// Systematic spacing scale
-$spacing: (
-  0: 0,
-  1: 0.25rem,      // 4px
-  2: 0.5rem,       // 8px
-  4: 1rem,         // 16px
-  8: 2rem,         // 32px
-  
-  // Semantic spacing (user's proven approach)
-  xs: 0.25rem,     // 4px
-  sm: 0.5rem,      // 8px
-  md: 1rem,        // 16px
-  lg: 2rem,        // 32px
-  xl: 4rem,        // 64px
-  xxl: 8rem,       // 128px
-);
-```
+@import '../../../styles/variables';
 
-### **Typography Scale**
-```scss
-// Font sizes
-$font-sizes: (
-  xs: 0.75rem,     // 12px
-  sm: 0.875rem,    // 14px
-  base: 1rem,      // 16px
-  lg: 1.125rem,    // 18px
-  xl: 1.25rem,     // 20px
-  2xl: 1.5rem,     // 24px
-  3xl: 1.875rem,   // 30px
-  4xl: 2.25rem,    // 36px
-);
+// Base styles
+%text-base {
+  margin: 0;
+  line-height: $line-normal;
+  color: hsl(var(--text));
+}
 
-// Font families (Arabic/Latin approach)
-$font-families: (
-  sans: ('Inter', -apple-system, BlinkMacSystemFont, sans-serif),
-  arabic: ('Cairo', 'Segoe UI', Tahoma, Geneva, sans-serif),
-  mono: ('JetBrains Mono', 'Fira Code', Consolas, monospace),
-);
-```
+// Header base styles (uses Beiruti font from typography.scss)
+%header-base {
+  @extend %text-base;
+  font-family: $font-headers;
+}
 
-### **Responsive Breakpoints**
-```scss
-$breakpoints: (
-  sm: 640px,       // Mobile landscape
-  md: 768px,       // Tablet
-  lg: 1024px,      // Desktop
-  xl: 1280px,      // Large desktop
-  2xl: 1536px,     // Extra large
-);
+// Body base styles (uses Rubik font from typography.scss)
+%body-base {
+  @extend %text-base;
+  font-family: $font-body;
+}
 
-// Container max widths
-$container-max-widths: (
-  sm: 640px,
-  md: 768px,
-  lg: 1024px,
-  xl: 1280px,
-  2xl: 1400px,
-  full: 100%,
-);
+// Heading variants with clamp()
+.h1 {
+  @extend %header-base;
+  font-size: clamp(3.75rem, 4.5vw, 4.5rem); // 60-72px
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.h2 {
+  @extend %header-base;
+  font-size: clamp(2.25rem, 2.5vw, 2.75rem); // 36-44px
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+// Body text variants
+.paragraph {
+  @extend %body-base;
+  font-size: clamp(1rem, 0.8vw, 1.1rem); // 16-18px
+  font-weight: 400;
+}
+
+.small {
+  @extend %body-base;
+  font-size: clamp(0.875rem, 0.6vw, 0.95rem); // 14-15px
+  font-weight: 400;
+}
 ```
 
 ---
 
-## 🌙 **Theme System - Modern CSS Custom Properties**
+## 🌙 **Theme System**
 
-### **How Themes Work**
-We use `data-theme` attributes and CSS custom properties with **HSL values** for alpha transparency support:
-
+### **CSS Custom Properties (themes.scss)**
 ```css
 /* Light theme (default) */
 :root,
 [data-theme="light"] {
   --primary: 214 69% 32%;        /* Syrian blue */
   --secondary: 350 84% 44%;      /* Syrian red */
-  --bg-primary: 0 0% 100%;       /* White background */
-  --text-primary: 222 84% 5%;    /* Dark text */
+  --surface: 0 0% 100%;          /* White */
+  --text: 222 84% 5%;            /* Dark text */
 }
 
 /* Dark theme */
 [data-theme="dark"] {
-  --primary: 217 91% 60%;        /* Lighter blue for dark mode */
+  --primary: 217 91% 60%;        /* Lighter blue */
   --secondary: 0 84% 60%;        /* Adjusted red */
-  --bg-primary: 222 84% 5%;      /* Dark background */
-  --text-primary: 210 20% 98%;   /* Light text */
+  --surface: 222 84% 5%;         /* Dark surface */
+  --text: 210 20% 98%;           /* Light text */
 }
 ```
 
 ### **Using Theme Colors**
 ```scss
-// In components, use hsl() function for alpha support
+// In component .module.scss files
 .button {
-  background-color: hsl(var(--primary));           // Solid color
-  color: hsl(var(--text-inverse));
-  border: 1px solid hsl(var(--primary) / 0.5);     // 50% transparency
-}
-
-.button:hover {
-  background-color: hsl(var(--primary) / 0.9);     // 90% opacity
+  background-color: hsl(var(--primary));           // Solid
+  border: 1px solid hsl(var(--primary) / 0.5);     // 50% opacity
+  color: hsl(var(--text));
 }
 ```
 
 ---
 
-## 🔧 **Helper Functions**
+## 🛠 **Creating New Slices**
 
-### **Design Token Access**
-```scss
-// Use these functions to access design tokens
-@function color($key) { @return get($colors, $key); }
-@function space($key) { @return get($spacing, $key); }
-@function text($key) { @return get($font-sizes, $key); }
-@function weight($key) { @return get($font-weights, $key); }
-@function radius($key) { @return get($radius, $key); }
-@function breakpoint($key) { @return get($breakpoints, $key); }
-
-// Example usage
-.component {
-  margin: space(md);                    // 1rem
-  font-size: text(lg);                  // 1.125rem
-  color: color(primary);                // Syrian blue
-  border-radius: radius(md);            // 0.5rem
-}
+### **1. Component Structure**
+```
+components/slices/NewSlice/
+├── NewSlice.tsx           # React component
+├── NewSlice.module.scss   # Component styles
+└── index.ts              # Export file
 ```
 
----
-
-## 🎭 **Essential Mixins**
-
-### **Responsive Design**
+### **2. SCSS Module Template**
 ```scss
-// Mobile-first responsive mixins
-@mixin respond-to($breakpoint) {
-  @media (min-width: breakpoint($breakpoint)) {
-    @content;
-  }
-}
+// NewSlice.module.scss
+@import '../../../styles/variables';
 
-// Usage
-.container {
-  padding: space(sm);
+.newSlice {
+  // Use spacing variables
+  padding: $space-md;
+  margin-bottom: $space-lg;
   
-  @include respond-to(md) {
-    padding: space(lg);
-  }
-}
-```
-
-### **RTL/LTR Support (Arabic/Latin)**
-```scss
-// RTL support for Arabic
-@mixin rtl {
-  [dir="rtl"] & {
-    @content;
-  }
-}
-
-// Usage
-.text-align {
-  text-align: left;
+  // Use border radius
+  border-radius: $radius-md;
   
-  @include rtl {
-    text-align: right;
+  // Use theme colors  
+  background-color: hsl(var(--surface));
+  color: hsl(var(--text));
+  border: 1px solid hsl(var(--border));
+}
+
+// Size variants
+.small {
+  padding: $space-sm;
+}
+
+.large {
+  padding: $space-xl;
+}
+
+// State variants
+.active {
+  background-color: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary));
+}
+
+// Responsive behavior
+@media (max-width: $breakpoint-md) {
+  .newSlice {
+    padding: $space-sm;
   }
 }
 ```
 
-### **Layout Helpers**
-```scss
-// Container mixin (user's proven approach)
-@mixin container($size: xl) {
-  width: 100%;
-  margin-inline: auto;
-  padding-inline: space(md);
-  
-  @if map-has-key($container-max-widths, $size) {
-    max-width: get($container-max-widths, $size);
-  }
-}
-
-// Flexbox utilities
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@mixin flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-```
-
-### **Component Patterns**
-```scss
-// Button reset
-@mixin button-reset {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font: inherit;
-  cursor: pointer;
-}
-
-// Focus ring for accessibility
-@mixin focus-ring($color: primary) {
-  &:focus-visible {
-    outline: 2px solid hsl(var(--#{$color}));
-    outline-offset: 2px;
-    border-radius: radius(sm);
-  }
-}
-
-// Loading spinner
-@mixin spinner($size: 1rem) {
-  width: $size;
-  height: $size;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-```
-
----
-
-## 🧩 **Component CSS Modules Pattern**
-
-### **File Structure**
-```
-components/slices/Button/
-├── Button.tsx              # React component
-├── Button.module.scss      # Component styles
-└── index.ts               # Export file
-```
-
-### **SCSS Module Example**
-```scss
-// Button.module.scss
-@import '../../../styles/abstracts/tokens';
-@import '../../../styles/abstracts/mixins';
-
-.button {
-  @include button-reset;
-  @include focus-ring;
-  
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: space(sm);
-  font-weight: weight(medium);
-  border-radius: radius(md);
-  transition: map-get($transitions, default);
-}
-
-// Variants using design tokens
-.primary {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--text-inverse));
-  
-  @include hover {
-    background-color: hsl(var(--primary) / 0.9);
-  }
-}
-
-// Sizes using design tokens
-.lg {
-  @include text-style(lg, medium);
-  padding: space(4) space(8);
-  min-height: 48px;
-}
-```
-
-### **React Component Example**
+### **3. React Component Template**
 ```tsx
-// Button.tsx
-import styles from './Button.module.scss';
+// NewSlice.tsx
+import React from 'react';
+import styles from './NewSlice.module.scss';
 
-interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+export interface NewSliceProps {
+  size?: 'small' | 'medium' | 'large';
+  active?: boolean;
   children: React.ReactNode;
+  className?: string;
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
-  children
+export const NewSlice: React.FC<NewSliceProps> = ({
+  size = 'medium',
+  active = false,
+  children,
+  className = ''
 }) => {
   return (
-    <button className={`${styles.button} ${styles[variant]} ${styles[size]}`}>
+    <div 
+      className={`
+        ${styles.newSlice} 
+        ${styles[size]} 
+        ${active ? styles.active : ''} 
+        ${className}
+      `.trim()}
+    >
       {children}
-    </button>
+    </div>
   );
 };
+
+export default NewSlice;
 ```
 
 ---
 
-## 🌍 **Arabic/RTL Support**
+## 📋 **Quick Reference**
 
-### **Font Loading Strategy**
-```css
-/* Base font families */
-:root {
-  --font-sans: 'Inter', -apple-system, sans-serif;
-  --font-arabic: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-}
-
-/* Default font */
-:root {
-  font-family: var(--font-sans);
-}
-
-/* Arabic override */
-[lang="ar"],
-[dir="rtl"] {
-  font-family: var(--font-arabic);
-}
-```
-
-### **RTL Layout**
-```html
-<!-- HTML setup -->
-<html lang="ar" dir="rtl" data-theme="light">
-```
-
+### **Common Patterns**
 ```scss
-// SCSS handling
-.component {
-  margin-left: space(md);
-  
-  @include rtl {
-    margin-left: 0;
-    margin-right: space(md);
-  }
-}
+// Spacing
+padding: $space-md;           // 1rem
+margin: $space-lg $space-md;  // 2rem 1rem
 
-// Or use logical properties (modern approach)
-.component {
-  margin-inline-start: space(md);  // Works for both LTR/RTL
-}
-```
+// Typography (don't use variables - use clamp directly)
+font-size: clamp(1rem, 0.8vw, 1.1rem);  // Responsive
+font-weight: 600;                        // Use numbers
+line-height: 1.5;                        // Use numbers
 
----
+// Colors
+background-color: hsl(var(--primary));
+border: 1px solid hsl(var(--border));
+color: hsl(var(--text-muted));
 
-## 🚀 **Performance Optimizations**
+// Border radius
+border-radius: $radius-md;    // 0.5rem
 
-### **CSS Custom Properties Benefits**
-- **Runtime theme switching** without CSS re-compilation
-- **Alpha transparency** with HSL values
-- **Reduced bundle size** - no duplicate color values
-- **Better caching** - static CSS with dynamic values
-
-### **Modern CSS Features**
-```css
-/* Logical properties for RTL */
-margin-inline: 1rem;        /* Instead of margin-left/right */
-padding-block: 2rem;        /* Instead of padding-top/bottom */
-
-/* Modern color syntax */
-background: hsl(var(--primary) / 0.8);  /* HSL with alpha */
-
-/* Container queries (future) */
-@container (min-width: 400px) {
-  .card { flex-direction: row; }
+// Responsive
+@media (max-width: $breakpoint-md) {
+  // Mobile styles
 }
 ```
-
----
-
-## 📝 **Usage Guidelines**
 
 ### **DO ✅**
-```scss
-// Use design token functions
-padding: space(md);
-color: hsl(var(--primary));
-font-size: text(lg);
-
-// Use semantic spacing
-.mb-8 { margin-bottom: space(xl); }  // 2rem
-
-// Use mixins for common patterns
-@include container(lg);
-@include flex-center;
-@include respond-to(md);
-```
+- Import variables: `@import '../../../styles/variables';`
+- Use direct SCSS variables: `$space-md`, `$weight-bold`
+- Use clamp() directly for font-size (no variables)
+- Use HSL theme colors: `hsl(var(--primary))`
+- Use logical properties: `margin-inline-start`
 
 ### **DON'T ❌**
-```scss
-// Don't use hardcoded values
-padding: 16px;              // Use space(md) instead
-color: #1a5490;             // Use hsl(var(--primary)) instead
-font-size: 18px;            // Use text(lg) instead
-
-// Don't use decimal class names in loops
-.m-0.5 { }                  // Causes SCSS compilation errors
-
-// Don't mix old and new patterns
-margin-left: 1rem;          // Use margin-inline-start or logical properties
-```
+- Use font-size variables (use clamp directly)
+- Use functions like `map-get()` or `@include`
+- Hardcode values like `16px` (use variables)
+- Mix old and new patterns
+- Put global styles in component modules
 
 ---
 
-## 🔄 **Migration from Old Patterns**
+## 🚀 **Benefits of This System**
 
-### **Before (Old Pattern)**
-```scss
-// Old hardcoded approach
-.button {
-  background-color: #1a5490;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  
-  &:hover {
-    background-color: darken(#1a5490, 10%);  // Doesn't work with CSS vars
-  }
-}
-```
-
-### **After (Modern Pattern)**
-```scss
-// New design system approach
-.button {
-  background-color: hsl(var(--primary));
-  padding: space(sm) space(md);
-  border-radius: radius(md);
-  
-  @include hover {
-    background-color: hsl(var(--primary) / 0.9);  // Works with CSS vars
-  }
-}
-```
+1. **Simple & Predictable** - Direct variables, no complex functions
+2. **Responsive Typography** - Automatic scaling with clamp()
+3. **Theme Support** - Runtime theme switching with CSS custom properties
+4. **Arabic/English** - Proper font handling for both languages
+5. **Maintainable** - Clear separation of concerns
+6. **Performant** - No runtime CSS generation
+7. **TypeScript** - Full type safety with CSS modules
 
 ---
 
-## 🎯 **Syrian Marketplace Specific**
-
-### **Brand Colors**
-- **Primary**: Syrian flag blue (`hsl(214, 69%, 32%)`)
-- **Secondary**: Syrian flag red (`hsl(350, 84%, 44%)`)
-- **Success**: Green for successful bids/sales
-- **Warning**: Amber for pending actions
-- **Error**: Red for failed actions
-
-### **Typography**
-- **Arabic users**: Cairo font family
-- **International users**: Inter font family
-- **Automatic switching**: Based on `lang="ar"` and `dir="rtl"`
-
-### **Responsive Strategy**
-- **Mobile-first**: Syrian users primarily on mobile
-- **Touch-friendly**: Minimum 44px touch targets
-- **Performance-focused**: Minimal CSS for slow connections
-
----
-
-## 🔗 **Quick Reference**
-
-### **Common Class Names**
-```css
-/* Layout */
-.container          /* Responsive container */
-.flex              /* display: flex */
-.flex-center       /* Centered flex container */
-.text-center       /* Centered text */
-
-/* Spacing */
-.m-4               /* margin: 1rem */
-.p-8               /* padding: 2rem */
-.gap-4             /* gap: 1rem */
-.mb-8              /* margin-bottom: 2rem */
-
-/* Colors */
-.text-primary      /* Primary text color */
-.text-muted        /* Muted text color */
-.bg-primary        /* Primary background */
-
-/* Responsive */
-.hidden            /* display: none */
-.block             /* display: block */
-```
-
-### **SCSS Functions Quick Access**
-```scss
-space(md)          // 1rem
-text(lg)           // 1.125rem
-color(primary)     // Syrian blue
-radius(md)         // 0.5rem
-breakpoint(lg)     // 1024px
-weight(semibold)   // 600
-```
-
----
-
-## 🚨 **Troubleshooting**
-
-### **Common Issues**
-1. **SCSS compilation errors**: Check import paths and avoid decimal class names
-2. **CSS custom properties not working**: Ensure `hsl()` wrapper function
-3. **RTL issues**: Use logical properties or RTL mixins
-4. **Theme switching**: Check `data-theme` attribute on `<html>`
-
-### **Build Errors**
-```bash
-# If SCSS compilation fails
-npm run build  # Check console for specific errors
-
-# Common fixes
-- Remove decimal values from SCSS loops (.m-0.5)
-- Fix @extend across media queries
-- Check import paths in .module.scss files
-```
-
----
-
-**This design system provides a solid foundation for the Syrian marketplace while maintaining modern best practices and performance optimization.**
+**This system provides a solid, clean foundation for the Syrian marketplace with modern best practices and excellent developer experience.**

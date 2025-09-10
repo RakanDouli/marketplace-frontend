@@ -1,0 +1,311 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  background-color: hsl(var(--surface-primary));
+  border-bottom: 1px solid hsl(var(--border-primary));
+  backdrop-filter: blur(8px);
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: $container-lg;
+  padding-left: $space-lg;
+  padding-right: $space-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: $space-md;
+  gap: $space-md;
+
+  @media (min-width: $breakpoint-lg) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  text-decoration: none;
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.logoIcon {
+  font-size: $font-xl;
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+.logoMain {
+  font-size: $font-lg;
+  font-weight: $weight-bold;
+  color: hsl(var(--primary));
+  line-height: $line-tight;
+}
+
+.logoSub {
+  font-size: $font-sm;
+  font-weight: $weight-normal;
+  color: hsl(var(--text-muted));
+  line-height: $line-tight;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  
+  @media (max-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+.navLink {
+  font-size: $font-base;
+  font-weight: $weight-medium;
+  color: hsl(var(--text-secondary));
+  text-decoration: none;
+  padding: $space-xs $space-md;
+  border-radius: $radius-md;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  
+  &:hover {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+  }
+  
+  &.active {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  
+  @media (max-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+.authButtons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
+.avatar {
+  border-radius: $radius-full;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--text-inverse));
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.userName {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: hsl(var(--text-primary));
+}
+
+.userActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
+.dashboardLink {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: hsl(var(--text-secondary));
+  text-decoration: none;
+  padding: $space-xs $space-md;
+  border-radius: $radius-md;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+  }
+}
+
+.mobileMenuButton {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-md;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  @media (min-width: $breakpoint-lg) {
+    display: none;
+  }
+  
+  &:hover {
+    background-color: hsl(var(--bg-tertiary));
+  }
+  
+  &:focus {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  width: 20px;
+  
+  span {
+    height: 2px;
+    background-color: hsl(var(--text-primary));
+    border-radius: $radius-full;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &.hamburgerOpen {
+    span:nth-child(1) {
+      transform: rotate(45deg) translateY(6px);
+    }
+    
+    span:nth-child(2) {
+      opacity: 0;
+    }
+    
+    span:nth-child(3) {
+      transform: rotate(-45deg) translateY(-6px);
+    }
+  }
+}
+
+.mobileMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: hsl(var(--surface-primary));
+  border-bottom: 1px solid hsl(var(--border-primary));
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  
+  &.mobileMenuOpen {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  @media (min-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+.mobileNav {
+  display: flex;
+  flex-direction: column;
+  padding: $space-md;
+  border-bottom: 1px solid hsl(var(--border-primary));
+}
+
+.mobileNavLink {
+  font-size: $font-base;
+  font-weight: $weight-medium;
+  color: hsl(var(--text-secondary));
+  text-decoration: none;
+  padding: $space-sm;
+  border-radius: $radius-md;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+  }
+  
+  &.active {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+  }
+}
+
+.mobileActions {
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.fullWidth {
+  width: 100%;
+  justify-content: center;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: hsl(0 0% 0% / 0.5);
+  z-index: 1300;
+  
+  @media (min-width: $breakpoint-lg) {
+    display: none;
+  }
+}

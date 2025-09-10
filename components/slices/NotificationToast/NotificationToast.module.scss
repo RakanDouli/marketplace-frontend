@@ -1,32 +1,32 @@
-@import '../../../styles/abstracts/tokens';
-@import '../../../styles/abstracts/mixins';
 
 .container {
   position: fixed;
-  top: space(4);
-  right: space(4);
-  z-index: z(toast);
+  top: $space-md;
+  right: $space-md;
+  z-index: 1700;
   display: flex;
   flex-direction: column;
-  gap: space(2);
+  gap: $space-sm;
   max-width: 400px;
   width: 100%;
   
-  @include respond-below(md) {
-    left: space(4);
-    right: space(4);
+  @media (max-width: $breakpoint-md) {
+    left: $space-md;
+    right: $space-md;
     max-width: none;
   }
 }
 
 .toast {
-  @include flex-between;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background-color: hsl(var(--surface-raised));
-  border-radius: radius(md);
-  box-shadow: shadow(lg);
+  border-radius: $radius-md;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   border: 1px solid hsl(var(--border-primary));
-  padding: space(4);
-  gap: space(3);
+  padding: $space-md;
+  gap: $space-md;
   animation: slideIn 0.3s ease-out;
   
   &.success {
@@ -52,66 +52,88 @@
 }
 
 .title {
-  @include text-style(sm, semibold);
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
   color: hsl(var(--text-primary));
-  margin-bottom: space(0.5);
+  margin-bottom: $space-xs;
 }
 
 .message {
-  @include text-style(sm);
+  font-size: $font-sm;
+  font-weight: $weight-normal;
   color: hsl(var(--text-secondary));
-  @include line-clamp(3);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: space(2);
+  gap: $space-sm;
   flex-shrink: 0;
 }
 
 .actionButton {
-  @include button-reset;
-  @include text-style(sm, medium);
-  color: hsl(var(--primary));
-  padding: space(1) space(2);
-  border-radius: radius(sm);
-  transition: map-get($transitions, colors);
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
   
-  @include hover {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: hsl(var(--primary));
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
     background-color: hsl(var(--primary) / 0.1);
   }
   
-  @include focus {
-    @include focus-ring;
+  &:focus {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
   }
 }
 
 .closeButton {
-  @include button-reset;
-  @include flex-center;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: radius(sm);
+  border-radius: $radius-sm;
   color: hsl(var(--text-muted));
-  transition: map-get($transitions, colors);
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
   
-  @include hover {
+  &:hover {
     background-color: hsl(var(--bg-tertiary));
     color: hsl(var(--text-primary));
   }
   
-  @include focus {
-    @include focus-ring;
+  &:focus {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
   }
 }
 
 .icon {
-  @include flex-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  margin-right: space(2);
+  margin-right: $space-xs;
   
   &.success {
     color: hsl(var(--success));

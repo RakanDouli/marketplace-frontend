@@ -4,13 +4,14 @@ const nextConfig = {
     // Enable experimental features for better performance
   },
   images: {
-    domains: ['localhost'],
-    formats: ['image/webp', 'image/avif'],
+    domains: ["localhost"],
+    formats: ["image/webp", "image/avif"],
   },
   // Enable SCSS support
   sassOptions: {
-    includePaths: ['./styles'],
+    includePaths: ["./styles"],
+    prependData: `@import "styles/variables.scss";`,
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

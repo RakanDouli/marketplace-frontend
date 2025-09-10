@@ -1,7 +1,7 @@
 'use client';
 
 import { Container, Button } from '@/components/slices';
-import { useI18n } from '@/contexts/I18nContext';
+import { useTranslation, useLanguage } from '@/hooks/useTranslation';
 import { useNotificationStore } from '@/store';
 import { formatCurrency, formatDate } from '@/utils/i18n';
 import Image from 'next/image';
@@ -49,7 +49,8 @@ const getMockListing = (id: string) => ({
 
 export default function ListingDetailPage({ params }: ListingDetailPageProps) {
   const { id } = params;
-  const { t, language } = useI18n();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const { addNotification } = useNotificationStore();
   
   const listing = getMockListing(id);

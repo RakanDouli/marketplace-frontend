@@ -1,7 +1,7 @@
 import '../styles/main.scss';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { I18nProvider } from '@/contexts/I18nContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { NotificationToast } from '@/components/slices/NotificationToast/NotificationToast';
 import { generateDefaultMetadata } from '@/utils/seo';
 
@@ -15,12 +15,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" data-theme="light">
       <body>
-        <I18nProvider defaultLanguage="ar">
+        <LanguageProvider defaultLanguage="ar">
           <ThemeProvider>
             {children}
             <NotificationToast />
           </ThemeProvider>
-        </I18nProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
