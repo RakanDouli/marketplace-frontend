@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { Container, Button } from '@/components/slices';
-import { useTranslation, useLanguage } from '@/hooks/useTranslation';
-import { useNotificationStore } from '@/store';
-import { formatCurrency, formatDate } from '@/utils/i18n';
-import Image from 'next/image';
+import { Container, Button } from "@/components/slices";
+import { useTranslation, useLanguage } from "@/hooks/useTranslation";
+import { useNotificationStore } from "@/store";
+import { formatCurrency, formatDate } from "@/utils/i18n";
+import Image from "next/image";
 interface ListingDetailPageProps {
   params: { id: string };
 }
@@ -12,39 +12,40 @@ interface ListingDetailPageProps {
 // Mock data - will be replaced with API call
 const getMockListing = (id: string) => ({
   id,
-  title: '2020 Toyota Camry - Excellent Condition',
-  description: 'Well-maintained Toyota Camry with full service history. Perfect for families, excellent fuel economy, and reliable performance.',
+  title: "2020 Toyota Camry - Excellent Condition",
+  description:
+    "Well-maintained Toyota Camry with full service history. Perfect for families, excellent fuel economy, and reliable performance.",
   price: 25000,
-  currency: 'USD',
-  condition: 'EXCELLENT',
-  location: 'Damascus / دمشق',
+  currency: "USD",
+  condition: "EXCELLENT",
+  location: "Damascus / دمشق",
   images: [
-    '/images/placeholder-car.svg',
-    '/images/placeholder-car.svg',
-    '/images/placeholder-car.svg',
+    "/images/placeholder-car.svg",
+    "/images/placeholder-car.svg",
+    "/images/placeholder-car.svg",
   ],
   specifications: {
-    make: 'Toyota',
-    model: 'Camry',
+    make: "Toyota",
+    model: "Camry",
     year: 2020,
     mileage: 45000,
-    transmission: 'Automatic',
-    fuelType: 'Gasoline',
-    engine: '2.5L 4-cylinder',
-    color: 'Silver',
+    transmission: "Automatic",
+    fuelType: "Gasoline",
+    engine: "2.5L 4-cylinder",
+    color: "Silver",
   },
   isFeatured: true,
-  status: 'ACTIVE' as const,
+  status: "ACTIVE" as const,
   seller: {
-    firstName: 'Ahmad',
-    lastName: 'Al-Rashid',
+    firstName: "Ahmad",
+    lastName: "Al-Rashid",
     avatar: undefined,
-    phone: '+963 11 123 4567',
-    memberSince: '2022-03-15',
+    phone: "+963 11 123 4567",
+    memberSince: "2022-03-15",
   },
   viewCount: 156,
-  createdAt: '2024-01-15T10:00:00Z',
-  updatedAt: '2024-01-15T10:00:00Z',
+  createdAt: "2024-01-15T10:00:00Z",
+  updatedAt: "2024-01-15T10:00:00Z",
 });
 
 export default function ListingDetailPage({ params }: ListingDetailPageProps) {
@@ -52,47 +53,50 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { addNotification } = useNotificationStore();
-  
+
   const listing = getMockListing(id);
 
   const handleContactSeller = () => {
     addNotification({
-      type: 'info',
-      title: t('listing.contactSeller'),
-      message: language === 'ar'
-        ? 'قريباً.. وظيفة التواصل مع البائع قيد التطوير'
-        : 'Contact seller functionality coming soon!',
+      type: "info",
+      title: t("listing.contactSeller"),
+      message:
+        language === "ar"
+          ? "قريباً.. وظيفة التواصل مع البائع قيد التطوير"
+          : "Contact seller functionality coming soon!",
     });
   };
 
   const handlePlaceBid = () => {
     addNotification({
-      type: 'info',
-      title: t('bid.placeBid'),
-      message: language === 'ar'
-        ? 'قريباً.. وظيفة المزايدة قيد التطوير'
-        : 'Bidding functionality coming soon!',
+      type: "info",
+      title: t("bid.placeBid"),
+      message:
+        language === "ar"
+          ? "قريباً.. وظيفة المزايدة قيد التطوير"
+          : "Bidding functionality coming soon!",
     });
   };
 
   const handleSaveToFavorites = () => {
     addNotification({
-      type: 'success',
-      title: 'Saved',
-      message: language === 'ar'
-        ? 'تم حفظ الإعلان في المفضلة'
-        : 'Listing saved to favorites',
+      type: "success",
+      title: "Saved",
+      message:
+        language === "ar"
+          ? "تم حفظ الإعلان في المفضلة"
+          : "Listing saved to favorites",
     });
   };
 
   const getConditionLabel = (condition: string) => {
     const conditionMap = {
-      'NEW': language === 'ar' ? 'جديد' : 'New',
-      'USED': language === 'ar' ? 'مستعمل' : 'Used',
-      'EXCELLENT': language === 'ar' ? 'ممتاز' : 'Excellent',
-      'GOOD': language === 'ar' ? 'جيد' : 'Good',
-      'FAIR': language === 'ar' ? 'متوسط' : 'Fair',
-      'POOR': language === 'ar' ? 'يحتاج صيانة' : 'Needs Repair'
+      NEW: language === "ar" ? "جديد" : "New",
+      USED: language === "ar" ? "مستعمل" : "Used",
+      EXCELLENT: language === "ar" ? "ممتاز" : "Excellent",
+      GOOD: language === "ar" ? "جيد" : "Good",
+      FAIR: language === "ar" ? "متوسط" : "Fair",
+      POOR: language === "ar" ? "يحتاج صيانة" : "Needs Repair",
     };
     return conditionMap[condition as keyof typeof conditionMap] || condition;
   };
@@ -114,15 +118,18 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
                   />
                   {listing.isFeatured && (
                     <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      {t('listing.featured')}
+                      {t("listing.featured")}
                     </div>
                   )}
                 </div>
-                
+
                 {/* Thumbnail gallery */}
                 <div className="grid grid-cols-3 gap-2">
                   {listing.images.slice(1, 4).map((image, index) => (
-                    <div key={index} className="aspect-video relative rounded-md overflow-hidden">
+                    <div
+                      key={index}
+                      className="aspect-video relative rounded-md overflow-hidden"
+                    >
                       <Image
                         src={image}
                         alt={`${listing.title} ${index + 2}`}
@@ -146,14 +153,38 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
               <div className="mt-8">
                 <h2 className="text-xl font-bold mb-4">Specifications</h2>
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
-                  <div><span className="font-medium">Make:</span> {listing.specifications.make}</div>
-                  <div><span className="font-medium">Model:</span> {listing.specifications.model}</div>
-                  <div><span className="font-medium">Year:</span> {listing.specifications.year}</div>
-                  <div><span className="font-medium">Mileage:</span> {listing.specifications.mileage.toLocaleString()} km</div>
-                  <div><span className="font-medium">Transmission:</span> {listing.specifications.transmission}</div>
-                  <div><span className="font-medium">Fuel Type:</span> {listing.specifications.fuelType}</div>
-                  <div><span className="font-medium">Engine:</span> {listing.specifications.engine}</div>
-                  <div><span className="font-medium">Color:</span> {listing.specifications.color}</div>
+                  <div>
+                    <span className="font-medium">Make:</span>{" "}
+                    {listing.specifications.make}
+                  </div>
+                  <div>
+                    <span className="font-medium">Model:</span>{" "}
+                    {listing.specifications.model}
+                  </div>
+                  <div>
+                    <span className="font-medium">Year:</span>{" "}
+                    {listing.specifications.year}
+                  </div>
+                  <div>
+                    <span className="font-medium">Mileage:</span>{" "}
+                    {listing.specifications.mileage.toLocaleString()} km
+                  </div>
+                  <div>
+                    <span className="font-medium">Transmission:</span>{" "}
+                    {listing.specifications.transmission}
+                  </div>
+                  <div>
+                    <span className="font-medium">Fuel Type:</span>{" "}
+                    {listing.specifications.fuelType}
+                  </div>
+                  <div>
+                    <span className="font-medium">Engine:</span>{" "}
+                    {listing.specifications.engine}
+                  </div>
+                  <div>
+                    <span className="font-medium">Color:</span>{" "}
+                    {listing.specifications.color}
+                  </div>
                 </div>
               </div>
             </div>
@@ -166,7 +197,7 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
                 <div className="text-3xl font-bold text-blue-600 mb-4">
                   {formatCurrency(listing.price, listing.currency, language)}
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-4 text-sm text-gray-600 dark:text-gray-400">
                   <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
                     {getConditionLabel(listing.condition)}
@@ -180,29 +211,31 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
                     size="lg"
                     onClick={handlePlaceBid}
                     className="w-full"
-                    disabled={listing.status !== 'ACTIVE'}
+                    disabled={listing.status !== "ACTIVE"}
                   >
-                    {listing.status !== 'ACTIVE' 
-                      ? (language === 'ar' ? 'تم البيع' : 'Sold') 
-                      : t('bid.placeBid')}
+                    {listing.status !== "ACTIVE"
+                      ? language === "ar"
+                        ? "تم البيع"
+                        : "Sold"
+                      : t("bid.placeBid")}
                   </Button>
-                  
+
                   <Button
-                    variant="ghost"
+                    variant="primary"
                     size="lg"
                     onClick={handleContactSeller}
                     className="w-full"
                   >
-                    {t('listing.contactSeller')}
+                    {t("listing.contactSeller")}
                   </Button>
-                  
+
                   <Button
-                    variant="ghost"
+                    variant="primary"
                     size="md"
                     onClick={handleSaveToFavorites}
                     className="w-full"
                   >
-                    {t('listing.saveToFavorites')}
+                    {t("listing.saveToFavorites")}
                   </Button>
                 </div>
 
@@ -218,7 +251,11 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
                         {listing.seller.firstName} {listing.seller.lastName}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Member since {formatDate(new Date(listing.seller.memberSince), language)}
+                        Member since{" "}
+                        {formatDate(
+                          new Date(listing.seller.memberSince),
+                          language
+                        )}
                       </div>
                     </div>
                   </div>
@@ -228,7 +265,10 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex justify-between">
                     <span>Views: {listing.viewCount}</span>
-                    <span>Posted: {formatDate(new Date(listing.createdAt), language)}</span>
+                    <span>
+                      Posted:{" "}
+                      {formatDate(new Date(listing.createdAt), language)}
+                    </span>
                   </div>
                 </div>
               </div>

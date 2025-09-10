@@ -1,15 +1,14 @@
-
 .container {
   position: fixed;
   top: $space-md;
   right: $space-md;
-  z-index: 1700;
+  z-index: $z-toast;
   display: flex;
   flex-direction: column;
   gap: $space-sm;
   max-width: 400px;
   width: 100%;
-  
+
   @media (max-width: $breakpoint-md) {
     left: $space-md;
     right: $space-md;
@@ -21,28 +20,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: hsl(var(--surface-raised));
+  background-color: $surface;
   border-radius: $radius-md;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  border: 1px solid hsl(var(--border-primary));
+  border: 1px solid $border;
   padding: $space-md;
   gap: $space-md;
   animation: slideIn 0.3s ease-out;
-  
+
   &.success {
-    border-left: 4px solid hsl(var(--success));
+    border-left: 4px solid $success;
   }
-  
+
   &.error {
-    border-left: 4px solid hsl(var(--error));
+    border-left: 4px solid $error;
   }
-  
+
   &.warning {
-    border-left: 4px solid hsl(var(--warning));
+    border-left: 4px solid $warning;
   }
-  
+
   &.info {
-    border-left: 4px solid hsl(var(--info));
+    border-left: 4px solid $info;
   }
 }
 
@@ -54,14 +53,14 @@
 .title {
   font-size: $font-sm;
   font-weight: $weight-semibold;
-  color: hsl(var(--text-primary));
+  color: $text;
   margin-bottom: $space-xs;
 }
 
 .message {
   font-size: $font-sm;
   font-weight: $weight-normal;
-  color: hsl(var(--text-secondary));
+  color: $text-muted;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -81,20 +80,21 @@
   font: inherit;
   cursor: pointer;
   outline: none;
-  
+
   font-size: $font-sm;
   font-weight: $weight-medium;
-  color: hsl(var(--primary));
+  color: $primary;
   padding: $space-xs $space-sm;
   border-radius: $radius-sm;
-  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  
+  transition: color, background-color, border-color, text-decoration-color, fill,
+    stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
   &:hover {
-    background-color: hsl(var(--primary) / 0.1);
+    background-color: $surface;
   }
-  
+
   &:focus {
-    outline: 2px solid hsl(var(--primary));
+    outline: 2px solid $primary;
     outline-offset: 2px;
   }
 }
@@ -105,23 +105,24 @@
   font: inherit;
   cursor: pointer;
   outline: none;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
   border-radius: $radius-sm;
-  color: hsl(var(--text-muted));
-  transition: color, background-color, border-color, text-decoration-color, fill, stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  
+  color: $text-muted;
+  transition: color, background-color, border-color, text-decoration-color, fill,
+    stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
   &:hover {
-    background-color: hsl(var(--bg-tertiary));
-    color: hsl(var(--text-primary));
+    background-color: $surface;
+    color: $text;
   }
-  
+
   &:focus {
-    outline: 2px solid hsl(var(--primary));
+    outline: 2px solid $primary;
     outline-offset: 2px;
   }
 }
@@ -134,21 +135,21 @@
   height: 20px;
   flex-shrink: 0;
   margin-right: $space-xs;
-  
+
   &.success {
-    color: hsl(var(--success));
+    color: $success;
   }
-  
+
   &.error {
-    color: hsl(var(--error));
+    color: $error;
   }
-  
+
   &.warning {
-    color: hsl(var(--warning));
+    color: $warning;
   }
-  
+
   &.info {
-    color: hsl(var(--info));
+    color: $info;
   }
 }
 

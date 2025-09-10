@@ -39,7 +39,7 @@ export const LanguageSwitch: React.FC = () => {
   return (
     <div className={styles.languageSelector} ref={dropdownRef}>
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
         className={styles.languageTrigger}

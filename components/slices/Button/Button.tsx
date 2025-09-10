@@ -4,7 +4,7 @@ import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import styles from "./Button.module.scss";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "success" | "danger" | "ghost" | "outline";
+  variant?: "primary" | "secondary" | "success" | "danger" | "outline";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   icon?: React.ReactNode;

@@ -21,8 +21,8 @@
 
 // Background styling
 .textSectionBg {
-  border: 1px solid hsl(var(--border));
-  background-color: hsl(var(--surface));
+  border: 1px solid $border;
+  background-color: $surface;
 }
 
 .textSection {

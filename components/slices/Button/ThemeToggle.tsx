@@ -13,7 +13,7 @@ export const ThemeToggle: React.FC = () => {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="sm" disabled>
+      <Button variant="secondary" size="sm" disabled>
         <Moon size={16} />
       </Button>
     );
@@ -21,7 +21,7 @@ export const ThemeToggle: React.FC = () => {
 
   return (
     <Button
-      variant="ghost"
+      variant="primary"
       size="sm"
       onClick={toggleTheme}
       className={styles.themeToggle}

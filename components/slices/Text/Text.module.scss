@@ -1,10 +1,8 @@
- 
-
 // Base text styles
 %text-base {
   margin: 0;
   line-height: $line-normal;
-  color: hsl(var(--text));
+  color: $text;
 }
 
 // Header base styles
@@ -13,7 +11,7 @@
   font-family: $font-headers;
 }
 
-// Body text base styles  
+// Body text base styles
 %body-base {
   @extend %text-base;
   font-family: $font-body;
@@ -58,13 +56,14 @@
   font-size: $font-base;
   font-weight: $weight-normal;
   margin-bottom: $space-md;
+  color: $text-muted;
 }
 
 .small {
   @extend %text-base;
   font-size: $font-sm;
   font-weight: $weight-normal;
-  color: hsl(var(--text-muted));
+  color: $text-muted;
 }
 
 // Navigation link
@@ -73,11 +72,10 @@
   font-size: $font-base;
   font-weight: $weight-medium;
   text-decoration: none;
-  transition: color, background-color, border-color, text-decoration-color, fill, stroke 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  
+  transition: color, background-color, border-color, text-decoration-color, fill,
+    stroke 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  color: $text-muted;
   &:hover {
-    color: hsl(var(--primary));
+    color: $primary;
   }
 }
-
-
