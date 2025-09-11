@@ -1,5 +1,5 @@
-import React from 'react';
-import styles from './Container.module.scss';
+import React from "react";
+import styles from "./Container.module.scss";
 
 export interface ContainerProps {
   children: React.ReactNode;
@@ -26,7 +26,9 @@ export const Container: React.FC<ContainerProps> = ({
 }) => {
   const outerStyles = {
     backgroundColor: outerBackgroundColor,
-    backgroundImage: outerBackgroundImage ? `url(${outerBackgroundImage})` : undefined,
+    backgroundImage: outerBackgroundImage
+      ? `url(${outerBackgroundImage})`
+      : undefined,
   };
 
   const innerStyles = {
@@ -35,18 +37,18 @@ export const Container: React.FC<ContainerProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`${styles.outerContainer} ${className}`.trim()}
       style={outerStyles}
     >
-      <div 
-        className={`${styles.innerContainer} ${styles[size]} ${!padding ? styles.noPadding : ''}`}
+      <div
+        className={`${styles.innerContainer} ${styles[size]} ${
+          !padding ? styles.noPadding : ""
+        }`}
         style={innerStyles}
       >
         {backgroundImage && overlay && <div className={styles.overlay} />}
-        <div className={styles.content}>
-          {children}
-        </div>
+        <div className={styles.content}>{children}</div>
       </div>
     </div>
   );

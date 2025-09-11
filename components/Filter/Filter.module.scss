@@ -1,0 +1,179 @@
+@import "../../styles/variables";
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: $space-lg;
+
+  .headerContent {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    color: var(--primary);
+
+    .title {
+      margin: 0;
+      color: var(--text);
+    }
+  }
+
+  .closeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: $space-xs;
+    border-radius: $radius-sm;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    // Hide close button on desktop
+    @media (min-width: $breakpoint-lg) {
+      display: none;
+    }
+  }
+}
+
+.filterContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  margin-bottom: $space-lg;
+
+  .loading {
+    padding: $space-lg;
+    text-align: center;
+    color: var(--text-muted);
+  }
+}
+
+.filterSection {
+  .sectionTitle {
+    margin: 0 0 $space-md 0;
+    color: var(--text);
+    font-weight: $weight-semibold;
+  }
+}
+
+.placeholder {
+  padding: $space-lg;
+  background-color: var(--bg);
+  border: 2px dashed var(--border);
+  border-radius: $radius-md;
+  text-align: center;
+
+  .placeholderText {
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 0;
+  }
+}
+
+// Form input styles
+.select,
+.searchInput,
+.textInput {
+  width: 100%;
+  padding: $space-sm;
+  border: 1px solid var(--border);
+  border-radius: $radius-sm;
+  background-color: var(--bg);
+  color: var(--text);
+
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.priceInputs,
+.rangeInputs {
+  display: flex;
+  gap: $space-sm;
+
+  .priceInput,
+  .rangeInput {
+    flex: 1;
+    padding: $space-sm;
+    border: 1px solid var(--border);
+    border-radius: $radius-sm;
+    background-color: var(--bg);
+    color: var(--text);
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+}
+
+.currencyInputs {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  .currencySelect {
+    width: 100%;
+    padding: $space-sm;
+    border: 1px solid var(--border);
+    border-radius: $radius-sm;
+    background-color: var(--bg);
+    color: var(--text);
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-top: $space-md;
+  border-top: 1px solid var(--border);
+
+  .clearButton,
+  .applyButton {
+    width: 100%;
+    margin: 0; // Override button default margin
+  }
+
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+
+    .clearButton,
+    .applyButton {
+      flex: 1;
+    }
+  }
+}
+
+// RTL Support
+:global([dir="rtl"]) {
+  .headerContent {
+    flex-direction: row-reverse;
+  }
+}

@@ -3,6 +3,7 @@
   margin: 0;
   line-height: $line-normal;
   color: $text;
+  text-align: inherit; // Inherit direction from parent
 }
 
 // Header base styles
@@ -77,5 +78,19 @@
   color: $text-muted;
   &:hover {
     color: $primary;
+  }
+}
+
+// RTL Support - Following SYR_APP pattern
+.rtl {
+  %text-base,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .paragraph,
+  .small,
+  .navlink {
+    text-align: right; // Explicit right alignment for Arabic
   }
 }

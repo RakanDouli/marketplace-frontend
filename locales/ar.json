@@ -34,7 +34,21 @@
     "fuelType": "نوع الوقود",
     "search": "بحث",
     "clear": "مسح المرشحات",
-    "noResults": "لم يتم العثور على مركبات تطابق معاييرك"
+    "applyFilters": "تطبيق المرشحات",
+    "selectMake": "اختر الماركة",
+    "selectModel": "اختر الموديل",
+    "selectYear": "اختر السنة",
+    "selectOption": "اختر خيار",
+    "selectProvince": "اختر المحافظة",
+    "selectCity": "اختر المدينة",
+    "minPrice": "أقل سعر",
+    "maxPrice": "أعلى سعر",
+    "min": "أدنى",
+    "max": "أعلى",
+    "noResults": "لم يتم العثور على مركبات تطابق معاييرك",
+    "noResultsDescription": "جرب تعديل المرشحات أو معايير البحث للعثور على نتائج أكثر.",
+    "modifyFilters": "تعديل المرشحات",
+    "results": "مركبة"
   },
   "listing": {
     "featured": "مميز",
@@ -128,6 +142,19 @@
     "showAll": "إظهار الكل",
     "hideAll": "إخفاء الكل"
   },
+  "pagination": {
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "صفحة",
+    "of": "من",
+    "showing": "عرض",
+    "to": "إلى",
+    "results": "نتيجة",
+    "noResults": "لا توجد نتائج",
+    "firstPage": "الصفحة الأولى",
+    "lastPage": "الصفحة الأخيرة",
+    "goToPage": "الذهاب إلى الصفحة"
+  },
   "homepage": {
     "hero": {
       "title": "مرحباً بكم في سوق سوريا",
@@ -156,6 +183,36 @@
     "notifications": {
       "browseCars": "قريباً.. وظيفة تصفح السيارات قيد التطوير",
       "addListing": "قريباً.. وظيفة إضافة الإعلانات قيد التطوير"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "الصفحة غير موجودة",
+      "description": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+      "goHome": "العودة للرئيسية",
+      "viewListings": "عرض إعلانات السيارات",
+      "suggestions": {
+        "title": "جرب هذه البدائل:",
+        "browseListings": "تصفح إعلانات السيارات",
+        "dashboard": "الذهاب للوحة التحكم",
+        "contact": "اتصل بالدعم الفني"
+      }
+    },
+    "categoryNotFound": {
+      "title": "القسم غير موجود",
+      "description": "القسم الذي تبحث عنه غير موجود أو تم حذفه."
+    },
+    "generic": {
+      "title": "حدث خطأ ما",
+      "description": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+      "tryAgain": "إعادة المحاولة"
+    },
+    "boundary": {
+      "title": "حدث خطأ ما",
+      "description": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+      "refresh": "تحديث الصفحة",
+      "goHome": "العودة للرئيسية",
+      "reportError": "الإبلاغ عن الخطأ"
     }
   },
   "seo": {

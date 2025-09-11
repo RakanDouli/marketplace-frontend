@@ -1,0 +1,333 @@
+@import "../../styles/variables";
+
+.listingArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-md;
+  padding: $space-md 0;
+  border-bottom: 1px solid var(--border);
+
+  .headerLeft {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+    flex-wrap: wrap;
+  }
+
+  .headerRight {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+  }
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  background: none;
+  border: 1px solid var(--border);
+  padding: $space-sm $space-md;
+  border-radius: $radius-md;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--primary);
+    color: var(--text-inverse);
+    border-color: var(--primary);
+  }
+
+  // Hide on desktop (filters always visible)
+  @media (min-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+.resultsCount {
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: $weight-medium;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  .viewButton {
+    background: none;
+    border: none;
+    padding: $space-sm;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    &.active {
+      background-color: var(--primary);
+      color: var(--text-inverse);
+    }
+
+    &:not(:last-child) {
+      border-right: 1px solid var(--border);
+    }
+  }
+}
+
+.listingsContainer {
+  &.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $space-lg;
+    align-items: start;
+
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: $space-md;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &.list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-md;
+  }
+}
+
+.loadingState {
+  .loadingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: $space-lg;
+    align-items: start;
+
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: $space-md;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .loadingCard {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: $radius-md;
+    overflow: hidden;
+    animation: pulse 1.5s ease-in-out infinite;
+
+    .loadingImage {
+      height: 200px;
+      background-color: var(--bg);
+    }
+
+    .loadingContent {
+      padding: $space-md;
+      display: flex;
+      flex-direction: column;
+      gap: $space-sm;
+
+      .loadingLine {
+        height: 16px;
+        background-color: var(--bg);
+        border-radius: $radius-sm;
+
+        &:first-child {
+          width: 80%;
+        }
+
+        &:nth-child(2) {
+          width: 60%;
+        }
+
+        &:last-child {
+          width: 40%;
+        }
+      }
+    }
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xxl;
+  text-align: center;
+
+  .emptyIcon {
+    font-size: 4rem;
+    margin-bottom: $space-lg;
+    opacity: 0.5;
+  }
+
+  .emptyTitle {
+    margin: 0 0 $space-md 0;
+    color: var(--text);
+  }
+
+  .emptyDescription {
+    margin: 0 0 $space-lg 0;
+    color: var(--text-muted);
+    max-width: 400px;
+  }
+}
+
+// Pagination styles
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $space-sm;
+  margin-top: $space-xl;
+  padding: $space-md 0;
+}
+
+.pageNumbers {
+  display: flex;
+  gap: $space-xs;
+  align-items: center;
+}
+
+.pageButton {
+  padding: $space-xs $space-sm;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  text-align: center;
+
+  &:hover {
+    background: var(--surface);
+    border-color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: var(--text-inverse);
+    border-color: var(--primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.ellipsis {
+  color: var(--text-muted);
+  padding: 0 $space-xs;
+}
+
+.loadMore {
+  display: flex;
+  justify-content: center;
+  padding: $space-lg 0;
+}
+
+.floatingFilterButton {
+  position: fixed;
+  bottom: $space-xl;
+  right: $space-md;
+  z-index: $z-popover;
+  display: none; // Hidden by default
+  align-items: center;
+  gap: $space-xs;
+  background: var(--primary);
+  color: var(--text-inverse);
+  border: none;
+  padding: $space-md $space-lg;
+  border-radius: $radius-full;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: $weight-medium;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  // Show only on small mobile screens
+  @media (max-width: $breakpoint-sm) {
+    display: flex;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// RTL Support - Following SYR_APP pattern
+.rtl {
+  .header {
+    .headerLeft {
+      flex-direction: row-reverse;
+    }
+
+    .headerRight {
+      flex-direction: row-reverse;
+    }
+  }
+
+  .filterToggle {
+    flex-direction: row-reverse;
+  }
+
+  .floatingFilterButton {
+    left: $space-md;
+    right: auto;
+    flex-direction: row-reverse;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: $breakpoint-md) {
+  .header {
+    .headerLeft,
+    .headerRight {
+      flex: 1;
+      min-width: 100%;
+      justify-content: space-between;
+    }
+  }
+}

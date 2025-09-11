@@ -34,7 +34,21 @@
     "fuelType": "Fuel Type",
     "search": "Search",
     "clear": "Clear Filters",
-    "noResults": "No vehicles found matching your criteria"
+    "applyFilters": "Apply Filters",
+    "selectMake": "Select Make",
+    "selectModel": "Select Model",
+    "selectYear": "Select Year",
+    "selectOption": "Select Option",
+    "selectProvince": "Select Province",
+    "selectCity": "Select City",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "min": "Min",
+    "max": "Max",
+    "noResults": "No vehicles found matching your criteria",
+    "noResultsDescription": "Try adjusting your filters or search criteria to find more results.",
+    "modifyFilters": "Modify Filters",
+    "results": "vehicles"
   },
   "listing": {
     "featured": "Featured",
@@ -128,6 +142,19 @@
     "showAll": "Show All",
     "hideAll": "Hide All"
   },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "showing": "Showing",
+    "to": "to",
+    "results": "results",
+    "noResults": "No results found",
+    "firstPage": "First page",
+    "lastPage": "Last page",
+    "goToPage": "Go to page"
+  },
   "homepage": {
     "hero": {
       "title": "Welcome to Syrian Marketplace",
@@ -156,6 +183,36 @@
     "notifications": {
       "browseCars": "Browse cars functionality coming soon!",
       "addListing": "Add listing functionality coming soon!"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Page Not Found",
+      "description": "The page you're looking for doesn't exist or has been moved.",
+      "goHome": "Go to Homepage",
+      "viewListings": "View Car Listings",
+      "suggestions": {
+        "title": "Try these instead:",
+        "browseListings": "Browse Car Listings",
+        "dashboard": "Go to Dashboard",
+        "contact": "Contact Support"
+      }
+    },
+    "categoryNotFound": {
+      "title": "Category Not Found",
+      "description": "The category you're looking for doesn't exist or has been removed."
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again.",
+      "tryAgain": "Try Again"
+    },
+    "boundary": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try refreshing the page.",
+      "refresh": "Refresh Page",
+      "goHome": "Go to Homepage",
+      "reportError": "Report Error"
     }
   },
   "seo": {

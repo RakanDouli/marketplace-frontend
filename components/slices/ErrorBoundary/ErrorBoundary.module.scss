@@ -1,0 +1,168 @@
+@import '../../../styles/variables';
+
+.errorBoundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: $space-xl 0;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--surface)) 0%,
+    hsl(var(--error) / 0.02) 100%
+  );
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-xl;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.icon {
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px hsl(var(--error) / 0.2));
+  animation: shake 0.5s ease-in-out;
+}
+
+.iconText {
+  font-size: clamp(4rem, 8vw, 6rem) !important;
+  color: hsl(var(--error)) !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.title {
+  margin-bottom: $space-sm;
+  color: hsl(var(--error));
+  text-align: center;
+}
+
+.description {
+  max-width: 500px;
+  line-height: $line-relaxed;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  gap: $space-md;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    width: 100%;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+.errorDetails {
+  margin-top: $space-lg;
+  padding: $space-md;
+  background-color: hsl(var(--surface-variant) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: $radius-md;
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+}
+
+.errorSummary {
+  cursor: pointer;
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: hsl(var(--surface-variant) / 0.3);
+  }
+  
+  &:focus {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 2px;
+  }
+}
+
+.errorContent {
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.errorMessage {
+  display: block;
+  padding: $space-sm;
+  background-color: hsl(var(--error) / 0.1);
+  border: 1px solid hsl(var(--error) / 0.2);
+  border-radius: $radius-sm;
+  color: hsl(var(--error));
+  word-break: break-word;
+}
+
+.errorStack {
+  margin: $space-sm 0 0 0;
+  padding: $space-sm;
+  background-color: hsl(var(--surface-variant) / 0.3);
+  border: 1px solid hsl(var(--border));
+  border-radius: $radius-sm;
+  overflow-x: auto;
+  max-height: 200px;
+  font-size: $font-xs;
+  line-height: $line-snug;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// RTL Support
+[dir="rtl"] .content {
+  text-align: center; // Keep center alignment for RTL
+}
+
+[dir="rtl"] .errorDetails {
+  text-align: right;
+}
+
+// Dark mode adjustments
+[data-theme="dark"] {
+  .errorBoundary {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--surface)) 0%,
+      hsl(var(--error) / 0.05) 100%
+    );
+  }
+  
+  .errorMessage {
+    background-color: hsl(var(--error) / 0.15);
+    border-color: hsl(var(--error) / 0.3);
+  }
+  
+  .errorStack {
+    background-color: hsl(var(--surface-variant) / 0.2);
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    animation: none;
+  }
+}

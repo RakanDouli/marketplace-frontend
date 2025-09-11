@@ -1,34 +1,7 @@
-
 .spacer {
   width: 100%;
   flex-shrink: 0;
-}
-
-// Predefined spacing sizes
-.xs {
-  height: $space-xs;
-}
-
-.sm {
-  height: $space-sm;
-}
-
-.md {
-  height: $space-md;
-}
-
-.lg {
-  height: $space-lg;
-}
-
-.xl {
-  height: $space-xl;
-}
-
-// Header spacer - matches exact header height
-.header {
   height: $header-height;
-  
   @media (max-width: $breakpoint-md) {
     height: $header-height-mobile;
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Language, getDirection } from '@/utils/i18n';
+import { Language, getDirection } from '../utils/i18n';
 
 interface LanguageContextType {
   language: Language;

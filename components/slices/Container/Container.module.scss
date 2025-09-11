@@ -61,3 +61,9 @@
   position: relative;
   z-index: 2;
 }
+
+// RTL Support - Following SYR_APP pattern
+.rtl {
+  // Container doesn't need specific RTL changes
+  // Direction is handled globally and text by Text components
+}

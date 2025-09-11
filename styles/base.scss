@@ -77,3 +77,8 @@ table {
 #__next {
   isolation: isolate;
 }
+
+// RTL Support - Following SYR_APP pattern
+.rtl {
+  direction: rtl;
+}

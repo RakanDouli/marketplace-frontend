@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { CategoriesState, Category } from './types';
+import { supabase } from '../lib/supabase';
 
 interface CategoriesActions {
   setCategories: (categories: Category[]) => void;
@@ -10,10 +11,11 @@ interface CategoriesActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
+  // Data fetching methods
+  fetchCategories: () => Promise<void>;
+  fetchCategoryBySlug: (slug: string) => Promise<Category | null>;
   // Helper methods
   getCategoryById: (id: string) => Category | undefined;
-  getSubCategories: (parentId: string) => Category[];
-  getRootCategories: () => Category[];
 }
 
 type CategoriesStore = CategoriesState & CategoriesActions;
@@ -70,20 +72,80 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
     set({ error: null });
   },
 
+  // Data fetching methods
+  fetchCategories: async () => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, nameAr, slug, isActive, biddingEnabled')
+        .eq('isActive', true)
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      const categories: Category[] = (data || []).map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        nameAr: cat.nameAr || cat.name,
+        slug: cat.slug,
+        isActive: cat.isActive,
+      }));
+
+      set({ categories, isLoading: false, error: null });
+    } catch (error: any) {
+      console.error('Failed to fetch categories:', error);
+      set({ 
+        isLoading: false, 
+        error: error.message || 'Failed to load categories',
+        categories: [] 
+      });
+    }
+  },
+
+  fetchCategoryBySlug: async (slug: string) => {
+    try {
+      // Check if Supabase is properly configured
+      if (!supabase) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, nameAr, slug, isActive, biddingEnabled')
+        .eq('slug', slug)
+        .eq('isActive', true)
+        .single();
+
+      if (error) {
+        // Silently handle all errors - just return null for 404 handling
+        return null;
+      }
+
+      if (!data) {
+        return null;
+      }
+      
+      return {
+        id: data.id,
+        name: data.name,
+        nameAr: data.nameAr || data.name,
+        slug: data.slug,
+        isActive: data.isActive,
+      };
+    } catch (error: any) {
+      // Silently handle all errors - just return null for 404 handling
+      return null;
+    }
+  },
+
   // Helper methods
   getCategoryById: (id: string) => {
     const { categories } = get();
     return categories.find(category => category.id === id);
-  },
-
-  getSubCategories: (parentId: string) => {
-    const { categories } = get();
-    return categories.filter(category => category.parentId === parentId);
-  },
-
-  getRootCategories: () => {
-    const { categories } = get();
-    return categories.filter(category => !category.parentId);
   },
 }));
 
@@ -92,6 +154,3 @@ export const useCategories = () => useCategoriesStore((state) => state.categorie
 export const useSelectedCategory = () => useCategoriesStore((state) => state.selectedCategory);
 export const useCategoriesLoading = () => useCategoriesStore((state) => state.isLoading);
 export const useCategoriesError = () => useCategoriesStore((state) => state.error);
-export const useRootCategories = () => useCategoriesStore((state) => state.getRootCategories());
-export const useSubCategories = (parentId: string) => 
-  useCategoriesStore((state) => state.getSubCategories(parentId));

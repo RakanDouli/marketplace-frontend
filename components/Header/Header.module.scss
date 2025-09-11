@@ -6,8 +6,9 @@
   height: $header-height;
   z-index: $z-nav;
   background-color: $bg;
+  opacity: 0.9;
   border-bottom: 1px solid $border;
-  //   backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   transition: transform 0.3s ease-in-out;
 
   @media (max-width: $breakpoint-md) {

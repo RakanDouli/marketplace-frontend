@@ -1,5 +1,5 @@
-import enTranslations from '@/locales/en.json';
-import arTranslations from '@/locales/ar.json';
+import enTranslations from '../locales/en.json';
+import arTranslations from '../locales/ar.json';
 
 export type Language = 'en' | 'ar';
 

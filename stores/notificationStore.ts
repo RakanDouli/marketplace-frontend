@@ -6,6 +6,9 @@ interface NotificationStore {
   addNotification: (payload: NotificationPayload) => string;
   removeNotification: (id: string) => void;
   clearAll: () => void;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  getUnreadCount: () => number;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -22,6 +25,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       id,
       duration: payload.duration || DEFAULT_DURATION,
       createdAt: new Date(),
+      read: false, // Add read status
     };
 
     set((state) => ({
@@ -29,7 +33,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     }));
 
     // Auto-remove after duration
-    if (notification.duration > 0) {
+    if (notification.duration && notification.duration > 0) {
       setTimeout(() => {
         get().removeNotification(id);
       }, notification.duration);
@@ -46,5 +50,28 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   clearAll: () => {
     set({ notifications: [] });
+  },
+
+  markAsRead: (id) => {
+    set((state) => ({
+      notifications: state.notifications.map((notification) =>
+        notification.id === id 
+          ? { ...notification, read: true }
+          : notification
+      ),
+    }));
+  },
+
+  markAllAsRead: () => {
+    set((state) => ({
+      notifications: state.notifications.map((notification) => ({
+        ...notification,
+        read: true,
+      })),
+    }));
+  },
+
+  getUnreadCount: () => {
+    return get().notifications.filter((n) => !n.read).length;
   },
 }));

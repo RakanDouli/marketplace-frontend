@@ -1,0 +1,68 @@
+@import '../../../styles/variables';
+
+.aside {
+  position: relative;
+  width: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  transition: all 0.3s ease-out;
+  
+  // Mobile behavior
+  @media (max-width: $breakpoint-lg) {
+    position: fixed;
+    top: $header-height;
+    left: -100%;
+    width: calc(100% - #{$space-md * 2});
+    height: calc(100% - #{$header-height});
+    margin: 0 $space-md;
+    z-index: $z-sidebar;
+    overflow-y: auto;
+    
+    &.open {
+      left: 0;
+    }
+    
+    &.closed {
+      left: -100%;
+    }
+  }
+}
+
+.content {
+  padding: $space-md;
+  height: 100%;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: $z-sidebar - 1;
+  
+  // Only show overlay on mobile
+  @media (min-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+// RTL Support
+:global([dir="rtl"]) {
+  @media (max-width: $breakpoint-lg) {
+    .aside {
+      left: auto;
+      right: -100%;
+      
+      &.open {
+        right: 0;
+      }
+      
+      &.closed {
+        right: -100%;
+      }
+    }
+  }
+}

@@ -1,3 +1,6 @@
+// Export base store utilities
+export * from './base';
+
 // Export all stores and their selectors (alphabetically sorted)
 export * from './authStore';
 export * from './bidsStore';

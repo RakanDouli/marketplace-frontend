@@ -1,14 +1,13 @@
 "use client";
 
-import { Container } from "@/components/slices/Container/Container";
-import { TextSection } from "@/components/slices/TextSection/TextSection";
-import { Text } from "@/components/slices";
-import { Image } from "@/components/slices";
-import { Button } from "@/components/slices/Button/Button";
-import { Header } from "@/components/Header/Header";
-import { useTranslation } from "@/hooks/useTranslation";
-import { useNotificationStore } from "@/stores";
-import { SubmitButton } from "@/components/slices/Button";
+import Container from "../../components/slices/Container/Container";
+import TextSection from "../../components/slices/TextSection/TextSection";
+import Text from "../../components/slices/Text/Text";
+import Image from "../../components/slices/Image/Image";
+import Button from "../../components/slices/Button/Button";
+import { useTranslation } from "../../hooks/useTranslation";
+import { useNotificationStore } from "../../stores";
+import SubmitButton from "../../components/slices/Button/SubmitButton";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -31,10 +30,9 @@ export default function HomePage() {
   };
 
   return (
-    <main style={{ paddingTop: "70px" }}>
-      <Header />
+    <main>
       {/* Hero Section */}
-      <Container size="xl" backgroundImage="" overlay>
+      <Container>
         <TextSection
           title={t("homepage.hero.title")}
           subtitle={t("homepage.hero.subtitle")}
@@ -42,14 +40,7 @@ export default function HomePage() {
           align="center"
           nostyle
         >
-          <div
-            style={{
-              display: "flex",
-              gap: "1rem",
-              justifyContent: "center",
-              marginTop: "2rem",
-            }}
-          >
+          <div>
             <Button variant="primary" size="lg" onClick={handleBrowseCars}>
               {t("nav.listings")}
             </Button>
@@ -61,17 +52,11 @@ export default function HomePage() {
       </Container>
       {/* Features Section */}
       <Container size="lg" padding>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div>
           <Text variant="h2">{t("homepage.features.title")}</Text>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "2rem",
-          }}
-        >
+        <div>
           <TextSection
             title={t("homepage.features.easyToUse.title")}
             body={t("homepage.features.easyToUse.description")}
@@ -102,23 +87,13 @@ export default function HomePage() {
         Save Changes
       </SubmitButton>
       {/* Image Gallery Section */}
-      <Container
-        size="full"
-        backgroundColor="hsl(var(--surface-accent))"
-        padding
-      >
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+      <Container size="full" padding>
+        <div>
           <Text variant="h2">{t("homepage.featured.title")}</Text>
           <Text variant="paragraph">{t("homepage.featured.description")}</Text>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "1rem",
-          }}
-        >
+        <div>
           <Image src="/car-1.jpg" alt="BMW X5" aspectRatio="3/2" />
           <Image src="/car-2.jpg" alt="Mercedes C-Class" aspectRatio="3/2" />
           <Image src="/car-3.jpg" alt="Audi A4" aspectRatio="3/2" />

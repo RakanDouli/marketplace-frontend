@@ -16,11 +16,7 @@ export interface Category {
   id: string;
   name: string;
   nameAr: string;
-  description?: string;
-  descriptionAr?: string;
-  imageUrl?: string;
-  parentId?: string;
-  level: number;
+  slug: string;
   isActive: boolean;
 }
 
@@ -36,6 +32,9 @@ export interface Listing {
   status: 'ACTIVE' | 'SOLD' | 'EXPIRED' | 'SUSPENDED';
   images: string[];
   location: string;
+  province?: string;
+  area?: string;
+  locationLink?: string;
   categoryId: string;
   sellerId: string;
   viewCount: number;
@@ -46,6 +45,30 @@ export interface Listing {
   // Relations
   category?: Category;
   seller?: User;
+  attributes?: ListingAttribute[];
+}
+
+export interface ListingAttribute {
+  id: string;
+  attributeId: string;
+  listingId: string;
+  value: any; // JSON value that can be selector, range, currency, etc.
+  attribute?: {
+    id: string;
+    key: string;
+    nameEn: string;
+    nameAr: string;
+    type: 'selector' | 'range' | 'currency' | 'text';
+    options?: AttributeOption[];
+  };
+}
+
+export interface AttributeOption {
+  id: string;
+  key: string;
+  valueEn: string;
+  valueAr: string;
+  sortOrder: number;
 }
 
 export interface Bid {

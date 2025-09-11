@@ -4,7 +4,7 @@ const nextConfig = {
     // Enable experimental features for better performance
   },
   images: {
-    domains: ["localhost"],
+    domains: ["localhost", "imagedelivery.net", "images.unsplash.com"],
     formats: ["image/webp", "image/avif"],
   },
   // Enable SCSS support

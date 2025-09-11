@@ -9,6 +9,7 @@ export interface Notification {
     onClick: () => void;
   };
   createdAt: Date;
+  read?: boolean;
 }
 
 export interface NotificationPayload {

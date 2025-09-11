@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "@/hooks/useTranslation";
 
-import { ThemeToggle, LanguageSwitch } from "@/components/slices";
+import { ThemeToggle, LanguageSwitch, Spacer } from "@/components/slices";
 import styles from "./Header.module.scss";
 
 export const Header: React.FC = () => {
@@ -35,30 +35,34 @@ export const Header: React.FC = () => {
   }, [lastScrollY]);
 
   return (
-    <header
-      className={`${styles.header} ${
-        isVisible ? styles.visible : styles.hidden
-      }`}
-    >
-      <div className={styles.container}>
-        {/* Logo */}
-        <Link href="/" className={styles.logo}>
-          <div className={styles.logoIcon}>🚗</div>
-          <div className={styles.logoText}>
-            <span className={styles.logoMain}>
-              {t("seo.defaultTitle").split(" | ")[0]}
-            </span>
-            <span className={styles.logoSub}>Syrian Marketplace</span>
-          </div>
-        </Link>
+    <>
+      <Spacer />
 
-        {/* Desktop Actions */}
-        <div className={styles.actions}>
-          <LanguageSwitch />
-          <ThemeToggle />
+      <header
+        className={`${styles.header} ${
+          isVisible ? styles.visible : styles.hidden
+        }`}
+      >
+        <div className={styles.container}>
+          {/* Logo */}
+          <Link href="/" className={styles.logo}>
+            <div className={styles.logoIcon}>🚗</div>
+            <div className={styles.logoText}>
+              <span className={styles.logoMain}>
+                {t("seo.defaultTitle").split(" | ")[0]}
+              </span>
+              <span className={styles.logoSub}>Syrian Marketplace</span>
+            </div>
+          </Link>
+
+          {/* Desktop Actions */}
+          <div className={styles.actions}>
+            <LanguageSwitch />
+            <ThemeToggle />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
 
