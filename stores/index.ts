@@ -5,6 +5,7 @@ export * from './base';
 export * from './authStore';
 export * from './bidsStore';
 export * from './categoriesStore';
+export * from './filtersStore';
 export * from './listingsStore';
 export * from './notificationStore';
 export * from './types';

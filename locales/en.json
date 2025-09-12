@@ -79,6 +79,10 @@
     "winning": "You are the highest bidder",
     "ended": "Bidding has ended"
   },
+  "category": {
+    "totalListings": "{{count}} listing available",
+    "totalListings_other": "{{count}} listings available"
+  },
   "auth": {
     "login": "Login",
     "register": "Register",
@@ -222,5 +226,45 @@
     "listingDescription": "{make} {model} {year} for sale in {city}, Price ${price}, {mileage} km, {condition} condition...",
     "searchTitle": "{make} Cars for Sale in Syria | Search Results",
     "searchDescription": "Browse {count} {make} cars available for sale in Syria with various prices and conditions..."
+  },
+  "attributes": {
+    "labels": {
+      "year": "Year",
+      "fuel": "Fuel Type",
+      "gearbox": "Transmission",
+      "transmission": "Transmission",
+      "mileageKm": "Mileage",
+      "color": "Color",
+      "doors": "Number of Doors",
+      "engine": "Engine Size"
+    },
+    "options": {
+      "fuel": {
+        "gasoline": "Gasoline",
+        "diesel": "Diesel",
+        "hybrid": "Hybrid",
+        "electric": "Electric"
+      },
+      "gearbox": {
+        "manual": "Manual",
+        "automatic": "Automatic"
+      },
+      "color": {
+        "white": "White",
+        "black": "Black",
+        "silver": "Silver",
+        "blue": "Blue",
+        "red": "Red",
+        "green": "Green",
+        "yellow": "Yellow",
+        "other": "Other"
+      },
+      "doors": {
+        "2": "2 doors",
+        "3": "3 doors",
+        "4": "4 doors",
+        "5": "5 doors"
+      }
+    }
   }
 }

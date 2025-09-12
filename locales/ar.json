@@ -79,6 +79,10 @@
     "winning": "أنت صاحب أعلى مزايدة",
     "ended": "انتهت فترة المزايدة"
   },
+  "category": {
+    "totalListings": "{{count}} إعلان متاح",
+    "totalListings_other": "{{count}} إعلانات متاحة"
+  },
   "auth": {
     "login": "تسجيل الدخول",
     "register": "إنشاء حساب",
@@ -222,5 +226,45 @@
     "listingDescription": "{make} {model} {year} للبيع في {city}، السعر {price}$، قطعت {mileage} كم، حالة {condition}...",
     "searchTitle": "سيارات {make} للبيع في سوريا | نتائج البحث",
     "searchDescription": "تصفح {count} سيارة {make} متاحة للبيع في سوريا بأسعار وحالات متنوعة..."
+  },
+  "attributes": {
+    "labels": {
+      "year": "السنة",
+      "fuel": "نوع الوقود",
+      "gearbox": "ناقل الحركة",
+      "transmission": "ناقل الحركة",
+      "mileageKm": "المسافة المقطوعة",
+      "color": "اللون",
+      "doors": "عدد الأبواب",
+      "engine": "حجم المحرك"
+    },
+    "options": {
+      "fuel": {
+        "gasoline": "بنزين",
+        "diesel": "ديزل",
+        "hybrid": "هجين",
+        "electric": "كهربائي"
+      },
+      "gearbox": {
+        "manual": "يدوي",
+        "automatic": "أوتوماتيك"
+      },
+      "color": {
+        "white": "أبيض",
+        "black": "أسود",
+        "silver": "فضي",
+        "blue": "أزرق",
+        "red": "أحمر",
+        "green": "أخضر",
+        "yellow": "أصفر",
+        "other": "أخرى"
+      },
+      "doors": {
+        "2": "بابان",
+        "3": "ثلاثة أبواب",
+        "4": "أربعة أبواب",
+        "5": "خمسة أبواب"
+      }
+    }
   }
 }

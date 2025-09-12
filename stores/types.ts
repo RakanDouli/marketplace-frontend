@@ -56,8 +56,7 @@ export interface ListingAttribute {
   attribute?: {
     id: string;
     key: string;
-    nameEn: string;
-    nameAr: string;
+    name: string; // Arabic-only (simplified from bilingual)
     type: 'selector' | 'range' | 'currency' | 'text';
     options?: AttributeOption[];
   };
@@ -66,8 +65,7 @@ export interface ListingAttribute {
 export interface AttributeOption {
   id: string;
   key: string;
-  valueEn: string;
-  valueAr: string;
+  value: string; // Arabic-only (simplified from bilingual)
   sortOrder: number;
 }
 

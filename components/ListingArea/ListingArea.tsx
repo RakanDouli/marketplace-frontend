@@ -146,19 +146,65 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
           </Button>
           
           <div className={styles.pageNumbers}>
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
-                <button
-                  key={pageNum}
-                  className={`${styles.pageButton} ${currentPage === pageNum ? styles.active : ''}`}
-                  onClick={() => onPageChange?.(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-            {totalPages > 5 && <span className={styles.ellipsis}>...</span>}
+            {(() => {
+              const maxVisiblePages = 5;
+              let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+              let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+              
+              // Adjust start if we're near the end
+              if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+              }
+              
+              const pages = [];
+              
+              // Show first page and ellipsis if needed
+              if (startPage > 1) {
+                pages.push(
+                  <button
+                    key={1}
+                    className={`${styles.pageButton} ${currentPage === 1 ? styles.active : ''}`}
+                    onClick={() => onPageChange?.(1)}
+                  >
+                    1
+                  </button>
+                );
+                if (startPage > 2) {
+                  pages.push(<span key="ellipsis1" className={styles.ellipsis}>...</span>);
+                }
+              }
+              
+              // Show visible page range
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(
+                  <button
+                    key={i}
+                    className={`${styles.pageButton} ${currentPage === i ? styles.active : ''}`}
+                    onClick={() => onPageChange?.(i)}
+                  >
+                    {i}
+                  </button>
+                );
+              }
+              
+              // Show ellipsis and last page if needed
+              if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                  pages.push(<span key="ellipsis2" className={styles.ellipsis}>...</span>);
+                }
+                pages.push(
+                  <button
+                    key={totalPages}
+                    className={`${styles.pageButton} ${currentPage === totalPages ? styles.active : ''}`}
+                    onClick={() => onPageChange?.(totalPages)}
+                  >
+                    {totalPages}
+                  </button>
+                );
+              }
+              
+              return pages;
+            })()}
           </div>
           
           <Button 

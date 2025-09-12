@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { notFound } from "next/navigation";
 import Container from "../../../components/slices/Container/Container";
 import Text from "../../../components/slices/Text/Text";
 import Filter from "../../../components/Filter/Filter";
 import ListingArea from "../../../components/ListingArea/ListingArea";
 import { useCategoriesStore, useListingsStore } from "../../../stores";
+import { useTranslation } from "../../../hooks/useTranslation";
 import type { ListingData } from "../../../components/ListingArea/ListingArea";
 import type { Category } from "../../../stores/types";
 import styles from "./CategoryPage.module.scss";
@@ -29,6 +30,7 @@ export default function CategoryPageClient({
   categorySlug,
   searchParams,
 }: CategoryPageClientProps) {
+  const { t } = useTranslation();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
@@ -58,16 +60,15 @@ export default function CategoryPageClient({
     }
   }, [fetchCategories, categories.length]);
 
-  // Load category and listings when route changes
+  // Load category when route changes
   useEffect(() => {
-    const loadCategoryData = async () => {
+    const loadCategory = async () => {
       setIsCategoryLoading(true);
       setCategoryNotFound(false);
       
       // Fetch current category by slug
       const category = await fetchCategoryBySlug(categorySlug);
       if (!category) {
-        // Category not found - set state instead of calling notFound()
         setCategoryNotFound(true);
         setIsCategoryLoading(false);
         return;
@@ -75,31 +76,40 @@ export default function CategoryPageClient({
 
       setCurrentCategory(category);
       setSelectedCategory(category);
-      
-      // Parse search params including page
-      const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
-      const filters = {
-        minPrice: searchParams.minPrice ? parseInt(searchParams.minPrice, 10) : undefined,
-        maxPrice: searchParams.maxPrice ? parseInt(searchParams.maxPrice, 10) : undefined,
-        location: searchParams.province || searchParams.city,
-        search: searchParams.search,
-      };
-      
-      // Set pagination page before fetching
-      setPagination({ page });
-      
-      try {
-        await fetchListingsByCategory(category.id, filters);
-      } catch (error) {
-        console.error('Error loading listings:', error);
-        // Don't call notFound for listing errors, just show empty state
-      }
-      
       setIsCategoryLoading(false);
     };
     
-    loadCategoryData();
-  }, [categorySlug, searchParams, fetchCategoryBySlug, fetchListingsByCategory, setSelectedCategory, setPagination]);
+    loadCategory();
+  }, [categorySlug, fetchCategoryBySlug, setSelectedCategory]);
+
+  // Memoize parsed filters to prevent unnecessary recalculations
+  const parsedFilters = useMemo(() => ({
+    page: searchParams.page ? parseInt(searchParams.page, 10) : 1,
+    filters: {
+      minPrice: searchParams.minPrice ? parseInt(searchParams.minPrice, 10) : undefined,
+      maxPrice: searchParams.maxPrice ? parseInt(searchParams.maxPrice, 10) : undefined,
+      location: searchParams.province || searchParams.city,
+      search: searchParams.search,
+    }
+  }), [searchParams]);
+
+  // Load listings when category or parsed filters change
+  useEffect(() => {
+    if (!currentCategory) return;
+
+    const loadListings = async () => {
+      // Set pagination page before fetching
+      setPagination({ page: parsedFilters.page });
+      
+      try {
+        await fetchListingsByCategory(currentCategory.id, parsedFilters.filters);
+      } catch (error) {
+        console.error('Error loading listings:', error);
+      }
+    };
+
+    loadListings();
+  }, [currentCategory, parsedFilters, fetchListingsByCategory, setPagination]);
 
   // Convert store listings to component format
   const listingData: ListingData[] = (listings || []).map((listing) => ({
@@ -135,17 +145,8 @@ export default function CategoryPageClient({
     url.searchParams.set('page', page.toString());
     window.history.pushState({}, '', url.toString());
     
-    // Update store pagination and refetch data
-    setPagination({ page });
-    if (currentCategory) {
-      const filters = {
-        minPrice: searchParams.minPrice ? parseInt(searchParams.minPrice, 10) : undefined,
-        maxPrice: searchParams.maxPrice ? parseInt(searchParams.maxPrice, 10) : undefined,
-        location: searchParams.province || searchParams.city,
-        search: searchParams.search,
-      };
-      fetchListingsByCategory(currentCategory.id, filters);
-    }
+    // The useEffect will automatically handle the data fetching
+    // when searchParams change, so no need to manually call fetchListingsByCategory
   };
 
   // Check for 404 during render phase
@@ -175,7 +176,7 @@ export default function CategoryPageClient({
       <div className={styles.header}>
         <Text variant="h1">{currentCategory.nameAr || currentCategory.name}</Text>
         <Text variant="paragraph" className={styles.subtitle}>
-          {pagination.total} إعلان متاح
+          {t('category.totalListings', { count: pagination.total })}
         </Text>
       </div>
 

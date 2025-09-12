@@ -1,6 +1,45 @@
 import { create } from 'zustand';
 import { CategoriesState, Category } from './types';
-import { supabase } from '../lib/supabase';
+
+// GraphQL queries
+const CATEGORIES_QUERY = `
+  query GetCategories {
+    categories {
+      id
+      name
+      slug
+      isActive
+    }
+  }
+`;
+
+// GraphQL client function
+async function graphqlRequest(query: string, variables: any = {}) {
+  const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`GraphQL request failed: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  
+  if (result.errors) {
+    throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+  }
+
+  return result.data;
+}
 
 interface CategoriesActions {
   setCategories: (categories: Category[]) => void;
@@ -77,20 +116,12 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, nameAr, slug, isActive, biddingEnabled')
-        .eq('isActive', true)
-        .order('name', { ascending: true });
+      const data = await graphqlRequest(CATEGORIES_QUERY);
 
-      if (error) {
-        throw error;
-      }
-
-      const categories: Category[] = (data || []).map(cat => ({
+      const categories: Category[] = (data.categories || []).map((cat: any) => ({
         id: cat.id,
         name: cat.name,
-        nameAr: cat.nameAr || cat.name,
+        nameAr: cat.name, // Backend should provide Arabic version
         slug: cat.slug,
         isActive: cat.isActive,
       }));
@@ -108,36 +139,26 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
 
   fetchCategoryBySlug: async (slug: string) => {
     try {
-      // Check if Supabase is properly configured
-      if (!supabase) {
-        return null;
-      }
-
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, nameAr, slug, isActive, biddingEnabled')
-        .eq('slug', slug)
-        .eq('isActive', true)
-        .single();
-
-      if (error) {
-        // Silently handle all errors - just return null for 404 handling
-        return null;
-      }
-
-      if (!data) {
+      // Fetch all categories using GraphQL
+      const data = await graphqlRequest(CATEGORIES_QUERY);
+      
+      // Find the category with matching slug
+      const category = (data.categories || []).find((cat: any) => cat.slug === slug && cat.isActive);
+      
+      if (!category) {
         return null;
       }
       
       return {
-        id: data.id,
-        name: data.name,
-        nameAr: data.nameAr || data.name,
-        slug: data.slug,
-        isActive: data.isActive,
+        id: category.id,
+        name: category.name,
+        nameAr: category.name, // Backend should provide Arabic version
+        slug: category.slug,
+        isActive: category.isActive,
       };
     } catch (error: any) {
       // Silently handle all errors - just return null for 404 handling
+      console.error('Failed to fetch category by slug:', error);
       return null;
     }
   },
