@@ -1,4 +1,9 @@
-// Store types based on backend entities
+// Store state types - import business entities from types/
+import type { Listing, Category, Attribute } from '../types/listing';
+
+// Re-export business entities for convenience
+export type { Listing, Category, Attribute };
+
 export interface User {
   id: string;
   email: string;
@@ -10,63 +15,6 @@ export interface User {
   role: 'BUYER' | 'SELLER' | 'ADMIN';
   createdAt: string;
   updatedAt: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  nameAr: string;
-  slug: string;
-  isActive: boolean;
-}
-
-export interface Listing {
-  id: string;
-  title: string;
-  titleAr: string;
-  description: string;
-  descriptionAr: string;
-  price: number;
-  currency: string;
-  condition: 'NEW' | 'USED' | 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
-  status: 'ACTIVE' | 'SOLD' | 'EXPIRED' | 'SUSPENDED';
-  images: string[];
-  location: string;
-  province?: string;
-  area?: string;
-  locationLink?: string;
-  categoryId: string;
-  sellerId: string;
-  viewCount: number;
-  isFeatured: boolean;
-  isPromoted: boolean;
-  createdAt: string;
-  updatedAt: string;
-  // Relations
-  category?: Category;
-  seller?: User;
-  attributes?: ListingAttribute[];
-}
-
-export interface ListingAttribute {
-  id: string;
-  attributeId: string;
-  listingId: string;
-  value: any; // JSON value that can be selector, range, currency, etc.
-  attribute?: {
-    id: string;
-    key: string;
-    name: string; // Arabic-only (simplified from bilingual)
-    type: 'selector' | 'range' | 'currency' | 'text';
-    options?: AttributeOption[];
-  };
-}
-
-export interface AttributeOption {
-  id: string;
-  key: string;
-  value: string; // Arabic-only (simplified from bilingual)
-  sortOrder: number;
 }
 
 export interface Bid {
@@ -97,10 +45,21 @@ export interface ListingsState {
   error: string | null;
   filters: {
     categoryId?: string;
+    // Price filters
     minPrice?: number;
     maxPrice?: number;
-    condition?: string;
+    priceMinMinor?: number;
+    priceMaxMinor?: number;
+    priceCurrency?: string;
+    // Location filters
     location?: string;
+    city?: string;
+    province?: string;
+    sellerType?: string;
+    // Dynamic attribute filters (replaces hardcoded car filters)
+    specs?: Record<string, any>;
+    // Other filters
+    condition?: string;
     search?: string;
   };
   pagination: {

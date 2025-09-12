@@ -1,3 +1,5 @@
+// Core business entities - aligned with backend GraphQL schema
+
 export interface Price {
   value: string;
   currency: string;
@@ -7,48 +9,58 @@ export interface Listing {
   id: string;
   title: string;
   description?: string;
-  prices: Price[];
+  priceMinor: number; // Backend stores price in cents (USD)
+  prices: Price[]; // Calculated price array for display
   city: string;
   country: string;
   status: 'ACTIVE' | 'SOLD' | 'EXPIRED' | 'DRAFT';
   allowBidding: boolean;
   biddingStartPrice?: number;
-  brandId?: string;
-  modelId?: string;
-  specs?: any; // JSON object
+  specs?: Record<string, any>; // Dynamic attribute specs
   imageKeys?: string[];
   sellerLabel?: string;
   sellerBadge?: string;
-  sellerType?: 'PRIVATE' | 'DEALER';
+  sellerType?: 'PRIVATE' | 'DEALER' | 'BUSINESS'; // Updated to match backend
   lat?: number;
   lng?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Brand {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-export interface Model {
-  id: string;
-  name: string;
-  slug: string;
-}
-
 export interface Category {
   id: string;
   name: string;
   slug: string;
+  isActive: boolean;
+}
+
+// Brand and Model are now dynamic - handled through specs and aggregations
+// No need for hardcoded types since they're category-specific
+
+export interface Attribute {
+  id: string;
+  key: string;
+  name: string; // Arabic name
+  type: 'SELECTOR' | 'MULTI_SELECTOR' | 'RANGE' | 'CURRENCY' | 'TEXT' | 'TEXTAREA' | 'NUMBER' | 'DATE_RANGE' | 'BOOLEAN';
+  validation: 'REQUIRED' | 'OPTIONAL';
+  sortOrder: number;
+  group: string | null;
+  isActive: boolean;
+  options: AttributeOption[];
+}
+
+export interface AttributeOption {
+  id: string;
+  key: string;
+  value: string; // Arabic value
+  sortOrder: number;
+  isActive: boolean;
+  count?: number; // For aggregation results
 }
 
 export interface ListingFilterInput {
   search?: string;
   categoryId?: string;
-  brandId?: string;
-  modelId?: string;
   minPrice?: number;
   maxPrice?: number;
   currency?: string;
@@ -56,4 +68,5 @@ export interface ListingFilterInput {
   country?: string;
   status?: string[];
   allowBidding?: boolean;
+  specs?: Record<string, any>; // Dynamic attribute filters
 }

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Filter as FilterIcon, X } from "lucide-react";
+import { Filter as FilterIcon, X, RotateCcw } from "lucide-react";
 import { 
   SedanIcon, 
   SuvIcon, 
@@ -85,16 +85,14 @@ export const Filter: React.FC<FilterProps> = ({
   
   // Store hooks
   const {
-    attributes,
-    brands, 
-    models,
+    attributes, // All specs (including brands/models) are in attributes now
     provinces,
     cities,
     isLoading,
     error,
     fetchFilterData,
-    fetchModels,
-    fetchCities
+    fetchCities,
+    updateFiltersWithCascading
   } = useFiltersStore();
 
   // Load filter data when category changes
@@ -103,12 +101,8 @@ export const Filter: React.FC<FilterProps> = ({
     fetchFilterData(categorySlug);
   }, [categorySlug, fetchFilterData]);
 
-  // Update models when brand changes
-  useEffect(() => {
-    if (filters.brandId) {
-      fetchModels(filters.brandId);
-    }
-  }, [filters.brandId, fetchModels]);
+  // Models are now handled through dynamic attributes with cascading counts
+  // No separate fetching needed - everything updates through updateFiltersWithCascading
 
   // Update cities when province changes
   useEffect(() => {
@@ -117,40 +111,46 @@ export const Filter: React.FC<FilterProps> = ({
     }
   }, [filters.province, fetchCities]);
 
+
   const handleFilterChange = (key: keyof FilterValues, value: any) => {
-    setFilters((prev) => {
-      const newFilters = { ...prev, [key]: value };
+    const newFilters = { ...filters, [key]: value };
 
-      // Clear dependent filters
-      if (key === "brandId" && value !== prev.brandId) {
-        newFilters.modelId = undefined;
-      }
-      if (key === "province" && value !== prev.province) {
-        newFilters.city = undefined;
-      }
+    // Clear dependent filters
+    if (key === "brandId" && value !== filters.brandId) {
+      newFilters.modelId = undefined;
+    }
+    if (key === "province" && value !== filters.province) {
+      newFilters.city = undefined;
+    }
 
-      return newFilters;
-    });
+    setFilters(newFilters);
+    
+    // Apply filters immediately when user changes them
+    onApplyFilters?.(newFilters);
   };
 
   const handleSpecChange = (attributeKey: string, value: any) => {
-    setFilters((prev) => ({
-      ...prev,
+    const newFilters = {
+      ...filters,
       specs: {
-        ...prev.specs,
+        ...filters.specs,
         [attributeKey]: value,
       },
-    }));
+    };
+    
+    setFilters(newFilters);
+    
+    // Apply filters immediately when user changes them
+    onApplyFilters?.(newFilters);
   };
 
   const handleClearAll = () => {
-    setFilters({});
+    const clearedFilters = {};
+    setFilters(clearedFilters);
+    // Apply cleared filters immediately
+    onApplyFilters?.(clearedFilters);
   };
 
-  const handleApplyFilters = () => {
-    onApplyFilters?.(filters);
-    onClose?.();
-  };
   return (
     <Aside isOpen={isOpen} className={`${styles.filterAside} ${className}`}>
       {/* Filter Header */}
@@ -162,14 +162,26 @@ export const Filter: React.FC<FilterProps> = ({
           <FilterIcon size={20} />
         </div>
 
-        {/* Close button for mobile */}
-        <button
-          className={styles.closeButton}
-          onClick={onClose}
-          aria-label="Close filters"
-        >
-          <X size={20} />
-        </button>
+        <div className={styles.headerActions}>
+          {/* Reset button */}
+          <button
+            className={styles.resetButton}
+            onClick={handleClearAll}
+            aria-label={t("search.clear")}
+            title={t("search.clear")}
+          >
+            <RotateCcw size={18} />
+          </button>
+
+          {/* Close button for mobile */}
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Close filters"
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Filter Content */}
@@ -180,59 +192,14 @@ export const Filter: React.FC<FilterProps> = ({
           </div>
         ) : (
           <>
-            {/* Brand */}
-            {brands.length > 0 && (
-              <div className={styles.filterSection}>
-                <Text variant="h4" className={styles.sectionTitle}>
-                  {t("search.make")}
-                </Text>
-                <select
-                  value={filters.brandId || ""}
-                  onChange={(e) =>
-                    handleFilterChange("brandId", e.target.value || undefined)
-                  }
-                  className={styles.select}
-                >
-                  <option value="">{t("search.selectMake")}</option>
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
-                      {brand.name}
-                      {brand.count !== undefined && ` (${brand.count})`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Model */}
-            {filters.brandId && models.length > 0 && (
-              <div className={styles.filterSection}>
-                <Text variant="h4" className={styles.sectionTitle}>
-                  {t("search.model")}
-                </Text>
-                <select
-                  value={filters.modelId || ""}
-                  onChange={(e) =>
-                    handleFilterChange("modelId", e.target.value || undefined)
-                  }
-                  className={styles.select}
-                >
-                  <option value="">{t("search.selectModel")}</option>
-                  {models.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                      {model.count !== undefined && ` (${model.count})`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* Brand and Model are now handled through dynamic attributes below */}
 
             {/* Dynamic Attributes - Now using Arabic-only data from backend */}
             {attributes
               .filter(
                 (attr) =>
                   attr.type === "SELECTOR" ||
+                  attr.type === "MULTI_SELECTOR" ||
                   attr.type === "RANGE" ||
                   attr.type === "CURRENCY"
               )
@@ -243,7 +210,7 @@ export const Filter: React.FC<FilterProps> = ({
                       {attribute.name}
                     </Text>
 
-                    {attribute.type === "SELECTOR" && attribute.processedOptions && (
+                    {(attribute.type === "SELECTOR" || attribute.type === "MULTI_SELECTOR") && attribute.processedOptions && (
                       <>
                         {attribute.key === "body_type" ? (
                           // Special icon-based selector for car body types
@@ -467,23 +434,6 @@ export const Filter: React.FC<FilterProps> = ({
         )}
       </div>
 
-      {/* Filter Actions */}
-      <div className={styles.actions}>
-        <Button
-          variant="outline"
-          className={styles.clearButton}
-          onClick={handleClearAll}
-        >
-          {t("search.clear")}
-        </Button>
-        <Button
-          variant="primary"
-          className={styles.applyButton}
-          onClick={handleApplyFilters}
-        >
-          {t("search.applyFilters")}
-        </Button>
-      </div>
     </Aside>
   );
 };

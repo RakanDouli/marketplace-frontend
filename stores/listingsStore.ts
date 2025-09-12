@@ -3,7 +3,7 @@ import { ListingsState, Listing } from './types';
 
 // GraphQL queries
 const LISTINGS_SEARCH_QUERY = `
-  query ListingsSearch($filter: ListingFilterInput, $limit: Int, $offset: Int) {
+  query ListingsSearch($filter: ListingFilterInput, $limit: Float, $offset: Float) {
     listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
       id
       title
@@ -16,11 +16,6 @@ const LISTINGS_SEARCH_QUERY = `
       imageKeys
       createdAt
       categoryId
-      userId
-      prices {
-        currency
-        value
-      }
     }
   }
 `;
@@ -68,7 +63,7 @@ interface ListingsActions {
   resetPagination: () => void;
   // Data fetching methods
   fetchListings: (filters?: Partial<ListingsState['filters']>) => Promise<void>;
-  fetchListingsByCategory: (categoryId: string, filters?: Partial<ListingsState['filters']>) => Promise<void>;
+  fetchListingsByCategory: (categorySlug: string, filters?: Partial<ListingsState['filters']>) => Promise<void>;
 }
 
 type ListingsStore = ListingsState & ListingsActions;
@@ -89,7 +84,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   filters: {},
   pagination: initialPagination,
   // Simple cache to prevent redundant requests
-  lastFetchKey: null as string | null,
 
   // Actions
   setListings: (listings: Listing[]) => {
@@ -144,7 +138,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     set({
       filters: { ...filters, ...newFilters },
       pagination: initialPagination, // Reset pagination when filters change
-      lastFetchKey: null, // Clear cache when filters change
     });
   },
 
@@ -152,7 +145,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     set({
       filters: {},
       pagination: initialPagination,
-      lastFetchKey: null, // Clear cache when filters are cleared
     });
   },
 
@@ -169,22 +161,10 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
   // Data fetching methods
   fetchListings: async (filterOverrides = {}) => {
-    const { filters, pagination, lastFetchKey } = get();
+    const { filters, pagination } = get();
     const finalFilters = { ...filters, ...filterOverrides };
     
-    // Create cache key to prevent duplicate requests
-    const cacheKey = JSON.stringify({ 
-      filters: finalFilters, 
-      page: pagination.page,
-      limit: pagination.limit 
-    });
-    
-    // Skip if same request is already cached
-    if (lastFetchKey === cacheKey) {
-      return;
-    }
-    
-    set({ isLoading: true, error: null, lastFetchKey: cacheKey });
+    set({ isLoading: true, error: null });
     
     try {
       const currentPage = pagination.page || 1;
@@ -195,99 +175,43 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         status: 'ACTIVE' // Default filter for active listings only
       };
 
-      // Category filter
+      // Category filter - use categoryId string instead of category enum
       if (finalFilters.categoryId) {
-        // Convert categoryId to category enum - need to fetch category slug
-        // For now, assuming 'CAR' category since that's the main one
-        graphqlFilter.category = 'CAR';
+        graphqlFilter.categoryId = finalFilters.categoryId;
       }
 
-      // Price filters (convert to minor currency)
-      if (finalFilters.minPrice) {
-        graphqlFilter.priceMinMinor = Math.round(finalFilters.minPrice * 100);
-        graphqlFilter.priceCurrency = 'USD';
+      // Price filters
+      if (finalFilters.priceMinMinor) {
+        graphqlFilter.priceMinMinor = finalFilters.priceMinMinor;
       }
-      if (finalFilters.maxPrice) {
-        graphqlFilter.priceMaxMinor = Math.round(finalFilters.maxPrice * 100);
-        graphqlFilter.priceCurrency = 'USD';
+      if (finalFilters.priceMaxMinor) {
+        graphqlFilter.priceMaxMinor = finalFilters.priceMaxMinor;
+      }
+      if (finalFilters.priceCurrency) {
+        graphqlFilter.priceCurrency = finalFilters.priceCurrency;
+        graphqlFilter.displayCurrency = finalFilters.priceCurrency;
       }
 
       // Location filters
-      if (finalFilters.location) {
-        // For now, treating location as city since backend expects exact match
-        graphqlFilter.city = finalFilters.location;
+      if (finalFilters.city) {
+        graphqlFilter.city = finalFilters.city;
+      }
+      if (finalFilters.province) {
+        graphqlFilter.country = finalFilters.province;
+      }
+      if (finalFilters.sellerType) {
+        graphqlFilter.sellerType = finalFilters.sellerType;
       }
 
-      // Dynamic specs filtering - map common specs to individual GraphQL fields
-      if (finalFilters.specs && typeof finalFilters.specs === 'object') {
-        // Map common dynamic specs to existing GraphQL fields
-        Object.entries(finalFilters.specs).forEach(([key, value]) => {
-          if (value !== null && value !== undefined && value !== '') {
-            switch (key) {
-              case 'make':
-              case 'brand':
-                graphqlFilter.make = value;
-                break;
-              case 'model':
-                graphqlFilter.model = value;
-                break;
-              case 'fuel':
-                graphqlFilter.fuel = value;
-                break;
-              case 'gearbox':
-                graphqlFilter.gearbox = value;
-                break;
-              case 'year':
-                // Handle year as exact match or range
-                if (typeof value === 'number') {
-                  graphqlFilter.yearMin = value;
-                  graphqlFilter.yearMax = value;
-                } else if (Array.isArray(value) && value.length === 2) {
-                  graphqlFilter.yearMin = value[0];
-                  graphqlFilter.yearMax = value[1];
-                }
-                break;
-              case 'yearMin':
-                graphqlFilter.yearMin = parseInt(value);
-                break;
-              case 'yearMax':
-                graphqlFilter.yearMax = parseInt(value);
-                break;
-              case 'mileageKm':
-              case 'mileageMax':
-                graphqlFilter.mileageMax = parseInt(value);
-                break;
-              // For other dynamic attributes not directly supported by GraphQL,
-              // we'll need to add them to the backend later
-              default:
-                console.log(`Dynamic filter attribute '${key}' not yet supported in GraphQL API`);
-                break;
-            }
-          }
-        });
+      // Dynamic attribute filters - use specs object instead of hardcoded fields
+      if (finalFilters.specs && Object.keys(finalFilters.specs).length > 0) {
+        graphqlFilter.specs = finalFilters.specs;
       }
 
-      // Legacy individual spec filters (for backward compatibility)
-      if (finalFilters.make) {
-        graphqlFilter.make = finalFilters.make;
-      }
-      if (finalFilters.model) {
-        graphqlFilter.model = finalFilters.model;  
-      }
-      if (finalFilters.fuel) {
-        graphqlFilter.fuel = finalFilters.fuel;
-      }
-      if (finalFilters.gearbox) {
-        graphqlFilter.gearbox = finalFilters.gearbox;
-      }
-      if (finalFilters.yearMin) {
-        graphqlFilter.yearMin = parseInt(finalFilters.yearMin);
-      }
-      if (finalFilters.yearMax) {
-        graphqlFilter.yearMax = parseInt(finalFilters.yearMax);
-      }
-      if (finalFilters.mileageMax) {
-        graphqlFilter.mileageMax = parseInt(finalFilters.mileageMax);
+      // Search filter (if needed)
+      if (finalFilters.search) {
+        // Note: Backend doesn't have search in filter yet, might need to be added
+        console.log('Search filter not yet supported by backend:', finalFilters.search);
       }
 
       // Use GraphQL listingsSearch API
@@ -304,8 +228,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         description: item.description,
         descriptionAr: item.description, // Backend should provide Arabic version
         price: item.priceMinor / 100, // Convert from minor currency
-        currency: 'USD', // Primary currency, but we have multi-currency prices
-        prices: item.prices, // Multi-currency prices from backend
+        currency: 'USD', // Primary currency
+        prices: [{currency: 'USD', value: item.priceMinor / 100}], // Create price array from priceMinor
         condition: 'USED' as const, // Default - backend should provide this
         status: item.status as any,
         images: item.imageKeys || [],
@@ -313,8 +237,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         province: item.province,
         area: item.area,
         categoryId: item.categoryId,
-        sellerId: item.userId,
-        specs: {}, // Empty specs object since we removed from query
+        sellerId: '', // No sellerId available in current query
+        specs: {}, // TODO: Re-enable when specs field is exposed in GraphQL
         viewCount: 0,
         isFeatured: false,
         isPromoted: false,
@@ -345,8 +269,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     }
   },
 
-  fetchListingsByCategory: async (categoryId: string, filterOverrides = {}) => {
-    await get().fetchListings({ ...filterOverrides, categoryId });
+  fetchListingsByCategory: async (categorySlug: string, filterOverrides = {}) => {
+    await get().fetchListings({ ...filterOverrides, categoryId: categorySlug });
   },
 }));
 

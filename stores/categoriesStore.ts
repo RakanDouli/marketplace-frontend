@@ -157,7 +157,6 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
         isActive: category.isActive,
       };
     } catch (error: any) {
-      // Silently handle all errors - just return null for 404 handling
       console.error('Failed to fetch category by slug:', error);
       return null;
     }

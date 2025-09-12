@@ -22,6 +22,13 @@
     }
   }
 
+  .headerActions {
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+  }
+
+  .resetButton,
   .closeButton {
     display: flex;
     align-items: center;
@@ -35,10 +42,23 @@
     transition: all 0.2s ease;
 
     &:hover {
-      background-color: var(--bg);
+      background-color: var(--bg-secondary);
       color: var(--text);
     }
 
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .resetButton {
+    &:hover {
+      color: var(--primary);
+      background-color: var(--primary-bg);
+    }
+  }
+
+  .closeButton {
     // Hide close button on desktop
     @media (min-width: $breakpoint-lg) {
       display: none;

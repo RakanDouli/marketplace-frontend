@@ -6,10 +6,11 @@ import Container from "../../../components/slices/Container/Container";
 import Text from "../../../components/slices/Text/Text";
 import Filter from "../../../components/Filter/Filter";
 import ListingArea from "../../../components/ListingArea/ListingArea";
-import { useCategoriesStore, useListingsStore } from "../../../stores";
+import { useCategoriesStore, useListingsStore, useFiltersStore } from "../../../stores";
 import { useTranslation } from "../../../hooks/useTranslation";
 import type { ListingData } from "../../../components/ListingArea/ListingArea";
 import type { Category } from "../../../stores/types";
+import type { FilterValues } from "../../../components/Filter/Filter";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
@@ -35,6 +36,7 @@ export default function CategoryPageClient({
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState<FilterValues>({});
 
   // Store hooks
   const { 
@@ -52,6 +54,13 @@ export default function CategoryPageClient({
     pagination,
     setPagination
   } = useListingsStore();
+  
+  // Filters store for cascading updates
+  const { 
+    updateFiltersWithCascading,
+    fetchFilterData,
+    attributes // All specs (including brands/models) are in attributes now
+  } = useFiltersStore();
 
   // Load categories once on mount
   useEffect(() => {
@@ -66,17 +75,28 @@ export default function CategoryPageClient({
       setIsCategoryLoading(true);
       setCategoryNotFound(false);
       
-      // Fetch current category by slug
-      const category = await fetchCategoryBySlug(categorySlug);
-      if (!category) {
+      try {
+        // Fetch current category by slug
+        const category = await fetchCategoryBySlug(categorySlug);
+        
+        if (!category) {
+          setCategoryNotFound(true);
+          setIsCategoryLoading(false);
+          return;
+        }
+
+        setCurrentCategory(category);
+        setSelectedCategory(category);
+        
+        // Initialize filter data for the category
+        fetchFilterData(categorySlug);
+        
+        setIsCategoryLoading(false);
+      } catch (error) {
+        console.error('Error loading category:', error);
         setCategoryNotFound(true);
         setIsCategoryLoading(false);
-        return;
       }
-
-      setCurrentCategory(category);
-      setSelectedCategory(category);
-      setIsCategoryLoading(false);
     };
     
     loadCategory();
@@ -93,6 +113,139 @@ export default function CategoryPageClient({
     }
   }), [searchParams]);
 
+  // Convert FilterValues to backend aggregation format (dynamic specs approach)
+  const convertFiltersForBackend = (filterValues: FilterValues) => {
+    const backendFilters: any = {
+      categoryId: categorySlug // Use categoryId instead of hardcoded category enum
+    };
+    
+    // All attribute filters go into specs object (dynamic approach)
+    if (filterValues.specs && Object.keys(filterValues.specs).length > 0) {
+      const specs: Record<string, any> = {};
+      
+      Object.entries(filterValues.specs).forEach(([key, value]) => {
+        if (value.selected) {
+          specs[key] = Array.isArray(value.selected) ? value.selected[0] : value.selected;
+        }
+      });
+      
+      if (Object.keys(specs).length > 0) {
+        backendFilters.specs = specs;
+      }
+    }
+    
+    console.log('🔄 Backend filters for cascading (dynamic):', backendFilters);
+    return backendFilters;
+  };
+
+  // Convert FilterValues to listingsStore format (pure dynamic approach)
+  const convertFiltersForStore = (filterValues: FilterValues) => {
+    const storeFilters: any = {
+      categoryId: categorySlug // Set category for filtering
+    };
+    
+    // Price filters (both formats for compatibility)
+    if (filterValues.priceMinMinor) {
+      storeFilters.minPrice = filterValues.priceMinMinor / 100; // Convert minor to major currency
+      storeFilters.priceMinMinor = filterValues.priceMinMinor; // Also send minor format
+    }
+    if (filterValues.priceMaxMinor) {
+      storeFilters.maxPrice = filterValues.priceMaxMinor / 100;
+      storeFilters.priceMaxMinor = filterValues.priceMaxMinor;
+    }
+    if (filterValues.priceCurrency) {
+      storeFilters.priceCurrency = filterValues.priceCurrency;
+    }
+    
+    // Location filters
+    if (filterValues.province) {
+      storeFilters.location = filterValues.province;
+      storeFilters.province = filterValues.province;
+    }
+    if (filterValues.city) {
+      storeFilters.location = filterValues.city; // City overrides province
+      storeFilters.city = filterValues.city;
+    }
+    
+    // Search filter
+    if (filterValues.search) {
+      storeFilters.search = filterValues.search;
+    }
+    
+    // Initialize specs object for dynamic attributes (including brand/model)
+    const specs: Record<string, any> = {};
+    
+    // Brand and Model filters now go into specs object (unified system)
+    if (filterValues.brandId) {
+      specs.brandId = filterValues.brandId;
+      storeFilters.brandId = filterValues.brandId; // Keep for backward compatibility
+    }
+    if (filterValues.modelId) {
+      specs.modelId = filterValues.modelId;
+      storeFilters.modelId = filterValues.modelId; // Keep for backward compatibility
+    }
+    
+    // All other dynamic attribute filters go into specs object
+    if (filterValues.specs && Object.keys(filterValues.specs).length > 0) {
+      Object.entries(filterValues.specs).forEach(([key, value]) => {
+        if (value?.selected) {
+          const selectedValue = Array.isArray(value.selected) ? value.selected[0] : value.selected;
+          specs[key] = selectedValue;
+        }
+      });
+    }
+    
+    // Add specs to storeFilters if any specs exist
+    if (Object.keys(specs).length > 0) {
+      storeFilters.specs = specs;
+    }
+    
+    console.log('📊 Store filters for listings (dynamic):', storeFilters);
+    return storeFilters;
+  };
+
+  // Handle filter application with cascading updates
+  const handleApplyFilters = async (filterValues: FilterValues) => {
+    console.log('🎯 Applying filters with cascading:', filterValues);
+    setCurrentFilters(filterValues);
+    
+    if (!currentCategory) return;
+    
+    try {
+      // Step 1: Convert filters for backend aggregation (cascading)
+      const backendFilters = convertFiltersForBackend(filterValues);
+      
+      // Step 2: Update cascading filters (this updates filter options based on selection)
+      console.log('🔄 Triggering cascading filter updates...');
+      await updateFiltersWithCascading(currentCategory.slug, backendFilters);
+      
+      // Step 3: Convert filters for listings store
+      const storeFilters = convertFiltersForStore(filterValues);
+      
+      // Step 4: Reset pagination to page 1 when filters change
+      setPagination({ page: 1 });
+      
+      // Step 5: Update listings area with new filters
+      console.log('📊 Refreshing listings with filters...');
+      await fetchListingsByCategory(currentCategory.slug, storeFilters);
+      
+      // Step 6: Update URL to reflect new filters (optional, for better UX)
+      const url = new URL(window.location.href);
+      // Reset page to 1 when filters change
+      url.searchParams.delete('page');
+      window.history.pushState({}, '', url.toString());
+      
+      console.log('✅ Cascading filters and listings updated!');
+    } catch (error) {
+      console.error('❌ Error applying cascading filters:', error);
+      
+      // Fallback: Just update listings without cascading
+      const storeFilters = convertFiltersForStore(filterValues);
+      setPagination({ page: 1 });
+      fetchListingsByCategory(currentCategory.slug, storeFilters);
+    }
+  };
+
   // Load listings when category or parsed filters change
   useEffect(() => {
     if (!currentCategory) return;
@@ -102,7 +255,7 @@ export default function CategoryPageClient({
       setPagination({ page: parsedFilters.page });
       
       try {
-        await fetchListingsByCategory(currentCategory.id, parsedFilters.filters);
+        await fetchListingsByCategory(currentCategory.slug, parsedFilters.filters);
       } catch (error) {
         console.error('Error loading listings:', error);
       }
@@ -115,14 +268,14 @@ export default function CategoryPageClient({
   const listingData: ListingData[] = (listings || []).map((listing) => ({
     id: listing.id,
     title: listing.title,
-    price: `${listing.price.toLocaleString()}`,
-    currency: listing.currency,
+    price: listing.prices?.[0]?.value || `${(listing.priceMinor / 100).toLocaleString()}`,
+    currency: listing.prices?.[0]?.currency || 'USD',
     firstRegistration: listing.createdAt ? new Date(listing.createdAt).getFullYear().toString() : "",
     mileage: "", // Add if available in specs
     fuelType: "", // Add if available in specs
-    location: listing.location,
+    location: listing.city || "",
     sellerType: "private" as const,
-    images: listing.images,
+    images: listing.imageKeys || [],
   }));
 
   const handleCardClick = (listingId: string) => {
@@ -139,14 +292,24 @@ export default function CategoryPageClient({
     setFiltersOpen(!filtersOpen);
   };
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = async (page: number) => {
+    // Update pagination state immediately for better UX
+    setPagination({ page });
+    
     // Update URL with new page parameter
     const url = new URL(window.location.href);
     url.searchParams.set('page', page.toString());
     window.history.pushState({}, '', url.toString());
     
-    // The useEffect will automatically handle the data fetching
-    // when searchParams change, so no need to manually call fetchListingsByCategory
+    // Fetch listings for new page with current filters
+    if (currentCategory) {
+      const storeFilters = convertFiltersForStore(currentFilters);
+      try {
+        await fetchListingsByCategory(currentCategory.slug, storeFilters);
+      } catch (error) {
+        console.error('Error loading listings for page:', page, error);
+      }
+    }
   };
 
   // Check for 404 during render phase
@@ -174,7 +337,7 @@ export default function CategoryPageClient({
     <Container className={styles.categoryPage}>
       {/* Category Header */}
       <div className={styles.header}>
-        <Text variant="h1">{currentCategory.nameAr || currentCategory.name}</Text>
+        <Text variant="h1">{currentCategory.name}</Text>
         <Text variant="paragraph" className={styles.subtitle}>
           {t('category.totalListings', { count: pagination.total })}
         </Text>
@@ -188,6 +351,8 @@ export default function CategoryPageClient({
             isOpen={filtersOpen} 
             onClose={() => setFiltersOpen(false)}
             categorySlug={currentCategory.slug}
+            onApplyFilters={handleApplyFilters}
+            initialValues={currentFilters}
           />
         </div>
 
