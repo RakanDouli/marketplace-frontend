@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { ListingsState, Listing } from './types';
+import { create } from "zustand";
+import { ListingsState, Listing } from "./types";
 
 // GraphQL queries
 const LISTINGS_SEARCH_QUERY = `
@@ -22,12 +22,13 @@ const LISTINGS_SEARCH_QUERY = `
 
 // GraphQL client function
 async function graphqlRequest(query: string, variables: any = {}) {
-  const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
-  
+  const endpoint =
+    process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
+
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       query,
@@ -40,7 +41,7 @@ async function graphqlRequest(query: string, variables: any = {}) {
   }
 
   const result = await response.json();
-  
+
   if (result.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
   }
@@ -57,13 +58,16 @@ interface ListingsActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
-  setFilters: (filters: Partial<ListingsState['filters']>) => void;
+  setFilters: (filters: Partial<ListingsState["filters"]>) => void;
   clearFilters: () => void;
-  setPagination: (pagination: Partial<ListingsState['pagination']>) => void;
+  setPagination: (pagination: Partial<ListingsState["pagination"]>) => void;
   resetPagination: () => void;
   // Data fetching methods
-  fetchListings: (filters?: Partial<ListingsState['filters']>) => Promise<void>;
-  fetchListingsByCategory: (categorySlug: string, filters?: Partial<ListingsState['filters']>) => Promise<void>;
+  fetchListings: (filters?: Partial<ListingsState["filters"]>) => Promise<void>;
+  fetchListingsByCategory: (
+    categorySlug: string,
+    filters?: Partial<ListingsState["filters"]>
+  ) => Promise<void>;
 }
 
 type ListingsStore = ListingsState & ListingsActions;
@@ -92,12 +96,12 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
   addListings: (newListings: Listing[]) => {
     const { listings } = get();
-    const existingIds = new Set(listings.map(l => l.id));
-    const uniqueNewListings = newListings.filter(l => !existingIds.has(l.id));
-    
-    set({ 
+    const existingIds = new Set(listings.map((l) => l.id));
+    const uniqueNewListings = newListings.filter((l) => !existingIds.has(l.id));
+
+    set({
       listings: [...listings, ...uniqueNewListings],
-      error: null 
+      error: null,
     });
   },
 
@@ -107,17 +111,17 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
   updateListing: (id: string, updates: Partial<Listing>) => {
     const { listings } = get();
-    const updatedListings = listings.map(listing =>
+    const updatedListings = listings.map((listing) =>
       listing.id === id ? { ...listing, ...updates } : listing
     );
-    
+
     set({ listings: updatedListings });
   },
 
   removeListing: (id: string) => {
     const { listings } = get();
-    const filteredListings = listings.filter(listing => listing.id !== id);
-    
+    const filteredListings = listings.filter((listing) => listing.id !== id);
+
     set({ listings: filteredListings });
   },
 
@@ -133,7 +137,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     set({ error: null });
   },
 
-  setFilters: (newFilters: Partial<ListingsState['filters']>) => {
+  setFilters: (newFilters: Partial<ListingsState["filters"]>) => {
     const { filters } = get();
     set({
       filters: { ...filters, ...newFilters },
@@ -148,7 +152,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     });
   },
 
-  setPagination: (newPagination: Partial<ListingsState['pagination']>) => {
+  setPagination: (newPagination: Partial<ListingsState["pagination"]>) => {
     const { pagination } = get();
     set({
       pagination: { ...pagination, ...newPagination },
@@ -163,16 +167,16 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   fetchListings: async (filterOverrides = {}) => {
     const { filters, pagination } = get();
     const finalFilters = { ...filters, ...filterOverrides };
-    
+
     set({ isLoading: true, error: null });
-    
+
     try {
       const currentPage = pagination.page || 1;
       const offset = (currentPage - 1) * pagination.limit;
-      
+
       // Convert frontend filter format to backend GraphQL format
       const graphqlFilter: any = {
-        status: 'ACTIVE' // Default filter for active listings only
+        status: "ACTIVE", // Default filter for active listings only
       };
 
       // Category filter - use categoryId string instead of category enum
@@ -211,73 +215,88 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       // Search filter (if needed)
       if (finalFilters.search) {
         // Note: Backend doesn't have search in filter yet, might need to be added
-        console.log('Search filter not yet supported by backend:', finalFilters.search);
+        console.log(
+          "Search filter not yet supported by backend:",
+          finalFilters.search
+        );
       }
 
       // Use GraphQL listingsSearch API
       const data = await graphqlRequest(LISTINGS_SEARCH_QUERY, {
         filter: graphqlFilter,
         limit: pagination.limit,
-        offset: offset
+        offset: offset,
       });
 
-      const listings: Listing[] = (data.listingsSearch || []).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        titleAr: item.title, // Backend should provide Arabic version
-        description: item.description,
-        descriptionAr: item.description, // Backend should provide Arabic version
-        price: item.priceMinor / 100, // Convert from minor currency
-        currency: 'USD', // Primary currency
-        prices: [{currency: 'USD', value: item.priceMinor / 100}], // Create price array from priceMinor
-        condition: 'USED' as const, // Default - backend should provide this
-        status: item.status as any,
-        images: item.imageKeys || [],
-        location: `${item.city || ''}, ${item.province || ''}`.replace(/^, |, $/, ''),
-        province: item.province,
-        area: item.area,
-        categoryId: item.categoryId,
-        sellerId: '', // No sellerId available in current query
-        specs: {}, // TODO: Re-enable when specs field is exposed in GraphQL
-        viewCount: 0,
-        isFeatured: false,
-        isPromoted: false,
-        createdAt: item.createdAt,
-        updatedAt: item.createdAt,
-      }));
+      const listings: Listing[] = (data.listingsSearch || []).map(
+        (item: any) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          price: item.priceMinor / 100, // Convert from minor currency
+          currency: "USD", // Primary currency
+          prices: [{ currency: "USD", value: item.priceMinor / 100 }], // Create price array from priceMinor
+          condition: "USED" as const, // Default - backend should provide this
+          status: item.status as any,
+          images: item.imageKeys || [],
+          location: `${item.city || ""}, ${item.province || ""}`.replace(
+            /^, |, $/,
+            ""
+          ),
+          province: item.province,
+          area: item.area,
+          categoryId: item.categoryId,
+          sellerId: "", // No sellerId available in current query
+          specs: {}, // TODO: Re-enable when specs field is exposed in GraphQL
+          viewCount: 0,
+          isFeatured: false,
+          isPromoted: false,
+          createdAt: item.createdAt,
+          updatedAt: item.createdAt,
+        })
+      );
 
       // Since GraphQL listingsSearch doesn't return count, we approximate
       const hasMore = listings.length === pagination.limit;
-      
-      set({ 
+
+      set({
         listings,
-        isLoading: false, 
+        isLoading: false,
         error: null,
         pagination: {
           ...pagination,
-          total: hasMore ? offset + pagination.limit + 1 : offset + listings.length,
-          hasMore
-        }
+          total: hasMore
+            ? offset + pagination.limit + 1
+            : offset + listings.length,
+          hasMore,
+        },
       });
     } catch (error: any) {
-      console.error('Failed to fetch listings:', error);
-      set({ 
-        isLoading: false, 
-        error: error.message || 'Failed to load listings',
-        listings: [] 
+      console.error("Failed to fetch listings:", error);
+      set({
+        isLoading: false,
+        error: error.message || "Failed to load listings",
+        listings: [],
       });
     }
   },
 
-  fetchListingsByCategory: async (categorySlug: string, filterOverrides = {}) => {
+  fetchListingsByCategory: async (
+    categorySlug: string,
+    filterOverrides = {}
+  ) => {
     await get().fetchListings({ ...filterOverrides, categoryId: categorySlug });
   },
 }));
 
 // Selectors
 export const useListings = () => useListingsStore((state) => state.listings);
-export const useCurrentListing = () => useListingsStore((state) => state.currentListing);
-export const useListingsLoading = () => useListingsStore((state) => state.isLoading);
+export const useCurrentListing = () =>
+  useListingsStore((state) => state.currentListing);
+export const useListingsLoading = () =>
+  useListingsStore((state) => state.isLoading);
 export const useListingsError = () => useListingsStore((state) => state.error);
-export const useListingsFilters = () => useListingsStore((state) => state.filters);
-export const useListingsPagination = () => useListingsStore((state) => state.pagination);
+export const useListingsFilters = () =>
+  useListingsStore((state) => state.filters);
+export const useListingsPagination = () =>
+  useListingsStore((state) => state.pagination);

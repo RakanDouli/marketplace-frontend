@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { Attribute, AttributeOption } from '../types/listing';
+import { create } from "zustand";
+import type { Attribute, AttributeOption } from "../types/listing";
 
 // Filter-specific types
 interface AttributeOptionWithCount extends AttributeOption {
@@ -24,11 +24,11 @@ interface FiltersState {
   sellerTypes: DynamicFilterOption[];
   provinces: string[];
   cities: string[];
-  
+
   // Cache management
   currentCategorySlug: string | null;
   lastFetchKey: string | null;
-  
+
   // Loading states
   isLoading: boolean;
   error: string | null;
@@ -39,14 +39,17 @@ interface FiltersActions {
   // State management
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  
+
   // Main data fetching
   fetchFilterData: (categorySlug: string) => Promise<void>;
   fetchCities: (province: string) => Promise<void>;
-  
+
   // Cascading filter support
-  updateFiltersWithCascading: (categorySlug: string, appliedFilters: any) => Promise<void>;
-  
+  updateFiltersWithCascading: (
+    categorySlug: string,
+    appliedFilters: any
+  ) => Promise<void>;
+
   // State management
   resetFilters: () => void;
 }
@@ -66,13 +69,17 @@ const initialState: FiltersState = {
 };
 
 // GraphQL client function
-async function graphqlRequest(query: string, variables: any = {}): Promise<any> {
-  const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
-  
+async function graphqlRequest(
+  query: string,
+  variables: any = {}
+): Promise<any> {
+  const endpoint =
+    process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
+
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       query,
@@ -85,7 +92,7 @@ async function graphqlRequest(query: string, variables: any = {}): Promise<any> 
   }
 
   const result = await response.json();
-  
+
   if (result.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
   }
@@ -93,13 +100,19 @@ async function graphqlRequest(query: string, variables: any = {}): Promise<any> 
   return result.data;
 }
 
-
 // Get listing aggregations for counts
-async function getListingAggregations(categorySlug?: string, additionalFilter?: any): Promise<{
+async function getListingAggregations(
+  categorySlug?: string,
+  additionalFilter?: any
+): Promise<{
   attributes: Record<string, Record<string, number>>;
 }> {
-  console.log('🎯 Getting backend aggregations for:', categorySlug, additionalFilter);
-  
+  console.log(
+    "🎯 Getting backend aggregations for:",
+    categorySlug,
+    additionalFilter
+  );
+
   const query = `
     query GetListingAggregations($filter: ListingFilterInput) {
       listingsAggregations(filter: $filter) {
@@ -112,14 +125,6 @@ async function getListingAggregations(categorySlug?: string, additionalFilter?: 
             count
           }
         }
-        brands {
-          value
-          count
-        }
-        models {
-          value
-          count
-        }
       }
     }
   `;
@@ -128,7 +133,7 @@ async function getListingAggregations(categorySlug?: string, additionalFilter?: 
   if (categorySlug || additionalFilter) {
     variables.filter = {
       ...(categorySlug && { categoryId: categorySlug }),
-      ...additionalFilter
+      ...additionalFilter,
     };
   }
 
@@ -136,16 +141,16 @@ async function getListingAggregations(categorySlug?: string, additionalFilter?: 
   const aggregations = response.listingsAggregations;
 
   if (!aggregations) {
-    console.warn('No aggregations returned from backend');
+    console.warn("No aggregations returned from backend");
     return { attributes: {} };
   }
 
-  console.log('✅ Backend aggregations working:', {
+  console.log("✅ Backend aggregations working:", {
     totalResults: aggregations.totalResults,
-    attributesFound: aggregations.attributes?.length || 0
+    attributesFound: aggregations.attributes?.length || 0,
   });
 
-  // Transform attributes to the format we need
+  // Transform attributes to the format we need (regular attributes only)
   const attributes: Record<string, Record<string, number>> = {};
   (aggregations.attributes || []).forEach((attr: any) => {
     attributes[attr.field] = {};
@@ -154,13 +159,13 @@ async function getListingAggregations(categorySlug?: string, additionalFilter?: 
     });
   });
 
-  // All specs (including brandId/modelId) are handled through attributes
-  // No separate brand/model arrays needed
-  return { attributes };
+  // Return only attributes - brands/models are now regular specs
+  return { 
+    attributes // All specs including brandId/modelId are now in attributes
+  };
 }
 
 // Removed unused GraphQL queries - now using only aggregations for efficiency
-
 
 // Get all filter data for a category
 async function getAllFilterData(categorySlug: string) {
@@ -200,12 +205,16 @@ async function getAllFilterData(categorySlug: string) {
   `;
 
   const categoriesData = await graphqlRequest(CATEGORIES_QUERY);
-  const category = (categoriesData.categories || []).find((cat: any) => cat.slug === categorySlug);
+  const category = (categoriesData.categories || []).find(
+    (cat: any) => cat.slug === categorySlug
+  );
   const categoryId = category?.id;
 
   // Use GraphQL to get dynamic category attributes directly by slug
-  const data = await graphqlRequest(GET_CATEGORY_ATTRIBUTES_QUERY, { categorySlug });
-  
+  const data = await graphqlRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
+    categorySlug,
+  });
+
   const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
 
   // All specs (including brandId, modelId) are handled through dynamic attributes with counts from aggregations
@@ -214,26 +223,34 @@ async function getAllFilterData(categorySlug: string) {
   const aggregations = await getListingAggregations(categorySlug);
 
   // Process dynamic attributes and add counts from aggregations
-  const attributesWithCounts: AttributeWithProcessedOptions[] = rawAttributes.map(attr => {
-    // Convert backend options to processed options with counts
-    const processedOptions: AttributeOptionWithCount[] = (attr.options || []).map((backendOption) => ({
-      ...backendOption, // Include all required fields from AttributeOption
-      count: aggregations.attributes?.[attr.key]?.[backendOption.value] || 0 // Add count from backend aggregation, fallback to 0
-    }));
+  const attributesWithCounts: AttributeWithProcessedOptions[] =
+    rawAttributes.map((attr) => {
+      // All attributes now handled the same way - no special cases
+      const processedOptions: AttributeOptionWithCount[] = (attr.options || []).map((backendOption) => ({
+        ...backendOption, // Include all required fields from AttributeOption
+        count:
+          aggregations.attributes?.[attr.key]?.[backendOption.value] || 0, // Add count from backend aggregation, fallback to 0
+      }));
+      
+      console.log(`🔍 Processing attribute: ${attr.key}`, {
+        optionsCount: processedOptions.length,
+        hasAggregationData: !!aggregations.attributes?.[attr.key],
+        sampleOptions: processedOptions.slice(0, 2)
+      });
 
-    return {
-      ...attr,
-      processedOptions
-    };
-  });
+      return {
+        ...attr,
+        processedOptions,
+      };
+    });
 
   // All specs (including brandId, modelId) are handled through the dynamic attributes system
   // No separate brand/model arrays needed - everything is in attributes with counts
-  
+
   return {
     attributes: attributesWithCounts,
     sellerTypes: [], // Will be populated from aggregations.sellerTypes
-    provinces: [] // Will be fetched separately if needed
+    provinces: [], // Will be fetched separately if needed
   };
 }
 
@@ -251,18 +268,18 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   fetchFilterData: async (categorySlug: string) => {
     const { lastFetchKey } = get();
     const cacheKey = `filters-${categorySlug}`;
-    
+
     // Skip if same request is cached
     if (lastFetchKey === cacheKey) {
       return;
     }
 
     set({ isLoading: true, error: null });
-    
+
     try {
       // Get all filter data with counts in one API call
       const filterData = await getAllFilterData(categorySlug);
-      
+
       set({
         attributes: filterData.attributes,
         provinces: filterData.provinces,
@@ -270,12 +287,12 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         lastFetchKey: cacheKey,
         cities: [],
         isLoading: false,
-        error: null
+        error: null,
       });
     } catch (error) {
-      set({ 
-        isLoading: false, 
-        error: (error as Error).message || 'Failed to load filters' 
+      set({
+        isLoading: false,
+        error: (error as Error).message || "Failed to load filters",
       });
     }
   },
@@ -285,25 +302,32 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   // Fetch cities for selected province - placeholder for now
   fetchCities: async (province: string) => {
     set({ isLoading: true, error: null });
-    
+
     try {
       // For now, return empty array since we don't have city data in the current backend
       const cities: string[] = [];
       set({ cities, isLoading: false, error: null });
     } catch (error) {
-      set({ 
-        isLoading: false, 
-        error: (error as Error).message || 'Failed to load cities' 
+      set({
+        isLoading: false,
+        error: (error as Error).message || "Failed to load cities",
       });
     }
   },
 
   // Update filters with cascading logic (when user selects a brand, update other filters)
-  updateFiltersWithCascading: async (categorySlug: string, appliedFilters: any) => {
-    console.log('🔄 Updating cascading filters for:', categorySlug, appliedFilters);
-    
+  updateFiltersWithCascading: async (
+    categorySlug: string,
+    appliedFilters: any
+  ) => {
+    console.log(
+      "🔄 Updating cascading filters for:",
+      categorySlug,
+      appliedFilters
+    );
+
     set({ isLoading: true, error: null });
-    
+
     try {
       // Get fresh attribute definitions (unchanged)
       const GET_CATEGORY_ATTRIBUTES_QUERY = `
@@ -327,54 +351,78 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
           }
         }
       `;
-      
-      const data = await graphqlRequest(GET_CATEGORY_ATTRIBUTES_QUERY, { categorySlug });
+
+      const data = await graphqlRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
+        categorySlug,
+      });
       const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
-      
+
       // 🎯 KEY CASCADING LOGIC: Get aggregations with applied filters
-      const cascadingAggregations = await getListingAggregations(categorySlug, appliedFilters);
-      console.log('🎯 Cascading aggregations received:', {
-        totalResults: cascadingAggregations ? Object.keys(cascadingAggregations.attributes).length : 0,
-        sampleAttributes: Object.keys(cascadingAggregations?.attributes || {}).slice(0, 3),
+      const cascadingAggregations = await getListingAggregations(
+        categorySlug,
+        appliedFilters
+      );
+      console.log("🎯 Cascading aggregations received:", {
+        totalResults: cascadingAggregations
+          ? Object.keys(cascadingAggregations.attributes).length
+          : 0,
+        sampleAttributes: Object.keys(
+          cascadingAggregations?.attributes || {}
+        ).slice(0, 3),
         attributeKeys: Object.keys(cascadingAggregations?.attributes || {}),
-        sampleAttributeData: Object.entries(cascadingAggregations?.attributes || {}).slice(0, 2)
+        sampleAttributeData: Object.entries(
+          cascadingAggregations?.attributes || {}
+        ).slice(0, 2),
       });
-      
+
       // Update attributes with cascading counts
-      const attributesWithCascadingCounts: AttributeWithProcessedOptions[] = rawAttributes.map(attr => {
-        const processedOptions: AttributeOptionWithCount[] = (attr.options || []).map((backendOption) => ({
-          ...backendOption, // Include all required fields from AttributeOption
-          count: cascadingAggregations.attributes?.[attr.key]?.[backendOption.value] || 0
-        }));
-        
-        // Show all options (including those with count 0) for better UX
-        // Users can still select options with 0 count, which will update the filter
-        const filteredOptions = processedOptions;
-        
-        return {
-          ...attr,
-          processedOptions: filteredOptions
-        };
-      });
-      
+      const attributesWithCascadingCounts: AttributeWithProcessedOptions[] =
+        rawAttributes.map((attr) => {
+          // All attributes now handled the same way - no special cases
+          const processedOptions: AttributeOptionWithCount[] = (attr.options || []).map((backendOption) => ({
+            ...backendOption, // Include all required fields from AttributeOption
+            count:
+              cascadingAggregations.attributes?.[attr.key]?.[
+                backendOption.value
+              ] || 0,
+          }));
+          
+          console.log(`🔄 Cascading attribute: ${attr.key}`, {
+            optionsCount: processedOptions.length,
+            hasAggregationData: !!cascadingAggregations.attributes?.[attr.key],
+            sampleOptions: processedOptions.slice(0, 2)
+          });
+
+          // Show all options (including those with count 0) for better UX
+          // Users can still select options with 0 count, which will update the filter
+          const filteredOptions = processedOptions;
+
+          return {
+            ...attr,
+            processedOptions: filteredOptions,
+          };
+        });
+
       // All specs (including brands/models) are handled through attributes - no separate arrays
-      
+
       set({
         attributes: attributesWithCascadingCounts,
         currentCategorySlug: categorySlug,
         cities: [],
         isLoading: false,
-        error: null
+        error: null,
       });
-      
-      console.log('✅ Cascading filters updated!', {
-        attributesWithOptions: attributesWithCascadingCounts.filter(a => a.processedOptions && a.processedOptions.length > 0).length,
-        totalAttributes: attributesWithCascadingCounts.length
+
+      console.log("✅ Cascading filters updated!", {
+        attributesWithOptions: attributesWithCascadingCounts.filter(
+          (a) => a.processedOptions && a.processedOptions.length > 0
+        ).length,
+        totalAttributes: attributesWithCascadingCounts.length,
       });
     } catch (error) {
-      set({ 
-        isLoading: false, 
-        error: (error as Error).message || 'Failed to update cascading filters' 
+      set({
+        isLoading: false,
+        error: (error as Error).message || "Failed to update cascading filters",
       });
     }
   },
@@ -386,8 +434,11 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 }));
 
 // Selectors for easy component access
-export const useFilterAttributes = () => useFiltersStore((state) => state.attributes);
-export const useFilterProvinces = () => useFiltersStore((state) => state.provinces);
+export const useFilterAttributes = () =>
+  useFiltersStore((state) => state.attributes);
+export const useFilterProvinces = () =>
+  useFiltersStore((state) => state.provinces);
 export const useFilterCities = () => useFiltersStore((state) => state.cities);
-export const useFiltersLoading = () => useFiltersStore((state) => state.isLoading);
+export const useFiltersLoading = () =>
+  useFiltersStore((state) => state.isLoading);
 export const useFiltersError = () => useFiltersStore((state) => state.error);
