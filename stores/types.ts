@@ -61,6 +61,8 @@ export interface ListingsState {
     // Other filters
     condition?: string;
     search?: string;
+    // Sorting
+    sort?: string;
   };
   pagination: {
     page: number;

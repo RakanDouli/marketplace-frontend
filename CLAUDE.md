@@ -77,12 +77,19 @@ query GetAttributesByCategorySlug($categorySlug: String!) {
 - `/components/slices/ErrorBoundary/ErrorBoundary.tsx` - Error boundary component
 - `/stores/base/createAsyncStore.ts` - Reusable async store factory
 - `/lib/api/attributes.ts` - GraphQL API layer for attributes
+- `/components/AppliedFilters/AppliedFilters.tsx` - Applied filters with remove buttons (Marktplaats-style)
+- `/components/SortControls/SortControls.tsx` - Sort dropdown component replacing listing count
+- `/components/AppliedFilters/AppliedFilters.module.scss` - Styles for applied filters
+- `/components/SortControls/SortControls.module.scss` - Styles for sort controls
 
 #### **Modified Files:**
-- `/components/Filter/Filter.tsx` - Updated for backend integration
+- `/components/Filter/Filter.tsx` - Updated for backend integration, removed hardcoded brand/model
 - `/components/Filter/Filter.module.scss` - Added styles for new input types
-- `/locales/ar.json` & `/locales/en.json` - Added missing translation keys
-- `/app/(public)/[category]/CategoryPageClient.tsx` - Updated to pass categorySlug
+- `/locales/ar.json` & `/locales/en.json` - Added sorting and applied filters translations
+- `/app/(public)/[category]/CategoryPageClient.tsx` - Updated for store-based sorting, applied filters
+- `/stores/listingsStore.ts` - Added sorting support and GraphQL schema updates
+- `/stores/types.ts` - Added sort parameter to filters interface
+- `/components/ListingArea/ListingArea.tsx` - Integrated applied filters and sort controls
 
 ### **⚡ Performance Optimizations**
 - **Single GraphQL Call**: Replaced multiple API calls with one efficient query
@@ -92,31 +99,35 @@ query GetAttributesByCategorySlug($categorySlug: String!) {
 
 ## 🎯 **Current Status & Next Steps**
 
-### **✅ COMPLETED: Dynamic Filtering System Optimization**
+### **✅ COMPLETED: Applied Filters & Sorting System Implementation**
 
-#### **1. Eliminated Duplicate API Calls (83% reduction)**
-- **Problem**: User identified "alot of calls at the same time" 
-- **Solution**: Removed separate brand/model API calls, consolidated to single aggregation call
-- **Impact**: 6+ API calls reduced to 1 efficient aggregation query
+#### **1. Applied Filters Display (Marktplaats-style)**
+- **Problem**: User requested "applied filters display (like Marktplaats) above listings"
+- **Solution**: Created AppliedFilters component with individual remove buttons and "clear all"
+- **Features**: Shows active filters with proper Arabic names, individual X buttons, total results count
+- **UUID Fix**: Resolved issue where UUIDs were displayed instead of readable names (e.g., "Bentley")
 
-#### **2. Made System Truly Dynamic**
-- **Problem**: User pointed out "since we made brand and model as dynamic content why u r hardcoding them in front end?"
-- **Solution**: Removed all hardcoded Brand/Model components from Filter.tsx
-- **Result**: All specs (including brandId/modelId) now handled through unified dynamic attributes system
+#### **2. Store-Based Sorting System**
+- **Problem**: User pointed out sorting should be handled through listings store, not components
+- **Solution**: Implemented backend sorting with store-based architecture
+- **Features**: Sort by Price (Low/High), Date (Newest/Oldest), pagination-aware sorting
+- **GraphQL Integration**: Added `sort` field to `ListingFilterInput` schema
 
-#### **3. Architecture Cleanup**
-- **Removed**: Hardcoded brand/model selectors from Filter component  
-- **Unified**: Everything goes through dynamic attributes with counts from aggregations
-- **Fixed**: User's feedback "again u use aggercations?.modules count all spec has their count from aggrigation why u r selecting specific spec"
+#### **3. Complete Specs System Integration**
+- **Removed**: All hardcoded brand/model handling - now part of dynamic specs system
+- **Unified**: brandId and modelId treated as regular specs attributes
+- **Dynamic**: All filtering goes through specs JSONB column in database
+- **Cascading**: Filter options update based on other selections (e.g., selecting Bentley filters models)
 
 ### **✅ Working Features:**
 - Complete translation system with Arabic/English support
-- 404 error handling with proper routing
+- 404 error handling with proper routing  
 - Base store utilities ready for use
-- Frontend development server running on port 3000
-- **NEW**: Fully dynamic filtering system with no hardcoded specs
-- **NEW**: Single aggregation API call for all filter counts
-- **NEW**: Clean TypeScript build with no errors
+- **Applied Filters Component**: Individual remove buttons with proper Arabic names
+- **Sort Controls**: Replace listing count with sorting dropdown
+- **Store-Based Sorting**: Backend sorting with pagination support
+- **Dynamic Specs System**: All attributes (including brand/model) handled uniformly
+- **Cascading Filters**: Options update based on selections
 
 ### **📝 TODO for Next Session:**
 
@@ -126,21 +137,16 @@ query GetAttributesByCategorySlug($categorySlug: String!) {
    - Backend has TypeORM error: "Index contains column that is missing in the entity (Listing): modelId"
    - Need migration to clean up database schema
 
-2. **Test Dynamic System End-to-End**:
-   - Verify dynamic attribute rendering works with real data
-   - Test filter cascading with backend aggregations
-   - Ensure brand/model filtering works through specs system
-
 #### **Medium Priority:**
-3. **Filter UX Enhancements**:
-   - Add filter clearing functionality
-   - Implement filter state persistence in URL
-   - Add filter application with loading states
+2. **Filter UX Enhancements**:
+   - Implement filter state persistence in URL parameters
+   - Add loading states during filter application
+   - Optimize filter rendering performance
 
-4. **Component Integration**:
-   - Connect filters to listing results
-   - Update pagination with filter parameters
-   - Add filter indicators in UI
+3. **Testing & Polish**:
+   - Test end-to-end filtering and sorting with real data
+   - Verify Arabic translations for all new components
+   - Test pagination with filters and sorting
 
 ## 🔍 **Technical Notes for Next Session**
 

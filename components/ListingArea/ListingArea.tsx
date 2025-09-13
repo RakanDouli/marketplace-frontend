@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Grid3X3, List, Filter as FilterIcon } from 'lucide-react';
 import { ListingCard, Button, Text } from '../slices';
 import { useTranslation } from '../../hooks/useTranslation';
+import { AppliedFilters, FilterValues } from '../AppliedFilters/AppliedFilters';
+import { SortControls, SortOption } from '../SortControls/SortControls';
 import styles from './ListingArea.module.scss';
 
 export interface ListingData {
@@ -21,6 +23,7 @@ export interface ListingData {
 export interface ListingAreaProps {
   listings: ListingData[];
   loading?: boolean;
+  countLoading?: boolean; // Separate loading state for results count
   onCardClick?: (id: string) => void;
   onCardLike?: (id: string, liked: boolean) => void;
   onToggleFilters?: () => void;
@@ -29,11 +32,28 @@ export interface ListingAreaProps {
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  // New props for filters and sorting
+  appliedFilters?: FilterValues;
+  totalResults?: number;
+  currentSort?: SortOption;
+  onRemoveFilter?: (filterKey: string) => void;
+  onClearAllFilters?: () => void;
+  onSortChange?: (sort: SortOption) => void;
+  attributes?: Array<{
+    key: string;
+    name: string;
+    type: string;
+    options?: Array<{
+      key: string;
+      value: string;
+    }>;
+  }>;
 }
 
 export const ListingArea: React.FC<ListingAreaProps> = ({
   listings,
   loading = false,
+  countLoading = false,
   onCardClick,
   onCardLike,
   onToggleFilters,
@@ -42,6 +62,13 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   currentPage = 1,
   totalPages = 1,
   onPageChange,
+  appliedFilters,
+  totalResults,
+  currentSort = 'createdAt_desc',
+  onRemoveFilter,
+  onClearAllFilters,
+  onSortChange,
+  attributes = [],
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { t } = useTranslation();
@@ -60,12 +87,21 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
             <span>{t('search.filters')}</span>
           </button>
           
-          <Text variant="paragraph" className={styles.resultsCount}>
-            {loading ? t('common.loading') : `${listings.length} ${t('search.results')}`}
-          </Text>
+          {totalResults !== undefined && (
+            <Text variant="paragraph" className={styles.resultsCount}>
+              {countLoading ? t('common.loading') : `${totalResults} ${t('search.totalResults')}`}
+            </Text>
+          )}
         </div>
 
         <div className={styles.headerRight}>
+          {onSortChange && (
+            <SortControls 
+              currentSort={currentSort}
+              onSortChange={onSortChange}
+            />
+          )}
+          
           <div className={styles.viewToggle}>
             <button
               className={`${styles.viewButton} ${viewMode === 'grid' ? styles.active : ''}`}
@@ -84,6 +120,17 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Applied Filters */}
+      {appliedFilters && onRemoveFilter && onClearAllFilters && (
+        <AppliedFilters
+          filters={appliedFilters}
+          totalResults={totalResults}
+          onRemoveFilter={onRemoveFilter}
+          onClearAllFilters={onClearAllFilters}
+          attributes={attributes}
+        />
+      )}
 
       {/* Loading state */}
       {loading && (

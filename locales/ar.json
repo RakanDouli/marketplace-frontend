@@ -48,7 +48,19 @@
     "noResults": "لم يتم العثور على مركبات تطابق معاييرك",
     "noResultsDescription": "جرب تعديل المرشحات أو معايير البحث للعثور على نتائج أكثر.",
     "modifyFilters": "تعديل المرشحات",
-    "results": "مركبة"
+    "results": "مركبة",
+    "totalResults": "نتيجة",
+    "clearAllFilters": "مسح جميع المرشحات",
+    "removeFilter": "إزالة المرشح",
+    "searchTerm": "البحث",
+    "price": "السعر",
+    "province": "المحافظة",
+    "city": "المدينة",
+    "sortBy": "ترتيب حسب",
+    "sortByNewest": "الأحدث أولاً",
+    "sortByOldest": "الأقدم أولاً",
+    "sortByPriceLow": "السعر من الأقل للأعلى",
+    "sortByPriceHigh": "السعر من الأعلى للأقل"
   },
   "listing": {
     "featured": "مميز",

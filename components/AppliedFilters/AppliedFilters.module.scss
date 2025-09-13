@@ -1,0 +1,117 @@
+@import '../../styles/variables.scss';
+
+.appliedFilters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  padding: $space-md;
+  margin-bottom: $space-md;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-sm;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+}
+
+.resultsCount {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.clearAll {
+  color: var(--danger);
+  font-size: $font-sm;
+  padding: $space-xs $space-sm;
+  
+  &:hover {
+    background: var(--danger-light);
+  }
+}
+
+.filtersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-sm;
+}
+
+.filterTag {
+  display: flex;
+  align-items: center;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: $radius-sm;
+  padding: $space-xs $space-sm;
+  gap: $space-xs;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+  }
+}
+
+.filterLabel {
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+.filterValue {
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 600;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: $font-sm;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: $space-xs;
+
+  &:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+  }
+}
+
+// RTL support
+[dir="rtl"] {
+  .header {
+    direction: rtl;
+  }
+
+  .filterTag {
+    direction: rtl;
+  }
+
+  .removeButton {
+    margin-left: 0;
+    margin-right: $space-xs;
+  }
+}

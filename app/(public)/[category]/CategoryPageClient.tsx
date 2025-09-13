@@ -11,6 +11,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import type { ListingData } from "../../../components/ListingArea/ListingArea";
 import type { Category } from "../../../stores/types";
 import type { FilterValues } from "../../../components/Filter/Filter";
+import type { SortOption } from "../../../components/SortControls/SortControls";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
@@ -37,6 +38,8 @@ export default function CategoryPageClient({
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<FilterValues>({});
+  const [currentSort, setCurrentSort] = useState<SortOption>('createdAt_desc');
+  const [isSorting, setIsSorting] = useState(false);
 
   // Store hooks
   const { 
@@ -52,7 +55,8 @@ export default function CategoryPageClient({
     isLoading: listingsLoading, 
     fetchListingsByCategory,
     pagination,
-    setPagination
+    setPagination,
+    setSortFilter
   } = useListingsStore();
   
   // Filters store for cascading updates
@@ -219,8 +223,8 @@ export default function CategoryPageClient({
       console.log('🔄 Triggering cascading filter updates...');
       await updateFiltersWithCascading(currentCategory.slug, backendFilters);
       
-      // Step 3: Convert filters for listings store
-      const storeFilters = convertFiltersForStore(filterValues);
+      // Step 3: Convert filters for listings store and preserve current sort
+      const storeFilters = { ...convertFiltersForStore(filterValues), sort: currentSort };
       
       // Step 4: Reset pagination to page 1 when filters change
       setPagination({ page: 1 });
@@ -240,7 +244,7 @@ export default function CategoryPageClient({
       console.error('❌ Error applying cascading filters:', error);
       
       // Fallback: Just update listings without cascading
-      const storeFilters = convertFiltersForStore(filterValues);
+      const storeFilters = { ...convertFiltersForStore(filterValues), sort: currentSort };
       setPagination({ page: 1 });
       fetchListingsByCategory(currentCategory.slug, storeFilters);
     }
@@ -255,14 +259,15 @@ export default function CategoryPageClient({
       setPagination({ page: parsedFilters.page });
       
       try {
-        await fetchListingsByCategory(currentCategory.slug, parsedFilters.filters);
+        const filtersWithSort = { ...parsedFilters.filters, sort: currentSort };
+        await fetchListingsByCategory(currentCategory.slug, filtersWithSort);
       } catch (error) {
         console.error('Error loading listings:', error);
       }
     };
 
     loadListings();
-  }, [currentCategory, parsedFilters, fetchListingsByCategory, setPagination]);
+  }, [currentCategory, parsedFilters, currentSort, fetchListingsByCategory, setPagination]);
 
   // Convert store listings to component format
   const listingData: ListingData[] = (listings || []).map((listing) => ({
@@ -301,15 +306,66 @@ export default function CategoryPageClient({
     url.searchParams.set('page', page.toString());
     window.history.pushState({}, '', url.toString());
     
-    // Fetch listings for new page with current filters
+    // Fetch listings for new page with current filters and sort
     if (currentCategory) {
-      const storeFilters = convertFiltersForStore(currentFilters);
+      const storeFilters = { ...convertFiltersForStore(currentFilters), sort: currentSort };
       try {
         await fetchListingsByCategory(currentCategory.slug, storeFilters);
       } catch (error) {
         console.error('Error loading listings for page:', page, error);
       }
     }
+  };
+
+  const handleRemoveFilter = async (filterKey: string) => {
+    const updatedFilters = { ...currentFilters };
+    
+    // Remove the specific filter
+    if (filterKey === 'brandId' || filterKey === 'modelId') {
+      // Remove brand/model from root level
+      delete updatedFilters[filterKey as keyof FilterValues];
+    } else if (filterKey.startsWith('specs.')) {
+      // Remove from specs object
+      const specKey = filterKey.replace('specs.', '');
+      if (updatedFilters.specs) {
+        delete updatedFilters.specs[specKey];
+        if (Object.keys(updatedFilters.specs).length === 0) {
+          delete updatedFilters.specs;
+        }
+      }
+    } else {
+      // Remove from root level
+      delete updatedFilters[filterKey as keyof FilterValues];
+    }
+    
+    // Apply the updated filters
+    await handleApplyFilters(updatedFilters);
+  };
+
+  const handleClearAllFilters = async () => {
+    const clearedFilters: FilterValues = {};
+    await handleApplyFilters(clearedFilters);
+  };
+
+  const handleSortChange = async (sort: SortOption) => {
+    setCurrentSort(sort);
+    setIsSorting(true);
+    console.log('Sort changed to:', sort);
+    
+    // Set sort in store and refetch listings
+    setSortFilter(sort);
+    
+    if (currentCategory) {
+      const storeFilters = convertFiltersForStore(currentFilters);
+      try {
+        await fetchListingsByCategory(currentCategory.slug, storeFilters);
+        console.log('✅ Listings updated with new sorting:', sort);
+      } catch (error) {
+        console.error('❌ Error applying sort:', error);
+      }
+    }
+    
+    setIsSorting(false);
   };
 
   // Check for 404 during render phase
@@ -361,6 +417,7 @@ export default function CategoryPageClient({
           <ListingArea
             listings={listingData}
             loading={listingsLoading}
+            countLoading={listingsLoading && !isSorting}
             onCardClick={handleCardClick}
             onCardLike={handleCardLike}
             onToggleFilters={handleToggleFilters}
@@ -368,6 +425,13 @@ export default function CategoryPageClient({
             currentPage={pagination.page}
             totalPages={Math.ceil(pagination.total / pagination.limit)}
             onPageChange={handlePageChange}
+            appliedFilters={currentFilters}
+            totalResults={pagination.total}
+            currentSort={currentSort}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAllFilters={handleClearAllFilters}
+            onSortChange={handleSortChange}
+            attributes={attributes}
           />
         </div>
       </div>

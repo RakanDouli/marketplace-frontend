@@ -48,7 +48,19 @@
     "noResults": "No vehicles found matching your criteria",
     "noResultsDescription": "Try adjusting your filters or search criteria to find more results.",
     "modifyFilters": "Modify Filters",
-    "results": "vehicles"
+    "results": "vehicles",
+    "totalResults": "results",
+    "clearAllFilters": "Clear All Filters",
+    "removeFilter": "Remove Filter",
+    "searchTerm": "Search",
+    "price": "Price",
+    "province": "Province",
+    "city": "City",
+    "sortBy": "Sort by",
+    "sortByNewest": "Newest First",
+    "sortByOldest": "Oldest First",
+    "sortByPriceLow": "Price: Low to High",
+    "sortByPriceHigh": "Price: High to Low"
   },
   "listing": {
     "featured": "Featured",

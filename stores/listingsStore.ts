@@ -62,6 +62,7 @@ interface ListingsActions {
   clearFilters: () => void;
   setPagination: (pagination: Partial<ListingsState["pagination"]>) => void;
   resetPagination: () => void;
+  setSortFilter: (sort: string) => void;
   // Data fetching methods
   fetchListings: (filters?: Partial<ListingsState["filters"]>) => Promise<void>;
   fetchListingsByCategory: (
@@ -163,6 +164,13 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     set({ pagination: initialPagination });
   },
 
+  setSortFilter: (sort: string) => {
+    const { filters } = get();
+    set({
+      filters: { ...filters, sort },
+    });
+  },
+
   // Data fetching methods
   fetchListings: async (filterOverrides = {}) => {
     const { filters, pagination } = get();
@@ -219,6 +227,11 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           "Search filter not yet supported by backend:",
           finalFilters.search
         );
+      }
+
+      // Sort parameter (add to filter for backend processing)
+      if (finalFilters.sort) {
+        graphqlFilter.sort = finalFilters.sort;
       }
 
       // Use GraphQL listingsSearch API

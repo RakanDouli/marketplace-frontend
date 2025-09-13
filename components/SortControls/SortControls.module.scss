@@ -1,0 +1,49 @@
+@import '../../styles/variables.scss';
+
+.sortControls {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: $font-sm;
+  font-weight: 500;
+  margin: 0;
+}
+
+.select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-sm;
+  padding: $space-xs $space-sm;
+  color: var(--text-primary);
+  font-size: $font-sm;
+  cursor: pointer;
+  min-width: 160px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+    border-color: var(--primary);
+  }
+
+  option {
+    background: var(--surface);
+    color: var(--text-primary);
+    padding: $space-xs;
+  }
+}
+
+// RTL support
+[dir="rtl"] {
+  .sortControls {
+    direction: rtl;
+  }
+}

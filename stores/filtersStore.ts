@@ -106,6 +106,7 @@ async function getListingAggregations(
   additionalFilter?: any
 ): Promise<{
   attributes: Record<string, Record<string, number>>;
+  rawAggregations?: any; // Keep raw data for brandId/modelId
 }> {
   console.log(
     "🎯 Getting backend aggregations for:",
@@ -123,6 +124,7 @@ async function getListingAggregations(
           options {
             value
             count
+            key
           }
         }
       }
@@ -155,13 +157,18 @@ async function getListingAggregations(
   (aggregations.attributes || []).forEach((attr: any) => {
     attributes[attr.field] = {};
     (attr.options || []).forEach((option: any) => {
-      attributes[attr.field][option.value] = option.count;
+      // For brandId/modelId, use key field; for others, use value field
+      const lookupKey = (attr.field === 'brandId' || attr.field === 'modelId') 
+        ? option.key || option.value 
+        : option.value;
+      attributes[attr.field][lookupKey] = option.count;
     });
   });
 
   // Return only attributes - brands/models are now regular specs
   return { 
-    attributes // All specs including brandId/modelId are now in attributes
+    attributes, // All specs including brandId/modelId are now in attributes
+    rawAggregations: aggregations // Keep raw data for brandId/modelId processing
   };
 }
 
@@ -225,12 +232,32 @@ async function getAllFilterData(categorySlug: string) {
   // Process dynamic attributes and add counts from aggregations
   const attributesWithCounts: AttributeWithProcessedOptions[] =
     rawAttributes.map((attr) => {
-      // All attributes now handled the same way - no special cases
-      const processedOptions: AttributeOptionWithCount[] = (attr.options || []).map((backendOption) => ({
-        ...backendOption, // Include all required fields from AttributeOption
-        count:
-          aggregations.attributes?.[attr.key]?.[backendOption.value] || 0, // Add count from backend aggregation, fallback to 0
-      }));
+      let processedOptions: AttributeOptionWithCount[] = [];
+
+      // Special handling for brandId and modelId - create options from aggregation data
+      if (attr.key === 'brandId' || attr.key === 'modelId') {
+        // For brandId/modelId, get options directly from raw aggregation since seeder has empty options
+        const rawAttributeData = aggregations.rawAggregations?.attributes?.find((a: any) => a.field === attr.key);
+        if (rawAttributeData?.options) {
+          processedOptions = rawAttributeData.options.map((option: any) => ({
+            id: option.key || option.value, // Use key (UUID) as id, fallback to value
+            key: option.key || option.value, // Use key (UUID) for filtering
+            value: option.value, // Use readable name for display
+            sortOrder: 0,
+            isActive: true,
+            count: option.count,
+          }));
+        } else {
+          processedOptions = [];
+        }
+      } else {
+        // Regular attributes - use existing options with counts from aggregation
+        processedOptions = (attr.options || []).map((backendOption) => ({
+          ...backendOption, // Include all required fields from AttributeOption
+          count:
+            aggregations.attributes?.[attr.key]?.[backendOption.value] || 0, // Add count from backend aggregation, fallback to 0
+        }));
+      }
       
       console.log(`🔍 Processing attribute: ${attr.key}`, {
         optionsCount: processedOptions.length,
@@ -378,14 +405,34 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       // Update attributes with cascading counts
       const attributesWithCascadingCounts: AttributeWithProcessedOptions[] =
         rawAttributes.map((attr) => {
-          // All attributes now handled the same way - no special cases
-          const processedOptions: AttributeOptionWithCount[] = (attr.options || []).map((backendOption) => ({
-            ...backendOption, // Include all required fields from AttributeOption
-            count:
-              cascadingAggregations.attributes?.[attr.key]?.[
-                backendOption.value
-              ] || 0,
-          }));
+          let processedOptions: AttributeOptionWithCount[] = [];
+
+          // Special handling for brandId and modelId - create options from cascading aggregation data
+          if (attr.key === 'brandId' || attr.key === 'modelId') {
+            // For brandId/modelId, get options directly from raw cascading aggregation
+            const rawAttributeData = cascadingAggregations.rawAggregations?.attributes?.find((a: any) => a.field === attr.key);
+            if (rawAttributeData?.options) {
+              processedOptions = rawAttributeData.options.map((option: any) => ({
+                id: option.key || option.value, // Use key (UUID) as id, fallback to value
+                key: option.key || option.value, // Use key (UUID) for filtering
+                value: option.value, // Use readable name for display
+                sortOrder: 0,
+                isActive: true,
+                count: option.count,
+              }));
+            } else {
+              processedOptions = [];
+            }
+          } else {
+            // Regular attributes - use existing options with counts from cascading aggregation
+            processedOptions = (attr.options || []).map((backendOption) => ({
+              ...backendOption, // Include all required fields from AttributeOption
+              count:
+                cascadingAggregations.attributes?.[attr.key]?.[
+                  backendOption.value
+                ] || 0,
+            }));
+          }
           
           console.log(`🔄 Cascading attribute: ${attr.key}`, {
             optionsCount: processedOptions.length,
