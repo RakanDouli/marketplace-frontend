@@ -1,0 +1,37 @@
+@import "../../../styles/variables";
+
+// Text loading (default)
+.loading {
+  display: inline-block;
+  color: $text-muted;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+// SVG loading (when type="svg")
+.loadingSvg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  .spinner {
+    width: 32px;
+    height: 32px;
+    color: $primary;
+    animation: rotate 2s linear infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "@/hooks/useTranslation";
 
-import { ThemeToggle, LanguageSwitch, Spacer } from "@/components/slices";
+import { ThemeToggle, Spacer } from "@/components/slices";
 import styles from "./Header.module.scss";
+import { Container } from "../slices";
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
@@ -43,24 +44,25 @@ export const Header: React.FC = () => {
           isVisible ? styles.visible : styles.hidden
         }`}
       >
-        <div className={styles.container}>
-          {/* Logo */}
-          <Link href="/" className={styles.logo}>
-            <div className={styles.logoIcon}>🚗</div>
-            <div className={styles.logoText}>
-              <span className={styles.logoMain}>
-                {t("seo.defaultTitle").split(" | ")[0]}
-              </span>
-              <span className={styles.logoSub}>Syrian Marketplace</span>
-            </div>
-          </Link>
+        <Container padding={false}>
+          <div className={styles.container}>
+            {/* Logo */}
+            <Link href="/" className={styles.logo}>
+              <div className={styles.logoIcon}>🚗</div>
+              <div className={styles.logoText}>
+                <span className={styles.logoMain}>
+                  {t("seo.defaultTitle").split(" | ")[0]}
+                </span>
+                <span className={styles.logoSub}>Syrian Marketplace</span>
+              </div>
+            </Link>
 
-          {/* Desktop Actions */}
-          <div className={styles.actions}>
-            <LanguageSwitch />
-            <ThemeToggle />
+            {/* Desktop Actions */}
+            <div className={styles.actions}>
+              <ThemeToggle />
+            </div>
           </div>
-        </div>
+        </Container>
       </header>
     </>
   );

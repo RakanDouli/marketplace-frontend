@@ -1,4 +1,4 @@
-@import '../../styles/variables.scss';
+@import "../../styles/variables.scss";
 
 .sortControls {
   display: flex;
@@ -7,36 +7,38 @@
 }
 
 .label {
-  color: var(--text-secondary);
+  color: $text;
   font-size: $font-sm;
   font-weight: 500;
   margin: 0;
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
 }
 
 .select {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: $surface;
+  border: 2px solid $border;
   border-radius: $radius-sm;
-  padding: $space-xs $space-sm;
-  color: var(--text-primary);
+  color: $text;
   font-size: $font-sm;
   cursor: pointer;
   min-width: 160px;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--border-hover);
+    border-color: $primary;
   }
 
   &:focus {
-    outline: 2px solid var(--primary);
+    outline: 2px solid $primary;
     outline-offset: 1px;
-    border-color: var(--primary);
+    border-color: $primary;
   }
 
   option {
-    background: var(--surface);
-    color: var(--text-primary);
+    background: $surface;
+    color: $text;
     padding: $space-xs;
   }
 }

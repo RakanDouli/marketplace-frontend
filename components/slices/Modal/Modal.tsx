@@ -12,6 +12,8 @@ export interface ModalProps {
   children: React.ReactNode;
   className?: string;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  title?: string;
+  description?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -21,6 +23,8 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   className = '',
   maxWidth = 'md',
+  title,
+  description,
 }) => {
   // Handle escape key
   useEffect(() => {
@@ -64,7 +68,8 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={handleBackgroundClick}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
+      aria-labelledby={title ? "modal-title" : undefined}
+      aria-describedby={description ? "modal-description" : undefined}
     >
       <div 
         className={`
@@ -75,18 +80,28 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Close Button */}
         {closeable && (
-          <Button
-            variant="outline"
+          <button
             className={styles.modalClose}
             onClick={handleCloseClick}
             aria-label="Close modal"
+            type="button"
           >
-            <X size={24} />
-          </Button>
+            <X size={20} />
+          </button>
         )}
 
         {/* Modal Content */}
         <div className={styles.modalContent}>
+          {title && (
+            <h2 id="modal-title" className={styles.modalTitle}>
+              {title}
+            </h2>
+          )}
+          {description && (
+            <p id="modal-description" className={styles.modalDescription}>
+              {description}
+            </p>
+          )}
           {children}
         </div>
       </div>

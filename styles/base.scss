@@ -23,6 +23,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: $surface;
 }
 
 img,
@@ -33,13 +34,6 @@ svg {
   display: block;
   max-width: 100%;
   height: auto;
-}
-
-input,
-button,
-textarea,
-select {
-  font: inherit;
 }
 
 button {
@@ -81,4 +75,43 @@ table {
 // RTL Support - Following SYR_APP pattern
 .rtl {
   direction: rtl;
+}
+
+input,
+textarea,
+select {
+  padding: $space-sm $space-md;
+}
+input,
+textarea,
+select {
+  font: inherit;
+  width: 100%;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  background-color: $bg;
+  color: $text;
+
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+
+  &::placeholder {
+    color: $text-muted;
+  }
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
 }

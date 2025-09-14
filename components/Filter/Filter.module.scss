@@ -7,18 +7,18 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: $space-md;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid $border;
   margin-bottom: $space-lg;
 
   .headerContent {
     display: flex;
     align-items: center;
     gap: $space-sm;
-    color: var(--primary);
+    color: $primary;
 
     .title {
       margin: 0;
-      color: var(--text);
+      color: $text;
     }
   }
 
@@ -28,22 +28,28 @@
     gap: $space-xs;
   }
 
-  .resetButton,
+  .resetButton {
+    color: $primary;
+    svg {
+      width: 22px;
+    }
+  }
+
   .closeButton {
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: $text-muted;
     cursor: pointer;
     padding: $space-xs;
     border-radius: $radius-sm;
     transition: all 0.2s ease;
 
     &:hover {
-      background-color: var(--bg-secondary);
-      color: var(--text);
+      background-color: $surface;
+      color: $text;
     }
 
     &:active {
@@ -53,8 +59,8 @@
 
   .resetButton {
     &:hover {
-      color: var(--primary);
-      background-color: var(--primary-bg);
+      color: $text;
+      background-color: $bg;
     }
   }
 
@@ -70,60 +76,25 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: $space-lg;
+  gap: $space-sm;
   margin-bottom: $space-lg;
 
   .loading {
     padding: $space-lg;
     text-align: center;
-    color: var(--text-muted);
+    color: $text-muted;
   }
 }
 
 .filterSection {
   .sectionTitle {
-    margin: 0 0 $space-md 0;
-    color: var(--text);
+    // margin: 0 0 $space-md 0;
+    color: $text;
     font-weight: $weight-semibold;
   }
 }
 
-.placeholder {
-  padding: $space-lg;
-  background-color: var(--bg);
-  border: 2px dashed var(--border);
-  border-radius: $radius-md;
-  text-align: center;
-
-  .placeholderText {
-    color: var(--text-muted);
-    font-style: italic;
-    margin: 0;
-  }
-}
-
-// Form input styles
-.select,
-.searchInput,
-.textInput {
-  width: 100%;
-  padding: $space-sm;
-  border: 1px solid var(--border);
-  border-radius: $radius-sm;
-  background-color: var(--bg);
-  color: var(--text);
-
-  transition: border-color 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary);
-  }
-
-  &::placeholder {
-    color: var(--text-muted);
-  }
-}
+// Filter-specific form layouts (base input styles are in styles/base.scss)
 
 .priceInputs,
 .rangeInputs {
@@ -132,21 +103,8 @@
 
   .priceInput,
   .rangeInput {
-    flex: 1;
-    padding: $space-sm;
-    border: 1px solid var(--border);
-    border-radius: $radius-sm;
-    background-color: var(--bg);
-    color: var(--text);
-
-    &:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    &::placeholder {
-      color: var(--text-muted);
-    }
+    width: 50%;
+    font-size: $font-xs;
   }
 }
 
@@ -154,20 +112,6 @@
   display: flex;
   flex-direction: column;
   gap: $space-sm;
-
-  .currencySelect {
-    width: 100%;
-    padding: $space-sm;
-    border: 1px solid var(--border);
-    border-radius: $radius-sm;
-    background-color: var(--bg);
-    color: var(--text);
-
-    &:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-  }
 }
 
 .actions {
@@ -196,7 +140,7 @@
 // Icon selector styles for car body types
 .iconSelector {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: $space-sm;
   margin-top: $space-sm;
 }
@@ -207,30 +151,30 @@
   align-items: center;
   gap: $space-xs;
   padding: $space-sm;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: $bg;
+  border: 1px solid $border;
   border-radius: $radius-sm;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--text-muted);
+  color: $text-muted;
 
   &:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+    border-color: $primary;
+    color: $primary;
     transform: translateY(-1px);
   }
 
   &.selected {
-    background-color: var(--primary);
-    border-color: var(--primary);
-    color: var(--text-inverse);
+    background-color: $primary;
+    border-color: $primary;
+    color: $text-inverse;
   }
 
   .optionLabel {
     font-size: 0.75rem;
     text-align: center;
     line-height: 1.2;
-    
+
     .optionCount {
       display: block;
       font-size: 0.65rem;
@@ -240,17 +184,15 @@
   }
 }
 
-// RTL Support
-:global([dir="rtl"]) {
-  .headerContent {
-    flex-direction: row-reverse;
-  }
-  
-  .selectedValue {
-    text-align: right;
-  }
-  
-  .option {
-    text-align: right;
+.countLoading {
+  padding: $space-xs $space-sm;
+  background-color: $surface;
+  border-radius: $radius-sm;
+  margin-bottom: $space-sm;
+  opacity: 0.8;
+
+  span {
+    color: $text-muted;
+    font-size: 12px;
   }
 }

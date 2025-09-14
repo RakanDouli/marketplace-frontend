@@ -1,8 +1,8 @@
 @import "../../../styles/variables";
 
 .card {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
+  background-color: $bg;
+  border: 1px solid $border;
   border-radius: $radius-md;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -104,7 +104,7 @@
   position: absolute;
   top: $space-sm;
   right: $space-sm;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: $surface;
   border: none;
   border-radius: $radius-full;
   width: 40px;
@@ -113,7 +113,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--text-muted);
+  color: $text-muted;
   transition: all 0.2s ease;
   backdrop-filter: blur(4px);
 

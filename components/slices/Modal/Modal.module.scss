@@ -9,83 +9,145 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: $z-modal; // Using your z-index system
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  animation: fadeIn 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: $z-modal;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease-out;
+  padding: $space-md;
+  box-sizing: border-box;
 }
 
 .modal {
-  background-color: var(--surface);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: $radius-md;
-  border: 1px solid var(--border);
-  padding: $space-xl $space-lg $space-lg $space-lg;
-  width: 90%;
+  background-color: $surface;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 
+              0 0 0 1px $border;
+  border-radius: $radius-xl;
+  padding: $space-xl $space-lg $space-lg;
+  width: 100%;
+  max-width: 100%;
   position: relative;
-  transition: all 0.3s ease;
-  margin-top: $header-height;
-  max-height: 90vh;
+  max-height: calc(100vh - #{$space-md * 2});
   overflow-y: auto;
-  animation: slideIn 0.3s ease;
+  animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $bg;
+    border-radius: $radius-full;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $border;
+    border-radius: $radius-full;
+    
+    &:hover {
+      background: $text-muted;
+    }
+  }
   
   // Size variants
   &.sm {
     max-width: 400px;
+    padding: $space-lg $space-md;
   }
   
   &.md {
-    max-width: 700px; // Same as Vue version
+    max-width: 600px;
   }
   
   &.lg {
-    max-width: 900px;
+    max-width: 800px;
   }
   
   &.xl {
     max-width: 1200px;
   }
 
+  // Mobile responsiveness
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-lg $space-md;
+    border-radius: $radius-lg;
+    max-height: calc(100vh - #{$space-sm * 2});
+    
+    &.sm {
+      padding: $space-md;
+    }
+  }
+  
   @media (max-width: $breakpoint-md) {
-    padding: $space-lg $space-md $space-md $space-md;
-    margin-top: $header-height-mobile;
-    height: auto;
-    max-height: 90%;
+    max-width: calc(100vw - #{$space-lg * 2});
   }
 }
 
 .modalClose {
-  padding: $space-sm !important;
+  padding: $space-xs !important;
   position: absolute;
   top: $space-md;
-  right: $space-lg;
-  cursor: pointer;
-  z-index: 1; // Above modal content
-  
-  // Override button margins
+  right: $space-md;
+  z-index: 2;
   margin: 0 !important;
+  min-width: auto !important;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-full;
+  background-color: $bg;
+  border: 1px solid $border;
+  color: $text-muted;
+  transition: all 0.2s ease;
   
-  @media (max-width: $breakpoint-md) {
-    top: $space-md;
-    right: $space-md;
+  &:hover {
+    background-color: $surface;
+    color: $text;
+    transform: scale(1.05);
+  }
+  
+  &:focus {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    top: $space-sm;
+    right: $space-sm;
+    width: 32px;
+    height: 32px;
   }
 }
 
 .modalContent {
-  // Ensure content doesn't overlap with close button
-  margin-top: $space-sm;
+  position: relative;
+  z-index: 1;
+}
+
+.modalTitle {
+  margin: 0 0 $space-sm 0;
+  font-size: $font-xl;
+  font-weight: $weight-bold;
+  color: $text;
+  line-height: $line-tight;
+  font-family: $font-headers;
+}
+
+.modalDescription {
+  margin: 0 0 $space-lg 0;
+  font-size: $font-base;
+  color: $text-muted;
+  line-height: $line-normal;
 }
 
 // RTL Support
 :global([dir="rtl"]) {
   .modalClose {
     right: auto;
-    left: $space-lg;
+    left: $space-md;
 
-    @media (max-width: $breakpoint-md) {
-      left: $space-md;
+    @media (max-width: $breakpoint-sm) {
+      left: $space-sm;
     }
   }
 }
@@ -103,7 +165,7 @@
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(-30px) scale(0.9);
   }
   to {
     opacity: 1;
@@ -111,9 +173,18 @@
   }
 }
 
-// Dark mode adjustments
-@media (prefers-color-scheme: dark) {
-  .modalBg {
-    background-color: rgba(0, 0, 0, 0.8);
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .modalBg,
+  .modal {
+    animation: none;
+  }
+  
+  .modalClose {
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
   }
 }

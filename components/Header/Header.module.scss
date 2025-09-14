@@ -27,8 +27,8 @@
 .container {
   margin-left: auto;
   margin-right: auto;
-  padding-left: $space-lg;
-  padding-right: $space-lg;
+  // padding-left: $space-lg;
+  // padding-right: $space-lg;
   width: 100%;
   height: 100%;
   display: flex;
@@ -36,11 +36,11 @@
   align-items: center;
   gap: $space-md;
 
-  @media (min-width: $breakpoint-lg) {
-    max-width: $container-lg;
-    padding-left: 0;
-    padding-right: 0;
-  }
+  // @media (min-width: $breakpoint-lg) {
+  //   max-width: $container-lg;
+  //   padding-left: 0;
+  //   padding-right: 0;
+  // }
 }
 
 .logo {

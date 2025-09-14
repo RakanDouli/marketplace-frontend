@@ -10,9 +10,9 @@ interface LanguageContextType {
 }
 
 export const LanguageContext = createContext<LanguageContextType>({
-  language: 'en',
+  language: 'ar',
   setLanguage: () => {},
-  direction: 'ltr',
+  direction: 'rtl',
 });
 
 interface LanguageProviderProps {
@@ -20,7 +20,7 @@ interface LanguageProviderProps {
   defaultLanguage?: Language;
 }
 
-export function LanguageProvider({ children, defaultLanguage = 'en' }: LanguageProviderProps) {
+export function LanguageProvider({ children, defaultLanguage = 'ar' }: LanguageProviderProps) {
   const [language, setLanguageState] = useState<Language>(defaultLanguage);
   const direction = getDirection(language);
 
@@ -34,11 +34,9 @@ export function LanguageProvider({ children, defaultLanguage = 'en' }: LanguageP
   };
 
   useEffect(() => {
-    // Check for saved language preference
-    const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
-      setLanguageState(savedLanguage);
-    }
+    // Force Arabic as default - temporary override
+    setLanguageState('ar');
+    localStorage.setItem('language', 'ar');
     
     // Set initial document attributes
     document.documentElement.setAttribute('lang', language);

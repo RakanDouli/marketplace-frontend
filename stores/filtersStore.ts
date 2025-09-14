@@ -16,6 +16,12 @@ interface DynamicFilterOption {
   count: number; // Number of listings
 }
 
+// Cache structure for filter data per category
+interface CategoryCache {
+  baseAttributes: Attribute[]; // Original attributes structure (cached)
+  cachedAt: number; // Timestamp for cache expiration
+}
+
 // Store state interface
 interface FiltersState {
   // Core filter data - ALL specs are handled dynamically through attributes
@@ -26,11 +32,13 @@ interface FiltersState {
   cities: string[];
 
   // Cache management
+  categoryCache: Record<string, CategoryCache>; // Cache per category slug
   currentCategorySlug: string | null;
   lastFetchKey: string | null;
 
   // Loading states
-  isLoading: boolean;
+  isLoading: boolean; // Full initial load
+  isLoadingCounts: boolean; // Only count updates during filtering
   error: string | null;
 }
 
@@ -38,6 +46,7 @@ interface FiltersState {
 interface FiltersActions {
   // State management
   setLoading: (loading: boolean) => void;
+  setLoadingCounts: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
   // Main data fetching
@@ -50,11 +59,18 @@ interface FiltersActions {
     appliedFilters: any
   ) => Promise<void>;
 
+  // Cache management
+  clearCacheForCategory: (categorySlug: string) => void;
+  clearAllCache: () => void;
+
   // State management
   resetFilters: () => void;
 }
 
 type FiltersStore = FiltersState & FiltersActions;
+
+// Cache expiration time (5 minutes)
+const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
 // Initial state
 const initialState: FiltersState = {
@@ -62,9 +78,11 @@ const initialState: FiltersState = {
   sellerTypes: [],
   provinces: [],
   cities: [],
+  categoryCache: {},
   currentCategorySlug: null,
   lastFetchKey: null,
   isLoading: false,
+  isLoadingCounts: false,
   error: null,
 };
 
@@ -289,29 +307,102 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
   // State management actions
   setLoading: (isLoading: boolean) => set({ isLoading }),
+  setLoadingCounts: (isLoadingCounts: boolean) => set({ isLoadingCounts }),
   setError: (error: string | null) => set({ error }),
 
   // Main fetch function - gets attributes and their counts
   fetchFilterData: async (categorySlug: string) => {
-    const { lastFetchKey } = get();
-    const cacheKey = `filters-${categorySlug}`;
+    const { categoryCache } = get();
+    
+    // Check if we have cached data for this category
+    const cachedData = categoryCache[categorySlug];
+    const now = Date.now();
+    
+    // Use cache if valid and not expired
+    if (cachedData && (now - cachedData.cachedAt) < CACHE_EXPIRATION_MS) {
+      console.log(`🎯 Using cached filter data for category: ${categorySlug}`);
+      
+      // Get fresh counts for the cached structure
+      const aggregations = await getListingAggregations(categorySlug);
+      
+      // Process cached attributes with fresh counts
+      const attributesWithCounts: AttributeWithProcessedOptions[] =
+        cachedData.baseAttributes.map((attr) => {
+          let processedOptions: AttributeOptionWithCount[] = [];
 
-    // Skip if same request is cached
-    if (lastFetchKey === cacheKey) {
+          // Special handling for brandId and modelId - create options from aggregation data
+          if (attr.key === 'brandId' || attr.key === 'modelId') {
+            const rawAttributeData = aggregations.rawAggregations?.attributes?.find((a: any) => a.field === attr.key);
+            if (rawAttributeData?.options) {
+              processedOptions = rawAttributeData.options.map((option: any) => ({
+                id: option.key || option.value,
+                key: option.key || option.value,
+                value: option.value,
+                sortOrder: 0,
+                isActive: true,
+                count: option.count,
+              }));
+            } else {
+              processedOptions = [];
+            }
+          } else {
+            // Regular attributes - use existing options with fresh counts
+            processedOptions = (attr.options || []).map((backendOption) => ({
+              ...backendOption,
+              count: aggregations.attributes?.[attr.key]?.[backendOption.value] || 0,
+            }));
+          }
+
+          return {
+            ...attr,
+            processedOptions,
+          };
+        });
+
+      set({
+        attributes: attributesWithCounts,
+        currentCategorySlug: categorySlug,
+        isLoading: false,
+        error: null,
+      });
       return;
     }
 
+    // No valid cache - do full fetch
+    console.log(`🔄 Fetching fresh filter data for category: ${categorySlug}`);
     set({ isLoading: true, error: null });
 
     try {
       // Get all filter data with counts in one API call
       const filterData = await getAllFilterData(categorySlug);
 
+      // Cache the base attributes structure (without counts)
+      const baseAttributes: Attribute[] = filterData.attributes.map(attr => ({
+        id: attr.id,
+        key: attr.key,
+        name: attr.name,
+        type: attr.type,
+        validation: attr.validation,
+        sortOrder: attr.sortOrder,
+        group: attr.group,
+        isActive: attr.isActive,
+        options: attr.options || []
+      }));
+
+      // Update cache
+      const newCache = {
+        ...get().categoryCache,
+        [categorySlug]: {
+          baseAttributes,
+          cachedAt: now,
+        },
+      };
+
       set({
         attributes: filterData.attributes,
         provinces: filterData.provinces,
         currentCategorySlug: categorySlug,
-        lastFetchKey: cacheKey,
+        categoryCache: newCache,
         cities: [],
         isLoading: false,
         error: null,
@@ -353,7 +444,8 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       appliedFilters
     );
 
-    set({ isLoading: true, error: null });
+    // Use separate loading state for count updates (not full reload)
+    set({ isLoadingCounts: true, error: null });
 
     try {
       // Get fresh attribute definitions (unchanged)
@@ -456,7 +548,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         attributes: attributesWithCascadingCounts,
         currentCategorySlug: categorySlug,
         cities: [],
-        isLoading: false,
+        isLoadingCounts: false,
         error: null,
       });
 
@@ -468,10 +560,24 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       });
     } catch (error) {
       set({
-        isLoading: false,
+        isLoadingCounts: false,
         error: (error as Error).message || "Failed to update cascading filters",
       });
     }
+  },
+
+  // Cache management methods
+  clearCacheForCategory: (categorySlug: string) => {
+    const { categoryCache } = get();
+    const newCache = { ...categoryCache };
+    delete newCache[categorySlug];
+    set({ categoryCache: newCache });
+    console.log(`🗑️ Cleared cache for category: ${categorySlug}`);
+  },
+
+  clearAllCache: () => {
+    set({ categoryCache: {} });
+    console.log("🗑️ Cleared all filter cache");
   },
 
   // Reset filters to initial state
@@ -488,4 +594,6 @@ export const useFilterProvinces = () =>
 export const useFilterCities = () => useFiltersStore((state) => state.cities);
 export const useFiltersLoading = () =>
   useFiltersStore((state) => state.isLoading);
+export const useFiltersCountsLoading = () =>
+  useFiltersStore((state) => state.isLoadingCounts);
 export const useFiltersError = () => useFiltersStore((state) => state.error);

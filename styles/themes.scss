@@ -17,8 +17,8 @@
 
   // 3 Background Colors
   --bg-light: #ffffff; // Pure white (light theme main)
-  --bg-body-light: #e8eaf0; // Medium gray (universal surface)
-  --bg-body-dark: #424242; // Medium gray (universal surface)
+  --bg-body-light: #f7f7f6; // Medium gray (universal surface)
+  --bg-body-dark: #16191e; // Medium gray (universal surface)
   --bg-dark: #0d1117; // Very dark gray (dark theme main)
 
   // 3 Text Colors
@@ -39,7 +39,7 @@
 
   // Backgrounds for light theme
   --bg: var(--bg-light); // White main background
-  --surface: var(--bg-medium); // Medium gray surface (universal)
+  --surface: var(--bg-body-light); // Medium gray surface (universal)
   --border: var(--border-light); // Light borders
 
   // Text for light theme
@@ -54,7 +54,7 @@
 
   // Backgrounds for dark theme
   --bg: var(--bg-dark); // Dark main background
-  --surface: var(--bg-medium); // Medium gray surface (universal)
+  --surface: var(--bg-body-dark); // Medium gray surface (universal)
   --border: var(--border-dark); // Dark borders
 
   // Text for dark theme
@@ -69,7 +69,7 @@
     color-scheme: dark;
 
     --bg: var(--bg-dark);
-    --surface: var(--bg-medium);
+    --surface: var(--bg-body-dark);
     --border: var(--border-dark);
 
     --text: var(--text-light);

@@ -27,7 +27,7 @@
   transition: all 0.3s ease-out;
 
   &:first-of-type {
-    margin: $space-md $space-sm $space-md 0;
+    margin: $space-md 0 $space-md $space-md;
   }
 
   @media screen and (max-width: 768px) {
@@ -65,7 +65,7 @@
   }
 
   &--outline {
-    background-color: $surface;
+    background-color: $bg;
     border: 1px solid $border;
     color: $text;
 
@@ -180,19 +180,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .icon {

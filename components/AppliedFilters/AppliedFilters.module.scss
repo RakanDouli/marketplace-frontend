@@ -1,11 +1,18 @@
-@import '../../styles/variables.scss';
+@import "../../styles/variables.scss";
 
 .appliedFilters {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: $radius-md;
-  padding: $space-md;
-  margin-bottom: $space-md;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-sm;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
 }
 
 .header {
@@ -32,7 +39,7 @@
   color: var(--danger);
   font-size: $font-sm;
   padding: $space-xs $space-sm;
-  
+
   &:hover {
     background: var(--danger-light);
   }
@@ -47,27 +54,27 @@
 .filterTag {
   display: flex;
   align-items: center;
-  background: var(--surface-secondary);
-  border: 1px solid var(--border);
+  background: $bg;
+  border: 1px solid $border;
   border-radius: $radius-sm;
   padding: $space-xs $space-sm;
   gap: $space-xs;
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-hover);
+    background: $surface;
+    border-color: $text;
   }
 }
 
 .filterLabel {
-  color: var(--text-secondary);
+  color: $text;
   margin: 0;
   font-weight: 500;
 }
 
 .filterValue {
-  color: var(--text-primary);
+  color: $text;
   margin: 0;
   font-weight: 600;
 }
@@ -75,7 +82,7 @@
 .removeButton {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: $text;
   font-size: $font-sm;
   font-weight: bold;
   cursor: pointer;
@@ -90,12 +97,12 @@
   margin-left: $space-xs;
 
   &:hover {
-    background: var(--danger-light);
-    color: var(--danger);
+    background: $surface;
+    color: $surface;
   }
 
   &:focus {
-    outline: 2px solid var(--primary);
+    outline: 2px solid $primary;
     outline-offset: 1px;
   }
 }

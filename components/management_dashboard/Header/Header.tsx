@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "@/hooks/useTranslation";
 
-import { ThemeToggle, LanguageSwitch } from "@/components/slices";
+import { ThemeToggle } from "@/components/slices";
 import styles from "./Header.module.scss";
 
 export const Header: React.FC = () => {
@@ -54,7 +54,6 @@ export const Header: React.FC = () => {
 
         {/* Desktop Actions */}
         <div className={styles.actions}>
-          <LanguageSwitch />
           <ThemeToggle />
         </div>
       </div>

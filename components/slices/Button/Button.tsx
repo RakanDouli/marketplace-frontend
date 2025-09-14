@@ -2,7 +2,8 @@
 
 import React, { forwardRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import Loading from "../Loading/Loading";
 import styles from "./Button.module.scss";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -55,7 +56,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Loading state */}
         {loading ? (
           <div className={styles.loadingIcon}>
-            <Loader2 size={20} className={styles.spinner} />
+            <Loading />
           </div>
         ) : (
           <>

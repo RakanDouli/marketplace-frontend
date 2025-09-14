@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import NextImage, { ImageProps as NextImageProps } from "next/image";
+import Loading from "../Loading/Loading";
 import styles from "./Image.module.scss";
 
 export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
@@ -42,7 +43,9 @@ export const Image: React.FC<ImageProps> = ({
     >
       {/* Skeleton loader */}
       {isLoading && showSkeleton && (
-        <div className={`${styles.skeleton} ${skeletonClassName}`.trim()} />
+        <div className={`${styles.skeleton} ${skeletonClassName}`.trim()}>
+          <Loading />
+        </div>
       )}
       
       {/* Error state */}

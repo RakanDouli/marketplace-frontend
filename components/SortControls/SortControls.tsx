@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import { useTranslation } from '../../hooks/useTranslation';
-import styles from './SortControls.module.scss';
+import { useTranslation } from "../../hooks/useTranslation";
+import styles from "./SortControls.module.scss";
 
-export type SortOption = 'createdAt_desc' | 'createdAt_asc' | 'priceMinor_asc' | 'priceMinor_desc';
+export type SortOption =
+  | "createdAt_desc"
+  | "createdAt_asc"
+  | "priceMinor_asc"
+  | "priceMinor_desc";
 
 export interface SortControlsProps {
   currentSort: SortOption;
@@ -14,16 +18,16 @@ export function SortControls({ currentSort, onSortChange }: SortControlsProps) {
   const { t } = useTranslation();
 
   const sortOptions: Array<{ value: SortOption; label: string }> = [
-    { value: 'createdAt_desc', label: t('search.sortByNewest') },
-    { value: 'createdAt_asc', label: t('search.sortByOldest') },
-    { value: 'priceMinor_asc', label: t('search.sortByPriceLow') },
-    { value: 'priceMinor_desc', label: t('search.sortByPriceHigh') },
+    { value: "createdAt_desc", label: t("search.sortByNewest") },
+    { value: "createdAt_asc", label: t("search.sortByOldest") },
+    { value: "priceMinor_asc", label: t("search.sortByPriceLow") },
+    { value: "priceMinor_desc", label: t("search.sortByPriceHigh") },
   ];
 
   return (
     <div className={styles.sortControls}>
       <label htmlFor="sort-select" className={styles.label}>
-        {t('search.sortBy')}:
+        {t("search.sortBy")}
       </label>
       <select
         id="sort-select"

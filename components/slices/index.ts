@@ -2,7 +2,6 @@
 export { default as Container } from "./Container/Container";
 export { default as Button } from "./Button/Button";
 export { default as ThemeToggle } from "./Button/ThemeToggle";
-export { LanguageSwitch } from "./Button/LanguageSwitch";
 export { default as NotificationToast } from "./NotificationToast/NotificationToast";
 export { default as Text } from "./Text/Text";
 export type { TextProps, TextVariant } from "./Text/Text";

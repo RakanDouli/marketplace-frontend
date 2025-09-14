@@ -1,16 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Filter as FilterIcon, X, RotateCcw } from "lucide-react";
-import { 
-  SedanIcon, 
-  SuvIcon, 
-  HatchbackIcon, 
-  CoupeIcon, 
-  ConvertibleIcon, 
-  WagonIcon, 
-  PickupIcon 
+import {
+  SedanIcon,
+  SuvIcon,
+  HatchbackIcon,
+  CoupeIcon,
+  ConvertibleIcon,
+  WagonIcon,
+  PickupIcon,
 } from "../icons/CarIcons";
 import { Aside, Text, Button } from "../slices";
+import { Loading } from "../slices/Loading/Loading";
+import { Input } from "../slices/Input/Input";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useFiltersStore } from "../../stores";
 import styles from "./Filter.module.scss";
@@ -82,17 +84,18 @@ export const Filter: React.FC<FilterProps> = ({
 
   // Filter state
   const [filters, setFilters] = useState<FilterValues>(initialValues);
-  
+
   // Store hooks
   const {
     attributes, // All specs (including brands/models) are in attributes now
     provinces,
     cities,
     isLoading,
+    isLoadingCounts,
     error,
     fetchFilterData,
     fetchCities,
-    updateFiltersWithCascading
+    updateFiltersWithCascading,
   } = useFiltersStore();
 
   // Load filter data when category changes
@@ -111,7 +114,6 @@ export const Filter: React.FC<FilterProps> = ({
     }
   }, [filters.province, fetchCities]);
 
-
   const handleFilterChange = (key: keyof FilterValues, value: any) => {
     const newFilters = { ...filters, [key]: value };
 
@@ -124,7 +126,7 @@ export const Filter: React.FC<FilterProps> = ({
     }
 
     setFilters(newFilters);
-    
+
     // Apply filters immediately when user changes them
     onApplyFilters?.(newFilters);
   };
@@ -137,9 +139,9 @@ export const Filter: React.FC<FilterProps> = ({
         [attributeKey]: value,
       },
     };
-    
+
     setFilters(newFilters);
-    
+
     // Apply filters immediately when user changes them
     onApplyFilters?.(newFilters);
   };
@@ -156,7 +158,7 @@ export const Filter: React.FC<FilterProps> = ({
       {/* Filter Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <Text variant="h4" className={styles.title}>
+          <Text variant="small" className={styles.title}>
             التصنيفات
           </Text>
           <FilterIcon size={20} />
@@ -186,11 +188,13 @@ export const Filter: React.FC<FilterProps> = ({
 
       {/* Filter Content */}
       <div className={styles.filterContent}>
-        {isLoading ? (
+        {isLoading && (
           <div className={styles.loading}>
+            <Loading type="svg" />
             <Text>{t("common.loading")}</Text>
           </div>
-        ) : (
+        )}
+        {!isLoading && (
           <>
             {/* Brand and Model are now handled through dynamic attributes below */}
 
@@ -206,88 +210,110 @@ export const Filter: React.FC<FilterProps> = ({
               .map((attribute) => {
                 return (
                   <div key={attribute.id} className={styles.filterSection}>
-                    <Text variant="h4" className={styles.sectionTitle}>
+                    <Text variant="small" className={styles.sectionTitle}>
                       {attribute.name}
                     </Text>
 
-                    {(attribute.type === "SELECTOR" || attribute.type === "MULTI_SELECTOR") && attribute.processedOptions && (
-                      <>
-                        {attribute.key === "body_type" ? (
-                          // Special icon-based selector for car body types
-                          <div className={styles.iconSelector}>
-                            {attribute.processedOptions.map((option) => (
-                              <button
-                                key={option.key}
-                                type="button"
-                                className={`${styles.iconOption} ${
-                                  (() => {
-                                    const currentSelected = filters.specs?.[attribute.key]?.selected;
-                                    return Array.isArray(currentSelected) 
-                                      ? currentSelected.includes(option.key)
-                                      : currentSelected === option.key;
-                                  })() ? styles.selected : ""
-                                }`}
-                                onClick={() => {
-                                  const currentSelected = filters.specs?.[attribute.key]?.selected;
-                                  let newSelected: string[] = [];
-                                  
-                                  // Handle multiple selections
-                                  if (Array.isArray(currentSelected)) {
-                                    newSelected = currentSelected.includes(option.key)
-                                      ? currentSelected.filter(key => key !== option.key)
-                                      : [...currentSelected, option.key];
-                                  } else if (currentSelected === option.key) {
-                                    newSelected = [];
-                                  } else {
-                                    newSelected = currentSelected ? [currentSelected, option.key] : [option.key];
-                                  }
-                                  
-                                  handleSpecChange(
-                                    attribute.key,
-                                    newSelected.length > 0 ? { selected: newSelected } : undefined
-                                  );
-                                }}
-                              >
-                                {getCarBodyTypeIcon(option.key)}
-                                <span className={styles.optionLabel}>
-                                  {option.value}
-                                  {option.count !== undefined && (
-                                    <span className={styles.optionCount}>({option.count})</span>
-                                  )}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          // Regular dropdown for other selectors
-                          <select
-                            value={filters.specs?.[attribute.key]?.selected || ""}
-                            onChange={(e) =>
-                              handleSpecChange(
-                                attribute.key,
-                                e.target.value
-                                  ? { selected: e.target.value }
-                                  : undefined
-                              )
-                            }
-                            className={styles.select}
-                          >
-                            <option value="">{t("search.selectOption")}</option>
-                            {attribute.processedOptions.map((option) => (
-                              <option key={option.key} value={option.key}>
-                                {option.value}
-                                {option.count !== undefined && ` (${option.count})`}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </>
-                    )}
+                    {(attribute.type === "SELECTOR" ||
+                      attribute.type === "MULTI_SELECTOR") &&
+                      attribute.processedOptions && (
+                        <>
+                          {attribute.key === "body_type" ? (
+                            // Special icon-based selector for car body types
+                            <div className={styles.iconSelector}>
+                              {attribute.processedOptions.map((option) => (
+                                <button
+                                  key={option.key}
+                                  type="button"
+                                  className={`${styles.iconOption} ${
+                                    (() => {
+                                      const currentSelected =
+                                        filters.specs?.[attribute.key]
+                                          ?.selected;
+                                      return Array.isArray(currentSelected)
+                                        ? currentSelected.includes(option.key)
+                                        : currentSelected === option.key;
+                                    })()
+                                      ? styles.selected
+                                      : ""
+                                  }`}
+                                  onClick={() => {
+                                    const currentSelected =
+                                      filters.specs?.[attribute.key]?.selected;
+                                    let newSelected: string[] = [];
+
+                                    // Handle multiple selections
+                                    if (Array.isArray(currentSelected)) {
+                                      newSelected = currentSelected.includes(
+                                        option.key
+                                      )
+                                        ? currentSelected.filter(
+                                            (key) => key !== option.key
+                                          )
+                                        : [...currentSelected, option.key];
+                                    } else if (currentSelected === option.key) {
+                                      newSelected = [];
+                                    } else {
+                                      newSelected = currentSelected
+                                        ? [currentSelected, option.key]
+                                        : [option.key];
+                                    }
+
+                                    handleSpecChange(
+                                      attribute.key,
+                                      newSelected.length > 0
+                                        ? { selected: newSelected }
+                                        : undefined
+                                    );
+                                  }}
+                                >
+                                  {getCarBodyTypeIcon(option.key)}
+                                  <span className={styles.optionLabel}>
+                                    {option.value}
+                                    {option.count !== undefined && (
+                                      <span className={styles.optionCount}>
+                                        ({option.count})
+                                      </span>
+                                    )}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            // Regular dropdown for other selectors
+                            <Input
+                              type="select"
+                              value={
+                                filters.specs?.[attribute.key]?.selected || ""
+                              }
+                              onChange={(e) =>
+                                handleSpecChange(
+                                  attribute.key,
+                                  e.target.value
+                                    ? { selected: e.target.value }
+                                    : undefined
+                                )
+                              }
+                              options={[
+                                { value: "", label: t("search.selectOption") },
+                                ...attribute.processedOptions.map((option) => ({
+                                  value: option.key,
+                                  label: `${option.value}${
+                                    option.count !== undefined
+                                      ? ` (${option.count})`
+                                      : ""
+                                  }`,
+                                })),
+                              ]}
+                            />
+                          )}
+                        </>
+                      )}
 
                     {(attribute.type === "RANGE" ||
                       attribute.type === "CURRENCY") && (
                       <div className={styles.rangeInputs}>
-                        <input
+                        <Input
                           type="number"
                           placeholder={`${t("search.min")} ${attribute.name}`}
                           value={filters.specs?.[attribute.key]?.from || ""}
@@ -299,9 +325,9 @@ export const Filter: React.FC<FilterProps> = ({
                                 : undefined,
                             })
                           }
-                          className={styles.rangeInput}
+                          size="sm"
                         />
-                        <input
+                        <Input
                           type="number"
                           placeholder={`${t("search.max")} ${attribute.name}`}
                           value={filters.specs?.[attribute.key]?.to || ""}
@@ -313,22 +339,36 @@ export const Filter: React.FC<FilterProps> = ({
                                 : undefined,
                             })
                           }
-                          className={styles.rangeInput}
+                          size="sm"
                         />
                       </div>
                     )}
                   </div>
                 );
               })}
+            {/* Search */}
+            <div className={styles.filterSection}>
+              <Text variant="small" className={styles.sectionTitle}>
+                {t("search.search")}
+              </Text>
+              <Input
+                type="search"
+                placeholder={t("search.placeholder")}
+                value={filters.search || ""}
+                onChange={(e) =>
+                  handleFilterChange("search", e.target.value || undefined)
+                }
+              />
+            </div>
 
             {/* Price Filter */}
             <div className={styles.filterSection}>
-              <Text variant="h4" className={styles.sectionTitle}>
+              <Text variant="small" className={styles.sectionTitle}>
                 {t("search.priceRange")}
               </Text>
               <div className={styles.currencyInputs}>
                 <div className={styles.priceInputs}>
-                  <input
+                  <Input
                     type="number"
                     placeholder={t("search.minPrice")}
                     value={
@@ -342,9 +382,9 @@ export const Filter: React.FC<FilterProps> = ({
                           : undefined
                       )
                     }
-                    className={styles.priceInput}
+                    size="sm"
                   />
-                  <input
+                  <Input
                     type="number"
                     placeholder={t("search.maxPrice")}
                     value={
@@ -358,82 +398,67 @@ export const Filter: React.FC<FilterProps> = ({
                           : undefined
                       )
                     }
-                    className={styles.priceInput}
+                    size="sm"
                   />
                 </div>
-                <select
+                <Input
+                  type="select"
                   value={filters.priceCurrency || "USD"}
                   onChange={(e) =>
                     handleFilterChange("priceCurrency", e.target.value)
                   }
-                  className={styles.currencySelect}
-                >
-                  <option value="USD">USD</option>
-                  <option value="SYP">SYP</option>
-                  <option value="EUR">EUR</option>
-                </select>
+                  size="sm"
+                  options={[
+                    { value: "USD", label: "USD" },
+                    { value: "SYP", label: "SYP" },
+                    { value: "EUR", label: "EUR" },
+                  ]}
+                />
               </div>
             </div>
 
             {/* Location */}
             {provinces.length > 0 && (
               <div className={styles.filterSection}>
-                <Text variant="h4" className={styles.sectionTitle}>
+                <Text variant="small" className={styles.sectionTitle}>
                   {t("search.location")}
                 </Text>
-                <select
+                <Input
+                  type="select"
                   value={filters.province || ""}
                   onChange={(e) =>
                     handleFilterChange("province", e.target.value || undefined)
                   }
-                  className={styles.select}
-                >
-                  <option value="">{t("search.selectProvince")}</option>
-                  {provinces.map((province) => (
-                    <option key={province} value={province}>
-                      {province}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: t("search.selectProvince") },
+                    ...provinces.map((province) => ({
+                      value: province,
+                      label: province,
+                    })),
+                  ]}
+                />
 
                 {filters.province && cities.length > 0 && (
-                  <select
+                  <Input
+                    type="select"
                     value={filters.city || ""}
                     onChange={(e) =>
                       handleFilterChange("city", e.target.value || undefined)
                     }
-                    className={styles.select}
-                  >
-                    <option value="">{t("search.selectCity")}</option>
-                    {cities.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: "", label: t("search.selectCity") },
+                      ...cities.map((city) => ({
+                        value: city,
+                        label: city,
+                      })),
+                    ]}
+                  />
                 )}
               </div>
             )}
-
-            {/* Search */}
-            <div className={styles.filterSection}>
-              <Text variant="h4" className={styles.sectionTitle}>
-                {t("search.search")}
-              </Text>
-              <input
-                type="text"
-                placeholder={t("search.placeholder")}
-                value={filters.search || ""}
-                onChange={(e) =>
-                  handleFilterChange("search", e.target.value || undefined)
-                }
-                className={styles.searchInput}
-              />
-            </div>
           </>
         )}
       </div>
-
     </Aside>
   );
 };

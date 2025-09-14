@@ -1,4 +1,3 @@
-
 .outerContainer {
   display: flex;
   justify-content: center;
@@ -18,28 +17,28 @@
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  
+
   // Size variants
   &.sm {
     max-width: $container-sm;
   }
-  
+
   &.md {
     max-width: $container-md;
   }
-  
+
   &.lg {
-    max-width: $container-lg;
-  }
-  
-  &.xl {
     max-width: $container-xl;
   }
-  
+
+  &.xl {
+    max-width: $container-lg;
+  }
+
   &.full {
     max-width: $container-full;
   }
-  
+
   // No padding variant
   &.noPadding {
     padding: 0;

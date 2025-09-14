@@ -1,26 +1,26 @@
-import React from 'react';
-import styles from './Aside.module.scss';
+import React from "react";
+import styles from "./Aside.module.scss";
 
 export interface AsideProps {
   children: React.ReactNode;
   isOpen?: boolean;
-  position?: 'left' | 'right';
+  position?: "left" | "right";
   className?: string;
 }
 
 export const Aside: React.FC<AsideProps> = ({
   children,
   isOpen = true,
-  position = 'left',
-  className = '',
+  position = "left",
+  className = "",
 }) => {
   return (
     <>
       {/* Overlay for mobile when aside is open */}
       {isOpen && <div className={styles.overlay} />}
-      
+
       {/* Aside panel */}
-      <aside 
+      <aside
         className={`
           ${styles.aside} 
           ${styles[position]} 
@@ -28,9 +28,7 @@ export const Aside: React.FC<AsideProps> = ({
           ${className}
         `.trim()}
       >
-        <div className={styles.content}>
-          {children}
-        </div>
+        <div className={styles.content}>{children}</div>
       </aside>
     </>
   );

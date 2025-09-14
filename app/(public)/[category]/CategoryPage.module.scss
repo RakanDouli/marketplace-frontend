@@ -1,4 +1,4 @@
-@import '../../../styles/variables';
+@import "../../../styles/variables";
 
 .categoryPage {
   padding: $space-sm $space-md;
@@ -9,7 +9,6 @@
 .header {
   margin-bottom: $space-lg;
   text-align: start;
-  
   .subtitle {
     color: $text-muted;
     margin-top: $space-xs;
@@ -18,51 +17,21 @@
 
 .content {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: $space-xl;
+  grid-template-columns: 280px 1fr;
+  gap: $space-md;
   align-items: start;
   min-height: 70vh;
-  
+
   @media (max-width: $breakpoint-lg) {
     grid-template-columns: 1fr;
     gap: $space-md;
   }
 }
 
-.filtersSection {
-  position: sticky;
-  top: calc($header-height + $space-md);
-  
-  @media (max-width: $breakpoint-lg) {
-    position: static;
-    order: 2;
-  }
-}
-
 .listingsSection {
   min-width: 0; // Prevent grid overflow
-  
+
   @media (max-width: $breakpoint-lg) {
     order: 1;
-  }
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-  text-align: center;
-}
-
-// RTL Support - Following SYR_APP pattern
-.rtl {
-  .content {
-    // Grid automatically handles RTL with proper text direction
-    // No layout changes needed for grid
-  }
-  
-  .filtersSection {
-    // Sticky positioning works the same in RTL
   }
 }

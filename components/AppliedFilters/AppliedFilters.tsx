@@ -42,7 +42,6 @@ export function AppliedFilters({
 }: AppliedFiltersProps) {
   const { t } = useTranslation();
 
-
   // Helper function to get display name for attribute values
   const getAttributeDisplayName = (attributeKey: string, value: any) => {
     const attribute = attributes.find((attr) => attr.key === attributeKey);
@@ -167,24 +166,6 @@ export function AppliedFilters({
 
   return (
     <div className={styles.appliedFilters}>
-      <div className={styles.header}>
-        <Text variant="paragraph" className={styles.resultsCount}>
-          {totalResults !== undefined
-            ? `${totalResults} ${t("search.totalResults")}`
-            : ""}
-        </Text>
-
-        {activeFilters.length > 0 && (
-          <Button
-            variant="outline"
-            onClick={onClearAllFilters}
-            className={styles.clearAll}
-          >
-            {t("search.clearAllFilters")}
-          </Button>
-        )}
-      </div>
-
       <div className={styles.filtersList}>
         {activeFilters.map((filter) => (
           <div key={filter.key} className={styles.filterTag}>
@@ -201,6 +182,13 @@ export function AppliedFilters({
           </div>
         ))}
       </div>
+      {/* <div className={styles.header}> */}
+      {activeFilters.length > 0 && (
+        <span onClick={onClearAllFilters} className={styles.clearAll}>
+          {t("search.clearAllFilters")}
+        </span>
+      )}
+      {/* </div> */}
     </div>
   );
 }

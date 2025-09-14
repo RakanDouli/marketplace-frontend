@@ -1,0 +1,161 @@
+@import "../../../styles/variables";
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  width: 100%;
+}
+
+.label {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $text;
+  margin-bottom: $space-xs;
+}
+
+.inputContainer {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-base;
+  font-family: inherit;
+  line-height: 1.5;
+  color: $text;
+  background-color: $bg;
+  transition: all 0.2s ease;
+  outline: none;
+
+  &::placeholder {
+    color: $text-muted;
+    opacity: 1;
+  }
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+  }
+
+  &:disabled {
+    background-color: $bg;
+    color: $text-muted;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  // Variants
+  &--default {
+    padding: $space-sm $space-md;
+  }
+
+  &--outline {
+    background-color: transparent;
+    border: 2px solid $border;
+    padding: calc(#{$space-sm} - 1px) calc(#{$space-md} - 1px);
+
+    &:focus {
+      border-color: $primary;
+      background-color: $surface;
+    }
+  }
+
+  &--filled {
+    background-color: $bg;
+    border: 1px solid transparent;
+    padding: $space-sm $space-md;
+
+    &:focus {
+      background-color: $surface;
+      border-color: $primary;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: $surface;
+    }
+  }
+
+  // Sizes
+  &--sm {
+    font-size: $font-sm;
+    padding: $space-xs $space-sm;
+  }
+
+  &--md {
+    font-size: $font-base;
+    padding: $space-sm $space-md;
+  }
+
+  &--lg {
+    font-size: $font-lg;
+    padding: $space-md $space-lg;
+  }
+
+  // States
+  &--error {
+    border-color: $error;
+
+    &:focus {
+      border-color: $error;
+      box-shadow: 0 0 0 3px rgba(var(--error-rgb), 0.1);
+    }
+  }
+
+  &--focused {
+    border-color: $primary;
+  }
+}
+
+// Textarea specific styles
+textarea.input {
+  resize: vertical;
+  min-height: 100px;
+  padding: $space-sm $space-md;
+}
+
+// Select specific styles
+select.input {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right $space-sm center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: calc(#{$space-md} + 20px);
+  appearance: none;
+
+  &::-ms-expand {
+    display: none;
+  }
+}
+
+.error {
+  font-size: $font-sm;
+  color: $error;
+  margin-top: $space-xs;
+}
+
+.helpText {
+  font-size: $font-sm;
+  color: $text-muted;
+  margin-top: $space-xs;
+}
+
+// // RTL Support
+// :global([dir="rtl"]) {
+//   select.input {
+//     background-position: left $space-sm center;
+//     padding-right: $space-md;
+//     padding-left: calc(#{$space-md} + 20px);
+//   }
+// }
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  select.input {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%9CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  }
+}
