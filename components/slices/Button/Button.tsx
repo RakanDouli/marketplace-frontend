@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { forwardRef, useState } from "react";
 import Link from "next/link";
@@ -7,7 +7,7 @@ import Loading from "../Loading/Loading";
 import styles from "./Button.module.scss";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "success" | "danger" | "outline";
+  variant?: "primary" | "secondary" | "success" | "danger" | "outline" | "link";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   icon?: React.ReactNode;
@@ -48,10 +48,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const buttonContent = (
       <>
         {/* Ripple effect */}
-        <span 
-          className={`${styles.round} ${styles.ripple}`}
-          style={{ left: `${rippleCoords.x}px`, top: `${rippleCoords.y}px` }}
-        />
+        {!href ||
+          (variant !== "link" && (
+            <span
+              className={`${styles.round} ${styles.ripple}`}
+              style={{
+                left: `${rippleCoords.x}px`,
+                top: `${rippleCoords.y}px`,
+              }}
+            />
+          ))}
 
         {/* Loading state */}
         {loading ? (
@@ -67,7 +73,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 {children}
               </span>
             )}
-            
+
             {/* No content - just icon button */}
             {!children && icon && <span className={styles.icon}>{icon}</span>}
 
@@ -88,9 +94,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       return (
         <Link
           href={href}
-          className={`${styles.btn} ${children ? styles.btnPadding : ''} ${
+          className={`${styles.btn} ${children ? styles.btnPadding : ""} ${
             styles[`btn--${variant}`]
-          } ${className} ${loading ? styles.loading : ''}`}
+          } ${className} ${loading ? styles.loading : ""}`}
         >
           {buttonContent}
         </Link>
@@ -102,11 +108,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={isDisabled}
-        className={`${styles.btn} ${children ? styles.btnPadding : ''} ${
+        className={`${styles.btn} ${children ? styles.btnPadding : ""} ${
           styles[`btn--${variant}`]
-        } ${className} ${loading ? styles.loading : ''}`}
+        } ${className} ${loading ? styles.loading : ""}`}
         onMouseEnter={handleMouseEnter}
-        aria-label={loading ? 'Loading...' : (children ? String(children) : 'Button')}
+        aria-label={
+          loading ? "Loading..." : children ? String(children) : "Button"
+        }
         {...props}
       >
         {buttonContent}

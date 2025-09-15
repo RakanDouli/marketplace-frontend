@@ -8,4 +8,5 @@ export * from './categoriesStore';
 export * from './filtersStore';
 export * from './listingsStore';
 export * from './notificationStore';
+export * from './searchStore';
 export * from './types';

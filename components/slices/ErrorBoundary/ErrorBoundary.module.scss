@@ -1,15 +1,11 @@
-@import '../../../styles/variables';
+@import "../../../styles/variables";
 
 .errorBoundary {
   min-height: 100vh;
   display: flex;
   align-items: center;
   padding: $space-xl 0;
-  background: linear-gradient(
-    135deg,
-    hsl(var(--surface)) 0%,
-    hsl(var(--error) / 0.02) 100%
-  );
+  background: linear-gradient(135deg, $surface 0%, $error 100%);
 }
 
 .content {
@@ -24,19 +20,26 @@
 
 .icon {
   line-height: 1;
-  filter: drop-shadow(0 4px 12px hsl(var(--error) / 0.2));
+  filter: drop-shadow(0 4px 12px $surface);
   animation: shake 0.5s ease-in-out;
 }
 
 .iconText {
   font-size: clamp(4rem, 8vw, 6rem) !important;
-  color: hsl(var(--error)) !important;
+  color: $error !important;
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .message {
@@ -47,7 +50,7 @@
 
 .title {
   margin-bottom: $space-sm;
-  color: hsl(var(--error));
+  color: $error;
   text-align: center;
 }
 
@@ -63,11 +66,11 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  
+
   @media (max-width: $breakpoint-sm) {
     flex-direction: column;
     width: 100%;
-    
+
     button {
       width: 100%;
     }
@@ -77,8 +80,8 @@
 .errorDetails {
   margin-top: $space-lg;
   padding: $space-md;
-  background-color: hsl(var(--surface-variant) / 0.5);
-  border: 1px solid hsl(var(--border));
+  background-color: $surface;
+  border: 1px solid $border;
   border-radius: $radius-md;
   width: 100%;
   max-width: 100%;
@@ -90,13 +93,13 @@
   padding: $space-sm;
   border-radius: $radius-sm;
   transition: background-color 0.2s ease;
-  
+
   &:hover {
-    background-color: hsl(var(--surface-variant) / 0.3);
+    background-color: $surface;
   }
-  
+
   &:focus {
-    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline: 2px solid $primary;
     outline-offset: 2px;
   }
 }
@@ -104,24 +107,24 @@
 .errorContent {
   margin-top: $space-md;
   padding-top: $space-md;
-  border-top: 1px solid hsl(var(--border));
+  border-top: 1px solid $border;
 }
 
 .errorMessage {
   display: block;
   padding: $space-sm;
-  background-color: hsl(var(--error) / 0.1);
-  border: 1px solid hsl(var(--error) / 0.2);
+  background-color: $error;
+  border: 1px solid $error;
   border-radius: $radius-sm;
-  color: hsl(var(--error));
+  color: $error;
   word-break: break-word;
 }
 
 .errorStack {
   margin: $space-sm 0 0 0;
   padding: $space-sm;
-  background-color: hsl(var(--surface-variant) / 0.3);
-  border: 1px solid hsl(var(--border));
+  background-color: $surface;
+  border: 1px solid $border;
   border-radius: $radius-sm;
   overflow-x: auto;
   max-height: 200px;
@@ -143,20 +146,16 @@
 // Dark mode adjustments
 [data-theme="dark"] {
   .errorBoundary {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--surface)) 0%,
-      hsl(var(--error) / 0.05) 100%
-    );
+    background: linear-gradient(135deg, $surface 0%, $error 100%);
   }
-  
+
   .errorMessage {
-    background-color: hsl(var(--error) / 0.15);
-    border-color: hsl(var(--error) / 0.3);
+    background-color: $error;
+    border-color: $error;
   }
-  
+
   .errorStack {
-    background-color: hsl(var(--surface-variant) / 0.2);
+    background-color: $error;
   }
 }
 

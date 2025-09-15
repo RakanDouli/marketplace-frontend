@@ -156,7 +156,7 @@ The Text slice handles all font sizes with responsive clamp values:
 %text-base {
   margin: 0;
   line-height: $line-normal;
-  color: hsl(var(--text));
+  color: $text;
 }
 
 // Header base styles (uses Beiruti font from typography.scss)
@@ -228,9 +228,9 @@ The Text slice handles all font sizes with responsive clamp values:
 ```scss
 // In component .module.scss files
 .button {
-  background-color: hsl(var(--primary));           // Solid
-  border: 1px solid hsl(var(--primary) / 0.5);     // 50% opacity
-  color: hsl(var(--text));
+  background-color: $primary;           // Solid
+  border: 1px solid $primary;          // Same color
+  color: $text-light;                  // Light text on dark button
 }
 ```
 
@@ -259,10 +259,10 @@ components/slices/NewSlice/
   // Use border radius
   border-radius: $radius-md;
   
-  // Use theme colors  
-  background-color: hsl(var(--surface));
-  color: hsl(var(--text));
-  border: 1px solid hsl(var(--border));
+  // Use theme colors
+  background-color: $surface;
+  color: $text;
+  border: 1px solid $border;
 }
 
 // Size variants
@@ -276,8 +276,9 @@ components/slices/NewSlice/
 
 // State variants
 .active {
-  background-color: hsl(var(--primary) / 0.1);
-  border-color: hsl(var(--primary));
+  background-color: $primary;
+  border-color: $primary;
+  opacity: 0.1;
 }
 
 // Responsive behavior
@@ -340,9 +341,9 @@ font-weight: 600;                        // Use numbers
 line-height: 1.5;                        // Use numbers
 
 // Colors
-background-color: hsl(var(--primary));
-border: 1px solid hsl(var(--border));
-color: hsl(var(--text-muted));
+background-color: $primary;
+border: 1px solid $border;
+color: $text;
 
 // Border radius
 border-radius: $radius-md;    // 0.5rem
@@ -357,11 +358,13 @@ border-radius: $radius-md;    // 0.5rem
 - Import variables: `@import '../../../styles/variables';`
 - Use direct SCSS variables: `$space-md`, `$weight-bold`
 - Use clamp() directly for font-size (no variables)
-- Use HSL theme colors: `hsl(var(--primary))`
+- Use theme-aware SCSS variables: `$primary`, `$success`, `$border`, `$text`, `$surface`
 - Use logical properties: `margin-inline-start`
 
 ### **DON'T ❌**
 - Use font-size variables (use clamp directly)
+- Use CSS custom properties like `var()` in component styles
+- Use `hsl()` functions with CSS variables
 - Use functions like `map-get()` or `@include`
 - Hardcode values like `16px` (use variables)
 - Mix old and new patterns

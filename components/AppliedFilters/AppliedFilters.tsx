@@ -1,25 +1,12 @@
 "use client";
 
 import { useTranslation } from "../../hooks/useTranslation";
+import { useSearchStore } from "../../stores";
 import { Button } from "../slices";
 import { Text } from "../slices";
 import styles from "./AppliedFilters.module.scss";
 
-export interface FilterValues {
-  brandId?: string;
-  modelId?: string;
-  priceMinMinor?: number;
-  priceMaxMinor?: number;
-  priceCurrency?: string;
-  city?: string;
-  province?: string;
-  search?: string;
-  specs?: Record<string, any>;
-}
-
 export interface AppliedFiltersProps {
-  filters: FilterValues;
-  totalResults?: number;
   onRemoveFilter: (filterKey: string) => void;
   onClearAllFilters: () => void;
   attributes?: Array<{
@@ -34,17 +21,43 @@ export interface AppliedFiltersProps {
 }
 
 export function AppliedFilters({
-  filters,
-  totalResults,
   onRemoveFilter,
   onClearAllFilters,
   attributes = [],
 }: AppliedFiltersProps) {
   const { t } = useTranslation();
 
+  // Get filters directly from searchStore instead of props
+  const { activeFilters: filters } = useSearchStore();
+
+  // console.log("🏷️ AppliedFilters: Using filters from searchStore", filters);
+
   // Helper function to get display name for attribute values
   const getAttributeDisplayName = (attributeKey: string, value: any) => {
     const attribute = attributes.find((attr) => attr.key === attributeKey);
+
+    // Handle arrays
+    if (Array.isArray(value)) {
+      // For multi-select attributes, show as comma-separated values
+      if (
+        attribute &&
+        (attribute.type === "MULTI_SELECTOR" ||
+          attributeKey === "body_type" ||
+          attributeKey === "engine_size")
+      ) {
+        const optionsToSearch =
+          (attribute as any).processedOptions || attribute.options || [];
+        const displayValues = value.map((val) => {
+          const option = optionsToSearch.find((opt: any) => opt.key === val);
+          return option ? option.value : val;
+        });
+        return displayValues.join(", ");
+      }
+      // For range filters - format as "min - max"
+      else {
+        return value.join(" - ");
+      }
+    }
 
     if (!attribute) {
       return value;

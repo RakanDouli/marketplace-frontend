@@ -112,33 +112,41 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
         {/* Specs Grid */}
         <div className={styles.specs}>
-          <div className={styles.spec}>
-            <Calendar size={16} className={styles.specIcon} />
-            <Text variant="small" className={styles.specText}>
-              {firstRegistration}
-            </Text>
-          </div>
+          {firstRegistration && (
+            <div className={styles.spec}>
+              <Calendar size={16} className={styles.specIcon} />
+              <Text variant="small" className={styles.specText}>
+                {firstRegistration}
+              </Text>
+            </div>
+          )}
 
-          <div className={styles.spec}>
-            <Gauge size={16} className={styles.specIcon} />
-            <Text variant="small" className={styles.specText}>
-              {mileage}
-            </Text>
-          </div>
+          {mileage && (
+            <div className={styles.spec}>
+              <Gauge size={16} className={styles.specIcon} />
+              <Text variant="small" className={styles.specText}>
+                {mileage}
+              </Text>
+            </div>
+          )}
 
-          <div className={styles.spec}>
-            <Fuel size={16} className={styles.specIcon} />
-            <Text variant="small" className={styles.specText}>
-              {fuelType}
-            </Text>
-          </div>
+          {fuelType && (
+            <div className={styles.spec}>
+              <Fuel size={16} className={styles.specIcon} />
+              <Text variant="small" className={styles.specText}>
+                {fuelType}
+              </Text>
+            </div>
+          )}
 
-          <div className={styles.spec}>
-            <MapPin size={16} className={styles.specIcon} />
-            <Text variant="small" className={styles.specText}>
-              {location}
-            </Text>
-          </div>
+          {location && (
+            <div className={styles.spec}>
+              <MapPin size={16} className={styles.specIcon} />
+              <Text variant="small" className={styles.specText}>
+                {location}
+              </Text>
+            </div>
+          )}
 
           <div className={styles.spec}>
             <User size={16} className={styles.specIcon} />

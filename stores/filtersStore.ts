@@ -31,6 +31,9 @@ interface FiltersState {
   provinces: string[];
   cities: string[];
 
+  // Total results count from backend
+  totalResults: number;
+
   // Cache management
   categoryCache: Record<string, CategoryCache>; // Cache per category slug
   currentCategorySlug: string | null;
@@ -78,6 +81,7 @@ const initialState: FiltersState = {
   sellerTypes: [],
   provinces: [],
   cities: [],
+  totalResults: 0,
   categoryCache: {},
   currentCategorySlug: null,
   lastFetchKey: null,
@@ -165,10 +169,10 @@ async function getListingAggregations(
     return { attributes: {} };
   }
 
-  console.log("✅ Backend aggregations working:", {
-    totalResults: aggregations.totalResults,
-    attributesFound: aggregations.attributes?.length || 0,
-  });
+  // console.log("✅ Backend aggregations working:", {
+  //   totalResults: aggregations.totalResults,
+  //   attributesFound: aggregations.attributes?.length || 0,
+  // });
 
   // Transform attributes to the format we need (regular attributes only)
   const attributes: Record<string, Record<string, number>> = {};
@@ -176,17 +180,18 @@ async function getListingAggregations(
     attributes[attr.field] = {};
     (attr.options || []).forEach((option: any) => {
       // For brandId/modelId, use key field; for others, use value field
-      const lookupKey = (attr.field === 'brandId' || attr.field === 'modelId') 
-        ? option.key || option.value 
-        : option.value;
+      const lookupKey =
+        attr.field === "brandId" || attr.field === "modelId"
+          ? option.key || option.value
+          : option.value;
       attributes[attr.field][lookupKey] = option.count;
     });
   });
 
   // Return only attributes - brands/models are now regular specs
-  return { 
+  return {
     attributes, // All specs including brandId/modelId are now in attributes
-    rawAggregations: aggregations // Keep raw data for brandId/modelId processing
+    rawAggregations: aggregations, // Keep raw data for brandId/modelId processing
   };
 }
 
@@ -253,9 +258,11 @@ async function getAllFilterData(categorySlug: string) {
       let processedOptions: AttributeOptionWithCount[] = [];
 
       // Special handling for brandId and modelId - create options from aggregation data
-      if (attr.key === 'brandId' || attr.key === 'modelId') {
+      if (attr.key === "brandId" || attr.key === "modelId") {
         // For brandId/modelId, get options directly from raw aggregation since seeder has empty options
-        const rawAttributeData = aggregations.rawAggregations?.attributes?.find((a: any) => a.field === attr.key);
+        const rawAttributeData = aggregations.rawAggregations?.attributes?.find(
+          (a: any) => a.field === attr.key
+        );
         if (rawAttributeData?.options) {
           processedOptions = rawAttributeData.options.map((option: any) => ({
             id: option.key || option.value, // Use key (UUID) as id, fallback to value
@@ -276,12 +283,12 @@ async function getAllFilterData(categorySlug: string) {
             aggregations.attributes?.[attr.key]?.[backendOption.value] || 0, // Add count from backend aggregation, fallback to 0
         }));
       }
-      
-      console.log(`🔍 Processing attribute: ${attr.key}`, {
-        optionsCount: processedOptions.length,
-        hasAggregationData: !!aggregations.attributes?.[attr.key],
-        sampleOptions: processedOptions.slice(0, 2)
-      });
+
+      // console.log(`🔍 Processing attribute: ${attr.key}`, {
+      //   optionsCount: processedOptions.length,
+      //   hasAggregationData: !!aggregations.attributes?.[attr.key],
+      //   sampleOptions: processedOptions.slice(0, 2),
+      // });
 
       return {
         ...attr,
@@ -296,6 +303,7 @@ async function getAllFilterData(categorySlug: string) {
     attributes: attributesWithCounts,
     sellerTypes: [], // Will be populated from aggregations.sellerTypes
     provinces: [], // Will be fetched separately if needed
+    totalResults: aggregations.rawAggregations?.totalResults || 0, // Include totalResults from rawAggregations
   };
 }
 
@@ -313,35 +321,40 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   // Main fetch function - gets attributes and their counts
   fetchFilterData: async (categorySlug: string) => {
     const { categoryCache } = get();
-    
+
     // Check if we have cached data for this category
     const cachedData = categoryCache[categorySlug];
     const now = Date.now();
-    
+
     // Use cache if valid and not expired
-    if (cachedData && (now - cachedData.cachedAt) < CACHE_EXPIRATION_MS) {
+    if (cachedData && now - cachedData.cachedAt < CACHE_EXPIRATION_MS) {
       console.log(`🎯 Using cached filter data for category: ${categorySlug}`);
-      
+
       // Get fresh counts for the cached structure
       const aggregations = await getListingAggregations(categorySlug);
-      
+
       // Process cached attributes with fresh counts
       const attributesWithCounts: AttributeWithProcessedOptions[] =
         cachedData.baseAttributes.map((attr) => {
           let processedOptions: AttributeOptionWithCount[] = [];
 
           // Special handling for brandId and modelId - create options from aggregation data
-          if (attr.key === 'brandId' || attr.key === 'modelId') {
-            const rawAttributeData = aggregations.rawAggregations?.attributes?.find((a: any) => a.field === attr.key);
+          if (attr.key === "brandId" || attr.key === "modelId") {
+            const rawAttributeData =
+              aggregations.rawAggregations?.attributes?.find(
+                (a: any) => a.field === attr.key
+              );
             if (rawAttributeData?.options) {
-              processedOptions = rawAttributeData.options.map((option: any) => ({
-                id: option.key || option.value,
-                key: option.key || option.value,
-                value: option.value,
-                sortOrder: 0,
-                isActive: true,
-                count: option.count,
-              }));
+              processedOptions = rawAttributeData.options.map(
+                (option: any) => ({
+                  id: option.key || option.value,
+                  key: option.key || option.value,
+                  value: option.value,
+                  sortOrder: 0,
+                  isActive: true,
+                  count: option.count,
+                })
+              );
             } else {
               processedOptions = [];
             }
@@ -349,7 +362,8 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             // Regular attributes - use existing options with fresh counts
             processedOptions = (attr.options || []).map((backendOption) => ({
               ...backendOption,
-              count: aggregations.attributes?.[attr.key]?.[backendOption.value] || 0,
+              count:
+                aggregations.attributes?.[attr.key]?.[backendOption.value] || 0,
             }));
           }
 
@@ -361,6 +375,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
       set({
         attributes: attributesWithCounts,
+        totalResults: aggregations.rawAggregations?.totalResults || 0, // Store totalResults from rawAggregations
         currentCategorySlug: categorySlug,
         isLoading: false,
         error: null,
@@ -369,7 +384,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
     }
 
     // No valid cache - do full fetch
-    console.log(`🔄 Fetching fresh filter data for category: ${categorySlug}`);
+    // console.log(`🔄 Fetching fresh filter data for category: ${categorySlug}`);
     set({ isLoading: true, error: null });
 
     try {
@@ -377,7 +392,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       const filterData = await getAllFilterData(categorySlug);
 
       // Cache the base attributes structure (without counts)
-      const baseAttributes: Attribute[] = filterData.attributes.map(attr => ({
+      const baseAttributes: Attribute[] = filterData.attributes.map((attr) => ({
         id: attr.id,
         key: attr.key,
         name: attr.name,
@@ -386,7 +401,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         sortOrder: attr.sortOrder,
         group: attr.group,
         isActive: attr.isActive,
-        options: attr.options || []
+        options: attr.options || [],
       }));
 
       // Update cache
@@ -401,6 +416,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       set({
         attributes: filterData.attributes,
         provinces: filterData.provinces,
+        totalResults: filterData.totalResults || 0, // Store totalResults from getAllFilterData
         currentCategorySlug: categorySlug,
         categoryCache: newCache,
         cities: [],
@@ -500,18 +516,23 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
           let processedOptions: AttributeOptionWithCount[] = [];
 
           // Special handling for brandId and modelId - create options from cascading aggregation data
-          if (attr.key === 'brandId' || attr.key === 'modelId') {
+          if (attr.key === "brandId" || attr.key === "modelId") {
             // For brandId/modelId, get options directly from raw cascading aggregation
-            const rawAttributeData = cascadingAggregations.rawAggregations?.attributes?.find((a: any) => a.field === attr.key);
+            const rawAttributeData =
+              cascadingAggregations.rawAggregations?.attributes?.find(
+                (a: any) => a.field === attr.key
+              );
             if (rawAttributeData?.options) {
-              processedOptions = rawAttributeData.options.map((option: any) => ({
-                id: option.key || option.value, // Use key (UUID) as id, fallback to value
-                key: option.key || option.value, // Use key (UUID) for filtering
-                value: option.value, // Use readable name for display
-                sortOrder: 0,
-                isActive: true,
-                count: option.count,
-              }));
+              processedOptions = rawAttributeData.options.map(
+                (option: any) => ({
+                  id: option.key || option.value, // Use key (UUID) as id, fallback to value
+                  key: option.key || option.value, // Use key (UUID) for filtering
+                  value: option.value, // Use readable name for display
+                  sortOrder: 0,
+                  isActive: true,
+                  count: option.count,
+                })
+              );
             } else {
               processedOptions = [];
             }
@@ -525,11 +546,11 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
                 ] || 0,
             }));
           }
-          
+
           console.log(`🔄 Cascading attribute: ${attr.key}`, {
             optionsCount: processedOptions.length,
             hasAggregationData: !!cascadingAggregations.attributes?.[attr.key],
-            sampleOptions: processedOptions.slice(0, 2)
+            sampleOptions: processedOptions.slice(0, 2),
           });
 
           // Show all options (including those with count 0) for better UX
@@ -546,17 +567,31 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
       set({
         attributes: attributesWithCascadingCounts,
+        totalResults: cascadingAggregations.rawAggregations?.totalResults || 0,
         currentCategorySlug: categorySlug,
         cities: [],
         isLoadingCounts: false,
         error: null,
       });
 
-      console.log("✅ Cascading filters updated!", {
+      // console.log("🎯 ===== FILTERS STORE: updateFiltersWithCascading SUCCESS =====");
+      console.log("📊 FiltersStore: Updated attributes", {
+        categorySlug: categorySlug,
+        appliedFilters: appliedFilters,
         attributesWithOptions: attributesWithCascadingCounts.filter(
           (a) => a.processedOptions && a.processedOptions.length > 0
         ).length,
         totalAttributes: attributesWithCascadingCounts.length,
+        totalResults: cascadingAggregations.rawAggregations?.totalResults,
+        sampleAttributes: attributesWithCascadingCounts
+          .slice(0, 3)
+          .map((attr) => ({
+            key: attr.key,
+            name: attr.name,
+            type: attr.type,
+            optionsCount: attr.processedOptions?.length || 0,
+            firstOption: attr.processedOptions?.[0] || null,
+          })),
       });
     } catch (error) {
       set({
@@ -592,6 +627,8 @@ export const useFilterAttributes = () =>
 export const useFilterProvinces = () =>
   useFiltersStore((state) => state.provinces);
 export const useFilterCities = () => useFiltersStore((state) => state.cities);
+export const useFilterTotalResults = () =>
+  useFiltersStore((state) => state.totalResults);
 export const useFiltersLoading = () =>
   useFiltersStore((state) => state.isLoading);
 export const useFiltersCountsLoading = () =>

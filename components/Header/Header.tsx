@@ -50,9 +50,6 @@ export const Header: React.FC = () => {
             <Link href="/" className={styles.logo}>
               <div className={styles.logoIcon}>🚗</div>
               <div className={styles.logoText}>
-                <span className={styles.logoMain}>
-                  {t("seo.defaultTitle").split(" | ")[0]}
-                </span>
                 <span className={styles.logoSub}>Syrian Marketplace</span>
               </div>
             </Link>

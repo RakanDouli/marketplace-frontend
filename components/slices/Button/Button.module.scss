@@ -102,6 +102,40 @@
     }
   }
 
+  &--link {
+    background: none;
+    border: none;
+    color: $text;
+    text-decoration: underline;
+    // padding: $space-xs $space-sm;
+    margin: 0;
+    min-width: auto;
+    height: auto;
+    border-radius: $radius-sm;
+    font-weight: $font-base;
+
+    &:hover {
+      background-color: $primary;
+      color: $text-inverse;
+      text-decoration: none;
+
+      .round {
+        display: none; // No ripple effect for link variant
+      }
+    }
+
+    &:focus {
+      outline: 2px solid $primary;
+      outline-offset: 2px;
+    }
+
+    .title {
+      text-transform: none; // No uppercase for links
+      font-weight: inherit;
+      letter-spacing: normal;
+    }
+  }
+
   .arrow {
     font-size: 1.125rem;
     z-index: 1;
@@ -186,74 +220,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-// Language Selector Dropdown
-.languageSelector {
-  position: relative;
-}
-
-.languageTrigger {
-  gap: $space-xs;
-
-  .chevron {
-    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &.open {
-      transform: rotate(180deg);
-    }
-  }
-}
-
-.languageDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: $space-xs;
-  background-color: $surface;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  min-width: 160px;
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.languageOption {
-  // Button reset
-  background: none;
-  border: none;
-  font: inherit;
-  cursor: pointer;
-  outline: none;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: $space-sm $space-md;
-  background-color: transparent;
-  color: $text;
-  transition: color, background-color, border-color, text-decoration-color, fill,
-    stroke 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover {
-    background-color: $surface;
-  }
-
-  &.active {
-    background-color: $primary;
-    color: $text-inverse;
-  }
-}
-
-.languageName {
-  font-size: 0.875rem;
-  font-weight: $weight-medium;
-}
-
-.languageNative {
-  font-size: 0.75rem;
-  color: $text-muted;
 }
 
 .themeToggle {

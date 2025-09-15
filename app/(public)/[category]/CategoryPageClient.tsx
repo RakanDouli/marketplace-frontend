@@ -11,7 +11,9 @@ import {
   useCategoriesStore,
   useListingsStore,
   useFiltersStore,
+  useSearchStore,
 } from "../../../stores";
+import type { SearchFilters } from "../../../stores/searchStore";
 import { useTranslation } from "../../../hooks/useTranslation";
 import type { ListingData } from "../../../components/ListingArea/ListingArea";
 import type { Category } from "../../../stores/types";
@@ -42,9 +44,20 @@ export default function CategoryPageClient({
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
-  const [currentFilters, setCurrentFilters] = useState<FilterValues>({});
   const [currentSort, setCurrentSort] = useState<SortOption>("createdAt_desc");
   const [isSorting, setIsSorting] = useState(false);
+
+  // Use centralized search store instead of local filter state
+  const {
+    activeFilters,
+    setFilters,
+    getBackendFilters,
+    getStoreFilters,
+    clearAllFilters,
+    setFromUrlParams,
+    removeFilter,
+    removeSpecFilter,
+  } = useSearchStore();
 
   // Store hooks
   const {
@@ -70,6 +83,9 @@ export default function CategoryPageClient({
     fetchFilterData,
     attributes, // All specs (including brands/models) are in attributes now
   } = useFiltersStore();
+
+  // Get totalResults from listings store (single source of truth)
+  const totalResults = useListingsStore((state) => state.pagination.total);
 
   // Load categories once on mount
   useEffect(() => {
@@ -111,6 +127,21 @@ export default function CategoryPageClient({
     loadCategory();
   }, [categorySlug, fetchCategoryBySlug, setSelectedCategory]);
 
+  // Initialize search store from URL params
+  useEffect(() => {
+    if (Object.keys(searchParams).length > 0) {
+      console.log("🔗 CategoryPageClient: Initializing from URL params", searchParams);
+      const urlParams = new URLSearchParams();
+
+      // Add URL search params
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (value) urlParams.set(key, value);
+      });
+
+      setFromUrlParams(urlParams);
+    }
+  }, [searchParams, setFromUrlParams]);
+
   // Memoize parsed filters to prevent unnecessary recalculations
   const parsedFilters = useMemo(
     () => ({
@@ -129,142 +160,63 @@ export default function CategoryPageClient({
     [searchParams]
   );
 
-  // Convert FilterValues to backend aggregation format (dynamic specs approach)
-  const convertFiltersForBackend = (filterValues: FilterValues) => {
-    const backendFilters: any = {
-      categoryId: categorySlug, // Use categoryId instead of hardcoded category enum
-    };
+  // Filter conversion functions are now handled by searchStore
 
-    // All attribute filters go into specs object (dynamic approach)
-    if (filterValues.specs && Object.keys(filterValues.specs).length > 0) {
-      const specs: Record<string, any> = {};
 
-      Object.entries(filterValues.specs).forEach(([key, value]) => {
-        if (value.selected) {
-          specs[key] = Array.isArray(value.selected)
-            ? value.selected[0]
-            : value.selected;
-        }
-      });
-
-      if (Object.keys(specs).length > 0) {
-        backendFilters.specs = specs;
-      }
-    }
-
-    console.log("🔄 Backend filters for cascading (dynamic):", backendFilters);
-    return backendFilters;
-  };
-
-  // Convert FilterValues to listingsStore format (pure dynamic approach)
-  const convertFiltersForStore = (filterValues: FilterValues) => {
-    const storeFilters: any = {
-      categoryId: categorySlug, // Set category for filtering
-    };
-
-    // Price filters (both formats for compatibility)
-    if (filterValues.priceMinMinor) {
-      storeFilters.minPrice = filterValues.priceMinMinor / 100; // Convert minor to major currency
-      storeFilters.priceMinMinor = filterValues.priceMinMinor; // Also send minor format
-    }
-    if (filterValues.priceMaxMinor) {
-      storeFilters.maxPrice = filterValues.priceMaxMinor / 100;
-      storeFilters.priceMaxMinor = filterValues.priceMaxMinor;
-    }
-    if (filterValues.priceCurrency) {
-      storeFilters.priceCurrency = filterValues.priceCurrency;
-    }
-
-    // Location filters
-    if (filterValues.province) {
-      storeFilters.location = filterValues.province;
-      storeFilters.province = filterValues.province;
-    }
-    if (filterValues.city) {
-      storeFilters.location = filterValues.city; // City overrides province
-      storeFilters.city = filterValues.city;
-    }
-
-    // Search filter
-    if (filterValues.search) {
-      storeFilters.search = filterValues.search;
-    }
-
-    // Initialize specs object for dynamic attributes (including brand/model)
-    const specs: Record<string, any> = {};
-
-    // Brand and Model filters now go into specs object (unified system)
-    if (filterValues.brandId) {
-      specs.brandId = filterValues.brandId;
-      storeFilters.brandId = filterValues.brandId; // Keep for backward compatibility
-    }
-    if (filterValues.modelId) {
-      specs.modelId = filterValues.modelId;
-      storeFilters.modelId = filterValues.modelId; // Keep for backward compatibility
-    }
-
-    // All other dynamic attribute filters go into specs object
-    if (filterValues.specs && Object.keys(filterValues.specs).length > 0) {
-      Object.entries(filterValues.specs).forEach(([key, value]) => {
-        if (value?.selected) {
-          const selectedValue = Array.isArray(value.selected)
-            ? value.selected[0]
-            : value.selected;
-          specs[key] = selectedValue;
-        }
-      });
-    }
-
-    // Add specs to storeFilters if any specs exist
-    if (Object.keys(specs).length > 0) {
-      storeFilters.specs = specs;
-    }
-
-    console.log("📊 Store filters for listings (dynamic):", storeFilters);
-    return storeFilters;
-  };
-
-  // Handle filter application with cascading updates
+  // Handle filter application with cascading updates using searchStore
   const handleApplyFilters = async (filterValues: FilterValues) => {
-    console.log("🎯 Applying filters with cascading:", filterValues);
-    setCurrentFilters(filterValues);
+    console.log("🎯 ===== CATEGORY PAGE: handleApplyFilters START =====");
+    console.log("📋 CategoryPageClient: Raw filter values received:", JSON.stringify(filterValues, null, 2));
+    console.log("📦 CategoryPageClient: Current searchStore state:", activeFilters);
 
     if (!currentCategory) return;
 
     try {
-      // Step 1: Convert filters for backend aggregation (cascading)
-      const backendFilters = convertFiltersForBackend(filterValues);
+      // Step 1: Update search store with new filters
+      console.log("🔄 Step 1: Updating search store...");
+      setFilters(filterValues);
 
-      // Step 2: Update cascading filters (this updates filter options based on selection)
-      console.log("🔄 Triggering cascading filter updates...");
+      // Step 2: Get backend filters for cascading
+      console.log("🔄 Step 2: Getting backend filters for cascading...");
+      const backendFilters = {
+        categoryId: currentCategory.slug,
+        ...getBackendFilters(),
+      };
+
+      // Step 3: Update cascading filters (this updates filter options based on selection)
+      console.log("🔄 Step 3: Triggering cascading filter updates...");
       await updateFiltersWithCascading(currentCategory.slug, backendFilters);
 
-      // Step 3: Convert filters for listings store and preserve current sort
+      // Step 4: Get store filters and preserve current sort
+      console.log("🔄 Step 4: Getting store filters for listings...");
       const storeFilters = {
-        ...convertFiltersForStore(filterValues),
+        categoryId: currentCategory.slug,
+        ...getStoreFilters(),
         sort: currentSort,
       };
 
-      // Step 4: Reset pagination to page 1 when filters change
+      // Step 5: Reset pagination to page 1 when filters change
       setPagination({ page: 1 });
 
-      // Step 5: Update listings area with new filters
-      console.log("📊 Refreshing listings with filters...");
+      // Step 6: Update listings area with new filters
+      console.log("📊 Step 6: Refreshing listings with filters...");
       await fetchListingsByCategory(currentCategory.slug, storeFilters);
 
-      // Step 6: Update URL to reflect new filters (optional, for better UX)
+      // Step 7: Update URL to reflect new filters (optional, for better UX)
       const url = new URL(window.location.href);
       // Reset page to 1 when filters change
       url.searchParams.delete("page");
       window.history.pushState({}, "", url.toString());
 
-      console.log("✅ Cascading filters and listings updated!");
+      console.log("🎯 ===== CATEGORY PAGE: handleApplyFilters SUCCESS =====");
+      console.log("✅ CategoryPageClient: All stores coordinated successfully!");
     } catch (error) {
       console.error("❌ Error applying cascading filters:", error);
 
       // Fallback: Just update listings without cascading
       const storeFilters = {
-        ...convertFiltersForStore(filterValues),
+        categoryId: currentCategory.slug,
+        ...getStoreFilters(),
         sort: currentSort,
       };
       setPagination({ page: 1 });
@@ -298,22 +250,73 @@ export default function CategoryPageClient({
   ]);
 
   // Convert store listings to component format
-  const listingData: ListingData[] = (listings || []).map((listing) => ({
-    id: listing.id,
-    title: listing.title,
-    price:
-      listing.prices?.[0]?.value ||
-      `${(listing.priceMinor / 100).toLocaleString()}`,
-    currency: listing.prices?.[0]?.currency || "USD",
-    firstRegistration: listing.createdAt
-      ? new Date(listing.createdAt).getFullYear().toString()
-      : "",
-    mileage: "", // Add if available in specs
-    fuelType: "", // Add if available in specs
-    location: listing.city || "",
-    sellerType: "private" as const,
-    images: listing.imageKeys || [],
-  }));
+  const listingData: ListingData[] = (listings || []).map((listing) => {
+    const specs = listing.specs || {};
+
+    // Handle price formatting consistently
+    const displayPrice = listing.prices?.[0]?.value
+      ? listing.prices[0].value.toString()
+      : (listing.priceMinor / 100).toLocaleString();
+
+    // Handle year/registration from multiple possible fields
+    const getRegistrationYear = () => {
+      if (specs.year) return specs.year.toString();
+      if (specs.first_registration) return specs.first_registration.toString();
+      if (specs.registration_year) return specs.registration_year.toString();
+      if (listing.createdAt)
+        return new Date(listing.createdAt).getFullYear().toString();
+      return "";
+    };
+
+    // Handle mileage from multiple possible fields
+    const getMileage = () => {
+      const mileageValue =
+        specs.mileage || specs.mileage_km || specs.kilometers;
+      if (!mileageValue) return "";
+      const numericValue =
+        typeof mileageValue === "string"
+          ? parseInt(mileageValue, 10)
+          : mileageValue;
+      return isNaN(numericValue) ? "" : `${numericValue.toLocaleString()} km`;
+    };
+
+    // Handle fuel type from multiple possible fields
+    const getFuelType = () => {
+      return specs.fuel_type || specs.fuelType || specs.fuel || "";
+    };
+
+    // Handle seller type conversion safely
+    const getSellerType = (): "private" | "dealer" | "business" => {
+      if (!listing.sellerType) return "private";
+      const normalized = listing.sellerType.toLowerCase();
+      if (normalized === "dealer" || normalized === "business")
+        return normalized;
+      return "private";
+    };
+
+    // Handle location formatting with proper fallbacks
+    const getLocation = () => {
+      const city = listing.city?.trim() || "";
+      const country = listing.country?.trim() || "";
+      if (city && country) return `${city}, ${country}`;
+      if (city) return city;
+      if (country) return country;
+      return "";
+    };
+
+    return {
+      id: listing.id,
+      title: listing.title || "",
+      price: displayPrice,
+      currency: listing.prices?.[0]?.currency || "USD",
+      firstRegistration: getRegistrationYear(),
+      mileage: getMileage(),
+      fuelType: getFuelType(),
+      location: getLocation(),
+      sellerType: getSellerType(),
+      images: listing.imageKeys || [],
+    };
+  });
 
   const handleCardClick = (listingId: string) => {
     // TODO: Navigate to listing detail page
@@ -341,7 +344,8 @@ export default function CategoryPageClient({
     // Fetch listings for new page with current filters and sort
     if (currentCategory) {
       const storeFilters = {
-        ...convertFiltersForStore(currentFilters),
+        categoryId: currentCategory.slug,
+        ...getStoreFilters(),
         sort: currentSort,
       };
       try {
@@ -353,33 +357,55 @@ export default function CategoryPageClient({
   };
 
   const handleRemoveFilter = async (filterKey: string) => {
-    const updatedFilters = { ...currentFilters };
+    console.log("🗑️ CategoryPageClient: Removing filter", filterKey);
 
-    // Remove the specific filter
-    if (filterKey === "brandId" || filterKey === "modelId") {
-      // Remove brand/model from root level
-      delete updatedFilters[filterKey as keyof FilterValues];
-    } else if (filterKey.startsWith("specs.")) {
+    if (!currentCategory) return;
+
+    // Remove the specific filter using searchStore methods
+    if (filterKey.startsWith("specs.")) {
       // Remove from specs object
       const specKey = filterKey.replace("specs.", "");
-      if (updatedFilters.specs) {
-        delete updatedFilters.specs[specKey];
-        if (Object.keys(updatedFilters.specs).length === 0) {
-          delete updatedFilters.specs;
-        }
-      }
+      removeSpecFilter(specKey);
     } else {
-      // Remove from root level
-      delete updatedFilters[filterKey as keyof FilterValues];
+      // Remove from root level (includes brandId, modelId, price, location, etc.)
+      removeFilter(filterKey as keyof SearchFilters);
     }
 
-    // Apply the updated filters
-    await handleApplyFilters(updatedFilters);
+    // After removal, get the updated filters and refresh listings
+    try {
+      // Step 1: Get updated backend filters for cascading
+      const backendFilters = {
+        categoryId: currentCategory.slug,
+        ...getBackendFilters(),
+      };
+
+      // Step 2: Update cascading filters (this updates filter options based on selection)
+      await updateFiltersWithCascading(currentCategory.slug, backendFilters);
+
+      // Step 3: Get updated store filters and refresh listings
+      const storeFilters = {
+        categoryId: currentCategory.slug,
+        ...getStoreFilters(),
+        sort: currentSort,
+      };
+
+      // Step 4: Reset pagination to page 1 when filters change
+      setPagination({ page: 1 });
+
+      // Step 5: Update listings area with new filters
+      await fetchListingsByCategory(currentCategory.slug, storeFilters);
+
+      console.log("✅ Filter removed and listings updated!");
+    } catch (error) {
+      console.error("❌ Error removing filter:", error);
+    }
   };
 
   const handleClearAllFilters = async () => {
-    const clearedFilters: FilterValues = {};
-    await handleApplyFilters(clearedFilters);
+    console.log("🧹 CategoryPageClient: Clearing all filters");
+    clearAllFilters();
+    // Apply cleared filters from store
+    await handleApplyFilters({});
   };
 
   const handleSortChange = async (sort: SortOption) => {
@@ -391,7 +417,11 @@ export default function CategoryPageClient({
     setSortFilter(sort);
 
     if (currentCategory) {
-      const storeFilters = convertFiltersForStore(currentFilters);
+      const storeFilters = {
+        categoryId: currentCategory.slug,
+        ...getStoreFilters(),
+        sort: sort,
+      };
       try {
         await fetchListingsByCategory(currentCategory.slug, storeFilters);
         console.log("✅ Listings updated with new sorting:", sort);
@@ -426,13 +456,6 @@ export default function CategoryPageClient({
 
   return (
     <Container className={styles.categoryPage}>
-      {/* Category Header */}
-      {/* <div className={styles.header}>
-        <Text variant="paragraph" className={styles.subtitle}>
-          {t("category.totalListings", { count: pagination.total })}
-        </Text>
-      </div> */}
-
       {/* Main Content */}
       <div className={styles.content}>
         {/* Filters Sidebar */}
@@ -442,7 +465,7 @@ export default function CategoryPageClient({
             onClose={() => setFiltersOpen(false)}
             categorySlug={currentCategory.slug}
             onApplyFilters={handleApplyFilters}
-            initialValues={currentFilters}
+            initialValues={activeFilters}
           />
         </div>
 
@@ -455,12 +478,11 @@ export default function CategoryPageClient({
             onCardClick={handleCardClick}
             onCardLike={handleCardLike}
             onToggleFilters={handleToggleFilters}
-            total={pagination.total}
+            total={totalResults}
             currentPage={pagination.page}
-            totalPages={Math.ceil(pagination.total / pagination.limit)}
+            totalPages={Math.ceil(totalResults / pagination.limit)}
             onPageChange={handlePageChange}
-            appliedFilters={currentFilters}
-            totalResults={pagination.total}
+            totalResults={totalResults}
             currentSort={currentSort}
             onRemoveFilter={handleRemoveFilter}
             onClearAllFilters={handleClearAllFilters}

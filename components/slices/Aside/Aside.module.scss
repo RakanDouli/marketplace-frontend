@@ -3,8 +3,7 @@
 .aside {
   position: relative;
   width: 100%;
-  background-color: var(--surface);
-  // border: 1px solid var(--border);
+  background-color: $surface;
   border-radius: $radius-md;
   transition: all 0.3s ease-out;
 

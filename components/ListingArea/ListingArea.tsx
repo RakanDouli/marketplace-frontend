@@ -3,7 +3,7 @@ import { Grid3X3, List, Filter as FilterIcon } from "lucide-react";
 import { ListingCard, Button, Text } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
-import { AppliedFilters, FilterValues } from "../AppliedFilters/AppliedFilters";
+import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
 import { SortControls, SortOption } from "../SortControls/SortControls";
 import styles from "./ListingArea.module.scss";
 
@@ -33,8 +33,7 @@ export interface ListingAreaProps {
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
-  // New props for filters and sorting
-  appliedFilters?: FilterValues;
+  // New props for sorting
   totalResults?: number;
   currentSort?: SortOption;
   onRemoveFilter?: (filterKey: string) => void;
@@ -63,7 +62,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   currentPage = 1,
   totalPages = 1,
   onPageChange,
-  appliedFilters,
   totalResults,
   currentSort = "createdAt_desc",
   onRemoveFilter,
@@ -122,10 +120,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       </div>
 
       {/* Applied Filters */}
-      {appliedFilters && onRemoveFilter && onClearAllFilters && (
+      {onRemoveFilter && onClearAllFilters && (
         <AppliedFilters
-          filters={appliedFilters}
-          totalResults={totalResults}
           onRemoveFilter={onRemoveFilter}
           onClearAllFilters={onClearAllFilters}
           attributes={attributes}

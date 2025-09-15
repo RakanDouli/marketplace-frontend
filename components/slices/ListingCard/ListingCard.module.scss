@@ -11,7 +11,7 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: var(--primary);
+    border-color: $primary;
   }
 
   // Grid view (default) - compact card
@@ -86,7 +86,7 @@
 .imageContainer {
   position: relative;
   overflow: hidden;
-  background-color: var(--bg);
+  background-color: $bg;
 }
 
 .image {
@@ -118,13 +118,13 @@
   backdrop-filter: blur(4px);
 
   &:hover {
-    background-color: rgba(255, 255, 255, 1);
+    background-color: $bg;
     transform: scale(1.1);
   }
 
   &.liked {
-    color: var(--error);
-    background-color: rgba(255, 255, 255, 1);
+    color: $error;
+    background-color: $bg;
   }
 }
 
@@ -143,7 +143,7 @@
 .content {
   .title {
     font-weight: $weight-semibold;
-    color: var(--text);
+    color: $text;
     margin: 0;
     line-height: $line-tight;
 
@@ -163,13 +163,13 @@
   gap: $space-xs;
 
   .priceValue {
-    color: var(--primary);
+    color: $primary;
     font-weight: $weight-bold;
     margin: 0;
   }
 
   .currency {
-    color: var(--text-muted);
+    color: $text-muted;
     margin: 0;
   }
 }
@@ -181,12 +181,12 @@
     gap: $space-xs;
 
     .specIcon {
-      color: var(--text-muted);
+      color: $text-muted;
       flex-shrink: 0;
     }
 
     .specText {
-      color: var(--text);
+      color: $text;
       margin: 0;
       font-size: $font-sm;
     }

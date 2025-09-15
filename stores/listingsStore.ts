@@ -16,6 +16,12 @@ const LISTINGS_SEARCH_QUERY = `
       imageKeys
       createdAt
       categoryId
+      sellerType
+      specs
+      prices {
+        value
+        currency
+      }
     }
   }
 `;
@@ -176,6 +182,14 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     const { filters, pagination } = get();
     const finalFilters = { ...filters, ...filterOverrides };
 
+    // console.log("🚗 ===== LISTINGS STORE: fetchListings START =====");
+    // console.log("📋 ListingsStore: Input filters", {
+    //   existingFilters: filters,
+    //   filterOverrides: filterOverrides,
+    //   finalFilters: finalFilters,
+    //   pagination: pagination
+    // });
+
     set({ isLoading: true, error: null });
 
     try {
@@ -215,7 +229,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.sellerType = finalFilters.sellerType;
       }
 
-      // Dynamic attribute filters - use specs object instead of hardcoded fields
+      // Dynamic attribute filters - use specs object directly (now using backend format)
       if (finalFilters.specs && Object.keys(finalFilters.specs).length > 0) {
         graphqlFilter.specs = finalFilters.specs;
       }
@@ -234,43 +248,80 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.sort = finalFilters.sort;
       }
 
-      // Use GraphQL listingsSearch API
+      // Use GraphQL listingsSearch API for listings
       const data = await graphqlRequest(LISTINGS_SEARCH_QUERY, {
         filter: graphqlFilter,
         limit: pagination.limit,
         offset: offset,
       });
 
+      // Get totalResults from aggregations for accurate count
+      const aggregationsQuery = `
+        query GetAggregations($filter: ListingFilterInput) {
+          listingsAggregations(filter: $filter) {
+            totalResults
+          }
+        }
+      `;
+      const aggregationsData = await graphqlRequest(aggregationsQuery, {
+        filter: graphqlFilter,
+      });
+
       const listings: Listing[] = (data.listingsSearch || []).map(
-        (item: any) => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          price: item.priceMinor / 100, // Convert from minor currency
-          currency: "USD", // Primary currency
-          prices: [{ currency: "USD", value: item.priceMinor / 100 }], // Create price array from priceMinor
-          condition: "USED" as const, // Default - backend should provide this
-          status: item.status as any,
-          images: item.imageKeys || [],
-          location: `${item.city || ""}, ${item.province || ""}`.replace(
-            /^, |, $/,
-            ""
-          ),
-          province: item.province,
-          area: item.area,
-          categoryId: item.categoryId,
-          sellerId: "", // No sellerId available in current query
-          specs: {}, // TODO: Re-enable when specs field is exposed in GraphQL
-          viewCount: 0,
-          isFeatured: false,
-          isPromoted: false,
-          createdAt: item.createdAt,
-          updatedAt: item.createdAt,
-        })
+        (item: any) => {
+          // Parse specs JSON string from backend
+          let specs = {};
+          try {
+            specs = item.specs ? JSON.parse(item.specs) : {};
+          } catch (error) {
+            console.warn("Failed to parse specs JSON:", item.specs, error);
+            specs = {};
+          }
+
+          return {
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            priceMinor: item.priceMinor,
+            prices: item.prices || [
+              { currency: "USD", value: (item.priceMinor / 100).toString() },
+            ], // Use backend prices or create from priceMinor
+            city: item.city || "",
+            country: item.province || "", // Use province as country for now
+            status: item.status as any,
+            allowBidding: false, // Default - backend should provide this
+            specs, // Now contains real specs data from backend!
+            imageKeys: item.imageKeys || [],
+            sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
+            createdAt: item.createdAt,
+            updatedAt: item.createdAt,
+          };
+        }
       );
 
-      // Since GraphQL listingsSearch doesn't return count, we approximate
-      const hasMore = listings.length === pagination.limit;
+      // Use real totalResults from backend aggregations
+      const totalResults =
+        aggregationsData.listingsAggregations?.totalResults || 0;
+      const hasMore = offset + listings.length < totalResults;
+
+      // console.log("🚗 ===== LISTINGS STORE: fetchListings SUCCESS =====");
+      console.log("📊 ListingsStore: Final results", {
+        listingsCount: listings.length,
+        totalResults: totalResults,
+        pagination: { ...pagination, total: totalResults, hasMore },
+        firstListing: listings[0]
+          ? {
+              id: listings[0].id,
+              title: listings[0].title,
+              specs: listings[0].specs,
+              prices: listings[0].prices,
+              sellerType: listings[0].sellerType,
+            }
+          : null,
+        sampleSpecs: listings[0]?.specs
+          ? Object.keys(listings[0].specs).slice(0, 5)
+          : [],
+      });
 
       set({
         listings,
@@ -278,9 +329,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         error: null,
         pagination: {
           ...pagination,
-          total: hasMore
-            ? offset + pagination.limit + 1
-            : offset + listings.length,
+          total: totalResults,
           hasMore,
         },
       });

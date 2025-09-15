@@ -1,7 +1,7 @@
 @import "../../styles/variables.scss";
 
 .appliedFilters {
-  background: var(--surface);
+  background: $surface;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,17 +31,17 @@
 
 .resultsCount {
   font-weight: 600;
-  color: var(--text-primary);
+  color: $surface;
   margin: 0;
 }
 
 .clearAll {
-  color: var(--danger);
+  color: $error;
   font-size: $font-sm;
   padding: $space-xs $space-sm;
 
   &:hover {
-    background: var(--danger-light);
+    background: $bg;
   }
 }
 
