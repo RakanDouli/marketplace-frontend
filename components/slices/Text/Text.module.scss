@@ -67,6 +67,10 @@
   color: $text-muted;
 }
 
+.xs {
+  font-size: $font-xs;
+}
+
 // Navigation link
 .navlink {
   @extend %text-base;

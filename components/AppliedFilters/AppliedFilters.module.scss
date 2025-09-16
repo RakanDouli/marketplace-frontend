@@ -36,7 +36,7 @@
 }
 
 .clearAll {
-  color: $error;
+  color: $primary;
   font-size: $font-sm;
   padding: $space-xs $space-sm;
 
@@ -98,7 +98,7 @@
 
   &:hover {
     background: $surface;
-    color: $surface;
+    color: $text;
   }
 
   &:focus {

@@ -60,7 +60,12 @@
     "sortByNewest": "الأحدث أولاً",
     "sortByOldest": "الأقدم أولاً",
     "sortByPriceLow": "السعر من الأقل للأعلى",
-    "sortByPriceHigh": "السعر من الأعلى للأقل"
+    "sortByPriceHigh": "السعر من الأعلى للأقل",
+    "sellerType": "نوع البائع",
+    "allSellers": "جميع البائعين",
+    "privateSeller": "بائع خاص",
+    "dealer": "معرض",
+    "business": "شركة"
   },
   "listing": {
     "featured": "مميز",
@@ -142,6 +147,7 @@
     "retry": "إعادة المحاولة",
     "back": "رجوع",
     "next": "التالي",
+    "apply": "تطبيق",
     "previous": "السابق",
     "close": "إغلاق",
     "open": "فتح",

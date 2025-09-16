@@ -208,12 +208,45 @@
 .loading {
   pointer-events: none;
   opacity: 0.7;
+  cursor: not-allowed;
+
+  // Disable hover effects when loading
+  &:hover .round {
+    animation: none !important;
+  }
 }
 
 .loadingIcon {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: currentColor;
+
+  // Style for SVG spinner when type="svg"
+  svg {
+    color: currentColor;
+  }
+
+  // Style for three-dot loader
+  .threeDots {
+    color: currentColor;
+  }
+}
+// Disabled state styles
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+
+  // Disable hover effects when disabled
+  &:hover {
+    background-color: inherit;
+    color: inherit;
+
+    .round {
+      animation: none !important;
+    }
+  }
 }
 
 .icon {

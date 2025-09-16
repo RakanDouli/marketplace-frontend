@@ -23,6 +23,9 @@ export interface SearchFilters {
   // Search query
   search?: string;
 
+  // Seller type filter
+  sellerType?: string;
+
   // Sort option
   sort?: string;
 
@@ -263,6 +266,11 @@ export const useSearchStore = create<SearchStore>()(
       // Search
       if (activeFilters.search) {
         storeFilters.search = activeFilters.search;
+      }
+
+      // Seller type
+      if (activeFilters.sellerType) {
+        storeFilters.sellerType = activeFilters.sellerType;
       }
 
       // Sort

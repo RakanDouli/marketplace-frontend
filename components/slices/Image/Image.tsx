@@ -10,6 +10,7 @@ export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
   containerClassName?: string;
   showSkeleton?: boolean;
   aspectRatio?: string; // e.g., "16/9", "4/3", "1/1"
+  priority?: boolean; // For LCP optimization
 }
 
 export const Image: React.FC<ImageProps> = ({
@@ -17,6 +18,7 @@ export const Image: React.FC<ImageProps> = ({
   containerClassName = "",
   showSkeleton = true,
   aspectRatio,
+  priority = false,
   alt,
   className = "",
   ...props
@@ -61,10 +63,13 @@ export const Image: React.FC<ImageProps> = ({
         <NextImage
           {...props}
           alt={alt}
+          priority={priority}
           className={`${styles.image} ${className} ${isLoading ? styles.loading : styles.loaded}`.trim()}
           onLoad={handleLoad}
           onError={handleError}
           fill={!!aspectRatio} // Use fill when aspect ratio is set
+          quality={85} // Optimize image quality vs file size
+          sizes={props.sizes || "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"}
         />
       )}
     </div>

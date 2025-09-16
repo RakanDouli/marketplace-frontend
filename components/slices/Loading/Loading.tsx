@@ -1,18 +1,15 @@
-import React from 'react';
-import styles from './Loading.module.scss';
+import React from "react";
+import styles from "./Loading.module.scss";
 
 interface LoadingProps {
   /** Loading type - default is text, set to "svg" for spinning icon */
-  type?: 'svg';
+  type?: "svg";
   /** Additional CSS classes */
   className?: string;
 }
 
-export const Loading: React.FC<LoadingProps> = ({
-  type,
-  className = '',
-}) => {
-  if (type === 'svg') {
+export const Loading: React.FC<LoadingProps> = ({ type, className = "" }) => {
+  if (type === "svg") {
     return (
       <div className={`${styles.loadingSvg} ${className}`}>
         <svg viewBox="0 0 50 50" className={styles.spinner}>
@@ -46,9 +43,11 @@ export const Loading: React.FC<LoadingProps> = ({
   }
 
   return (
-    <span className={`${styles.loading} ${className}`}>
-      ...
-    </span>
+    <div className={`${styles.threeDots} ${className}`}>
+      <div className={styles.dot}></div>
+      <div className={styles.dot}></div>
+      <div className={styles.dot}></div>
+    </div>
   );
 };
 

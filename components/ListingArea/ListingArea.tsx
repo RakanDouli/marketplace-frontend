@@ -4,7 +4,8 @@ import { ListingCard, Button, Text } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
 import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
-import { SortControls, SortOption } from "../SortControls/SortControls";
+import { SortControls, SortOption } from "../slices/SortControls/SortControls";
+import { useListingsStore, useSearchStore, useFiltersStore } from "../../stores";
 import styles from "./ListingArea.module.scss";
 
 export interface ListingData {
@@ -12,65 +13,105 @@ export interface ListingData {
   title: string;
   price: string;
   currency: string;
-  firstRegistration: string;
-  mileage: string;
-  fuelType: string;
   location: string;
   sellerType: "private" | "dealer" | "business";
+  specs?: Record<string, any>; // Dynamic specs from backend
   images: string[];
   isLiked?: boolean;
 }
 
 export interface ListingAreaProps {
-  listings: ListingData[];
-  loading?: boolean;
-  countLoading?: boolean; // Separate loading state for results count
   onCardClick?: (id: string) => void;
   onCardLike?: (id: string, liked: boolean) => void;
   onToggleFilters?: () => void;
   className?: string;
-  total?: number;
-  currentPage?: number;
-  totalPages?: number;
-  onPageChange?: (page: number) => void;
-  // New props for sorting
-  totalResults?: number;
-  currentSort?: SortOption;
-  onRemoveFilter?: (filterKey: string) => void;
-  onClearAllFilters?: () => void;
-  onSortChange?: (sort: SortOption) => void;
-  attributes?: Array<{
-    key: string;
-    name: string;
-    type: string;
-    options?: Array<{
-      key: string;
-      value: string;
-    }>;
-  }>;
 }
 
 export const ListingArea: React.FC<ListingAreaProps> = ({
-  listings,
-  loading = false,
-  countLoading = false,
   onCardClick,
   onCardLike,
   onToggleFilters,
   className = "",
-  total = 0,
-  currentPage = 1,
-  totalPages = 1,
-  onPageChange,
-  totalResults,
-  currentSort = "createdAt_desc",
-  onRemoveFilter,
-  onClearAllFilters,
-  onSortChange,
-  attributes = [],
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { t } = useTranslation();
+
+  // Get data directly from stores
+  const {
+    listings,
+    isLoading: loading,
+    pagination,
+    setSortFilter
+  } = useListingsStore();
+
+  const {
+    activeFilters,
+    removeFilter,
+    removeSpecFilter,
+    clearAllFilters
+  } = useSearchStore();
+
+  const {
+    attributes,
+    isLoading: countLoading
+  } = useFiltersStore();
+
+  // Convert store listings to component format
+  const listingData: ListingData[] = (listings || []).map((listing) => {
+    const specs = listing.specs || {};
+
+    // Handle price formatting consistently
+    const displayPrice = listing.prices?.[0]?.value
+      ? listing.prices[0].value.toString()
+      : ((listing.priceMinor || 0) / 100).toString();
+
+    const displayCurrency = listing.prices?.[0]?.currency || "USD";
+
+    return {
+      id: listing.id,
+      title: listing.title,
+      price: displayPrice,
+      currency: displayCurrency,
+      location: listing.city || "",
+      sellerType: listing.sellerType === "PRIVATE" ? "private"
+                 : listing.sellerType === "DEALER" ? "dealer"
+                 : "business",
+      specs: specs, // Pass all dynamic specs
+      images: listing.imageKeys || [],
+      isLiked: false, // TODO: Get from user favorites
+    };
+  });
+
+  // Current sort from active filters or default
+  const currentSort = (activeFilters.sort as SortOption) || "createdAt_desc";
+
+  // Results count and pagination calculations
+  const totalResults = pagination.total;
+  const currentPage = pagination.page;
+  const totalPages = Math.ceil(totalResults / pagination.limit);
+
+  // Handle sort change
+  const handleSortChange = (sort: SortOption) => {
+    setSortFilter(sort);
+  };
+
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    // Update pagination in the listings store
+    // The store will automatically refetch data with new page
+    // TODO: Add setPagination method to listingsStore
+    console.log('Page change requested:', page);
+  };
+
+  // Handle filter removal
+  const handleRemoveFilter = (filterKey: string) => {
+    if (filterKey.includes('.')) {
+      // It's a spec filter
+      removeSpecFilter(filterKey);
+    } else {
+      removeFilter(filterKey as any);
+    }
+  };
 
   return (
     <div className={`${styles.listingArea} ${className}`}>
@@ -89,12 +130,10 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
         </div>
 
         <div className={styles.headerRight}>
-          {onSortChange && (
-            <SortControls
-              currentSort={currentSort}
-              onSortChange={onSortChange}
-            />
-          )}
+          <SortControls
+            currentSort={currentSort}
+            onSortChange={handleSortChange}
+          />
 
           <div className={styles.viewToggle}>
             <button
@@ -120,13 +159,11 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       </div>
 
       {/* Applied Filters */}
-      {onRemoveFilter && onClearAllFilters && (
-        <AppliedFilters
-          onRemoveFilter={onRemoveFilter}
-          onClearAllFilters={onClearAllFilters}
-          attributes={attributes}
-        />
-      )}
+      <AppliedFilters
+        onRemoveFilter={handleRemoveFilter}
+        onClearAllFilters={clearAllFilters}
+        attributes={attributes}
+      />
 
       {/* Loading state */}
       {loading && (
@@ -136,7 +173,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       )}
 
       {/* Empty state */}
-      {!loading && listings.length === 0 && (
+      {!loading && listingData.length === 0 && (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>🚗</div>
           <Text variant="h3" className={styles.emptyTitle}>
@@ -152,27 +189,28 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       )}
 
       {/* Listings Grid/List */}
-      {!loading && listings.length > 0 && (
+      {!loading && listingData.length > 0 && (
         <div className={`${styles.listingsContainer} ${styles[viewMode]}`}>
-          {listings.map((listing) => (
+          {listingData.map((listing, index) => (
             <ListingCard
               key={listing.id}
               {...listing}
               viewMode={viewMode}
               onClick={onCardClick}
               onLike={onCardLike}
+              priority={index < 4}
             />
           ))}
         </div>
       )}
 
       {/* Pagination */}
-      {!loading && listings.length > 0 && totalPages > 1 && (
+      {!loading && listingData.length > 0 && totalPages > 1 && (
         <div className={styles.pagination}>
           <Button
             variant="outline"
             disabled={currentPage === 1}
-            onClick={() => onPageChange?.(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
           >
             {t("pagination.previous")}
           </Button>
@@ -204,7 +242,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
                     className={`${styles.pageButton} ${
                       currentPage === 1 ? styles.active : ""
                     }`}
-                    onClick={() => onPageChange?.(1)}
+                    onClick={() => handlePageChange(1)}
                   >
                     1
                   </button>
@@ -226,7 +264,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
                     className={`${styles.pageButton} ${
                       currentPage === i ? styles.active : ""
                     }`}
-                    onClick={() => onPageChange?.(i)}
+                    onClick={() => handlePageChange(i)}
                   >
                     {i}
                   </button>
@@ -248,7 +286,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
                     className={`${styles.pageButton} ${
                       currentPage === totalPages ? styles.active : ""
                     }`}
-                    onClick={() => onPageChange?.(totalPages)}
+                    onClick={() => handlePageChange(totalPages)}
                   >
                     {totalPages}
                   </button>
@@ -262,7 +300,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
           <Button
             variant="outline"
             disabled={currentPage === totalPages}
-            onClick={() => onPageChange?.(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
           >
             {t("pagination.next")}
           </Button>

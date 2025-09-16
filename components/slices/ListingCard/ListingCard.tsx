@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import React, { useState } from "react";
-import { Heart, MapPin, User, Fuel, Calendar, Gauge } from "lucide-react";
-import { Image, Text, Button } from "../";
+import { Heart, MapPin, User } from "lucide-react";
+import { ImageGallery, Text } from "../";
 import styles from "./ListingCard.module.scss";
 
 export interface ListingCardProps {
@@ -10,17 +10,16 @@ export interface ListingCardProps {
   title: string;
   price: string;
   currency: string;
-  firstRegistration: string;
-  mileage: string;
-  fuelType: string;
   location: string;
   sellerType: "private" | "dealer" | "business";
+  specs?: Record<string, any>; // Dynamic specs from backend
   images?: string[];
   isLiked?: boolean;
   onLike?: (id: string, liked: boolean) => void;
   onClick?: (id: string) => void;
   viewMode?: "grid" | "list";
   className?: string;
+  priority?: boolean; // For LCP optimization
 }
 
 export const ListingCard: React.FC<ListingCardProps> = ({
@@ -28,17 +27,16 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   title,
   price,
   currency,
-  firstRegistration,
-  mileage,
-  fuelType,
   location,
   sellerType,
+  specs = {},
   images,
   isLiked = false,
   onLike,
   onClick,
   viewMode = "grid",
   className = "",
+  priority = false,
 }) => {
   const [liked, setLiked] = useState(isLiked);
 
@@ -68,14 +66,20 @@ export const ListingCard: React.FC<ListingCardProps> = ({
       `.trim()}
       onClick={handleCardClick}
     >
-      {/* Image Section */}
+      {/* Image Gallery Section */}
       <div className={styles.imageContainer}>
-        <Image
-          src={images?.[0] || "/placeholder-car.svg"}
+        <ImageGallery
+          images={images || []}
           alt={title}
-          aspectRatio={"4 / 3"}
+          aspectRatio="4 / 3"
           className={styles.image}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          viewMode={viewMode}
+          priority={priority}
+          sizes={
+            viewMode === "list"
+              ? "(max-width: 768px) 200px, 200px"
+              : "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          }
         />
 
         {/* Like Button */}
@@ -86,11 +90,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         >
           <Heart size={20} fill={liked ? "currentColor" : "none"} />
         </button>
-
-        {/* Image Count Indicator */}
-        {images && images.length > 1 && (
-          <div className={styles.imageCount}>1 / {images.length}</div>
-        )}
       </div>
 
       {/* Content Section */}
@@ -102,69 +101,49 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
         {/* Price */}
         <div className={styles.price}>
-          <Text variant="h3" className={styles.priceValue}>
+          <Text variant="h4" className={styles.priceValue}>
             {price}
           </Text>
-          <Text variant="small" className={styles.currency}>
+          <Text variant="xs" className={styles.currency}>
             {currency}
           </Text>
         </div>
 
-        {/* Specs Grid */}
-        <div className={styles.specs}>
-          {firstRegistration && (
-            <div className={styles.spec}>
-              <Calendar size={16} className={styles.specIcon} />
-              <Text variant="small" className={styles.specText}>
-                {firstRegistration}
-              </Text>
-            </div>
-          )}
-
-          {mileage && (
-            <div className={styles.spec}>
-              <Gauge size={16} className={styles.specIcon} />
-              <Text variant="small" className={styles.specText}>
-                {mileage}
-              </Text>
-            </div>
-          )}
-
-          {fuelType && (
-            <div className={styles.spec}>
-              <Fuel size={16} className={styles.specIcon} />
-              <Text variant="small" className={styles.specText}>
-                {fuelType}
-              </Text>
-            </div>
-          )}
-
-          {location && (
-            <div className={styles.spec}>
-              <MapPin size={16} className={styles.specIcon} />
-              <Text variant="small" className={styles.specText}>
-                {location}
-              </Text>
-            </div>
-          )}
-
+        {/* Location - Always show */}
+        {location && (
           <div className={styles.spec}>
-            <User size={16} className={styles.specIcon} />
-            <Text variant="small" className={styles.specText}>
-              {sellerTypeLabels[sellerType]}
+            <MapPin size={16} className={styles.specIcon} />
+            <Text variant="xs" className={styles.specText}>
+              {location}
             </Text>
           </div>
+        )}
+
+        {/* Seller Type - Always show */}
+        <div className={styles.spec}>
+          <User size={16} className={styles.specIcon} />
+          <Text variant="xs" className={styles.specText}>
+            {sellerTypeLabels[sellerType]}
+          </Text>
         </div>
 
-        {/* Actions (only in list view) */}
-        {viewMode === "list" && (
-          <div className={styles.actions}>
-            <Button variant="outline" size="sm">
-              View Details
-            </Button>
-            <Button variant="primary" size="sm">
-              Contact Seller
-            </Button>
+        {/* Dynamic Specs - Only show in list view */}
+        {viewMode === "list" && specs && (
+          <div className={styles.specs}>
+            {Object.entries(specs).map(([key, value]) => {
+              if (!value || value === "") return null;
+
+              return (
+                <div key={key} className={styles.spec}>
+                  <Text variant="xs" className={styles.specLabel}>
+                    {key}:
+                  </Text>
+                  <Text variant="xs" className={styles.specText}>
+                    {value}
+                  </Text>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

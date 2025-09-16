@@ -7,6 +7,8 @@ export { default as Text } from "./Text/Text";
 export type { TextProps, TextVariant } from "./Text/Text";
 export { default as Image } from "./Image/Image";
 export type { ImageProps } from "./Image/Image";
+export { default as ImageGallery } from "./ImageGallery/ImageGallery";
+export type { ImageGalleryProps } from "./ImageGallery/ImageGallery";
 export { default as Spacer } from "./Spacer/Spacer";
 export type { SpacerProps } from "./Spacer/Spacer";
 export { default as Aside } from "./Aside/Aside";

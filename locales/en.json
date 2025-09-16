@@ -60,7 +60,12 @@
     "sortByNewest": "Newest First",
     "sortByOldest": "Oldest First",
     "sortByPriceLow": "Price: Low to High",
-    "sortByPriceHigh": "Price: High to Low"
+    "sortByPriceHigh": "Price: High to Low",
+    "sellerType": "Seller Type",
+    "allSellers": "All Sellers",
+    "privateSeller": "Private Seller",
+    "dealer": "Dealer",
+    "business": "Business"
   },
   "listing": {
     "featured": "Featured",
@@ -142,6 +147,7 @@
     "retry": "Retry",
     "back": "Back",
     "next": "Next",
+    "apply": "Apply",
     "previous": "Previous",
     "close": "Close",
     "open": "Open",

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { ListingsState, Listing } from "./types";
+import { optimizeListingImage } from "../utils/cloudflare-images";
 
 // GraphQL queries
 const LISTINGS_SEARCH_QUERY = `
@@ -291,7 +292,9 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             status: item.status as any,
             allowBidding: false, // Default - backend should provide this
             specs, // Now contains real specs data from backend!
-            imageKeys: item.imageKeys || [],
+            imageKeys: (item.imageKeys || []).map((key: string) =>
+              optimizeListingImage(key, 'grid') // Optimize images with Cloudflare
+            ),
             sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
             createdAt: item.createdAt,
             updatedAt: item.createdAt,

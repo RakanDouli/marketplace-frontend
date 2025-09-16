@@ -71,7 +71,7 @@
 
     &:focus {
       background-color: $surface;
-      border-color: $primary;
+      // border-color: $primary;
     }
 
     &:hover:not(:disabled) {

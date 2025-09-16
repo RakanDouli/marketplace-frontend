@@ -35,7 +35,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const [rippleCoords, setRippleCoords] = useState({ x: -1, y: -1 });
     const isDisabled = loading || disabled;
-
     const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       setRippleCoords({

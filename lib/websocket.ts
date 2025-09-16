@@ -195,7 +195,7 @@ export function getWebSocketManager(): WebSocketManager {
 // React hook for WebSocket
 export function useWebSocket() {
   const ws = getWebSocketManager();
-  
+
   return {
     sendMessage: ws.sendMessage.bind(ws),
     sendChatMessage: ws.sendChatMessage.bind(ws),
@@ -204,4 +204,28 @@ export function useWebSocket() {
     isConnected: ws.isConnected.bind(ws),
     disconnect: ws.disconnect.bind(ws)
   };
+}
+
+// Fix for Back/Forward Cache - properly cleanup WebSocket connections
+if (typeof window !== 'undefined') {
+  // Cleanup on page hide (when user navigates away)
+  window.addEventListener('pagehide', () => {
+    if (wsManager) {
+      wsManager.disconnect();
+    }
+  });
+
+  // Cleanup on beforeunload (when page is about to be unloaded)
+  window.addEventListener('beforeunload', () => {
+    if (wsManager) {
+      wsManager.disconnect();
+    }
+  });
+
+  // Also cleanup on visibility change (when tab becomes hidden)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && wsManager) {
+      wsManager.disconnect();
+    }
+  });
 }

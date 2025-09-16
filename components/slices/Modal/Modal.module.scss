@@ -1,4 +1,4 @@
-@import '../../../styles/variables';
+@import "../../../styles/variables";
 
 .modalBg {
   display: flex;
@@ -20,8 +20,7 @@
 
 .modal {
   background-color: $surface;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 
-              0 0 0 1px $border;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px $border;
   border-radius: $radius-xl;
   padding: $space-xl $space-lg $space-lg;
   width: 100%;
@@ -30,40 +29,40 @@
   max-height: calc(100vh - #{$space-md * 2});
   overflow-y: auto;
   animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
   // Custom scrollbar
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: $bg;
     border-radius: $radius-full;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: $border;
     border-radius: $radius-full;
-    
+
     &:hover {
       background: $text-muted;
     }
   }
-  
+
   // Size variants
   &.sm {
     max-width: 400px;
     padding: $space-lg $space-md;
   }
-  
+
   &.md {
     max-width: 600px;
   }
-  
+
   &.lg {
     max-width: 800px;
   }
-  
+
   &.xl {
     max-width: 1200px;
   }
@@ -73,12 +72,12 @@
     padding: $space-lg $space-md;
     border-radius: $radius-lg;
     max-height: calc(100vh - #{$space-sm * 2});
-    
+
     &.sm {
       padding: $space-md;
     }
   }
-  
+
   @media (max-width: $breakpoint-md) {
     max-width: calc(100vw - #{$space-lg * 2});
   }
@@ -99,18 +98,18 @@
   border: 1px solid $border;
   color: $text-muted;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background-color: $surface;
     color: $text;
     transform: scale(1.05);
   }
-  
+
   &:focus {
     outline: 2px solid $primary;
     outline-offset: 2px;
   }
-  
+
   @media (max-width: $breakpoint-sm) {
     top: $space-sm;
     right: $space-sm;
@@ -179,10 +178,10 @@
   .modal {
     animation: none;
   }
-  
+
   .modalClose {
     transition: none;
-    
+
     &:hover {
       transform: none;
     }

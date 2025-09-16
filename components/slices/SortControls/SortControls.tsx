@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslation } from "../../hooks/useTranslation";
+import { useTranslation } from "../../../hooks/useTranslation";
 import styles from "./SortControls.module.scss";
 
 export type SortOption =

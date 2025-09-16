@@ -14,7 +14,17 @@ import { Aside, Text, Button } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { Input } from "../slices/Input/Input";
 import { useTranslation } from "../../hooks/useTranslation";
-import { useFiltersStore, useSearchStore } from "../../stores";
+import {
+  useFiltersStore,
+  useSearchStore,
+  useListingsStore,
+} from "../../stores";
+import {
+  CURRENCY_LABELS,
+  convertToUSD,
+  parsePrice,
+  type Currency,
+} from "../../utils/currency";
 import styles from "./Filter.module.scss";
 
 // Car body type icons mapping with custom SVG icons
@@ -40,6 +50,7 @@ export interface FilterValues {
   priceCurrency?: string;
   city?: string;
   province?: string;
+  sellerType?: string;
 
   // Brand/Model
   brandId?: string;
@@ -48,15 +59,16 @@ export interface FilterValues {
   // Dynamic attributes (stored in specs) - matches backend structure
   specs?: Record<
     string,
-    {
-      selected?: string | string[];
-      value?: number;
-      from?: number;
-      to?: number;
-      text?: string;
-      amount?: number;
-      currency?: string;
-    } | number[] // Support array format for range filters
+    | {
+        selected?: string | string[];
+        value?: number;
+        from?: number;
+        to?: number;
+        text?: string;
+        amount?: number;
+        currency?: string;
+      }
+    | number[] // Support array format for range filters
   >;
 
   // Legacy support
@@ -89,23 +101,71 @@ export const Filter: React.FC<FilterProps> = ({
     setSpecFilter,
     clearAllFilters,
     getStoreFilters,
-    hasActiveFilters,
   } = useSearchStore();
+
+  // Local state for price inputs (before applying)
+  const [localPriceMin, setLocalPriceMin] = useState<string>("");
+  const [localPriceMax, setLocalPriceMax] = useState<string>("");
+  const [localCurrency, setLocalCurrency] = useState<string>("USD");
+
+  // Local state for range inputs (before applying)
+  const [localRangeInputs, setLocalRangeInputs] = useState<
+    Record<string, { min: string; max: string }>
+  >({});
+
+  // Note: isLoading already available from useFiltersStore above - reusing DRY
+
+  // Check if price values have changed from applied values
+  const hasPriceChanges = () => {
+    const currentMin = activeFilters.priceMinMinor
+      ? (activeFilters.priceMinMinor / 100).toString()
+      : "";
+    const currentMax = activeFilters.priceMaxMinor
+      ? (activeFilters.priceMaxMinor / 100).toString()
+      : "";
+    const currentCurrency = activeFilters.priceCurrency || "USD";
+
+    return (
+      localPriceMin !== currentMin ||
+      localPriceMax !== currentMax ||
+      localCurrency !== currentCurrency
+    );
+  };
+
+  // Check if range values have changed for a specific attribute
+  const hasRangeChanges = (attributeKey: string) => {
+    const local = localRangeInputs[attributeKey] || { min: "", max: "" };
+    const applied = activeFilters.specs?.[attributeKey];
+    const appliedMin = Array.isArray(applied)
+      ? applied[0]?.toString() || ""
+      : "";
+    const appliedMax = Array.isArray(applied)
+      ? applied[1]?.toString() || ""
+      : "";
+
+    return local.min !== appliedMin || local.max !== appliedMax;
+  };
 
   // Initialize filters from props if provided (only once)
   const hasInitialized = React.useRef(false);
   React.useEffect(() => {
-    if (!hasInitialized.current && initialValues && Object.keys(initialValues).length > 0) {
+    if (
+      !hasInitialized.current &&
+      initialValues &&
+      Object.keys(initialValues).length > 0
+    ) {
       console.log("🔧 Filter: Initializing from props", initialValues);
       hasInitialized.current = true;
 
       // Set initial values in store
       Object.entries(initialValues).forEach(([key, value]) => {
-        if (key === 'specs' && value) {
+        if (key === "specs" && value) {
           // Set each spec filter individually
-          Object.entries(value as Record<string, any>).forEach(([specKey, specValue]) => {
-            setSpecFilter(specKey, specValue);
-          });
+          Object.entries(value as Record<string, any>).forEach(
+            ([specKey, specValue]) => {
+              setSpecFilter(specKey, specValue);
+            }
+          );
         } else {
           setFilter(key as any, value);
         }
@@ -113,15 +173,56 @@ export const Filter: React.FC<FilterProps> = ({
     }
   }, [initialValues]); // Remove setFilter and setSpecFilter from dependencies
 
+  // Initialize local price inputs with applied values
+  React.useEffect(() => {
+    const currentMin = activeFilters.priceMinMinor
+      ? (activeFilters.priceMinMinor / 100).toString()
+      : "";
+    const currentMax = activeFilters.priceMaxMinor
+      ? (activeFilters.priceMaxMinor / 100).toString()
+      : "";
+    const currentCurrency = activeFilters.priceCurrency || "USD";
+
+    setLocalPriceMin(currentMin);
+    setLocalPriceMax(currentMax);
+    setLocalCurrency(currentCurrency);
+  }, [
+    activeFilters.priceMinMinor,
+    activeFilters.priceMaxMinor,
+    activeFilters.priceCurrency,
+  ]);
+
+  // Initialize local range inputs with applied values
+  React.useEffect(() => {
+    if (activeFilters.specs) {
+      const newLocalRangeInputs: Record<string, { min: string; max: string }> =
+        {};
+
+      Object.entries(activeFilters.specs).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          newLocalRangeInputs[key] = {
+            min: value[0]?.toString() || "",
+            max: value[1]?.toString() || "",
+          };
+        }
+      });
+
+      setLocalRangeInputs((prev) => ({ ...prev, ...newLocalRangeInputs }));
+    }
+  }, [activeFilters.specs]);
+
   // Store hooks
   const {
     attributes, // All specs (including brands/models) are in attributes now
     provinces,
     cities,
-    isLoading,
+    isLoading: filtersLoading,
     fetchFilterData,
     fetchCities,
   } = useFiltersStore();
+
+  // Get listings loading state for apply buttons
+  const { isLoading: listingsLoading } = useListingsStore();
 
   // Load filter data when category changes
   useEffect(() => {
@@ -164,7 +265,7 @@ export const Filter: React.FC<FilterProps> = ({
       value,
       valueType: typeof value,
       isArray: Array.isArray(value),
-      currentSpecs: activeFilters.specs
+      currentSpecs: activeFilters.specs,
     });
 
     // Set the spec filter in store - store values directly, not wrapped in objects
@@ -172,7 +273,10 @@ export const Filter: React.FC<FilterProps> = ({
 
     // Apply filters immediately when user changes them
     const storeFilters = getStoreFilters();
-    console.log("🚀 Filter: Applying store filters after spec change", storeFilters);
+    console.log(
+      "🚀 Filter: Applying store filters after spec change",
+      storeFilters
+    );
     onApplyFilters?.(storeFilters);
   };
 
@@ -219,13 +323,13 @@ export const Filter: React.FC<FilterProps> = ({
 
       {/* Filter Content */}
       <div className={styles.filterContent}>
-        {isLoading && (
+        {filtersLoading && (
           <div className={styles.loading}>
             <Loading type="svg" />
-            <Text>{t("common.loading")}</Text>
+            <Text variant="small" >{t("common.loading")}</Text>
           </div>
         )}
-        {!isLoading && (
+        {!filtersLoading && (
           <>
             {/* Brand and Model are now handled through dynamic attributes below */}
 
@@ -258,7 +362,8 @@ export const Filter: React.FC<FilterProps> = ({
                                   type="button"
                                   className={`${styles.iconOption} ${
                                     (() => {
-                                      const currentSpec = activeFilters.specs?.[attribute.key];
+                                      const currentSpec =
+                                        activeFilters.specs?.[attribute.key];
                                       if (!currentSpec) return false;
                                       if (Array.isArray(currentSpec)) {
                                         return currentSpec.includes(option.key);
@@ -269,21 +374,29 @@ export const Filter: React.FC<FilterProps> = ({
                                       : ""
                                   }`}
                                   onClick={() => {
-                                    const currentSpec = activeFilters.specs?.[attribute.key];
-                                    let currentSelected = Array.isArray(currentSpec)
+                                    const currentSpec =
+                                      activeFilters.specs?.[attribute.key];
+                                    let currentSelected = Array.isArray(
+                                      currentSpec
+                                    )
                                       ? currentSpec
-                                      : typeof currentSpec === 'string'
-                                        ? [currentSpec]
-                                        : [];
+                                      : typeof currentSpec === "string"
+                                      ? [currentSpec]
+                                      : [];
 
                                     // Toggle selection
-                                    let newSelected: string[] = currentSelected.includes(option.key)
-                                      ? currentSelected.filter(key => key !== option.key)
-                                      : [...currentSelected, option.key];
+                                    let newSelected: string[] =
+                                      currentSelected.includes(option.key)
+                                        ? currentSelected.filter(
+                                            (key) => key !== option.key
+                                          )
+                                        : [...currentSelected, option.key];
 
                                     handleSpecChange(
                                       attribute.key,
-                                      newSelected.length > 0 ? newSelected : undefined
+                                      newSelected.length > 0
+                                        ? newSelected
+                                        : undefined
                                     );
                                   }}
                                 >
@@ -303,13 +416,16 @@ export const Filter: React.FC<FilterProps> = ({
                             // Multi-select checkboxes for other MULTI_SELECTOR attributes
                             <div className={styles.checkboxGroup}>
                               {attribute.processedOptions.map((option) => {
-                                const currentSpec = activeFilters.specs?.[attribute.key];
+                                const currentSpec =
+                                  activeFilters.specs?.[attribute.key];
                                 let currentSelected;
 
                                 // Handle both array and string formats from store
                                 currentSelected = currentSpec;
 
-                                const isSelected = Array.isArray(currentSelected)
+                                const isSelected = Array.isArray(
+                                  currentSelected
+                                )
                                   ? currentSelected.includes(option.key)
                                   : currentSelected === option.key;
 
@@ -327,18 +443,30 @@ export const Filter: React.FC<FilterProps> = ({
                                         if (Array.isArray(currentSelected)) {
                                           newSelected = e.target.checked
                                             ? [...currentSelected, option.key]
-                                            : currentSelected.filter(key => key !== option.key);
-                                        } else if (currentSelected === option.key) {
-                                          newSelected = e.target.checked ? [option.key] : [];
+                                            : currentSelected.filter(
+                                                (key) => key !== option.key
+                                              );
+                                        } else if (
+                                          currentSelected === option.key
+                                        ) {
+                                          newSelected = e.target.checked
+                                            ? [option.key]
+                                            : [];
                                         } else {
                                           newSelected = e.target.checked
-                                            ? currentSelected ? [currentSelected, option.key] : [option.key]
-                                            : currentSelected ? [currentSelected] : [];
+                                            ? currentSelected
+                                              ? [currentSelected, option.key]
+                                              : [option.key]
+                                            : currentSelected
+                                            ? [currentSelected]
+                                            : [];
                                         }
 
                                         handleSpecChange(
                                           attribute.key,
-                                          newSelected.length > 0 ? newSelected : undefined
+                                          newSelected.length > 0
+                                            ? newSelected
+                                            : undefined
                                         );
                                       }}
                                     />
@@ -359,10 +487,13 @@ export const Filter: React.FC<FilterProps> = ({
                             <Input
                               type="select"
                               value={(() => {
-                                const currentSpec = activeFilters.specs?.[attribute.key];
+                                const currentSpec =
+                                  activeFilters.specs?.[attribute.key];
                                 if (!currentSpec) return "";
                                 // Handle string values directly from store
-                                return typeof currentSpec === "string" ? currentSpec : "";
+                                return typeof currentSpec === "string"
+                                  ? currentSpec
+                                  : "";
                               })()}
                               onChange={(e) =>
                                 handleSpecChange(
@@ -393,48 +524,32 @@ export const Filter: React.FC<FilterProps> = ({
                           <Input
                             type="number"
                             placeholder={`${t("search.min")} ${attribute.name}`}
-                            value={
-                              Array.isArray(activeFilters.specs?.[attribute.key])
-                                ? (activeFilters.specs[attribute.key] as number[])[0]?.toString() || ""
-                                : ""
-                            }
+                            value={localRangeInputs[attribute.key]?.min || ""}
                             onChange={(e) => {
-                              const currentSpecs = activeFilters.specs?.[attribute.key];
-                              const currentArray = Array.isArray(currentSpecs) ? currentSpecs as number[] : [];
-                              const minValue = e.target.value ? Number(e.target.value) : null;
-                              const maxValue = currentArray[1] || null;
-
-                              const newValue = [minValue, maxValue].filter(v => v !== null) as number[];
-
-                              if (newValue.length > 0) {
-                                setSpecFilter(attribute.key, newValue);
-                              } else {
-                                setSpecFilter(attribute.key, undefined);
-                              }
+                              setLocalRangeInputs((prev) => ({
+                                ...prev,
+                                [attribute.key]: {
+                                  ...prev[attribute.key],
+                                  min: e.target.value,
+                                  max: prev[attribute.key]?.max || "",
+                                },
+                              }));
                             }}
                             size="sm"
                           />
                           <Input
                             type="number"
                             placeholder={`${t("search.max")} ${attribute.name}`}
-                            value={
-                              Array.isArray(activeFilters.specs?.[attribute.key])
-                                ? (activeFilters.specs[attribute.key] as number[])[1]?.toString() || ""
-                                : ""
-                            }
+                            value={localRangeInputs[attribute.key]?.max || ""}
                             onChange={(e) => {
-                              const currentSpecs = activeFilters.specs?.[attribute.key];
-                              const currentArray = Array.isArray(currentSpecs) ? currentSpecs as number[] : [];
-                              const minValue = currentArray[0] || null;
-                              const maxValue = e.target.value ? Number(e.target.value) : null;
-
-                              const newValue = [minValue, maxValue].filter(v => v !== null) as number[];
-
-                              if (newValue.length > 0) {
-                                setSpecFilter(attribute.key, newValue);
-                              } else {
-                                setSpecFilter(attribute.key, undefined);
-                              }
+                              setLocalRangeInputs((prev) => ({
+                                ...prev,
+                                [attribute.key]: {
+                                  ...prev[attribute.key],
+                                  min: prev[attribute.key]?.min || "",
+                                  max: e.target.value,
+                                },
+                              }));
                             }}
                             size="sm"
                           />
@@ -442,8 +557,31 @@ export const Filter: React.FC<FilterProps> = ({
                         <Button
                           variant="primary"
                           size="sm"
+                          loading={listingsLoading}
+                          disabled={!hasRangeChanges(attribute.key)}
                           onClick={() => {
-                            // Apply the range filter
+                            // Apply the local range values to the store
+                            const local = localRangeInputs[attribute.key] || {
+                              min: "",
+                              max: "",
+                            };
+                            const minValue = local.min
+                              ? Number(local.min)
+                              : null;
+                            const maxValue = local.max
+                              ? Number(local.max)
+                              : null;
+                            const newValue = [minValue, maxValue].filter(
+                              (v) => v !== null
+                            ) as number[];
+
+                            if (newValue.length > 0) {
+                              setSpecFilter(attribute.key, newValue);
+                            } else {
+                              setSpecFilter(attribute.key, undefined);
+                            }
+
+                            // Get updated filters and apply them
                             const storeFilters = getStoreFilters();
                             onApplyFilters?.(storeFilters);
                           }}
@@ -476,55 +614,98 @@ export const Filter: React.FC<FilterProps> = ({
               <Text variant="small" className={styles.sectionTitle}>
                 {t("search.priceRange")}
               </Text>
-              <div className={styles.currencyInputs}>
-                <div className={styles.priceInputs}>
+              <div className={styles.rangeInputs}>
+                <div className={styles.rangeInputFields}>
                   <Input
                     type="number"
                     placeholder={t("search.minPrice")}
-                    value={
-                      activeFilters.priceMinMinor ? activeFilters.priceMinMinor / 100 : ""
-                    }
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "priceMinMinor",
-                        e.target.value
-                          ? Number(e.target.value) * 100
-                          : undefined
-                      )
-                    }
+                    value={localPriceMin}
+                    onChange={(e) => setLocalPriceMin(e.target.value)}
                     size="sm"
                   />
                   <Input
                     type="number"
                     placeholder={t("search.maxPrice")}
-                    value={
-                      activeFilters.priceMaxMinor ? activeFilters.priceMaxMinor / 100 : ""
-                    }
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "priceMaxMinor",
-                        e.target.value
-                          ? Number(e.target.value) * 100
-                          : undefined
-                      )
-                    }
+                    value={localPriceMax}
+                    onChange={(e) => setLocalPriceMax(e.target.value)}
                     size="sm"
                   />
                 </div>
                 <Input
                   type="select"
-                  value={activeFilters.priceCurrency || "USD"}
-                  onChange={(e) =>
-                    handleFilterChange("priceCurrency", e.target.value)
-                  }
+                  value={localCurrency}
+                  onChange={(e) => setLocalCurrency(e.target.value)}
                   size="sm"
                   options={[
-                    { value: "USD", label: "USD" },
-                    { value: "SYP", label: "SYP" },
-                    { value: "EUR", label: "EUR" },
+                    { value: "USD", label: CURRENCY_LABELS.USD },
+                    { value: "SYP", label: CURRENCY_LABELS.SYP },
+                    { value: "EUR", label: CURRENCY_LABELS.EUR },
                   ]}
                 />
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={listingsLoading}
+                  disabled={!hasPriceChanges()}
+                  onClick={async () => {
+                    try {
+                      let minUSD: number | undefined;
+                      let maxUSD: number | undefined;
+
+                      // Convert prices to USD if provided
+                      if (localPriceMin && localPriceMin.trim() !== "") {
+                        const minMinor = parsePrice(localPriceMin);
+                        minUSD = await convertToUSD(
+                          minMinor,
+                          localCurrency as Currency
+                        );
+                      }
+                      if (localPriceMax && localPriceMax.trim() !== "") {
+                        const maxMinor = parsePrice(localPriceMax);
+                        maxUSD = await convertToUSD(
+                          maxMinor,
+                          localCurrency as Currency
+                        );
+                      }
+
+                      // Update filters
+                      setFilter("priceMinMinor", minUSD);
+                      setFilter("priceMaxMinor", maxUSD);
+                      setFilter("priceCurrency", localCurrency);
+
+                      // Apply filters
+                      const storeFilters = getStoreFilters();
+                      onApplyFilters?.(storeFilters);
+                    } catch (error) {
+                      console.error("Error applying price filter:", error);
+                    }
+                  }}
+                  className={styles.applyButton}
+                >
+                  {t("common.apply")}
+                </Button>
               </div>
+            </div>
+
+            {/* Seller Type */}
+            <div className={styles.filterSection}>
+              <Text variant="small" className={styles.sectionTitle}>
+                {t("search.sellerType")}
+              </Text>
+              <Input
+                type="select"
+                value={activeFilters.sellerType || ""}
+                onChange={(e) =>
+                  handleFilterChange("sellerType", e.target.value || undefined)
+                }
+                options={[
+                  { value: "", label: t("search.allSellers") },
+                  { value: "PRIVATE", label: t("search.privateSeller") },
+                  { value: "DEALER", label: t("search.dealer") },
+                  { value: "BUSINESS", label: t("search.business") },
+                ]}
+                size="sm"
+              />
             </div>
 
             {/* Location */}

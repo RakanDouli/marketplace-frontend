@@ -79,6 +79,12 @@
   gap: $space-sm;
   margin-bottom: $space-lg;
 
+  // Add padding on mobile to account for fixed header
+  @media (max-width: 767px) {
+    padding: $space-md;
+    padding-top: 0; // Header already has padding
+  }
+
   .loading {
     padding: $space-lg;
     text-align: center;

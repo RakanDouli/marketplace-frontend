@@ -15,10 +15,9 @@ import {
 } from "../../../stores";
 import type { SearchFilters } from "../../../stores/searchStore";
 import { useTranslation } from "../../../hooks/useTranslation";
-import type { ListingData } from "../../../components/ListingArea/ListingArea";
 import type { Category } from "../../../stores/types";
 import type { FilterValues } from "../../../components/Filter/Filter";
-import type { SortOption } from "../../../components/SortControls/SortControls";
+import type { SortOption } from "../../../components/slices/SortControls/SortControls";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
@@ -130,7 +129,10 @@ export default function CategoryPageClient({
   // Initialize search store from URL params
   useEffect(() => {
     if (Object.keys(searchParams).length > 0) {
-      console.log("🔗 CategoryPageClient: Initializing from URL params", searchParams);
+      console.log(
+        "🔗 CategoryPageClient: Initializing from URL params",
+        searchParams
+      );
       const urlParams = new URLSearchParams();
 
       // Add URL search params
@@ -162,12 +164,17 @@ export default function CategoryPageClient({
 
   // Filter conversion functions are now handled by searchStore
 
-
   // Handle filter application with cascading updates using searchStore
   const handleApplyFilters = async (filterValues: FilterValues) => {
     console.log("🎯 ===== CATEGORY PAGE: handleApplyFilters START =====");
-    console.log("📋 CategoryPageClient: Raw filter values received:", JSON.stringify(filterValues, null, 2));
-    console.log("📦 CategoryPageClient: Current searchStore state:", activeFilters);
+    console.log(
+      "📋 CategoryPageClient: Raw filter values received:",
+      JSON.stringify(filterValues, null, 2)
+    );
+    console.log(
+      "📦 CategoryPageClient: Current searchStore state:",
+      activeFilters
+    );
 
     if (!currentCategory) return;
 
@@ -209,7 +216,9 @@ export default function CategoryPageClient({
       window.history.pushState({}, "", url.toString());
 
       console.log("🎯 ===== CATEGORY PAGE: handleApplyFilters SUCCESS =====");
-      console.log("✅ CategoryPageClient: All stores coordinated successfully!");
+      console.log(
+        "✅ CategoryPageClient: All stores coordinated successfully!"
+      );
     } catch (error) {
       console.error("❌ Error applying cascading filters:", error);
 
@@ -249,74 +258,7 @@ export default function CategoryPageClient({
     setPagination,
   ]);
 
-  // Convert store listings to component format
-  const listingData: ListingData[] = (listings || []).map((listing) => {
-    const specs = listing.specs || {};
-
-    // Handle price formatting consistently
-    const displayPrice = listing.prices?.[0]?.value
-      ? listing.prices[0].value.toString()
-      : (listing.priceMinor / 100).toLocaleString();
-
-    // Handle year/registration from multiple possible fields
-    const getRegistrationYear = () => {
-      if (specs.year) return specs.year.toString();
-      if (specs.first_registration) return specs.first_registration.toString();
-      if (specs.registration_year) return specs.registration_year.toString();
-      if (listing.createdAt)
-        return new Date(listing.createdAt).getFullYear().toString();
-      return "";
-    };
-
-    // Handle mileage from multiple possible fields
-    const getMileage = () => {
-      const mileageValue =
-        specs.mileage || specs.mileage_km || specs.kilometers;
-      if (!mileageValue) return "";
-      const numericValue =
-        typeof mileageValue === "string"
-          ? parseInt(mileageValue, 10)
-          : mileageValue;
-      return isNaN(numericValue) ? "" : `${numericValue.toLocaleString()} km`;
-    };
-
-    // Handle fuel type from multiple possible fields
-    const getFuelType = () => {
-      return specs.fuel_type || specs.fuelType || specs.fuel || "";
-    };
-
-    // Handle seller type conversion safely
-    const getSellerType = (): "private" | "dealer" | "business" => {
-      if (!listing.sellerType) return "private";
-      const normalized = listing.sellerType.toLowerCase();
-      if (normalized === "dealer" || normalized === "business")
-        return normalized;
-      return "private";
-    };
-
-    // Handle location formatting with proper fallbacks
-    const getLocation = () => {
-      const city = listing.city?.trim() || "";
-      const country = listing.country?.trim() || "";
-      if (city && country) return `${city}, ${country}`;
-      if (city) return city;
-      if (country) return country;
-      return "";
-    };
-
-    return {
-      id: listing.id,
-      title: listing.title || "",
-      price: displayPrice,
-      currency: listing.prices?.[0]?.currency || "USD",
-      firstRegistration: getRegistrationYear(),
-      mileage: getMileage(),
-      fuelType: getFuelType(),
-      location: getLocation(),
-      sellerType: getSellerType(),
-      images: listing.imageKeys || [],
-    };
-  });
+  // Data transformation now handled directly in ListingArea component
 
   const handleCardClick = (listingId: string) => {
     // TODO: Navigate to listing detail page
@@ -472,22 +414,9 @@ export default function CategoryPageClient({
         {/* Listings Area */}
         <div className={styles.listingsSection}>
           <ListingArea
-            listings={listingData}
-            loading={listingsLoading}
-            countLoading={listingsLoading && !isSorting}
             onCardClick={handleCardClick}
             onCardLike={handleCardLike}
             onToggleFilters={handleToggleFilters}
-            total={totalResults}
-            currentPage={pagination.page}
-            totalPages={Math.ceil(totalResults / pagination.limit)}
-            onPageChange={handlePageChange}
-            totalResults={totalResults}
-            currentSort={currentSort}
-            onRemoveFilter={handleRemoveFilter}
-            onClearAllFilters={handleClearAllFilters}
-            onSortChange={handleSortChange}
-            attributes={attributes}
           />
         </div>
       </div>
