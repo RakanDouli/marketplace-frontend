@@ -85,4 +85,5 @@ export interface CategoriesState {
   selectedCategory: Category | null;
   isLoading: boolean;
   error: string | null;
+  isInitialized: boolean; // Track if categories have been fetched once
 }

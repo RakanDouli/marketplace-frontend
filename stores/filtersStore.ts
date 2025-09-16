@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Attribute, AttributeOption } from "../types/listing";
+import { cachedGraphQLRequest } from "../utils/graphql-cache";
 
 // Filter-specific types
 interface AttributeOptionWithCount extends AttributeOption {
@@ -90,37 +91,7 @@ const initialState: FiltersState = {
   error: null,
 };
 
-// GraphQL client function
-async function graphqlRequest(
-  query: string,
-  variables: any = {}
-): Promise<any> {
-  const endpoint =
-    process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`GraphQL request failed: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-
-  if (result.errors) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data;
-}
+// GraphQL requests now use cachedGraphQLRequest for better performance
 
 // Get listing aggregations for counts
 async function getListingAggregations(
@@ -161,7 +132,7 @@ async function getListingAggregations(
     };
   }
 
-  const response = await graphqlRequest(query, variables);
+  const response = await cachedGraphQLRequest(query, variables, { ttl: 2 * 60 * 1000 }); // Cache aggregations for 2 minutes
   const aggregations = response.listingsAggregations;
 
   if (!aggregations) {
@@ -234,16 +205,16 @@ async function getAllFilterData(categorySlug: string) {
     }
   `;
 
-  const categoriesData = await graphqlRequest(CATEGORIES_QUERY);
+  const categoriesData = await cachedGraphQLRequest(CATEGORIES_QUERY, {}, { ttl: 10 * 60 * 1000 });
   const category = (categoriesData.categories || []).find(
     (cat: any) => cat.slug === categorySlug
   );
   const categoryId = category?.id;
 
-  // Use GraphQL to get dynamic category attributes directly by slug
-  const data = await graphqlRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
+  // Use GraphQL to get dynamic category attributes directly by slug with caching
+  const data = await cachedGraphQLRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
     categorySlug,
-  });
+  }, { ttl: 5 * 60 * 1000 }); // Cache for 5 minutes
 
   const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
 
@@ -487,9 +458,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         }
       `;
 
-      const data = await graphqlRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
+      const data = await cachedGraphQLRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
         categorySlug,
-      });
+      }, { ttl: 5 * 60 * 1000 }); // Cache category attributes for 5 minutes
       const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
 
       // 🎯 KEY CASCADING LOGIC: Get aggregations with applied filters

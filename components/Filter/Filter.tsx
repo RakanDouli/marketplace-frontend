@@ -146,6 +146,7 @@ export const Filter: React.FC<FilterProps> = ({
     return local.min !== appliedMin || local.max !== appliedMax;
   };
 
+
   // Initialize filters from props if provided (only once)
   const hasInitialized = React.useRef(false);
   React.useEffect(() => {
@@ -356,49 +357,46 @@ export const Filter: React.FC<FilterProps> = ({
                           {attribute.key === "body_type" ? (
                             // Special icon-based selector for car body types
                             <div className={styles.iconSelector}>
-                              {attribute.processedOptions.map((option) => (
-                                <button
-                                  key={option.key}
-                                  type="button"
-                                  className={`${styles.iconOption} ${
-                                    (() => {
-                                      const currentSpec =
-                                        activeFilters.specs?.[attribute.key];
-                                      if (!currentSpec) return false;
-                                      if (Array.isArray(currentSpec)) {
-                                        return currentSpec.includes(option.key);
-                                      }
-                                      return currentSpec === option.key;
-                                    })()
-                                      ? styles.selected
-                                      : ""
-                                  }`}
-                                  onClick={() => {
-                                    const currentSpec =
-                                      activeFilters.specs?.[attribute.key];
-                                    let currentSelected = Array.isArray(
-                                      currentSpec
-                                    )
-                                      ? currentSpec
-                                      : typeof currentSpec === "string"
-                                      ? [currentSpec]
-                                      : [];
+                              {/* Selection Counter for Limited Multi-Selectors */}
+                              {attribute.maxSelections && (
+                                <div className={styles.selectionCounter}>
+                                  <Text variant="xs">
+                                    {(() => {
+                                      const currentSpec = activeFilters.specs?.[attribute.key];
+                                      const selectedCount = Array.isArray(currentSpec) ? currentSpec.length : (currentSpec ? 1 : 0);
+                                      return `${selectedCount}/${attribute.maxSelections} selected`;
+                                    })()}
+                                  </Text>
+                                </div>
+                              )}
+                              {attribute.processedOptions.map((option) => {
+                                const currentSpec = activeFilters.specs?.[attribute.key];
+                                const currentSelected = Array.isArray(currentSpec) ? currentSpec : (typeof currentSpec === "string" ? [currentSpec] : []);
+                                const isSelected = currentSelected.includes(option.key);
+                                const isAtLimit = attribute.maxSelections && currentSelected.length >= attribute.maxSelections;
+                                const shouldDisable = isAtLimit && !isSelected;
 
-                                    // Toggle selection
-                                    let newSelected: string[] =
-                                      currentSelected.includes(option.key)
-                                        ? currentSelected.filter(
-                                            (key) => key !== option.key
-                                          )
+                                return (
+                                  <button
+                                    key={option.key}
+                                    type="button"
+                                    disabled={!!shouldDisable}
+                                    className={`${styles.iconOption} ${
+                                      isSelected ? styles.selected : ""
+                                    } ${shouldDisable ? styles.disabled : ""}`}
+                                    onClick={() => {
+                                      if (shouldDisable) return;
+
+                                      // Toggle selection
+                                      let newSelected: string[] = isSelected
+                                        ? currentSelected.filter((key) => key !== option.key)
                                         : [...currentSelected, option.key];
 
-                                    handleSpecChange(
-                                      attribute.key,
-                                      newSelected.length > 0
-                                        ? newSelected
-                                        : undefined
-                                    );
-                                  }}
+                                      handleSpecChange(
+                                        attribute.key,
+                                        newSelected.length > 0 ? newSelected : undefined
+                                      );
+                                    }}
                                 >
                                   {getCarBodyTypeIcon(option.key)}
                                   <span className={styles.optionLabel}>
@@ -409,64 +407,62 @@ export const Filter: React.FC<FilterProps> = ({
                                       </span>
                                     )}
                                   </span>
-                                </button>
-                              ))}
+                                  </button>
+                                );
+                              })}
                             </div>
                           ) : attribute.type === "MULTI_SELECTOR" ? (
                             // Multi-select checkboxes for other MULTI_SELECTOR attributes
                             <div className={styles.checkboxGroup}>
+                              {/* Selection Counter for Limited Multi-Selectors */}
+                              {attribute.maxSelections && (
+                                <div className={styles.selectionCounter}>
+                                  <Text variant="xs">
+                                    {(() => {
+                                      const currentSpec = activeFilters.specs?.[attribute.key];
+                                      const selectedCount = Array.isArray(currentSpec) ? currentSpec.length : (currentSpec ? 1 : 0);
+                                      return `${selectedCount}/${attribute.maxSelections} selected`;
+                                    })()}
+                                  </Text>
+                                </div>
+                              )}
+
                               {attribute.processedOptions.map((option) => {
-                                const currentSpec =
-                                  activeFilters.specs?.[attribute.key];
-                                let currentSelected;
+                                const currentSpec = activeFilters.specs?.[attribute.key];
+                                let currentSelected: string[];
 
                                 // Handle both array and string formats from store
-                                currentSelected = currentSpec;
+                                if (Array.isArray(currentSpec)) {
+                                  currentSelected = currentSpec;
+                                } else if (typeof currentSpec === "string") {
+                                  currentSelected = [currentSpec];
+                                } else {
+                                  currentSelected = [];
+                                }
 
-                                const isSelected = Array.isArray(
-                                  currentSelected
-                                )
-                                  ? currentSelected.includes(option.key)
-                                  : currentSelected === option.key;
+                                const isSelected = currentSelected.includes(option.key);
+                                const isAtLimit = attribute.maxSelections && currentSelected.length >= attribute.maxSelections;
+                                const shouldDisable = isAtLimit && !isSelected;
 
                                 return (
                                   <label
                                     key={option.key}
-                                    className={styles.checkboxOption}
+                                    className={`${styles.checkboxOption} ${shouldDisable ? styles.disabled : ""}`}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={isSelected}
+                                      disabled={!!shouldDisable}
                                       onChange={(e) => {
-                                        let newSelected: string[] = [];
+                                        if (shouldDisable) return;
 
-                                        if (Array.isArray(currentSelected)) {
-                                          newSelected = e.target.checked
-                                            ? [...currentSelected, option.key]
-                                            : currentSelected.filter(
-                                                (key) => key !== option.key
-                                              );
-                                        } else if (
-                                          currentSelected === option.key
-                                        ) {
-                                          newSelected = e.target.checked
-                                            ? [option.key]
-                                            : [];
-                                        } else {
-                                          newSelected = e.target.checked
-                                            ? currentSelected
-                                              ? [currentSelected, option.key]
-                                              : [option.key]
-                                            : currentSelected
-                                            ? [currentSelected]
-                                            : [];
-                                        }
+                                        let newSelected: string[] = e.target.checked
+                                          ? [...currentSelected, option.key]
+                                          : currentSelected.filter((key) => key !== option.key);
 
                                         handleSpecChange(
                                           attribute.key,
-                                          newSelected.length > 0
-                                            ? newSelected
-                                            : undefined
+                                          newSelected.length > 0 ? newSelected : undefined
                                         );
                                       }}
                                     />

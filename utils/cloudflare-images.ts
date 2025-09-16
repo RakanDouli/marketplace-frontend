@@ -11,64 +11,107 @@ export interface CloudflareImageOptions {
 }
 
 const CLOUDFLARE_DOMAIN = process.env.NEXT_PUBLIC_CLOUDFLARE_DOMAIN;
+const CLOUDFLARE_IMAGES_HASH = process.env.NEXT_PUBLIC_CLOUDFLARE_IMAGES_HASH;
 const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 const SUPABASE_STORAGE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL ||
   "https://supabase.co/storage/v1/object/public";
 
 /**
- * Optimizes image URL using Cloudflare Image Resizing
- * Converts Supabase URLs to Cloudflare-optimized URLs
+ * Extract Cloudflare image ID from various URL formats
+ */
+function extractImageId(url: string): string | null {
+  // If it's already a Cloudflare Images URL, extract the ID
+  if (url.includes("imagedelivery.net")) {
+    const match = url.match(/imagedelivery\.net\/[^\/]+\/([^\/]+)/);
+    return match ? match[1] : null;
+  }
+
+  // If it's a UUID (image key from backend), use it directly
+  const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+  const uuidMatch = url.match(uuidRegex);
+  if (uuidMatch) {
+    return uuidMatch[0];
+  }
+
+  // Extract filename without extension for other cases
+  const filename = url.split('/').pop()?.split('.')[0];
+  return filename || null;
+}
+
+/**
+ * Map image options to predefined Cloudflare Images variants
+ * You need to create these variants in your Cloudflare Images dashboard
+ */
+function getVariantName(options: CloudflareImageOptions): string {
+  const { width, height } = options;
+
+  // Card images (400x300) - Used for product cards, grid views
+  if (width === 400 && height === 300) return 'card'; // Grid view cards
+
+  // Small images (300x200) - Used for list views, previews
+  if (width === 300 && height === 200) return 'small'; // List view, small previews
+
+  // Large images (800x600) - Used for detail views, hero images
+  if (width === 800 && height === 600) return 'large'; // Detail view, hero images
+
+  // Responsive breakpoint sizes (different from card sizes)
+  if (width === 360 && height === 270) return 'mobile'; // Mobile responsive (smaller than card)
+  if (width === 768 && height === 576) return 'tablet'; // Tablet responsive
+  if (width === 1200 && height === 900) return 'desktop'; // Desktop responsive
+
+  // Blur placeholder (tiny, low quality)
+  if (width === 20 && height === 20) return 'blur';
+
+  // Regular thumbnails (small but decent quality)
+  if (width === 150 && height === 150) return 'thumbnail';
+
+  // Default public variant
+  return 'public';
+}
+
+/**
+ * Optimizes image URL using Cloudflare Images
+ * Converts image keys/URLs to Cloudflare Images URLs
  */
 export function optimizeImageUrl(
   originalUrl: string,
   options: CloudflareImageOptions = {}
 ): string {
-  // In development, skip Cloudflare optimization and return original URL
-  if (IS_DEVELOPMENT || !CLOUDFLARE_DOMAIN) {
+  // In development, return original URL for now
+  if (IS_DEVELOPMENT) {
     return originalUrl;
   }
 
-  // If it's already a Cloudflare URL, return as-is
-  if (originalUrl.includes("/cdn-cgi/image/")) {
+  // If missing required Cloudflare config, return original
+  if (!CLOUDFLARE_DOMAIN || !CLOUDFLARE_IMAGES_HASH) {
     return originalUrl;
+  }
+
+  // If it's already a properly formed Cloudflare Images URL, return as-is
+  if (originalUrl.includes(`${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/`)) {
+    return originalUrl;
+  }
+
+  // Extract image ID from the URL
+  const imageId = extractImageId(originalUrl);
+  if (!imageId) {
+    return originalUrl; // Can't extract ID, return original
   }
 
   // Default optimization options for Syrian marketplace
   const defaultOptions: CloudflareImageOptions = {
     quality: 85, // Good balance for Syrian internet speeds
     format: "auto", // Let browser choose best format
-    fit: "scale-down", // Don't upscale images
+    fit: "cover", // Cover by default for better appearance
     ...options,
   };
 
-  // Build Cloudflare image transformation parameters
-  const params: string[] = [];
+  // Get appropriate variant name
+  const variant = getVariantName(defaultOptions);
 
-  if (defaultOptions.width) params.push(`width=${defaultOptions.width}`);
-  if (defaultOptions.height) params.push(`height=${defaultOptions.height}`);
-  if (defaultOptions.quality) params.push(`quality=${defaultOptions.quality}`);
-  if (defaultOptions.format) params.push(`format=${defaultOptions.format}`);
-  if (defaultOptions.fit) params.push(`fit=${defaultOptions.fit}`);
-  if (defaultOptions.gravity) params.push(`gravity=${defaultOptions.gravity}`);
-
-  const transformParams = params.join(",");
-
-  // Handle different URL formats
-  let targetUrl = originalUrl;
-
-  // If it's a relative URL, make it absolute
-  if (originalUrl.startsWith("/")) {
-    targetUrl = `${CLOUDFLARE_DOMAIN}${originalUrl}`;
-  }
-
-  // If it's a Supabase URL, use it directly
-  if (originalUrl.includes("supabase.co") || originalUrl.includes("supabase")) {
-    targetUrl = originalUrl;
-  }
-
-  // Return Cloudflare-optimized URL
-  return `https://${CLOUDFLARE_DOMAIN}/cdn-cgi/image/${transformParams}/${targetUrl}`;
+  // Return Cloudflare Images URL
+  return `https://${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/${imageId}/${variant}`;
 }
 
 /**
@@ -93,16 +136,16 @@ export function generateResponsiveImageUrls(
 }
 
 /**
- * Optimizes listing card images for grid/list view
+ * Optimizes images for different view modes (grid/list/detail)
+ * Can be used for any content: listings, products, profiles, etc.
  */
 export function optimizeListingImage(
   imageKey: string,
-  viewMode: "grid" | "list" = "grid"
+  viewMode: "grid" | "list" | "detail" = "grid"
 ): string {
-  // Convert imageKey to full URL if needed
-  const baseUrl = imageKey.startsWith("http")
-    ? imageKey
-    : `${SUPABASE_STORAGE_URL}/listings/${imageKey}`;
+  // If it's already a full URL, use it directly
+  // Otherwise, treat it as an image key/UUID for Cloudflare Images
+  const imageUrl = imageKey.startsWith("http") ? imageKey : imageKey;
 
   const options: CloudflareImageOptions = {
     quality: 85,
@@ -112,24 +155,43 @@ export function optimizeListingImage(
 
   // Different sizes for different view modes
   if (viewMode === "grid") {
-    options.width = 400;
+    options.width = 400;  // Uses 'card' variant
     options.height = 300;
+  } else if (viewMode === "list") {
+    options.width = 300;  // Uses 'small' variant
+    options.height = 200;
   } else {
-    options.width = 200;
-    options.height = 150;
+    // Default/detail view
+    options.width = 800;  // Uses 'large' variant
+    options.height = 600;
   }
 
-  return optimizeImageUrl(baseUrl, options);
+  return optimizeImageUrl(imageUrl, options);
 }
 
 /**
  * Creates optimized placeholder/blur data URL
+ * This creates a tiny, low-quality image that will be blurred with CSS
+ * The browser applies filter: blur() to create the blur effect
  */
 export function createBlurDataUrl(originalUrl: string): string {
   return optimizeImageUrl(originalUrl, {
     width: 20,
     height: 20,
-    quality: 20,
+    quality: 10, // Low quality = smaller file = faster loading
     format: "jpeg",
+  });
+}
+
+/**
+ * Creates a regular thumbnail (small but clear)
+ */
+export function createThumbnail(originalUrl: string): string {
+  return optimizeImageUrl(originalUrl, {
+    width: 150,
+    height: 150,
+    quality: 85, // Good quality for clear thumbnails
+    format: "auto",
+    fit: "cover",
   });
 }

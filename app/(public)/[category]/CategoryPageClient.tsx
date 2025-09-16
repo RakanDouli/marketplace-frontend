@@ -43,7 +43,7 @@ export default function CategoryPageClient({
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
-  const [currentSort, setCurrentSort] = useState<SortOption>("createdAt_desc");
+  const [currentSort, setCurrentSort] = useState<SortOption | undefined>(undefined);
   const [isSorting, setIsSorting] = useState(false);
 
   // Use centralized search store instead of local filter state
@@ -63,7 +63,7 @@ export default function CategoryPageClient({
     categories,
     isLoading: categoriesLoading,
     fetchCategories,
-    fetchCategoryBySlug,
+    getCategoryBySlug, // Use cached lookup method
     setSelectedCategory,
   } = useCategoriesStore();
 
@@ -86,45 +86,53 @@ export default function CategoryPageClient({
   // Get totalResults from listings store (single source of truth)
   const totalResults = useListingsStore((state) => state.pagination.total);
 
-  // Load categories once on mount
+  // Single coordinated initialization effect
   useEffect(() => {
-    if (categories.length === 0) {
-      fetchCategories();
-    }
-  }, [fetchCategories, categories.length]);
+    const initializePage = async () => {
+      console.log(`🔄 CategoryPageClient: Initializing page for "${categorySlug}"`);
 
-  // Load category when route changes
-  useEffect(() => {
-    const loadCategory = async () => {
+      // Step 1: Ensure categories are loaded (only once globally)
+      if (categories.length === 0 && !categoriesLoading) {
+        console.log("📚 Loading categories first time...");
+        await fetchCategories();
+        return; // Wait for categories to load, then rerun this effect
+      }
+
+      // Step 2: Wait for categories to be available
+      if (categories.length === 0) {
+        console.log("⏳ Waiting for categories to load...");
+        setIsCategoryLoading(true);
+        setCategoryNotFound(false);
+        return;
+      }
+
+      // Step 3: Find category from cache (no API call)
       setIsCategoryLoading(true);
       setCategoryNotFound(false);
 
-      try {
-        // Fetch current category by slug
-        const category = await fetchCategoryBySlug(categorySlug);
+      const category = getCategoryBySlug(categorySlug);
 
-        if (!category) {
-          setCategoryNotFound(true);
-          setIsCategoryLoading(false);
-          return;
-        }
-
-        setCurrentCategory(category);
-        setSelectedCategory(category);
-
-        // Initialize filter data for the category
-        fetchFilterData(categorySlug);
-
-        setIsCategoryLoading(false);
-      } catch (error) {
-        console.error("Error loading category:", error);
+      if (!category) {
+        console.log(`❌ Category "${categorySlug}" not found in cached categories`);
         setCategoryNotFound(true);
         setIsCategoryLoading(false);
+        return;
       }
+
+      console.log(`✅ Found category "${categorySlug}" in cache:`, category);
+      setCurrentCategory(category);
+      setSelectedCategory(category);
+
+      // Step 4: Initialize filter data for the category (avoid duplicate calls)
+      console.log("🎛️ Initializing filter data...");
+      fetchFilterData(categorySlug);
+
+      setIsCategoryLoading(false);
+      console.log(`🎉 Page initialization complete for "${categorySlug}"`);
     };
 
-    loadCategory();
-  }, [categorySlug, fetchCategoryBySlug, setSelectedCategory]);
+    initializePage();
+  }, [categorySlug, categories.length, categoriesLoading]); // Remove problematic dependencies
 
   // Initialize search store from URL params
   useEffect(() => {
@@ -199,7 +207,7 @@ export default function CategoryPageClient({
       const storeFilters = {
         categoryId: currentCategory.slug,
         ...getStoreFilters(),
-        sort: currentSort,
+        ...(currentSort && { sort: currentSort }),
       };
 
       // Step 5: Reset pagination to page 1 when filters change
@@ -226,36 +234,45 @@ export default function CategoryPageClient({
       const storeFilters = {
         categoryId: currentCategory.slug,
         ...getStoreFilters(),
-        sort: currentSort,
+        ...(currentSort && { sort: currentSort }),
       };
       setPagination({ page: 1 });
       fetchListingsByCategory(currentCategory.slug, storeFilters);
     }
   };
 
-  // Load listings when category or parsed filters change
+  // Load listings when category or parsed filters change (debounced)
   useEffect(() => {
-    if (!currentCategory) return;
+    if (!currentCategory) {
+      console.log("⏭️ Skipping listings load - no category yet");
+      return;
+    }
 
     const loadListings = async () => {
+      console.log(`📋 Loading listings for category "${currentCategory.slug}" with filters:`, parsedFilters.filters);
+
       // Set pagination page before fetching
       setPagination({ page: parsedFilters.page });
 
       try {
-        const filtersWithSort = { ...parsedFilters.filters, sort: currentSort };
+        const filtersWithSort = {
+          ...parsedFilters.filters,
+          ...(currentSort && { sort: currentSort })
+        };
         await fetchListingsByCategory(currentCategory.slug, filtersWithSort);
+        console.log(`✅ Listings loaded successfully for "${currentCategory.slug}"`);
       } catch (error) {
-        console.error("Error loading listings:", error);
+        console.error("❌ Error loading listings:", error);
       }
     };
 
-    loadListings();
+    // Debounce the loading to prevent rapid successive calls
+    const timeoutId = setTimeout(loadListings, 200);
+    return () => clearTimeout(timeoutId);
   }, [
-    currentCategory,
-    parsedFilters,
+    currentCategory?.slug, // Only depend on slug to prevent object reference changes
+    JSON.stringify(parsedFilters), // Stringify to prevent object reference issues
     currentSort,
-    fetchListingsByCategory,
-    setPagination,
   ]);
 
   // Data transformation now handled directly in ListingArea component
@@ -288,7 +305,7 @@ export default function CategoryPageClient({
       const storeFilters = {
         categoryId: currentCategory.slug,
         ...getStoreFilters(),
-        sort: currentSort,
+        ...(currentSort && { sort: currentSort }),
       };
       try {
         await fetchListingsByCategory(currentCategory.slug, storeFilters);
@@ -328,7 +345,7 @@ export default function CategoryPageClient({
       const storeFilters = {
         categoryId: currentCategory.slug,
         ...getStoreFilters(),
-        sort: currentSort,
+        ...(currentSort && { sort: currentSort }),
       };
 
       // Step 4: Reset pagination to page 1 when filters change
@@ -417,6 +434,10 @@ export default function CategoryPageClient({
             onCardClick={handleCardClick}
             onCardLike={handleCardLike}
             onToggleFilters={handleToggleFilters}
+            onRemoveFilter={handleRemoveFilter}
+            onClearAllFilters={handleClearAllFilters}
+            onPageChange={handlePageChange}
+            onSortChange={handleSortChange}
           />
         </div>
       </div>

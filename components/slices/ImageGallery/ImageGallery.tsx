@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -100,7 +100,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
         {currentIndex + 1} / {images.length}
       </div>
 
-      {/* Dots Indicator */}
+      {/* Dots Indicator
       <div className={styles.dots}>
         {images.map((_, index) => (
           <button
@@ -115,7 +115,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
             aria-label={`Go to image ${index + 1}`}
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };

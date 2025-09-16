@@ -46,6 +46,7 @@ export interface Attribute {
   sortOrder: number;
   group: string | null;
   isActive: boolean;
+  maxSelections?: number | null; // Maximum selections for multi-selector types
   options: AttributeOption[];
 }
 

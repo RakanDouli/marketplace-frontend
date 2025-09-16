@@ -5,7 +5,11 @@ import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
 import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
 import { SortControls, SortOption } from "../slices/SortControls/SortControls";
-import { useListingsStore, useSearchStore, useFiltersStore } from "../../stores";
+import {
+  useListingsStore,
+  useSearchStore,
+  useFiltersStore,
+} from "../../stores";
 import styles from "./ListingArea.module.scss";
 
 export interface ListingData {
@@ -24,6 +28,10 @@ export interface ListingAreaProps {
   onCardClick?: (id: string) => void;
   onCardLike?: (id: string, liked: boolean) => void;
   onToggleFilters?: () => void;
+  onRemoveFilter?: (filterKey: string) => void;
+  onClearAllFilters?: () => void;
+  onPageChange?: (page: number) => void;
+  onSortChange?: (sort: SortOption) => void;
   className?: string;
 }
 
@@ -31,6 +39,10 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   onCardClick,
   onCardLike,
   onToggleFilters,
+  onRemoveFilter,
+  onClearAllFilters,
+  onPageChange,
+  onSortChange,
   className = "",
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -41,20 +53,12 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
     listings,
     isLoading: loading,
     pagination,
-    setSortFilter
+    setSortFilter,
   } = useListingsStore();
 
-  const {
-    activeFilters,
-    removeFilter,
-    removeSpecFilter,
-    clearAllFilters
-  } = useSearchStore();
+  const { activeFilters } = useSearchStore();
 
-  const {
-    attributes,
-    isLoading: countLoading
-  } = useFiltersStore();
+  const { attributes, isLoading: countLoading } = useFiltersStore();
 
   // Convert store listings to component format
   const listingData: ListingData[] = (listings || []).map((listing) => {
@@ -73,9 +77,12 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       price: displayPrice,
       currency: displayCurrency,
       location: listing.city || "",
-      sellerType: listing.sellerType === "PRIVATE" ? "private"
-                 : listing.sellerType === "DEALER" ? "dealer"
-                 : "business",
+      sellerType:
+        listing.sellerType === "PRIVATE"
+          ? "private"
+          : listing.sellerType === "DEALER"
+          ? "dealer"
+          : "business",
       specs: specs, // Pass all dynamic specs
       images: listing.imageKeys || [],
       isLiked: false, // TODO: Get from user favorites
@@ -92,26 +99,25 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
 
   // Handle sort change
   const handleSortChange = (sort: SortOption) => {
-    setSortFilter(sort);
+    if (onSortChange) {
+      onSortChange(sort);
+    } else {
+      // Fallback to store method if no handler provided
+      setSortFilter(sort);
+    }
   };
 
   // Handle pagination
   const handlePageChange = (page: number) => {
-    // Update pagination in the listings store
-    // The store will automatically refetch data with new page
-    // TODO: Add setPagination method to listingsStore
-    console.log('Page change requested:', page);
-  };
-
-  // Handle filter removal
-  const handleRemoveFilter = (filterKey: string) => {
-    if (filterKey.includes('.')) {
-      // It's a spec filter
-      removeSpecFilter(filterKey);
+    if (onPageChange) {
+      onPageChange(page);
     } else {
-      removeFilter(filterKey as any);
+      // Fallback behavior
+      console.log("Page change requested but no handler provided:", page);
     }
   };
+
+  // Filter removal now handled directly by AppliedFilters through store
 
   return (
     <div className={`${styles.listingArea} ${className}`}>
@@ -160,8 +166,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
 
       {/* Applied Filters */}
       <AppliedFilters
-        onRemoveFilter={handleRemoveFilter}
-        onClearAllFilters={clearAllFilters}
+        onRemoveFilter={onRemoveFilter}
+        onClearAllFilters={onClearAllFilters}
         attributes={attributes}
       />
 

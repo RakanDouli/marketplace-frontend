@@ -77,7 +77,6 @@ interface SearchActions {
 type SearchStore = SearchState & SearchActions;
 
 const initialFilters: SearchFilters = {
-  sort: "createdAt_desc",
   page: 1,
   limit: 20,
 };
@@ -155,10 +154,12 @@ export const useSearchStore = create<SearchStore>()(
 
     // Remove individual filter
     removeFilter: (key: keyof SearchFilters) => {
-      // console.log(`🗑️ SearchStore: Removing ${key}`);
+      console.log(`🗑️ SearchStore: Removing ${key}`);
 
       const { activeFilters } = get();
       const newFilters = { ...activeFilters };
+
+      // Just delete the filter (no special handling needed for sort)
       delete newFilters[key];
 
       set({ activeFilters: newFilters });
@@ -166,7 +167,7 @@ export const useSearchStore = create<SearchStore>()(
 
     // Remove spec filter
     removeSpecFilter: (specKey: string) => {
-      // console.log(`🗑️ SearchStore: Removing spec ${specKey}`);
+      console.log(`🗑️ SearchStore: Removing spec ${specKey}`);
 
       const { activeFilters } = get();
       if (!activeFilters.specs) return;

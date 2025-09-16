@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { CategoriesState, Category } from './types';
+import { cachedGraphQLRequest } from '../utils/graphql-cache';
 
 // GraphQL queries
 const CATEGORIES_QUERY = `
@@ -13,34 +14,6 @@ const CATEGORIES_QUERY = `
   }
 `;
 
-// GraphQL client function
-async function graphqlRequest(query: string, variables: any = {}) {
-  const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
-  
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`GraphQL request failed: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-  
-  if (result.errors) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data;
-}
-
 interface CategoriesActions {
   setCategories: (categories: Category[]) => void;
   addCategory: (category: Category) => void;
@@ -50,11 +23,12 @@ interface CategoriesActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
-  // Data fetching methods
+  // Data fetching methods - ONLY FETCH ONCE ON APP INIT
   fetchCategories: () => Promise<void>;
-  fetchCategoryBySlug: (slug: string) => Promise<Category | null>;
-  // Helper methods
+  initializeCategories: () => Promise<void>; // One-time initialization
+  // Helper methods - USE CACHED DATA ONLY
   getCategoryById: (id: string) => Category | undefined;
+  getCategoryBySlug: (slug: string) => Category | undefined;
 }
 
 type CategoriesStore = CategoriesState & CategoriesActions;
@@ -65,6 +39,7 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
   selectedCategory: null,
   isLoading: false,
   error: null,
+  isInitialized: false, // Track if categories have been fetched
 
   // Actions
   setCategories: (categories: Category[]) => {
@@ -111,12 +86,21 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
     set({ error: null });
   },
 
-  // Data fetching methods
+  // Data fetching methods - ONLY FETCH ONCE ON APP INIT
   fetchCategories: async () => {
+    const { isInitialized } = get();
+
+    // Skip if already initialized
+    if (isInitialized) {
+      console.log('🚫 Categories already initialized, skipping fetch');
+      return;
+    }
+
     set({ isLoading: true, error: null });
-    
+
     try {
-      const data = await graphqlRequest(CATEGORIES_QUERY);
+      console.log('🔄 Fetching categories for first time...');
+      const data = await cachedGraphQLRequest(CATEGORIES_QUERY, {}, { ttl: 10 * 60 * 1000 }); // Cache for 10 minutes
 
       const categories: Category[] = (data.categories || []).map((cat: any) => ({
         id: cat.id,
@@ -126,46 +110,46 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
         isActive: cat.isActive,
       }));
 
-      set({ categories, isLoading: false, error: null });
+      set({
+        categories,
+        isLoading: false,
+        error: null,
+        isInitialized: true
+      });
+      console.log('✅ Categories initialized successfully:', categories.length);
     } catch (error: any) {
-      console.error('Failed to fetch categories:', error);
-      set({ 
-        isLoading: false, 
+      console.error('❌ Failed to fetch categories:', error);
+      set({
+        isLoading: false,
         error: error.message || 'Failed to load categories',
-        categories: [] 
+        categories: [],
+        isInitialized: false
       });
     }
   },
 
-  fetchCategoryBySlug: async (slug: string) => {
-    try {
-      // Fetch all categories using GraphQL
-      const data = await graphqlRequest(CATEGORIES_QUERY);
-      
-      // Find the category with matching slug
-      const category = (data.categories || []).find((cat: any) => cat.slug === slug && cat.isActive);
-      
-      if (!category) {
-        return null;
-      }
-      
-      return {
-        id: category.id,
-        name: category.name,
-        nameAr: category.name, // Backend should provide Arabic version
-        slug: category.slug,
-        isActive: category.isActive,
-      };
-    } catch (error: any) {
-      console.error('Failed to fetch category by slug:', error);
-      return null;
+  // One-time initialization method
+  initializeCategories: async () => {
+    const { isInitialized } = get();
+
+    if (isInitialized) {
+      console.log('🚫 Categories already initialized');
+      return;
     }
+
+    await get().fetchCategories();
   },
 
-  // Helper methods
+  // Helper methods - USE CACHED DATA ONLY
   getCategoryById: (id: string) => {
     const { categories } = get();
     return categories.find(category => category.id === id);
+  },
+
+  // NEW: Get category by slug from cached data (NO API CALL)
+  getCategoryBySlug: (slug: string) => {
+    const { categories } = get();
+    return categories.find(category => category.slug === slug && category.isActive);
   },
 }));
 

@@ -7,8 +7,8 @@ import { Text } from "../slices";
 import styles from "./AppliedFilters.module.scss";
 
 export interface AppliedFiltersProps {
-  onRemoveFilter: (filterKey: string) => void;
-  onClearAllFilters: () => void;
+  onRemoveFilter?: (filterKey: string) => void;
+  onClearAllFilters?: () => void;
   attributes?: Array<{
     key: string;
     name: string;
@@ -27,7 +27,7 @@ export function AppliedFilters({
 }: AppliedFiltersProps) {
   const { t } = useTranslation();
 
-  // Get filters directly from searchStore instead of props
+  // Get filters from searchStore
   const { activeFilters: filters } = useSearchStore();
 
   // console.log("🏷️ AppliedFilters: Using filters from searchStore", filters);
@@ -173,6 +173,22 @@ export function AppliedFilters({
     });
   }
 
+  // Add sort filter (show if any sort is selected)
+  if (filters.sort) {
+    const sortLabels: Record<string, string> = {
+      "createdAt_asc": t("search.sortByOldest"),
+      "createdAt_desc": t("search.sortByNewest"),
+      "priceMinor_asc": t("search.sortByPriceLow"),
+      "priceMinor_desc": t("search.sortByPriceHigh"),
+    };
+
+    activeFilters.push({
+      key: "sort",
+      label: t("search.sortBy"),
+      value: sortLabels[filters.sort] || filters.sort,
+    });
+  }
+
   if (activeFilters.length === 0) {
     return null;
   }
@@ -186,7 +202,7 @@ export function AppliedFilters({
               {filter.value}
             </Text>
             <button
-              onClick={() => onRemoveFilter(filter.key)}
+              onClick={() => onRemoveFilter?.(filter.key)}
               className={styles.removeButton}
               aria-label={t("search.removeFilter")}
             >

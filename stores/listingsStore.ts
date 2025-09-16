@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { ListingsState, Listing } from "./types";
-import { optimizeListingImage } from "../utils/cloudflare-images";
+import { cachedGraphQLRequest } from "../utils/graphql-cache";
 
 // GraphQL queries
 const LISTINGS_SEARCH_QUERY = `
@@ -26,35 +26,6 @@ const LISTINGS_SEARCH_QUERY = `
     }
   }
 `;
-
-// GraphQL client function
-async function graphqlRequest(query: string, variables: any = {}) {
-  const endpoint =
-    process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`GraphQL request failed: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-
-  if (result.errors) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data;
-}
 
 interface ListingsActions {
   setListings: (listings: Listing[]) => void;
@@ -235,13 +206,9 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.specs = finalFilters.specs;
       }
 
-      // Search filter (if needed)
+      // Search filter
       if (finalFilters.search) {
-        // Note: Backend doesn't have search in filter yet, might need to be added
-        console.log(
-          "Search filter not yet supported by backend:",
-          finalFilters.search
-        );
+        graphqlFilter.search = finalFilters.search;
       }
 
       // Sort parameter (add to filter for backend processing)
@@ -249,12 +216,12 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.sort = finalFilters.sort;
       }
 
-      // Use GraphQL listingsSearch API for listings
-      const data = await graphqlRequest(LISTINGS_SEARCH_QUERY, {
+      // Use GraphQL listingsSearch API for listings with caching
+      const data = await cachedGraphQLRequest(LISTINGS_SEARCH_QUERY, {
         filter: graphqlFilter,
         limit: pagination.limit,
         offset: offset,
-      });
+      }, { ttl: 2 * 60 * 1000 }); // Cache for 2 minutes
 
       // Get totalResults from aggregations for accurate count
       const aggregationsQuery = `
@@ -264,9 +231,9 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           }
         }
       `;
-      const aggregationsData = await graphqlRequest(aggregationsQuery, {
+      const aggregationsData = await cachedGraphQLRequest(aggregationsQuery, {
         filter: graphqlFilter,
-      });
+      }, { ttl: 2 * 60 * 1000 }); // Cache for 2 minutes
 
       const listings: Listing[] = (data.listingsSearch || []).map(
         (item: any) => {
@@ -292,9 +259,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             status: item.status as any,
             allowBidding: false, // Default - backend should provide this
             specs, // Now contains real specs data from backend!
-            imageKeys: (item.imageKeys || []).map((key: string) =>
-              optimizeListingImage(key, 'grid') // Optimize images with Cloudflare
-            ),
+            imageKeys: item.imageKeys || [], // Store raw keys, optimize per usage
             sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
             createdAt: item.createdAt,
             updatedAt: item.createdAt,

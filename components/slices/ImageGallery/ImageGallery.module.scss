@@ -66,44 +66,43 @@
 
 .counter {
   position: absolute;
-  right: $space-sm;
-  top: $space-md;
-  background: $surface;
-  color: $text;
-  padding: 4px 8px;
-  border-radius: $radius-md;
-  font-size: 12px;
-  font-weight: 500;
-  z-index: 2;
-}
-
-.dots {
-  position: absolute;
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
+  background: $bg-dark;
+  color: $text-light;
+  padding: 4px 8px;
+  border-radius: $radius-md;
   z-index: 2;
 }
 
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: $radius-full;
-  border: none;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+// .dots {
+//   position: absolute;
+//   bottom: 8px;
+//   left: 50%;
+//   transform: translateX(-50%);
+//   display: flex;
+//   gap: 4px;
+//   z-index: 2;
+// }
 
-  &.active {
-    background: white;
-  }
+// .dot {
+//   width: 6px;
+//   height: 6px;
+//   border-radius: $radius-full;
+//   border: none;
+//   background: rgba(255, 255, 255, 0.5);
+//   cursor: pointer;
+//   transition: background-color 0.2s ease;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.8);
-  }
-}
+//   &.active {
+//     background: white;
+//   }
+
+//   &:hover {
+//     background: rgba(255, 255, 255, 0.8);
+//   }
+// }
 
 // Responsive adjustments
 @media (max-width: 768px) {
@@ -127,19 +126,19 @@
     right: 4px;
   }
 
-  .counter {
-    top: 4px;
-    right: 4px;
-    font-size: 11px;
-    padding: 2px 6px;
-  }
+  // .counter {
+  //   top: 4px;
+  //   right: 4px;
+  //   font-size: 11px;
+  //   padding: 2px 6px;
+  // }
 
-  .dots {
-    bottom: 4px;
-  }
+  // .dots {
+  //   bottom: 4px;
+  // }
 
-  .dot {
-    width: 8px;
-    height: 8px;
-  }
+  // .dot {
+  //   width: 8px;
+  //   height: 8px;
+  // }
 }

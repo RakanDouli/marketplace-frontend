@@ -77,8 +77,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           priority={priority}
           sizes={
             viewMode === "list"
-              ? "(max-width: 768px) 200px, 200px"
-              : "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              ? "(max-width: 768px) 100vw, 300px"
+              : "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           }
         />
 
