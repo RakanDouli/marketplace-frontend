@@ -183,6 +183,47 @@
     margin: 0;
     font-size: $font-sm;
   }
+
+  .specLabel {
+    color: $text-muted;
+    margin: 0;
+    font-size: $font-sm;
+    font-weight: $weight-medium;
+  }
+}
+
+// Grid View Specs - Minimal, compact layout
+.specsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-top: $space-sm;
+}
+
+.specGrid {
+  display: flex;
+  align-items: center;
+
+  .specTextGrid {
+    color: $text;
+    margin: 0;
+    font-size: $font-xs;
+    line-height: $line-tight;
+  }
+}
+
+// List View Specs - Detailed layout with labels
+.specsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-sm;
+  margin-top: $space-sm;
+}
+
+.specList {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
 }
 
 .actions {

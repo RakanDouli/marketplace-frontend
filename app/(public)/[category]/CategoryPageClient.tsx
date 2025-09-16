@@ -215,7 +215,7 @@ export default function CategoryPageClient({
 
       // Step 6: Update listings area with new filters
       console.log("📊 Step 6: Refreshing listings with filters...");
-      await fetchListingsByCategory(currentCategory.slug, storeFilters);
+      await fetchListingsByCategory(currentCategory.slug, storeFilters, 'grid');
 
       // Step 7: Update URL to reflect new filters (optional, for better UX)
       const url = new URL(window.location.href);
@@ -237,7 +237,7 @@ export default function CategoryPageClient({
         ...(currentSort && { sort: currentSort }),
       };
       setPagination({ page: 1 });
-      fetchListingsByCategory(currentCategory.slug, storeFilters);
+      fetchListingsByCategory(currentCategory.slug, storeFilters, 'grid');
     }
   };
 
@@ -259,7 +259,7 @@ export default function CategoryPageClient({
           ...parsedFilters.filters,
           ...(currentSort && { sort: currentSort })
         };
-        await fetchListingsByCategory(currentCategory.slug, filtersWithSort);
+        await fetchListingsByCategory(currentCategory.slug, filtersWithSort, 'grid');
         console.log(`✅ Listings loaded successfully for "${currentCategory.slug}"`);
       } catch (error) {
         console.error("❌ Error loading listings:", error);
@@ -308,7 +308,7 @@ export default function CategoryPageClient({
         ...(currentSort && { sort: currentSort }),
       };
       try {
-        await fetchListingsByCategory(currentCategory.slug, storeFilters);
+        await fetchListingsByCategory(currentCategory.slug, storeFilters, 'grid');
       } catch (error) {
         console.error("Error loading listings for page:", page, error);
       }
@@ -352,7 +352,7 @@ export default function CategoryPageClient({
       setPagination({ page: 1 });
 
       // Step 5: Update listings area with new filters
-      await fetchListingsByCategory(currentCategory.slug, storeFilters);
+      await fetchListingsByCategory(currentCategory.slug, storeFilters, 'grid');
 
       console.log("✅ Filter removed and listings updated!");
     } catch (error) {
@@ -382,7 +382,7 @@ export default function CategoryPageClient({
         sort: sort,
       };
       try {
-        await fetchListingsByCategory(currentCategory.slug, storeFilters);
+        await fetchListingsByCategory(currentCategory.slug, storeFilters, 'grid');
         console.log("✅ Listings updated with new sorting:", sort);
       } catch (error) {
         console.error("❌ Error applying sort:", error);

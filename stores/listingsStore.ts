@@ -2,9 +2,79 @@ import { create } from "zustand";
 import { ListingsState, Listing } from "./types";
 import { cachedGraphQLRequest } from "../utils/graphql-cache";
 
-// GraphQL queries
+// GraphQL queries - View-specific for optimized payload
 const LISTINGS_SEARCH_QUERY = `
   query ListingsSearch($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+    listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
+      id
+      title
+      description
+      priceMinor
+      province
+      city
+      area
+      status
+      imageKeys
+      createdAt
+      categoryId
+      sellerType
+      specs
+      prices {
+        value
+        currency
+      }
+    }
+  }
+`;
+
+// Grid view query - Minimal data for card view
+const LISTINGS_GRID_QUERY = `
+  query ListingsGrid($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+    listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
+      id
+      title
+      priceMinor
+      province
+      city
+      imageKeys
+      categoryId
+      sellerType
+      specs
+      prices {
+        value
+        currency
+      }
+    }
+  }
+`;
+
+// List view query - More data than grid, less than full
+const LISTINGS_LIST_QUERY = `
+  query ListingsList($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+    listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
+      id
+      title
+      description
+      priceMinor
+      province
+      city
+      area
+      imageKeys
+      createdAt
+      categoryId
+      sellerType
+      specs
+      prices {
+        value
+        currency
+      }
+    }
+  }
+`;
+
+// Detail view query - Full data
+const LISTINGS_DETAIL_QUERY = `
+  query ListingsDetail($filter: ListingFilterInput, $limit: Float, $offset: Float) {
     listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
       id
       title
@@ -41,11 +111,13 @@ interface ListingsActions {
   setPagination: (pagination: Partial<ListingsState["pagination"]>) => void;
   resetPagination: () => void;
   setSortFilter: (sort: string) => void;
+  setViewType: (viewType: 'grid' | 'list' | 'detail') => void;
   // Data fetching methods
-  fetchListings: (filters?: Partial<ListingsState["filters"]>) => Promise<void>;
+  fetchListings: (filters?: Partial<ListingsState["filters"]>, viewType?: 'grid' | 'list' | 'detail') => Promise<void>;
   fetchListingsByCategory: (
     categorySlug: string,
-    filters?: Partial<ListingsState["filters"]>
+    filters?: Partial<ListingsState["filters"]>,
+    viewType?: 'grid' | 'list' | 'detail'
   ) => Promise<void>;
 }
 
@@ -64,6 +136,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   currentListing: null,
   isLoading: false,
   error: null,
+  viewType: 'grid', // Default to grid view for performance
   filters: {},
   pagination: initialPagination,
   // Simple cache to prevent redundant requests
@@ -149,10 +222,15 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     });
   },
 
+  setViewType: (viewType: 'grid' | 'list' | 'detail') => {
+    set({ viewType });
+  },
+
   // Data fetching methods
-  fetchListings: async (filterOverrides = {}) => {
-    const { filters, pagination } = get();
+  fetchListings: async (filterOverrides = {}, viewType?: 'grid' | 'list' | 'detail') => {
+    const { filters, pagination, viewType: currentViewType } = get();
     const finalFilters = { ...filters, ...filterOverrides };
+    const selectedViewType = viewType || currentViewType;
 
     // console.log("🚗 ===== LISTINGS STORE: fetchListings START =====");
     // console.log("📋 ListingsStore: Input filters", {
@@ -216,8 +294,27 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.sort = finalFilters.sort;
       }
 
-      // Use GraphQL listingsSearch API for listings with caching
-      const data = await cachedGraphQLRequest(LISTINGS_SEARCH_QUERY, {
+      // Add viewType to filter for backend specs filtering
+      graphqlFilter.viewType = selectedViewType;
+
+      // Select appropriate query based on view type for optimal payload
+      let query: string;
+      switch (selectedViewType) {
+        case 'grid':
+          query = LISTINGS_GRID_QUERY;
+          break;
+        case 'list':
+          query = LISTINGS_LIST_QUERY;
+          break;
+        case 'detail':
+          query = LISTINGS_DETAIL_QUERY;
+          break;
+        default:
+          query = LISTINGS_SEARCH_QUERY;
+      }
+
+      // Use view-specific GraphQL query for optimized payload
+      const data = await cachedGraphQLRequest(query, {
         filter: graphqlFilter,
         limit: pagination.limit,
         offset: offset,
@@ -313,9 +410,10 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
   fetchListingsByCategory: async (
     categorySlug: string,
-    filterOverrides = {}
+    filterOverrides = {},
+    viewType?: 'grid' | 'list' | 'detail'
   ) => {
-    await get().fetchListings({ ...filterOverrides, categoryId: categorySlug });
+    await get().fetchListings({ ...filterOverrides, categoryId: categorySlug }, viewType);
   },
 }));
 
@@ -330,3 +428,5 @@ export const useListingsFilters = () =>
   useListingsStore((state) => state.filters);
 export const useListingsPagination = () =>
   useListingsStore((state) => state.pagination);
+export const useListingsViewType = () =>
+  useListingsStore((state) => state.viewType);

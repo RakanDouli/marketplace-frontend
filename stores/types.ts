@@ -43,6 +43,7 @@ export interface ListingsState {
   currentListing: Listing | null;
   isLoading: boolean;
   error: string | null;
+  viewType: 'grid' | 'list' | 'detail';
   filters: {
     categoryId?: string;
     // Price filters

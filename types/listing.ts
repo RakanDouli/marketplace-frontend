@@ -47,6 +47,11 @@ export interface Attribute {
   group: string | null;
   isActive: boolean;
   maxSelections?: number | null; // Maximum selections for multi-selector types
+  // Display Control Flags for View-Specific Filtering
+  showInGrid: boolean;
+  showInList: boolean;
+  showInDetail: boolean;
+  showInFilter: boolean;
   options: AttributeOption[];
 }
 
@@ -56,6 +61,11 @@ export interface AttributeOption {
   value: string; // Arabic value
   sortOrder: number;
   isActive: boolean;
+  // Display Control Flags for View-Specific Filtering
+  showInGrid: boolean;
+  showInList: boolean;
+  showInDetail: boolean;
+  showInFilter: boolean;
   count?: number; // For aggregation results
 }
 

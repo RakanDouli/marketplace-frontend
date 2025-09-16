@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Grid3X3, List, Filter as FilterIcon } from "lucide-react";
 import { ListingCard, Button, Text } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
@@ -9,6 +9,7 @@ import {
   useListingsStore,
   useSearchStore,
   useFiltersStore,
+  useListingsViewType,
 } from "../../stores";
 import styles from "./ListingArea.module.scss";
 
@@ -45,7 +46,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   onSortChange,
   className = "",
 }) => {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { t } = useTranslation();
 
   // Get data directly from stores
@@ -54,15 +54,75 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
     isLoading: loading,
     pagination,
     setSortFilter,
+    setViewType,
+    fetchListings,
   } = useListingsStore();
 
-  const { activeFilters } = useSearchStore();
-
+  const viewType = useListingsViewType();
+  const { activeFilters, getStoreFilters } = useSearchStore();
   const { attributes, isLoading: countLoading } = useFiltersStore();
+
+  // Sync local viewMode with store viewType for backward compatibility
+  const [viewMode, setViewMode] = useState<"grid" | "list">(
+    viewType === 'detail' ? 'list' : viewType === 'list' ? 'list' : 'grid'
+  );
+
+  // Update store when viewMode changes and refetch data with appropriate view
+  const handleViewModeChange = (newViewMode: "grid" | "list") => {
+    setViewMode(newViewMode);
+    setViewType(newViewMode);
+
+    // Refetch listings with new view type for optimized payload
+    const currentFilters = getStoreFilters();
+    fetchListings(currentFilters, newViewMode);
+  };
+
+  // Filter specs based on view type and attribute flags from FiltersStore
+  const filterSpecsByViewType = (allSpecs: Record<string, any>, currentViewType: string): Record<string, any> => {
+    // If no attributes loaded yet, return all specs
+    if (!attributes || attributes.length === 0) {
+      return allSpecs;
+    }
+
+    const filteredSpecs: Record<string, any> = {};
+
+    // Check each spec against attribute display flags
+    Object.entries(allSpecs).forEach(([specKey, specValue]) => {
+      // Find the corresponding attribute definition
+      const attribute = attributes.find(attr =>
+        attr.key === specKey ||
+        attr.name === specKey ||
+        // Also check Arabic names that might be used as keys
+        (typeof specKey === 'string' && attr.name && attr.name.includes(specKey))
+      );
+
+      if (attribute) {
+        // Check if this attribute should be shown for the current view type
+        const shouldShow = currentViewType === 'grid' ? attribute.showInGrid === true :
+                          currentViewType === 'list' ? attribute.showInList === true :
+                          currentViewType === 'detail' ? attribute.showInDetail === true :
+                          true; // Default to show if view type not recognized
+
+        if (shouldShow) {
+          filteredSpecs[specKey] = specValue;
+        }
+      } else {
+        // If no attribute definition found, show in detail view only (be conservative)
+        if (currentViewType === 'detail') {
+          filteredSpecs[specKey] = specValue;
+        }
+      }
+    });
+
+    return filteredSpecs;
+  };
 
   // Convert store listings to component format
   const listingData: ListingData[] = (listings || []).map((listing) => {
-    const specs = listing.specs || {};
+    const allSpecs = listing.specs || {};
+
+    // Filter specs based on current view type and attribute flags
+    const viewFilteredSpecs = filterSpecsByViewType(allSpecs, viewType);
 
     // Handle price formatting consistently
     const displayPrice = listing.prices?.[0]?.value
@@ -70,6 +130,19 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       : ((listing.priceMinor || 0) / 100).toString();
 
     const displayCurrency = listing.prices?.[0]?.currency || "USD";
+
+    // Log specs for debugging view-specific filtering
+    if (Object.keys(allSpecs).length > 0) {
+      console.log(`📋 ListingArea: Frontend view filtering for ${viewType}:`, {
+        listingId: listing.id,
+        viewType,
+        originalSpecsCount: Object.keys(allSpecs).length,
+        filteredSpecsCount: Object.keys(viewFilteredSpecs).length,
+        originalSpecs: Object.keys(allSpecs),
+        filteredSpecs: Object.keys(viewFilteredSpecs),
+        attributesAvailable: attributes?.length || 0
+      });
+    }
 
     return {
       id: listing.id,
@@ -83,7 +156,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
           : listing.sellerType === "DEALER"
           ? "dealer"
           : "business",
-      specs: specs, // Pass all dynamic specs
+      specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags
       images: listing.imageKeys || [],
       isLiked: false, // TODO: Get from user favorites
     };
@@ -146,7 +219,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
               className={`${styles.viewButton} ${
                 viewMode === "grid" ? styles.active : ""
               }`}
-              onClick={() => setViewMode("grid")}
+              onClick={() => handleViewModeChange("grid")}
               aria-label="Grid view"
             >
               <Grid3X3 size={20} />
@@ -155,7 +228,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
               className={`${styles.viewButton} ${
                 viewMode === "list" ? styles.active : ""
               }`}
-              onClick={() => setViewMode("list")}
+              onClick={() => handleViewModeChange("list")}
               aria-label="List view"
             >
               <List size={20} />

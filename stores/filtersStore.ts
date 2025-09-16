@@ -182,12 +182,20 @@ async function getAllFilterData(categorySlug: string) {
         sortOrder
         group
         isActive
+        showInGrid
+        showInList
+        showInDetail
+        showInFilter
         options {
           id
           key
           value
           sortOrder
           isActive
+          showInGrid
+          showInList
+          showInDetail
+          showInFilter
         }
       }
     }
@@ -372,6 +380,10 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         sortOrder: attr.sortOrder,
         group: attr.group,
         isActive: attr.isActive,
+        showInGrid: attr.showInGrid,
+        showInList: attr.showInList,
+        showInDetail: attr.showInDetail,
+        showInFilter: attr.showInFilter,
         options: attr.options || [],
       }));
 
@@ -447,12 +459,20 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             sortOrder
             group
             isActive
+            showInGrid
+            showInList
+            showInDetail
+            showInFilter
             options {
               id
               key
               value
               sortOrder
               isActive
+              showInGrid
+              showInList
+              showInDetail
+              showInFilter
             }
           }
         }

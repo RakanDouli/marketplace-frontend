@@ -127,14 +127,31 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           </Text>
         </div>
 
-        {/* Dynamic Specs - Only show in list view */}
-        {viewMode === "list" && specs && (
-          <div className={styles.specs}>
+        {/* Grid View Specs - Minimal layout */}
+        {viewMode === "grid" && specs && Object.keys(specs).length > 0 && (
+          <div className={styles.specsGrid}>
             {Object.entries(specs).map(([key, value]) => {
               if (!value || value === "") return null;
 
               return (
-                <div key={key} className={styles.spec}>
+                <div key={key} className={styles.specGrid}>
+                  <Text variant="xs" className={styles.specTextGrid}>
+                    {key}: {value}
+                  </Text>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* List View Specs - Detailed layout */}
+        {viewMode === "list" && specs && Object.keys(specs).length > 0 && (
+          <div className={styles.specsList}>
+            {Object.entries(specs).map(([key, value]) => {
+              if (!value || value === "") return null;
+
+              return (
+                <div key={key} className={styles.specList}>
                   <Text variant="xs" className={styles.specLabel}>
                     {key}:
                   </Text>

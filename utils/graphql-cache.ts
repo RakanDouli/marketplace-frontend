@@ -16,7 +16,16 @@ class GraphQLCache {
   private defaultTTL = 5 * 60 * 1000; // 5 minutes
 
   private createKey(query: string, variables: any = {}): string {
-    return JSON.stringify({ query: query.replace(/\s+/g, ' ').trim(), variables });
+    // Include viewType in cache key for view-specific optimization
+    const normalizedQuery = query.replace(/\s+/g, ' ').trim();
+    const keyData = { query: normalizedQuery, variables };
+
+    // Log cache key creation for debugging
+    if (variables?.filter?.viewType) {
+      console.log(`🔑 GraphQL Cache: Creating cache key with viewType: ${variables.filter.viewType}`);
+    }
+
+    return JSON.stringify(keyData);
   }
 
   private isExpired(entry: CacheEntry): boolean {
@@ -99,8 +108,7 @@ class GraphQLCache {
 
   // Clear expired entries
   cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
+    for (const [key, entry] of Array.from(this.cache.entries())) {
       if (this.isExpired(entry)) {
         this.cache.delete(key);
       }
