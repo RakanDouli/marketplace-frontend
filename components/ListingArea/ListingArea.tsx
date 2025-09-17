@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Grid3X3, List, Filter as FilterIcon } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Grid3X3, List } from "lucide-react";
 import { ListingCard, Button, Text } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -26,27 +27,13 @@ export interface ListingData {
 }
 
 export interface ListingAreaProps {
-  onCardClick?: (id: string) => void;
-  onCardLike?: (id: string, liked: boolean) => void;
-  onToggleFilters?: () => void;
-  onRemoveFilter?: (filterKey: string) => void;
-  onClearAllFilters?: () => void;
-  onPageChange?: (page: number) => void;
-  onSortChange?: (sort: SortOption) => void;
   className?: string;
 }
 
-export const ListingArea: React.FC<ListingAreaProps> = ({
-  onCardClick,
-  onCardLike,
-  onToggleFilters,
-  onRemoveFilter,
-  onClearAllFilters,
-  onPageChange,
-  onSortChange,
-  className = "",
-}) => {
+export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   const { t } = useTranslation();
+  const params = useParams();
+  const categorySlug = params?.category as string;
 
   // Get data directly from stores
   const {
@@ -56,15 +43,60 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
     setSortFilter,
     setViewType,
     fetchListings,
+    fetchListingsByCategory,
+    setPagination,
   } = useListingsStore();
 
   const viewType = useListingsViewType();
   const { activeFilters, getStoreFilters, setFilter } = useSearchStore();
   const { attributes, isLoading: countLoading } = useFiltersStore();
 
+  // Store-based handlers (previously passed as props)
+  const handleCardClick = (listingId: string) => {
+    // TODO: Navigate to listing detail page
+    console.log("Navigate to listing:", listingId);
+  };
+
+  const handleCardLike = (listingId: string, liked: boolean) => {
+    // TODO: Update user favorites
+    console.log("Toggle like:", listingId, liked);
+  };
+
+  // Filter toggle is now handled by Filter component itself (self-sufficient)
+
+  // Fetch listings when component mounts or category changes
+  useEffect(() => {
+    const fetchInitialListings = async () => {
+      console.log("🔍 ListingArea useEffect: Attempting to fetch listings", {
+        categorySlug,
+        viewType,
+        hasFunction: !!fetchListingsByCategory,
+      });
+
+      if (!categorySlug) {
+        console.log("❌ No categorySlug available");
+        return;
+      }
+
+      try {
+        // Get current filters from search store
+        const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
+        console.log("📋 Fetching listings with filters:", storeFilters);
+
+        // Fetch listings for the current category
+        await fetchListingsByCategory(categorySlug, storeFilters, viewType);
+        console.log("✅ Successfully fetched listings");
+      } catch (error) {
+        console.error("❌ Error fetching initial listings:", error);
+      }
+    };
+
+    fetchInitialListings();
+  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters]);
+
   // Sync local viewMode with store viewType for backward compatibility
   const [viewMode, setViewMode] = useState<"grid" | "list">(
-    viewType === 'detail' ? 'list' : viewType === 'list' ? 'list' : 'grid'
+    viewType === "detail" ? "list" : viewType === "list" ? "list" : "grid"
   );
 
   // Update store when viewMode changes and refetch data with appropriate view
@@ -78,7 +110,10 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   };
 
   // Filter specs based on view type and attribute flags from FiltersStore
-  const filterSpecsByViewType = (allSpecs: Record<string, any>, currentViewType: string): Record<string, any> => {
+  const filterSpecsByViewType = (
+    allSpecs: Record<string, any>,
+    currentViewType: string
+  ): Record<string, any> => {
     // If no attributes loaded yet, return all specs
     if (!attributes || attributes.length === 0) {
       return allSpecs;
@@ -89,26 +124,33 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
     // Check each spec against attribute display flags
     Object.entries(allSpecs).forEach(([specKey, specValue]) => {
       // Find the corresponding attribute definition
-      const attribute = attributes.find(attr =>
-        attr.key === specKey ||
-        attr.name === specKey ||
-        // Also check Arabic names that might be used as keys
-        (typeof specKey === 'string' && attr.name && attr.name.includes(specKey))
+      const attribute = attributes.find(
+        (attr) =>
+          attr.key === specKey ||
+          attr.name === specKey ||
+          // Also check Arabic names that might be used as keys
+          (typeof specKey === "string" &&
+            attr.name &&
+            attr.name.includes(specKey))
       );
 
       if (attribute) {
         // Check if this attribute should be shown for the current view type
-        const shouldShow = currentViewType === 'grid' ? attribute.showInGrid === true :
-                          currentViewType === 'list' ? attribute.showInList === true :
-                          currentViewType === 'detail' ? attribute.showInDetail === true :
-                          true; // Default to show if view type not recognized
+        const shouldShow =
+          currentViewType === "grid"
+            ? attribute.showInGrid === true
+            : currentViewType === "list"
+            ? attribute.showInList === true
+            : currentViewType === "detail"
+            ? attribute.showInDetail === true
+            : true; // Default to show if view type not recognized
 
         if (shouldShow) {
           filteredSpecs[specKey] = specValue;
         }
       } else {
         // If no attribute definition found, show in detail view only (be conservative)
-        if (currentViewType === 'detail') {
+        if (currentViewType === "detail") {
           filteredSpecs[specKey] = specValue;
         }
       }
@@ -140,7 +182,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
         filteredSpecsCount: Object.keys(viewFilteredSpecs).length,
         originalSpecs: Object.keys(allSpecs),
         filteredSpecs: Object.keys(viewFilteredSpecs),
-        attributesAvailable: attributes?.length || 0
+        attributesAvailable: attributes?.length || 0,
       });
     }
 
@@ -170,25 +212,38 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   const currentPage = pagination.page;
   const totalPages = Math.ceil(totalResults / pagination.limit);
 
-  // Handle sort change
-  const handleSortChange = (sort: SortOption) => {
-    if (onSortChange) {
-      // Parent page handles coordination between stores
-      onSortChange(sort);
-    } else {
-      // Fallback: Update both stores to keep them in sync
-      setFilter('sort', sort);
-      setSortFilter(sort);
+  // Handle sort change with store coordination
+  const handleSortChange = async (sort: SortOption) => {
+    if (!categorySlug) return;
+
+    setFilter("sort", sort);
+    setSortFilter(sort);
+
+    // Refetch listings with new sort
+    try {
+      const storeFilters = {
+        categoryId: categorySlug,
+        ...getStoreFilters(),
+        sort,
+      };
+      await fetchListingsByCategory(categorySlug, storeFilters, viewType);
+    } catch (error) {
+      console.error("❌ Error applying sort:", error);
     }
   };
 
-  // Handle pagination
-  const handlePageChange = (page: number) => {
-    if (onPageChange) {
-      onPageChange(page);
-    } else {
-      // Fallback behavior
-      console.log("Page change requested but no handler provided:", page);
+  // Handle pagination with store coordination
+  const handlePageChange = async (page: number) => {
+    if (!categorySlug) return;
+
+    setPagination({ page });
+
+    // Fetch listings for new page
+    try {
+      const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
+      await fetchListingsByCategory(categorySlug, storeFilters, viewType);
+    } catch (error) {
+      console.error("❌ Error loading page:", page, error);
     }
   };
 
@@ -240,11 +295,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       </div>
 
       {/* Applied Filters */}
-      <AppliedFilters
-        onRemoveFilter={onRemoveFilter}
-        onClearAllFilters={onClearAllFilters}
-        attributes={attributes}
-      />
+      <AppliedFilters />
 
       {/* Loading state */}
       {loading && (
@@ -263,9 +314,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
           <Text variant="paragraph" className={styles.emptyDescription}>
             {t("search.noResultsDescription")}
           </Text>
-          <Button variant="primary" onClick={onToggleFilters}>
-            {t("search.modifyFilters")}
-          </Button>
         </div>
       )}
 
@@ -277,8 +325,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
               key={listing.id}
               {...listing}
               viewMode={viewMode}
-              onClick={onCardClick}
-              onLike={onCardLike}
+              onClick={handleCardClick}
+              onLike={handleCardLike}
               priority={index < 4}
             />
           ))}
@@ -387,17 +435,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
           </Button>
         </div>
       )}
-
-      {/* Floating Filter Button for Mobile */}
-      <Button
-        className={styles.floatingFilterButton}
-        onClick={onToggleFilters}
-        variant="outline"
-        aria-label={t("search.filters")}
-      >
-        <FilterIcon size={24} />
-        {t("search.filters")}
-      </Button>
     </div>
   );
 };

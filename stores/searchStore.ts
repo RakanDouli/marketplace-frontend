@@ -148,7 +148,7 @@ export const useSearchStore = create<SearchStore>()(
         specKey,
         value,
         newSpecs,
-        finalFilters: newFilters
+        finalFilters: newFilters,
       });
     },
 
@@ -218,7 +218,7 @@ export const useSearchStore = create<SearchStore>()(
           console.log(`🔍 Backend conversion - Processing spec: ${key}`, {
             value,
             isArray: Array.isArray(value),
-            valueType: typeof value
+            valueType: typeof value,
           });
 
           // Store values directly - no complex object handling needed

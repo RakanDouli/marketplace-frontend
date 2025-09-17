@@ -102,7 +102,17 @@
     }
   }
 }
+.floatingFilterButton {
+  position: relative;
+  display: none;
+  margin-right: 0;
 
+  top: calc($header-height);
+  z-index: $z-dropdown;
+  @media (max-width: $breakpoint-lg) {
+    display: flex;
+  }
+}
 .filterContent {
   flex: 1;
   display: flex;

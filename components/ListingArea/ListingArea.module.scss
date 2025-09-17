@@ -192,17 +192,6 @@
   padding: $space-lg 0;
 }
 
-.floatingFilterButton {
-  position: fixed;
-  display: none;
-  margin-right: 0;
-  top: calc($header-height);
-  z-index: $z-dropdown;
-  @media (max-width: $breakpoint-lg) {
-    display: flex;
-  }
-}
-
 // Responsive adjustments
 @media (max-width: $breakpoint-md) {
   .header {

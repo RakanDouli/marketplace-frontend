@@ -1,6 +1,11 @@
 import { create } from "zustand";
-import type { Attribute, AttributeOption } from "../types/listing";
-import { cachedGraphQLRequest } from "../utils/graphql-cache";
+import type { Attribute, AttributeOption } from "../../types/listing";
+import { cachedGraphQLRequest } from "../../utils/graphql-cache";
+import {
+  GET_CATEGORY_ATTRIBUTES_QUERY,
+  CATEGORIES_QUERY,
+  GET_LISTING_AGGREGATIONS_QUERY,
+} from "./filtersStore.gql";
 
 // Filter-specific types
 interface AttributeOptionWithCount extends AttributeOption {
@@ -107,22 +112,7 @@ async function getListingAggregations(
     additionalFilter
   );
 
-  const query = `
-    query GetListingAggregations($filter: ListingFilterInput) {
-      listingsAggregations(filter: $filter) {
-        totalResults
-        attributes {
-          field
-          totalCount
-          options {
-            value
-            count
-            key
-          }
-        }
-      }
-    }
-  `;
+  const query = GET_LISTING_AGGREGATIONS_QUERY;
 
   const variables: any = {};
   if (categorySlug || additionalFilter) {
@@ -132,7 +122,9 @@ async function getListingAggregations(
     };
   }
 
-  const response = await cachedGraphQLRequest(query, variables, { ttl: 2 * 60 * 1000 }); // Cache aggregations for 2 minutes
+  const response = await cachedGraphQLRequest(query, variables, {
+    ttl: 2 * 60 * 1000,
+  }); // Cache aggregations for 2 minutes
   const aggregations = response.listingsAggregations;
 
   if (!aggregations) {
@@ -170,59 +162,24 @@ async function getListingAggregations(
 
 // Get all filter data for a category
 async function getAllFilterData(categorySlug: string) {
-  // GraphQL query to get dynamic category attributes
-  const GET_CATEGORY_ATTRIBUTES_QUERY = `
-    query GetAttributesByCategorySlug($categorySlug: String!) {
-      getAttributesByCategorySlug(categorySlug: $categorySlug) {
-        id
-        key
-        name
-        type
-        validation
-        sortOrder
-        group
-        isActive
-        showInGrid
-        showInList
-        showInDetail
-        showInFilter
-        options {
-          id
-          key
-          value
-          sortOrder
-          isActive
-          showInGrid
-          showInList
-          showInDetail
-          showInFilter
-        }
-      }
-    }
-  `;
-
-  // First, get the category by slug to get the categoryId
-  const CATEGORIES_QUERY = `
-    query GetCategories {
-      categories {
-        id
-        name
-        slug
-        isActive
-      }
-    }
-  `;
-
-  const categoriesData = await cachedGraphQLRequest(CATEGORIES_QUERY, {}, { ttl: 10 * 60 * 1000 });
+  const categoriesData = await cachedGraphQLRequest(
+    CATEGORIES_QUERY,
+    {},
+    { ttl: 10 * 60 * 1000 }
+  );
   const category = (categoriesData.categories || []).find(
     (cat: any) => cat.slug === categorySlug
   );
   const categoryId = category?.id;
 
   // Use GraphQL to get dynamic category attributes directly by slug with caching
-  const data = await cachedGraphQLRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
-    categorySlug,
-  }, { ttl: 5 * 60 * 1000 }); // Cache for 5 minutes
+  const data = await cachedGraphQLRequest(
+    GET_CATEGORY_ATTRIBUTES_QUERY,
+    {
+      categorySlug,
+    },
+    { ttl: 5 * 60 * 1000 }
+  ); // Cache for 5 minutes
 
   const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
 
@@ -448,39 +405,14 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
     try {
       // Get fresh attribute definitions (unchanged)
-      const GET_CATEGORY_ATTRIBUTES_QUERY = `
-        query GetAttributesByCategorySlug($categorySlug: String!) {
-          getAttributesByCategorySlug(categorySlug: $categorySlug) {
-            id
-            key
-            name
-            type
-            validation
-            sortOrder
-            group
-            isActive
-            showInGrid
-            showInList
-            showInDetail
-            showInFilter
-            options {
-              id
-              key
-              value
-              sortOrder
-              isActive
-              showInGrid
-              showInList
-              showInDetail
-              showInFilter
-            }
-          }
-        }
-      `;
 
-      const data = await cachedGraphQLRequest(GET_CATEGORY_ATTRIBUTES_QUERY, {
-        categorySlug,
-      }, { ttl: 5 * 60 * 1000 }); // Cache category attributes for 5 minutes
+      const data = await cachedGraphQLRequest(
+        GET_CATEGORY_ATTRIBUTES_QUERY,
+        {
+          categorySlug,
+        },
+        { ttl: 5 * 60 * 1000 }
+      ); // Cache category attributes for 5 minutes
       const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
 
       // 🎯 KEY CASCADING LOGIC: Get aggregations with applied filters

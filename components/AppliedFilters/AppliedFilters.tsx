@@ -1,34 +1,61 @@
 "use client";
 
 import { useTranslation } from "../../hooks/useTranslation";
-import { useSearchStore } from "../../stores";
+import { useSearchStore, useFiltersStore, useListingsStore } from "../../stores";
 import { Button } from "../slices";
 import { Text } from "../slices";
 import styles from "./AppliedFilters.module.scss";
 
-export interface AppliedFiltersProps {
-  onRemoveFilter?: (filterKey: string) => void;
-  onClearAllFilters?: () => void;
-  attributes?: Array<{
-    key: string;
-    name: string;
-    type: string;
-    options?: Array<{
-      key: string;
-      value: string;
-    }>;
-  }>;
-}
-
-export function AppliedFilters({
-  onRemoveFilter,
-  onClearAllFilters,
-  attributes = [],
-}: AppliedFiltersProps) {
+export function AppliedFilters() {
   const { t } = useTranslation();
 
-  // Get filters from searchStore
-  const { activeFilters: filters } = useSearchStore();
+  // Get filters and handlers from stores
+  const { activeFilters: filters, removeFilter, removeSpecFilter, clearAllFilters, getStoreFilters, getBackendFilters } = useSearchStore();
+  const { attributes, updateFiltersWithCascading, currentCategorySlug } = useFiltersStore();
+  const { fetchListingsByCategory, setPagination } = useListingsStore();
+
+  // Handle filter removal with store coordination
+  const handleRemoveFilter = async (filterKey: string) => {
+    if (!currentCategorySlug) return;
+
+    // Remove the specific filter using searchStore methods
+    if (filterKey.startsWith("specs.")) {
+      const specKey = filterKey.replace("specs.", "");
+      removeSpecFilter(specKey);
+    } else {
+      removeFilter(filterKey as any);
+    }
+
+    // Update cascading filters and refresh listings
+    try {
+      const backendFilters = { categoryId: currentCategorySlug, ...getBackendFilters() };
+      await updateFiltersWithCascading(currentCategorySlug, backendFilters);
+
+      const storeFilters = { categoryId: currentCategorySlug, ...getStoreFilters() };
+      setPagination({ page: 1 });
+      await fetchListingsByCategory(currentCategorySlug, storeFilters, "grid");
+    } catch (error) {
+      console.error("❌ Error removing filter:", error);
+    }
+  };
+
+  // Handle clear all filters with store coordination
+  const handleClearAllFilters = async () => {
+    if (!currentCategorySlug) return;
+
+    clearAllFilters();
+
+    try {
+      const backendFilters = { categoryId: currentCategorySlug, ...getBackendFilters() };
+      await updateFiltersWithCascading(currentCategorySlug, backendFilters);
+
+      const storeFilters = { categoryId: currentCategorySlug, ...getStoreFilters() };
+      setPagination({ page: 1 });
+      await fetchListingsByCategory(currentCategorySlug, storeFilters, "grid");
+    } catch (error) {
+      console.error("❌ Error clearing filters:", error);
+    }
+  };
 
   // console.log("🏷️ AppliedFilters: Using filters from searchStore", filters);
 
@@ -202,7 +229,7 @@ export function AppliedFilters({
               {filter.value}
             </Text>
             <button
-              onClick={() => onRemoveFilter?.(filter.key)}
+              onClick={() => handleRemoveFilter(filter.key)}
               className={styles.removeButton}
               aria-label={t("search.removeFilter")}
             >
@@ -213,7 +240,7 @@ export function AppliedFilters({
       </div>
       {/* <div className={styles.header}> */}
       {activeFilters.length > 0 && (
-        <span onClick={onClearAllFilters} className={styles.clearAll}>
+        <span onClick={handleClearAllFilters} className={styles.clearAll}>
           {t("search.clearAllFilters")}
         </span>
       )}
