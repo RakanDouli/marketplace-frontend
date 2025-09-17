@@ -1,15 +1,46 @@
 @import "../../styles/variables";
 .filterAside {
   background-color: $bg;
+  // Hide close button on desktop
+  z-index: $z-modal;
+  overflow: hidden;
+  // @media (max-width: $breakpoint-md) {
+  //   bottom: $header-height-mobile;
+  //   top: 0;
+  //   background-color: red;
+  //   height: calc(100% - #{$header-height-mobile});
+  // }
+}
+.appliedFilters {
+  // background-color: red !important;
+  padding: $space-md 0 $space-sm 0;
+  border-bottom: 1px solid $border;
+  display: none;
+  @media (max-width: $breakpoint-lg) {
+    display: block;
+  }
 }
 .header {
+  margin-bottom: $space-lg;
+  @media (max-width: $breakpoint-lg) {
+    margin-bottom: $space-md;
+  }
+  // background-color: blue !important;
+}
+
+.headertop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: $space-md;
   border-bottom: 1px solid $border;
-  margin-bottom: $space-lg;
-
+  padding: 0 0 $space-md 0;
+  .resultsCount {
+    display: none;
+    margin-bottom: 0;
+    @media (max-width: $breakpoint-lg) {
+      display: block;
+    }
+  }
   .headerContent {
     display: flex;
     align-items: center;
@@ -78,7 +109,8 @@
   flex-direction: column;
   gap: $space-sm;
   margin-bottom: $space-lg;
-
+  height: 100%;
+  overflow-y: scroll;
   // Add padding on mobile to account for fixed header
   @media (max-width: 767px) {
     padding: $space-md;

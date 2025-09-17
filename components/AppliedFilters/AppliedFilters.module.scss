@@ -1,15 +1,15 @@
 @import "../../styles/variables.scss";
 
 .appliedFilters {
-  background: $surface;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: $space-sm;
   gap: $space-md;
 
-  @media (max-width: $breakpoint-sm) {
-    flex-direction: column;
+  @media (max-width: $breakpoint-md) {
+    flex-direction: row;
+    justify-content: normal;
     align-items: flex-start;
     gap: $space-sm;
   }

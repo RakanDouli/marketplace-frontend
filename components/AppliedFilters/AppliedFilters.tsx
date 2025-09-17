@@ -176,10 +176,10 @@ export function AppliedFilters({
   // Add sort filter (show if any sort is selected)
   if (filters.sort) {
     const sortLabels: Record<string, string> = {
-      "createdAt_asc": t("search.sortByOldest"),
-      "createdAt_desc": t("search.sortByNewest"),
-      "priceMinor_asc": t("search.sortByPriceLow"),
-      "priceMinor_desc": t("search.sortByPriceHigh"),
+      createdAt_asc: t("search.sortByOldest"),
+      createdAt_desc: t("search.sortByNewest"),
+      priceMinor_asc: t("search.sortByPriceLow"),
+      priceMinor_desc: t("search.sortByPriceHigh"),
     };
 
     activeFilters.push({

@@ -46,15 +46,12 @@
     align-items: stretch;
     min-height: 200px;
     padding: $space-sm;
+    @media (max-width: $breakpoint-md) {
+      width: 100%;
+      flex-direction: column;
+    }
     .imageContainer {
-      width: 280px;
-      min-width: 280px;
       position: relative;
-
-      @media (max-width: $breakpoint-md) {
-        width: 200px;
-        min-width: 200px;
-      }
     }
 
     .content {
@@ -96,8 +93,8 @@
   background-color: $surface;
   border: none;
   border-radius: $radius-full;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,14 +102,17 @@
   color: $text-muted;
   transition: all 0.2s ease;
   backdrop-filter: blur(4px);
-
+  svg {
+    width: 20px;
+    height: 20px;
+  }
   &:hover {
     background-color: $bg;
     transform: scale(1.1);
   }
 
   &.liked {
-    color: $error;
+    color: var(--warning);
     background-color: $bg;
   }
 }
@@ -122,8 +122,8 @@
   bottom: $space-sm;
   right: $space-sm;
   background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: $space-xs $space-sm;
+  color: $text-light;
+  padding: 0 $space-sm;
   border-radius: $radius-md;
   font-size: $font-xs;
   backdrop-filter: blur(4px);

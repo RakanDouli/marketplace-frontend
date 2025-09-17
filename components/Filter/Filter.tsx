@@ -26,6 +26,7 @@ import {
   type Currency,
 } from "../../utils/currency";
 import styles from "./Filter.module.scss";
+import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
 
 // Car body type icons mapping with custom SVG icons
 const getCarBodyTypeIcon = (key: string) => {
@@ -82,6 +83,8 @@ export interface FilterProps {
   categorySlug?: string;
   onApplyFilters?: (filters: FilterValues) => void;
   initialValues?: FilterValues;
+  onRemoveFilter?: (filterKey: string) => void;
+  onClearAllFilters?: () => void;
 }
 
 export const Filter: React.FC<FilterProps> = ({
@@ -90,6 +93,8 @@ export const Filter: React.FC<FilterProps> = ({
   className = "",
   categorySlug,
   onApplyFilters,
+  onRemoveFilter,
+  onClearAllFilters,
   initialValues = {},
 }) => {
   const { t } = useTranslation();
@@ -145,7 +150,6 @@ export const Filter: React.FC<FilterProps> = ({
 
     return local.min !== appliedMin || local.max !== appliedMax;
   };
-
 
   // Initialize filters from props if provided (only once)
   const hasInitialized = React.useRef(false);
@@ -221,7 +225,7 @@ export const Filter: React.FC<FilterProps> = ({
     fetchFilterData,
     fetchCities,
   } = useFiltersStore();
-
+  const { pagination } = useListingsStore();
   // Get listings loading state for apply buttons
   const { isLoading: listingsLoading } = useListingsStore();
 
@@ -289,45 +293,63 @@ export const Filter: React.FC<FilterProps> = ({
     onApplyFilters?.(storeFilters);
   };
 
+  const totalResults = pagination.total;
+
   return (
     <Aside isOpen={isOpen} className={`${styles.filterAside} ${className}`}>
       {/* Filter Header */}
       <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <Text variant="small" className={styles.title}>
-            التصنيفات
-          </Text>
-          <FilterIcon size={20} />
+        <div className={styles.headertop}>
+          <div className={styles.headerContent}>
+            <Text variant="small" className={styles.title}>
+              التصنيفات
+            </Text>
+            <FilterIcon size={20} />
+          </div>
+          {totalResults !== undefined && (
+            <Text variant="paragraph" className={styles.resultsCount}>
+              {listingsLoading ? (
+                <Loading />
+              ) : (
+                `${totalResults} ${t("search.totalResults")}`
+              )}
+            </Text>
+          )}
+          <div className={styles.headerActions}>
+            {/* Reset button */}
+            <button
+              className={styles.resetButton}
+              onClick={handleClearAll}
+              aria-label={t("search.clear")}
+              title={t("search.clear")}
+            >
+              <RotateCcw size={18} />
+            </button>
+
+            {/* Close button for mobile */}
+            <button
+              className={styles.closeButton}
+              onClick={onClose}
+              aria-label="Close filters"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
-
-        <div className={styles.headerActions}>
-          {/* Reset button */}
-          <button
-            className={styles.resetButton}
-            onClick={handleClearAll}
-            aria-label={t("search.clear")}
-            title={t("search.clear")}
-          >
-            <RotateCcw size={18} />
-          </button>
-
-          {/* Close button for mobile */}
-          <button
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label="Close filters"
-          >
-            <X size={20} />
-          </button>
+        <div className={styles.appliedFilters}>
+          <AppliedFilters
+            onRemoveFilter={onRemoveFilter}
+            onClearAllFilters={onClearAllFilters}
+            attributes={attributes}
+          />
         </div>
       </div>
-
       {/* Filter Content */}
       <div className={styles.filterContent}>
         {filtersLoading && (
           <div className={styles.loading}>
             <Loading type="svg" />
-            <Text variant="small" >{t("common.loading")}</Text>
+            <Text variant="small">{t("common.loading")}</Text>
           </div>
         )}
         {!filtersLoading && (
@@ -362,18 +384,37 @@ export const Filter: React.FC<FilterProps> = ({
                                 <div className={styles.selectionCounter}>
                                   <Text variant="xs">
                                     {(() => {
-                                      const currentSpec = activeFilters.specs?.[attribute.key];
-                                      const selectedCount = Array.isArray(currentSpec) ? currentSpec.length : (currentSpec ? 1 : 0);
+                                      const currentSpec =
+                                        activeFilters.specs?.[attribute.key];
+                                      const selectedCount = Array.isArray(
+                                        currentSpec
+                                      )
+                                        ? currentSpec.length
+                                        : currentSpec
+                                        ? 1
+                                        : 0;
                                       return `${selectedCount}/${attribute.maxSelections} selected`;
                                     })()}
                                   </Text>
                                 </div>
                               )}
                               {attribute.processedOptions.map((option) => {
-                                const currentSpec = activeFilters.specs?.[attribute.key];
-                                const currentSelected = Array.isArray(currentSpec) ? currentSpec : (typeof currentSpec === "string" ? [currentSpec] : []);
-                                const isSelected = currentSelected.includes(option.key);
-                                const isAtLimit = attribute.maxSelections && currentSelected.length >= attribute.maxSelections;
+                                const currentSpec =
+                                  activeFilters.specs?.[attribute.key];
+                                const currentSelected = Array.isArray(
+                                  currentSpec
+                                )
+                                  ? currentSpec
+                                  : typeof currentSpec === "string"
+                                  ? [currentSpec]
+                                  : [];
+                                const isSelected = currentSelected.includes(
+                                  option.key
+                                );
+                                const isAtLimit =
+                                  attribute.maxSelections &&
+                                  currentSelected.length >=
+                                    attribute.maxSelections;
                                 const shouldDisable = isAtLimit && !isSelected;
 
                                 return (
@@ -389,24 +430,28 @@ export const Filter: React.FC<FilterProps> = ({
 
                                       // Toggle selection
                                       let newSelected: string[] = isSelected
-                                        ? currentSelected.filter((key) => key !== option.key)
+                                        ? currentSelected.filter(
+                                            (key) => key !== option.key
+                                          )
                                         : [...currentSelected, option.key];
 
                                       handleSpecChange(
                                         attribute.key,
-                                        newSelected.length > 0 ? newSelected : undefined
+                                        newSelected.length > 0
+                                          ? newSelected
+                                          : undefined
                                       );
                                     }}
-                                >
-                                  {getCarBodyTypeIcon(option.key)}
-                                  <span className={styles.optionLabel}>
-                                    {option.value}
-                                    {option.count !== undefined && (
-                                      <span className={styles.optionCount}>
-                                        ({option.count})
-                                      </span>
-                                    )}
-                                  </span>
+                                  >
+                                    {getCarBodyTypeIcon(option.key)}
+                                    <span className={styles.optionLabel}>
+                                      {option.value}
+                                      {option.count !== undefined && (
+                                        <span className={styles.optionCount}>
+                                          ({option.count})
+                                        </span>
+                                      )}
+                                    </span>
                                   </button>
                                 );
                               })}
@@ -419,8 +464,15 @@ export const Filter: React.FC<FilterProps> = ({
                                 <div className={styles.selectionCounter}>
                                   <Text variant="xs">
                                     {(() => {
-                                      const currentSpec = activeFilters.specs?.[attribute.key];
-                                      const selectedCount = Array.isArray(currentSpec) ? currentSpec.length : (currentSpec ? 1 : 0);
+                                      const currentSpec =
+                                        activeFilters.specs?.[attribute.key];
+                                      const selectedCount = Array.isArray(
+                                        currentSpec
+                                      )
+                                        ? currentSpec.length
+                                        : currentSpec
+                                        ? 1
+                                        : 0;
                                       return `${selectedCount}/${attribute.maxSelections} selected`;
                                     })()}
                                   </Text>
@@ -428,7 +480,8 @@ export const Filter: React.FC<FilterProps> = ({
                               )}
 
                               {attribute.processedOptions.map((option) => {
-                                const currentSpec = activeFilters.specs?.[attribute.key];
+                                const currentSpec =
+                                  activeFilters.specs?.[attribute.key];
                                 let currentSelected: string[];
 
                                 // Handle both array and string formats from store
@@ -440,14 +493,21 @@ export const Filter: React.FC<FilterProps> = ({
                                   currentSelected = [];
                                 }
 
-                                const isSelected = currentSelected.includes(option.key);
-                                const isAtLimit = attribute.maxSelections && currentSelected.length >= attribute.maxSelections;
+                                const isSelected = currentSelected.includes(
+                                  option.key
+                                );
+                                const isAtLimit =
+                                  attribute.maxSelections &&
+                                  currentSelected.length >=
+                                    attribute.maxSelections;
                                 const shouldDisable = isAtLimit && !isSelected;
 
                                 return (
                                   <label
                                     key={option.key}
-                                    className={`${styles.checkboxOption} ${shouldDisable ? styles.disabled : ""}`}
+                                    className={`${styles.checkboxOption} ${
+                                      shouldDisable ? styles.disabled : ""
+                                    }`}
                                   >
                                     <input
                                       type="checkbox"
@@ -456,13 +516,18 @@ export const Filter: React.FC<FilterProps> = ({
                                       onChange={(e) => {
                                         if (shouldDisable) return;
 
-                                        let newSelected: string[] = e.target.checked
+                                        let newSelected: string[] = e.target
+                                          .checked
                                           ? [...currentSelected, option.key]
-                                          : currentSelected.filter((key) => key !== option.key);
+                                          : currentSelected.filter(
+                                              (key) => key !== option.key
+                                            );
 
                                         handleSpecChange(
                                           attribute.key,
-                                          newSelected.length > 0 ? newSelected : undefined
+                                          newSelected.length > 0
+                                            ? newSelected
+                                            : undefined
                                         );
                                       }}
                                     />

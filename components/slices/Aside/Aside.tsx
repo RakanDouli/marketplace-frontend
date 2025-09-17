@@ -6,6 +6,7 @@ export interface AsideProps {
   isOpen?: boolean;
   position?: "left" | "right";
   className?: string;
+  onClose?: () => void;
 }
 
 export const Aside: React.FC<AsideProps> = ({
@@ -13,11 +14,25 @@ export const Aside: React.FC<AsideProps> = ({
   isOpen = true,
   position = "left",
   className = "",
+  onClose,
 }) => {
   return (
     <>
       {/* Overlay for mobile when aside is open */}
-      {isOpen && <div className={styles.overlay} />}
+      {isOpen && (
+        <div
+          className={styles.overlay}
+          onClick={onClose}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && onClose) {
+              onClose();
+            }
+          }}
+          aria-label="Close sidebar"
+        />
+      )}
 
       {/* Aside panel */}
       <aside

@@ -71,9 +71,13 @@
   transform: translateX(-50%);
   background: $bg-dark;
   color: $text-light;
-  padding: 4px 8px;
+  padding: $space-xs;
   border-radius: $radius-md;
   z-index: 2;
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 // .dots {

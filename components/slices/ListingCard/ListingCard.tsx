@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Heart, MapPin, User } from "lucide-react";
+import { Heart, MapPin, Star, User } from "lucide-react";
 import { ImageGallery, Text } from "../";
 import styles from "./ListingCard.module.scss";
 
@@ -88,7 +88,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           onClick={handleLike}
           aria-label={liked ? "Unlike" : "Like"}
         >
-          <Heart size={20} fill={liked ? "currentColor" : "none"} />
+          <Star size={20} fill={liked ? "currentColor" : "none"} />
         </button>
       </div>
 

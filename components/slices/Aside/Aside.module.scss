@@ -12,12 +12,12 @@
     position: fixed;
     top: $header-height;
     left: -100%;
-    width: calc(100% - #{$space-md * 2});
+    // width: calc(100% - #{$space-md * 2});
     height: calc(100% - #{$header-height});
-    margin: 0 $space-md;
+    // margin: 0 $space-md;
     z-index: $z-sidebar;
     overflow-y: auto;
-
+    width: 50%;
     &.open {
       left: 0;
     }
@@ -25,6 +25,11 @@
     &.closed {
       left: -100%;
     }
+  }
+  @media (max-width: $breakpoint-md) {
+    top: $header-height-mobile;
+    height: calc(100% - #{$header-height-mobile});
+    width: 100%;
   }
 }
 

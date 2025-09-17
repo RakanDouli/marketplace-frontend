@@ -18,18 +18,25 @@
   gap: $space-md;
   padding: $space-sm 0;
   border-bottom: 1px solid $border;
-
   .headerLeft {
     display: flex;
     align-items: center;
     gap: $space-md;
     flex-wrap: wrap;
+    @media (max-width: $breakpoint-lg) {
+      display: none;
+    }
   }
 
   .headerRight {
     display: flex;
     align-items: center;
     gap: $space-md;
+
+    @media (max-width: $breakpoint-lg) {
+      width: 100%;
+      justify-content: space-between;
+    }
   }
 }
 
@@ -58,7 +65,6 @@
     color: $text;
     &:hover {
       background-color: $bg;
-      color: $text;
     }
 
     &.active {
@@ -191,6 +197,7 @@
   display: none;
   margin-right: 0;
   top: calc($header-height);
+  z-index: $z-dropdown;
   @media (max-width: $breakpoint-lg) {
     display: flex;
   }
