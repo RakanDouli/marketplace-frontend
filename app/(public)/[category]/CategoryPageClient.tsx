@@ -43,9 +43,6 @@ export default function CategoryPageClient({
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
-  const [currentSort, setCurrentSort] = useState<SortOption | undefined>(
-    undefined
-  );
   const [isSorting, setIsSorting] = useState(false);
 
   // Use centralized search store instead of local filter state
@@ -157,6 +154,17 @@ export default function CategoryPageClient({
       setFromUrlParams(urlParams);
     }
   }, [searchParams, setFromUrlParams]);
+
+  // Initialize currentSort from SearchStore after store is loaded
+  const [currentSort, setCurrentSort] = useState<SortOption | undefined>(undefined);
+
+  // Sync local sort state with SearchStore
+  useEffect(() => {
+    const sortFromStore = activeFilters.sort as SortOption;
+    if (sortFromStore !== currentSort) {
+      setCurrentSort(sortFromStore || undefined);
+    }
+  }, [activeFilters.sort]);
 
   // Memoize parsed filters to prevent unnecessary recalculations
   const parsedFilters = useMemo(
@@ -391,7 +399,11 @@ export default function CategoryPageClient({
     setIsSorting(true);
     console.log("Sort changed to:", sort);
 
-    // Set sort in store and refetch listings
+    // Update SearchStore with the sort to keep stores in sync
+    const { setFilter } = useSearchStore.getState();
+    setFilter('sort', sort);
+
+    // Also set in ListingsStore
     setSortFilter(sort);
 
     if (currentCategory) {

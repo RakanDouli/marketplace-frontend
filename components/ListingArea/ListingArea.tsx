@@ -59,7 +59,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   } = useListingsStore();
 
   const viewType = useListingsViewType();
-  const { activeFilters, getStoreFilters } = useSearchStore();
+  const { activeFilters, getStoreFilters, setFilter } = useSearchStore();
   const { attributes, isLoading: countLoading } = useFiltersStore();
 
   // Sync local viewMode with store viewType for backward compatibility
@@ -162,8 +162,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
     };
   });
 
-  // Current sort from active filters or default
-  const currentSort = (activeFilters.sort as SortOption) || "createdAt_desc";
+  // Current sort from active filters or default to empty (shows disabled placeholder)
+  const currentSort = (activeFilters.sort as SortOption) || "";
 
   // Results count and pagination calculations
   const totalResults = pagination.total;
@@ -173,9 +173,11 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
   // Handle sort change
   const handleSortChange = (sort: SortOption) => {
     if (onSortChange) {
+      // Parent page handles coordination between stores
       onSortChange(sort);
     } else {
-      // Fallback to store method if no handler provided
+      // Fallback: Update both stores to keep them in sync
+      setFilter('sort', sort);
       setSortFilter(sort);
     }
   };

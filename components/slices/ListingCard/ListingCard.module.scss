@@ -52,6 +52,10 @@
     }
     .imageContainer {
       position: relative;
+      width: calc(100% / 2.5);
+      @media (max-width: $breakpoint-md) {
+        width: 100%;
+      }
     }
 
     .content {

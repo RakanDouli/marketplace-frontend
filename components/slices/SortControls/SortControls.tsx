@@ -10,14 +10,15 @@ export type SortOption =
   | "priceMinor_desc";
 
 export interface SortControlsProps {
-  currentSort: SortOption;
+  currentSort: SortOption | "";
   onSortChange: (sort: SortOption) => void;
 }
 
 export function SortControls({ currentSort, onSortChange }: SortControlsProps) {
   const { t } = useTranslation();
 
-  const sortOptions: Array<{ value: SortOption; label: string }> = [
+  const sortOptions: Array<{ value: SortOption | ""; label: string; disabled?: boolean }> = [
+    { value: "", label: t("search.sortBy"), disabled: true },
     { value: "createdAt_desc", label: t("search.sortByNewest") },
     { value: "createdAt_asc", label: t("search.sortByOldest") },
     { value: "priceMinor_asc", label: t("search.sortByPriceLow") },
@@ -26,17 +27,19 @@ export function SortControls({ currentSort, onSortChange }: SortControlsProps) {
 
   return (
     <div className={styles.sortControls}>
-      <label htmlFor="sort-select" className={styles.label}>
-        {t("search.sortBy")}
-      </label>
       <select
         id="sort-select"
         value={currentSort}
-        onChange={(e) => onSortChange(e.target.value as SortOption)}
+        onChange={(e) => {
+          const value = e.target.value;
+          if (value !== "") {
+            onSortChange(value as SortOption);
+          }
+        }}
         className={styles.select}
       >
         {sortOptions.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
         ))}
