@@ -16,7 +16,8 @@ export interface Listing {
   status: 'ACTIVE' | 'SOLD' | 'EXPIRED' | 'DRAFT';
   allowBidding: boolean;
   biddingStartPrice?: number;
-  specs?: Record<string, any>; // Dynamic attribute specs
+  specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
+  specsDisplay?: Record<string, any>; // Display specs (Arabic keys and values for frontend display)
   imageKeys?: string[];
   sellerLabel?: string;
   sellerBadge?: string;

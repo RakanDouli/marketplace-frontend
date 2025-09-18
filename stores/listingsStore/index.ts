@@ -234,7 +234,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
       const listings: Listing[] = (data.listingsSearch || []).map(
         (item: any) => {
-          // Parse specs JSON string from backend
+          // Parse specs JSON string from backend (English keys for backend processing)
           let specs = {};
           try {
             specs = item.specs ? JSON.parse(item.specs) : {};
@@ -242,6 +242,19 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             console.warn("Failed to parse specs JSON:", item.specs, error);
             specs = {};
           }
+
+          // Parse specsDisplay JSON string from backend (Arabic keys and values for display)
+          let specsDisplay = {};
+          try {
+            specsDisplay = item.specsDisplay ? JSON.parse(item.specsDisplay) : {};
+          } catch (error) {
+            console.warn("Failed to parse specsDisplay JSON:", item.specsDisplay, error);
+            specsDisplay = {};
+          }
+
+          // Extract location from specs for backward compatibility
+          const location = specs.location || "";
+          const city = specs.location || item.city || "";
 
           return {
             id: item.id,
@@ -251,10 +264,11 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             prices: item.prices || [
               { currency: "USD", value: (item.priceMinor / 100).toString() },
             ], // Use backend prices or create from priceMinor
-            city: item.city || "",
+            city, // Now comes from specs.location
             status: item.status as any,
             allowBidding: false, // Default - backend should provide this
-            specs, // Now contains real specs data from backend!
+            specs, // English keys for backend processing and filtering
+            specsDisplay, // Arabic keys and values for frontend display
             imageKeys: item.imageKeys || [], // Store raw keys, optimize per usage
             sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
             createdAt: item.createdAt,

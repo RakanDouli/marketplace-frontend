@@ -153,9 +153,11 @@ async function getListingAggregations(
     });
   });
 
-  // Extract provinces and cities from aggregations
-  const provinces = (aggregations.provinces || []).map((p: any) => p.value);
-  const cities = (aggregations.cities || []).map((c: any) => c.value);
+  // Provinces are now handled through global attributes - no extraction needed
+  const provinces: string[] = [];
+  const cities: string[] = [];
+
+  console.log("🏛️ Location now handled through global attributes - no provinces extraction needed");
 
   // Return attributes, provinces, and cities
   return {
@@ -246,7 +248,7 @@ async function getAllFilterData(categorySlug: string) {
   return {
     attributes: attributesWithCounts,
     sellerTypes: [], // Will be populated from aggregations.sellerTypes
-    provinces: aggregations.provinces || [], // Provinces from aggregations
+    provinces: aggregations.provinces || [], // Provinces from aggregations (already processed as strings)
     totalResults: aggregations.rawAggregations?.totalResults || 0, // Include totalResults from rawAggregations
   };
 }
@@ -361,9 +363,10 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         },
       };
 
+      console.log("🏛️ Location handled through global attributes - no separate provinces array");
       set({
         attributes: filterData.attributes,
-        provinces: filterData.provinces,
+        provinces: [], // Empty - location handled through global attributes
         totalResults: filterData.totalResults || 0, // Store totalResults from getAllFilterData
         currentCategorySlug: categorySlug,
         categoryCache: newCache,

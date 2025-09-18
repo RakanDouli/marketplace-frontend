@@ -301,7 +301,9 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
       const local = localRangeInputs[attributeKey] || { min: "", max: "" };
       const minValue = local.min ? Number(local.min) : null;
       const maxValue = local.max ? Number(local.max) : null;
-      const newValue = [minValue, maxValue].filter((v) => v !== null) as number[];
+      const newValue = [minValue, maxValue].filter(
+        (v) => v !== null
+      ) as number[];
 
       if (newValue.length > 0) {
         setSpecFilter(attributeKey, newValue);
@@ -726,7 +728,9 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                             size="sm"
                             loading={listingsLoading}
                             disabled={!hasRangeChanges(attribute.key)}
-                            onClick={() => handleApplyRangeFilter(attribute.key)}
+                            onClick={() =>
+                              handleApplyRangeFilter(attribute.key)
+                            }
                             className={styles.applyButton}
                           >
                             {t("common.apply")}
@@ -807,7 +811,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                 </div>
               </div>
 
-              {/* Seller Type */}
+              {/* Seller Type
               <div className={styles.filterSection}>
                 <Text variant="small" className={styles.sectionTitle}>
                   {t("search.sellerType")}
@@ -829,50 +833,52 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                   ]}
                   size="sm"
                 />
-              </div>
+              </div> */}
 
-              {/* Location */}
-              {provinces.length > 0 && (
-                <div className={styles.filterSection}>
-                  <Text variant="small" className={styles.sectionTitle}>
-                    {t("search.location")}
-                  </Text>
-                  <Input
-                    type="select"
-                    value={activeFilters.province || ""}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "province",
-                        e.target.value || undefined
-                      )
-                    }
-                    options={[
-                      { value: "", label: t("search.selectProvince") },
-                      ...provinces.map((province) => ({
-                        value: province,
-                        label: province,
-                      })),
-                    ]}
-                  />
+              {/* Location - Now handled through global attributes */}
+              {(() => {
+                // Find location attribute in global attributes
+                const locationAttr = attributes.find(
+                  (attr) => attr.key === "location"
+                );
 
-                  {activeFilters.province && cities.length > 0 && (
+                if (
+                  !locationAttr ||
+                  !locationAttr.processedOptions ||
+                  locationAttr.processedOptions.length === 0
+                ) {
+                  return null;
+                }
+
+                return (
+                  <div className={styles.filterSection}>
+                    <Text variant="small" className={styles.sectionTitle}>
+                      {locationAttr.name} {/* Use Arabic name from attribute */}
+                    </Text>
                     <Input
                       type="select"
-                      value={activeFilters.city || ""}
+                      value={activeFilters.province || ""}
                       onChange={(e) =>
-                        handleFilterChange("city", e.target.value || undefined)
+                        handleFilterChange(
+                          "province",
+                          e.target.value || undefined
+                        )
                       }
                       options={[
-                        { value: "", label: t("search.selectCity") },
-                        ...cities.map((city) => ({
-                          value: city,
-                          label: city,
+                        { value: "", label: t("search.selectProvince") },
+                        ...locationAttr.processedOptions.map((option) => ({
+                          value: option.key,
+                          label: `${option.value}${
+                            option.count !== undefined
+                              ? ` (${option.count})`
+                              : ""
+                          }`,
                         })),
                       ]}
                     />
-                  )}
-                </div>
-              )}
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>

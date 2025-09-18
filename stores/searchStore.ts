@@ -15,10 +15,10 @@ export interface SearchFilters {
   priceMaxMinor?: number;
   priceCurrency?: string;
 
-  // Location filters
-  province?: string;
-  city?: string;
-  area?: string;
+  // Location filters (now handled as global attributes in specs)
+  province?: string; // Deprecated - use specs.location instead
+  city?: string; // Deprecated - use specs.location instead
+  area?: string; // Deprecated - not used in current system
 
   // Search query
   search?: string;
@@ -210,9 +210,15 @@ export const useSearchStore = create<SearchStore>()(
         backendFilters.categoryId = activeFilters.categoryId;
       }
 
+      // Handle location filter: province (frontend) maps to location (backend specs)
+      if (activeFilters.province) {
+        if (!backendFilters.specs) backendFilters.specs = {};
+        backendFilters.specs.location = activeFilters.province;
+      }
+
       // Convert specs to backend format - simplified since we store values directly
       if (activeFilters.specs && Object.keys(activeFilters.specs).length > 0) {
-        const specs: Record<string, any> = {};
+        const specs: Record<string, any> = { ...backendFilters.specs }; // Merge with location if set
 
         Object.entries(activeFilters.specs).forEach(([key, value]) => {
           console.log(`🔍 Backend conversion - Processing spec: ${key}`, {
@@ -256,12 +262,14 @@ export const useSearchStore = create<SearchStore>()(
         storeFilters.priceCurrency = activeFilters.priceCurrency;
       }
 
-      // Location filters
+      // Location filters - now handled through specs.location (global attribute)
+      // Keep backward compatibility for deprecated province/city fields
       if (activeFilters.province) {
-        storeFilters.province = activeFilters.province;
+        if (!storeFilters.specs) storeFilters.specs = {};
+        storeFilters.specs.location = activeFilters.province;
       }
       if (activeFilters.city) {
-        storeFilters.city = activeFilters.city;
+        storeFilters.city = activeFilters.city; // Still supported for city-level filtering
       }
 
       // Search
@@ -305,7 +313,7 @@ export const useSearchStore = create<SearchStore>()(
       // Add basic filters to URL
       if (activeFilters.search) params.set("search", activeFilters.search);
       if (activeFilters.province)
-        params.set("province", activeFilters.province);
+        params.set("location", activeFilters.province); // Use 'location' instead of 'province' for URL
       if (activeFilters.city) params.set("city", activeFilters.city);
       if (activeFilters.priceMinMinor)
         params.set("minPrice", (activeFilters.priceMinMinor / 100).toString());
@@ -337,8 +345,10 @@ export const useSearchStore = create<SearchStore>()(
       // Parse basic filters
       if (searchParams.get("search"))
         newFilters.search = searchParams.get("search")!;
+      if (searchParams.get("location"))
+        newFilters.province = searchParams.get("location")!; // Map 'location' URL param to province
       if (searchParams.get("province"))
-        newFilters.province = searchParams.get("province")!;
+        newFilters.province = searchParams.get("province")!; // Backward compatibility
       if (searchParams.get("city")) newFilters.city = searchParams.get("city")!;
       if (searchParams.get("minPrice"))
         newFilters.priceMinMinor =

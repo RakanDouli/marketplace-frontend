@@ -60,12 +60,7 @@
     "sortByNewest": "Newest First",
     "sortByOldest": "Oldest First",
     "sortByPriceLow": "Price: Low to High",
-    "sortByPriceHigh": "Price: High to Low",
-    "sellerType": "Seller Type",
-    "allSellers": "All Sellers",
-    "privateSeller": "Private Seller",
-    "dealer": "Dealer",
-    "business": "Business"
+    "sortByPriceHigh": "Price: High to Low"
   },
   "listing": {
     "featured": "Featured",
@@ -134,7 +129,7 @@
   },
   "notifications": {
     "success": "Success",
-    "error": "Error", 
+    "error": "Error",
     "warning": "Warning",
     "info": "Information",
     "close": "Close",
@@ -190,7 +185,7 @@
         "description": "Simple and easy interface to find your perfect car"
       },
       "safeSecure": {
-        "title": "Safe & Secure", 
+        "title": "Safe & Secure",
         "description": "Safe transactions with verified sellers"
       },
       "bestPrices": {

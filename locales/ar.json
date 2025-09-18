@@ -60,12 +60,7 @@
     "sortByNewest": "الأحدث أولاً",
     "sortByOldest": "الأقدم أولاً",
     "sortByPriceLow": "السعر من الأقل للأعلى",
-    "sortByPriceHigh": "السعر من الأعلى للأقل",
-    "sellerType": "نوع البائع",
-    "allSellers": "جميع البائعين",
-    "privateSeller": "بائع خاص",
-    "dealer": "معرض",
-    "business": "شركة"
+    "sortByPriceHigh": "السعر من الأعلى للأقل"
   },
   "listing": {
     "featured": "مميز",

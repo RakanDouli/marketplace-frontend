@@ -3,17 +3,16 @@
 
 // Grid view query - Minimal data for card view
 export const LISTINGS_GRID_QUERY = `
-  query ListingsGrid($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+  query ListingsGrid($filter: ListingFilterInput, $limit: Int, $offset: Int) {
     listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
       id
       title
       priceMinor
-      province
-      city
       imageKeys
       categoryId
       sellerType
       specs
+      specsDisplay
       prices {
         value
         currency
@@ -24,20 +23,18 @@ export const LISTINGS_GRID_QUERY = `
 
 // List view query - More data than grid, less than full
 export const LISTINGS_LIST_QUERY = `
-  query ListingsList($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+  query ListingsList($filter: ListingFilterInput, $limit: Int, $offset: Int) {
     listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
       id
       title
       description
       priceMinor
-      province
-      city
-      area
       imageKeys
       createdAt
       categoryId
       sellerType
       specs
+      specsDisplay
       prices {
         value
         currency
@@ -48,21 +45,19 @@ export const LISTINGS_LIST_QUERY = `
 
 // Detail view query - Full data
 export const LISTINGS_DETAIL_QUERY = `
-  query ListingsDetail($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+  query ListingsDetail($filter: ListingFilterInput, $limit: Int, $offset: Int) {
     listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
       id
       title
       description
       priceMinor
-      province
-      city
-      area
       status
       imageKeys
       createdAt
       categoryId
       sellerType
       specs
+      specsDisplay
       prices {
         value
         currency
@@ -73,21 +68,19 @@ export const LISTINGS_DETAIL_QUERY = `
 
 // Full search query - Complete data (fallback)
 export const LISTINGS_SEARCH_QUERY = `
-  query ListingsSearch($filter: ListingFilterInput, $limit: Float, $offset: Float) {
+  query ListingsSearch($filter: ListingFilterInput, $limit: Int, $offset: Int) {
     listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
       id
       title
       description
       priceMinor
-      province
-      city
-      area
       status
       imageKeys
       createdAt
       categoryId
       sellerType
       specs
+      specsDisplay
       prices {
         value
         currency
