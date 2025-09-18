@@ -391,7 +391,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
           aria-label={t("search.filters")}
         >
           <FilterIcon size={24} />
-          {t("search.filters")}سسس
+          {t("search.filters")}
         </Button>
       )}
 
@@ -455,10 +455,15 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
               {attributes
                 .filter(
                   (attr) =>
-                    attr.type === "SELECTOR" ||
-                    attr.type === "MULTI_SELECTOR" ||
-                    attr.type === "RANGE" ||
-                    attr.type === "CURRENCY"
+                    attr.showInFilter &&
+                    // Exclude attributes handled separately (search is TEXT type, price is handled below)
+                    attr.key !== "search" &&
+                    attr.key !== "title" &&
+                    attr.key !== "description" &&
+                    (attr.type === "SELECTOR" ||
+                      attr.type === "MULTI_SELECTOR" ||
+                      attr.type === "RANGE" ||
+                      attr.type === "CURRENCY")
                 )
                 .map((attribute) => {
                   return (
@@ -642,6 +647,62 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                   );
                                 })}
                               </div>
+                            ) : attribute.key === "location" ? (
+                              // Special handling for location - use province filter instead of specs
+                              <Input
+                                type="select"
+                                value={activeFilters.province || ""}
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    "province",
+                                    e.target.value || undefined
+                                  )
+                                }
+                                options={[
+                                  {
+                                    value: "",
+                                    label: t("search.selectOption"),
+                                  },
+                                  ...attribute.processedOptions.map(
+                                    (option) => ({
+                                      value: option.key,
+                                      label: `${option.value}${
+                                        option.count !== undefined
+                                          ? ` (${option.count})`
+                                          : ""
+                                      }`,
+                                    })
+                                  ),
+                                ]}
+                              />
+                            ) : attribute.key === "sellerType" ? (
+                              // Special handling for sellerType - use top-level filter instead of specs
+                              <Input
+                                type="select"
+                                value={activeFilters.sellerType || ""}
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    "sellerType",
+                                    e.target.value || undefined
+                                  )
+                                }
+                                options={[
+                                  {
+                                    value: "",
+                                    label: t("search.selectOption"),
+                                  },
+                                  ...attribute.processedOptions.map(
+                                    (option) => ({
+                                      value: option.key,
+                                      label: `${option.value}${
+                                        option.count !== undefined
+                                          ? ` (${option.count})`
+                                          : ""
+                                      }`,
+                                    })
+                                  ),
+                                ]}
+                              />
                             ) : (
                               // Regular dropdown for single SELECTOR attributes
                               <Input
@@ -835,50 +896,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                 />
               </div> */}
 
-              {/* Location - Now handled through global attributes */}
-              {(() => {
-                // Find location attribute in global attributes
-                const locationAttr = attributes.find(
-                  (attr) => attr.key === "location"
-                );
-
-                if (
-                  !locationAttr ||
-                  !locationAttr.processedOptions ||
-                  locationAttr.processedOptions.length === 0
-                ) {
-                  return null;
-                }
-
-                return (
-                  <div className={styles.filterSection}>
-                    <Text variant="small" className={styles.sectionTitle}>
-                      {locationAttr.name} {/* Use Arabic name from attribute */}
-                    </Text>
-                    <Input
-                      type="select"
-                      value={activeFilters.province || ""}
-                      onChange={(e) =>
-                        handleFilterChange(
-                          "province",
-                          e.target.value || undefined
-                        )
-                      }
-                      options={[
-                        { value: "", label: t("search.selectProvince") },
-                        ...locationAttr.processedOptions.map((option) => ({
-                          value: option.key,
-                          label: `${option.value}${
-                            option.count !== undefined
-                              ? ` (${option.count})`
-                              : ""
-                          }`,
-                        })),
-                      ]}
-                    />
-                  </div>
-                );
-              })()}
+              {/* Location is now handled through dynamic attributes above - no duplicate needed */}
             </>
           )}
         </div>
