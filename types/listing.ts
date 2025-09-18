@@ -76,7 +76,6 @@ export interface ListingFilterInput {
   maxPrice?: number;
   currency?: string;
   city?: string;
-  country?: string;
   status?: string[];
   allowBidding?: boolean;
   specs?: Record<string, any>; // Dynamic attribute filters

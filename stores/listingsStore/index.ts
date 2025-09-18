@@ -187,9 +187,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       if (finalFilters.city) {
         graphqlFilter.city = finalFilters.city;
       }
-      if (finalFilters.province) {
-        graphqlFilter.country = finalFilters.province;
-      }
       if (finalFilters.sellerType) {
         graphqlFilter.sellerType = finalFilters.sellerType;
       }
@@ -255,7 +252,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
               { currency: "USD", value: (item.priceMinor / 100).toString() },
             ], // Use backend prices or create from priceMinor
             city: item.city || "",
-            country: item.province || "", // Use province as country for now
             status: item.status as any,
             allowBidding: false, // Default - backend should provide this
             specs, // Now contains real specs data from backend!

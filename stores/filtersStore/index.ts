@@ -104,6 +104,8 @@ async function getListingAggregations(
   additionalFilter?: any
 ): Promise<{
   attributes: Record<string, Record<string, number>>;
+  provinces?: string[];
+  cities?: string[];
   rawAggregations?: any; // Keep raw data for brandId/modelId
 }> {
   console.log(
@@ -151,9 +153,15 @@ async function getListingAggregations(
     });
   });
 
-  // Return only attributes - brands/models are now regular specs
+  // Extract provinces and cities from aggregations
+  const provinces = (aggregations.provinces || []).map((p: any) => p.value);
+  const cities = (aggregations.cities || []).map((c: any) => c.value);
+
+  // Return attributes, provinces, and cities
   return {
     attributes, // All specs including brandId/modelId are now in attributes
+    provinces, // Provinces from aggregations
+    cities, // Cities from aggregations
     rawAggregations: aggregations, // Keep raw data for brandId/modelId processing
   };
 }
@@ -238,7 +246,7 @@ async function getAllFilterData(categorySlug: string) {
   return {
     attributes: attributesWithCounts,
     sellerTypes: [], // Will be populated from aggregations.sellerTypes
-    provinces: [], // Will be fetched separately if needed
+    provinces: aggregations.provinces || [], // Provinces from aggregations
     totalResults: aggregations.rawAggregations?.totalResults || 0, // Include totalResults from rawAggregations
   };
 }
