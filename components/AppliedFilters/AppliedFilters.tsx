@@ -174,7 +174,7 @@ export function AppliedFilters() {
     }
   }
 
-  // Add location filters
+  // Add location filters (legacy support - these should be in specs.location now)
   if (filters.province) {
     activeFilters.push({
       key: "province",
@@ -188,6 +188,18 @@ export function AppliedFilters() {
       key: "city",
       label: t("search.city"),
       value: filters.city,
+    });
+  }
+
+  // Add seller type filter (using backend data)
+  if (filters.sellerType) {
+    const sellerTypeAttribute = attributes.find((attr) => attr.key === "sellerType");
+    const displayValue = getAttributeDisplayName("sellerType", filters.sellerType);
+
+    activeFilters.push({
+      key: "sellerType",
+      label: sellerTypeAttribute?.name || "نوع البائع",
+      value: displayValue,
     });
   }
 

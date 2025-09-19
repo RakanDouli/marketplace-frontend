@@ -45,6 +45,7 @@ export const CATEGORIES_QUERY = `
 `;
 
 // Get listing aggregations for filter counts and options
+// Updated for performance optimizations - unified attributes structure
 export const GET_LISTING_AGGREGATIONS_QUERY = `
   query GetListingAggregations($filter: ListingFilterInput) {
     listingsAggregations(filter: $filter) {
@@ -57,14 +58,6 @@ export const GET_LISTING_AGGREGATIONS_QUERY = `
           count
           key
         }
-      }
-      provinces {
-        value
-        count
-      }
-      cities {
-        value
-        count
       }
     }
   }

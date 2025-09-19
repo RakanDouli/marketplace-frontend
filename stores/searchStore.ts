@@ -81,8 +81,63 @@ const initialFilters: SearchFilters = {
   limit: 20,
 };
 
+// Session storage helpers for filter persistence
+const SESSION_FILTERS_KEY = 'marketplace_search_filters';
+const SESSION_TTL = 30 * 60 * 1000; // 30 minutes
+
+const loadFiltersFromSession = (): SearchFilters => {
+  if (typeof window === 'undefined') return initialFilters;
+
+  try {
+    const stored = sessionStorage.getItem(SESSION_FILTERS_KEY);
+    if (!stored) return initialFilters;
+
+    const { filters, timestamp } = JSON.parse(stored);
+
+    // Check if session data is still valid
+    if (Date.now() - timestamp > SESSION_TTL) {
+      sessionStorage.removeItem(SESSION_FILTERS_KEY);
+      return initialFilters;
+    }
+
+    console.log('🔄 Restored search filters from session storage');
+    return { ...initialFilters, ...filters };
+  } catch (error) {
+    console.warn('Failed to load search filters from session storage:', error);
+    return initialFilters;
+  }
+};
+
+const saveFiltersToSession = (filters: SearchFilters): void => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    // Only save non-default filters to reduce storage usage
+    const filtersToSave = Object.fromEntries(
+      Object.entries(filters).filter(([key, value]) => {
+        if (key === 'page' || key === 'limit') return false; // Don't persist pagination
+        return value !== null && value !== undefined && value !== '';
+      })
+    );
+
+    if (Object.keys(filtersToSave).length === 0) {
+      sessionStorage.removeItem(SESSION_FILTERS_KEY);
+      return;
+    }
+
+    sessionStorage.setItem(SESSION_FILTERS_KEY, JSON.stringify({
+      filters: filtersToSave,
+      timestamp: Date.now(),
+    }));
+
+    console.log('💾 Saved search filters to session storage');
+  } catch (error) {
+    console.warn('Failed to save search filters to session storage:', error);
+  }
+};
+
 const initialState: SearchState = {
-  activeFilters: initialFilters,
+  activeFilters: loadFiltersFromSession(),
   isApplying: false,
   debounceTimer: null,
 };
@@ -110,6 +165,10 @@ export const useSearchStore = create<SearchStore>()(
       }
 
       set({ activeFilters: newFilters });
+
+      // Save to session storage for persistence
+      saveFiltersToSession(newFilters);
+
       // console.log("📦 SearchStore: Updated filters", {
       //   previous: activeFilters,
       //   new: newFilters,
@@ -144,6 +203,10 @@ export const useSearchStore = create<SearchStore>()(
       };
 
       set({ activeFilters: newFilters });
+
+      // Save to session storage for persistence
+      saveFiltersToSession(newFilters);
+
       console.log("🎯 SearchStore: Updated spec filters", {
         specKey,
         value,
@@ -163,6 +226,9 @@ export const useSearchStore = create<SearchStore>()(
       delete newFilters[key];
 
       set({ activeFilters: newFilters });
+
+      // Save to session storage for persistence
+      saveFiltersToSession(newFilters);
     },
 
     // Remove spec filter
@@ -181,12 +247,20 @@ export const useSearchStore = create<SearchStore>()(
       };
 
       set({ activeFilters: newFilters });
+
+      // Save to session storage for persistence
+      saveFiltersToSession(newFilters);
     },
 
     // Clear all filters
     clearAllFilters: () => {
       // console.log("🧹 SearchStore: Clearing all filters");
       set({ activeFilters: initialFilters });
+
+      // Clear session storage as well
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(SESSION_FILTERS_KEY);
+      }
     },
 
     // Set multiple filters at once
@@ -197,6 +271,9 @@ export const useSearchStore = create<SearchStore>()(
       const newFilters = { ...activeFilters, ...filters };
 
       set({ activeFilters: newFilters });
+
+      // Save to session storage for persistence
+      saveFiltersToSession(newFilters);
     },
 
     // Convert filters for backend aggregation calls
@@ -214,6 +291,16 @@ export const useSearchStore = create<SearchStore>()(
       if (activeFilters.province) {
         if (!backendFilters.specs) backendFilters.specs = {};
         backendFilters.specs.location = activeFilters.province;
+      }
+
+      // Handle brandId and modelId (legacy top-level filters now moved to specs)
+      if (activeFilters.brandId) {
+        if (!backendFilters.specs) backendFilters.specs = {};
+        backendFilters.specs.brandId = activeFilters.brandId;
+      }
+      if (activeFilters.modelId) {
+        if (!backendFilters.specs) backendFilters.specs = {};
+        backendFilters.specs.modelId = activeFilters.modelId;
       }
 
       // Convert specs to backend format - simplified since we store values directly
@@ -270,6 +357,16 @@ export const useSearchStore = create<SearchStore>()(
       }
       if (activeFilters.city) {
         storeFilters.city = activeFilters.city; // Still supported for city-level filtering
+      }
+
+      // Handle brandId and modelId (legacy top-level filters now moved to specs)
+      if (activeFilters.brandId) {
+        if (!storeFilters.specs) storeFilters.specs = {};
+        storeFilters.specs.brandId = activeFilters.brandId;
+      }
+      if (activeFilters.modelId) {
+        if (!storeFilters.specs) storeFilters.specs = {};
+        storeFilters.specs.modelId = activeFilters.modelId;
       }
 
       // Search

@@ -44,7 +44,7 @@ export default function CategoryPageClient({
     setSelectedCategory,
   } = useCategoriesStore();
 
-  const { fetchFilterData } = useFiltersStore();
+  const { fetchFilterData, setFilters } = useFiltersStore();
 
   // Simple category initialization - let stores handle the rest
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function CategoryPageClient({
       setCurrentCategory(category);
       setSelectedCategory(category);
 
-      // Initialize filter data
+      // Initialize filter data with search params
       fetchFilterData(categorySlug);
 
       setIsCategoryLoading(false);

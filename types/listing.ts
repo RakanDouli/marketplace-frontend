@@ -13,7 +13,7 @@ export interface Listing {
   prices: Price[]; // Calculated price array for display
   city: string;
   country: string;
-  status: 'ACTIVE' | 'SOLD' | 'EXPIRED' | 'DRAFT';
+  status: "ACTIVE" | "SOLD" | "EXPIRED" | "DRAFT";
   allowBidding: boolean;
   biddingStartPrice?: number;
   specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
@@ -21,7 +21,7 @@ export interface Listing {
   imageKeys?: string[];
   sellerLabel?: string;
   sellerBadge?: string;
-  sellerType?: 'PRIVATE' | 'DEALER' | 'BUSINESS'; // Updated to match backend
+  sellerType?: "PRIVATE" | "DEALER" | "BUSINESS"; // Updated to match backend
   lat?: number;
   lng?: number;
   createdAt: string;
@@ -42,8 +42,17 @@ export interface Attribute {
   id: string;
   key: string;
   name: string; // Arabic name
-  type: 'SELECTOR' | 'MULTI_SELECTOR' | 'RANGE' | 'CURRENCY' | 'TEXT' | 'TEXTAREA' | 'NUMBER' | 'DATE_RANGE' | 'BOOLEAN';
-  validation: 'REQUIRED' | 'OPTIONAL';
+  type:
+    | "SELECTOR"
+    | "MULTI_SELECTOR"
+    | "RANGE"
+    | "CURRENCY"
+    | "TEXT"
+    | "TEXTAREA"
+    | "NUMBER"
+    | "DATE_RANGE"
+    | "BOOLEAN";
+  validation: "REQUIRED" | "OPTIONAL";
   sortOrder: number;
   group: string | null;
   isActive: boolean;

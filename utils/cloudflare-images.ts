@@ -78,7 +78,7 @@ export function optimizeImageUrl(
   originalUrl: string,
   options: CloudflareImageOptions = {}
 ): string {
-  // In development, return original URL for now
+  // In development, use original URLs to avoid Cloudflare optimization
   if (IS_DEVELOPMENT) {
     return originalUrl;
   }

@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { ListingsState, Listing } from "../types";
-import { cachedGraphQLRequest } from "../../utils/graphql-cache";
+import { cachedGraphQLRequest, invalidateGraphQLCache } from "../../utils/graphql-cache";
+import { useFiltersStore } from "../filtersStore";
 import {
   getQueryByViewType,
-  LISTINGS_AGGREGATIONS_QUERY,
 } from "./listingsStore.gql";
 
 interface ListingsActions {
@@ -103,6 +103,15 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
   setFilters: (newFilters: Partial<ListingsState["filters"]>) => {
     const { filters } = get();
+
+    // Invalidate cache when filters change
+    invalidateGraphQLCache('listingsSearch');
+    invalidateGraphQLCache('listingsAggregations');
+    invalidateGraphQLCache('ListingsGrid'); // Clear view-specific caches
+    invalidateGraphQLCache('ListingsList');
+    invalidateGraphQLCache('ListingsDetail');
+    console.log('🗑️ ListingsStore: Cache invalidated for filter change:', Object.keys(newFilters));
+
     set({
       filters: { ...filters, ...newFilters },
       pagination: initialPagination, // Reset pagination when filters change
@@ -118,8 +127,16 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
   setPagination: (newPagination: Partial<ListingsState["pagination"]>) => {
     const { pagination } = get();
+    const updatedPagination = { ...pagination, ...newPagination };
+
+    // Invalidate cache when pagination changes (especially page changes)
+    if (newPagination.page && newPagination.page !== pagination.page) {
+      invalidateGraphQLCache('listingsSearch');
+      console.log(`🗑️ ListingsStore: Cache invalidated for page change: ${pagination.page} → ${newPagination.page}`);
+    }
+
     set({
-      pagination: { ...pagination, ...newPagination },
+      pagination: updatedPagination,
     });
   },
 
@@ -135,6 +152,14 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   },
 
   setViewType: (viewType: "grid" | "list" | "detail") => {
+    const { viewType: currentViewType } = get();
+
+    // Only invalidate cache if view type actually changes
+    if (viewType !== currentViewType) {
+      invalidateGraphQLCache('listingsSearch');
+      console.log(`🗑️ ListingsStore: Cache invalidated for view type change: ${currentViewType} → ${viewType}`);
+    }
+
     set({ viewType });
   },
 
@@ -223,14 +248,9 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         { ttl: 2 * 60 * 1000 }
       ); // Cache for 2 minutes
 
-      // Get totalResults from aggregations for accurate count
-      const aggregationsData = await cachedGraphQLRequest(
-        LISTINGS_AGGREGATIONS_QUERY,
-        {
-          filter: graphqlFilter,
-        },
-        { ttl: 2 * 60 * 1000 }
-      ); // Cache for 2 minutes
+      // Get totalResults from FiltersStore (avoiding redundant API call)
+      const filtersStore = useFiltersStore.getState();
+      const totalResultsFromFilters = filtersStore.totalResults;
 
       const listings: Listing[] = (data.listingsSearch || []).map(
         (item: any) => {
@@ -253,8 +273,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           }
 
           // Extract location from specs for backward compatibility
-          const location = specs.location || "";
-          const city = specs.location || item.city || "";
+          const location = (specs as any).location || "";
+          const city = (specs as any).location || item.city || "";
 
           return {
             id: item.id,
@@ -277,9 +297,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         }
       );
 
-      // Use real totalResults from backend aggregations
-      const totalResults =
-        aggregationsData.listingsAggregations?.totalResults || 0;
+      // Use totalResults from FiltersStore to avoid redundant API calls
+      const totalResults = totalResultsFromFilters || listings.length; // Fallback to listings count if FiltersStore not loaded
       const hasMore = offset + listings.length < totalResults;
 
       // console.log("🚗 ===== LISTINGS STORE: fetchListings SUCCESS =====");
@@ -313,10 +332,16 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       });
     } catch (error: any) {
       console.error("Failed to fetch listings:", error);
+      const { pagination } = get();
       set({
         isLoading: false,
         error: error.message || "Failed to load listings",
         listings: [],
+        pagination: {
+          ...pagination,
+          total: 0,
+          hasMore: false,
+        },
       });
     }
   },

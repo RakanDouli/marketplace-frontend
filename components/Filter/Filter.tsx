@@ -201,12 +201,9 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
 
   // Store hooks
   const {
-    attributes, // All specs (including brands/models) are in attributes now
-    provinces,
-    cities,
+    attributes, // All filters (including location/sellerType/brands/models) are in attributes now
     isLoading: filtersLoading,
     fetchFilterData,
-    fetchCities,
     updateFiltersWithCascading,
   } = useFiltersStore();
   const {
@@ -224,36 +221,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
 
   // Models are now handled through dynamic attributes with cascading counts
 
-  // Update cities when province changes
-  useEffect(() => {
-    if (activeFilters.province) {
-      fetchCities(activeFilters.province);
-    }
-  }, [activeFilters.province, fetchCities]);
-
-  const handleFilterChange = async (key: keyof FilterValues, value: any) => {
-    if (!categorySlug) return;
-
-    console.log(`🔧 Filter: Setting ${key} =`, value);
-
-    // Clear dependent filters
-    if (key === "brandId" && value !== activeFilters.brandId) {
-      setFilter("modelId", undefined);
-    }
-    if (key === "province" && value !== activeFilters.province) {
-      setFilter("city", undefined);
-    }
-
-    // Set the filter in store
-    setFilter(key as any, value);
-
-    // Apply filters with store coordination
-    try {
-      await applyFiltersToStores();
-    } catch (error) {
-      console.error("❌ Error applying filter:", error);
-    }
-  };
+  // All filters are now handled through handleSpecChange - no separate province/city handling needed
 
   const handleSpecChange = async (attributeKey: string, value: any) => {
     if (!categorySlug) return;
@@ -391,7 +359,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
           aria-label={t("search.filters")}
         >
           <FilterIcon size={24} />
-          {t("search.filters")}
+          {t("search.filters")}سسس
         </Button>
       )}
 
@@ -451,19 +419,16 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
             <>
               {/* Brand and Model are now handled through dynamic attributes below */}
 
+              {/* Location and SellerType are now handled through dynamic attributes below */}
+
               {/* Dynamic Attributes - Now using Arabic-only data from backend */}
               {attributes
                 .filter(
                   (attr) =>
-                    attr.showInFilter &&
-                    // Exclude attributes handled separately (search is TEXT type, price is handled below)
-                    attr.key !== "search" &&
-                    attr.key !== "title" &&
-                    attr.key !== "description" &&
-                    (attr.type === "SELECTOR" ||
-                      attr.type === "MULTI_SELECTOR" ||
-                      attr.type === "RANGE" ||
-                      attr.type === "CURRENCY")
+                    attr.type === "SELECTOR" ||
+                    attr.type === "MULTI_SELECTOR" ||
+                    attr.type === "RANGE" ||
+                    attr.type === "CURRENCY"
                 )
                 .map((attribute) => {
                   return (
@@ -647,62 +612,6 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                   );
                                 })}
                               </div>
-                            ) : attribute.key === "location" ? (
-                              // Special handling for location - use province filter instead of specs
-                              <Input
-                                type="select"
-                                value={activeFilters.province || ""}
-                                onChange={(e) =>
-                                  handleFilterChange(
-                                    "province",
-                                    e.target.value || undefined
-                                  )
-                                }
-                                options={[
-                                  {
-                                    value: "",
-                                    label: t("search.selectOption"),
-                                  },
-                                  ...attribute.processedOptions.map(
-                                    (option) => ({
-                                      value: option.key,
-                                      label: `${option.value}${
-                                        option.count !== undefined
-                                          ? ` (${option.count})`
-                                          : ""
-                                      }`,
-                                    })
-                                  ),
-                                ]}
-                              />
-                            ) : attribute.key === "sellerType" ? (
-                              // Special handling for sellerType - use top-level filter instead of specs
-                              <Input
-                                type="select"
-                                value={activeFilters.sellerType || ""}
-                                onChange={(e) =>
-                                  handleFilterChange(
-                                    "sellerType",
-                                    e.target.value || undefined
-                                  )
-                                }
-                                options={[
-                                  {
-                                    value: "",
-                                    label: t("search.selectOption"),
-                                  },
-                                  ...attribute.processedOptions.map(
-                                    (option) => ({
-                                      value: option.key,
-                                      label: `${option.value}${
-                                        option.count !== undefined
-                                          ? ` (${option.count})`
-                                          : ""
-                                      }`,
-                                    })
-                                  ),
-                                ]}
-                              />
                             ) : (
                               // Regular dropdown for single SELECTOR attributes
                               <Input
@@ -871,32 +780,6 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                   </Button>
                 </div>
               </div>
-
-              {/* Seller Type
-              <div className={styles.filterSection}>
-                <Text variant="small" className={styles.sectionTitle}>
-                  {t("search.sellerType")}
-                </Text>
-                <Input
-                  type="select"
-                  value={activeFilters.sellerType || ""}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "sellerType",
-                      e.target.value || undefined
-                    )
-                  }
-                  options={[
-                    { value: "", label: t("search.allSellers") },
-                    { value: "PRIVATE", label: t("search.privateSeller") },
-                    { value: "DEALER", label: t("search.dealer") },
-                    { value: "BUSINESS", label: t("search.business") },
-                  ]}
-                  size="sm"
-                />
-              </div> */}
-
-              {/* Location is now handled through dynamic attributes above - no duplicate needed */}
             </>
           )}
         </div>

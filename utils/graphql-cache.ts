@@ -1,8 +1,14 @@
-// GraphQL Request Cache and Deduplication
+// GraphQL Request Cache and Deduplication with Session Storage
 interface CacheEntry {
   data: any;
   timestamp: number;
   promise?: Promise<any>;
+}
+
+interface SessionCacheEntry {
+  data: any;
+  timestamp: number;
+  ttl: number;
 }
 
 interface RequestKey {
@@ -14,11 +20,15 @@ class GraphQLCache {
   private cache = new Map<string, CacheEntry>();
   private pendingRequests = new Map<string, Promise<any>>();
   private defaultTTL = 5 * 60 * 1000; // 5 minutes
+  private sessionStorageKey = 'marketplace_graphql_cache';
 
   private createKey(query: string, variables: any = {}): string {
     // Include viewType in cache key for view-specific optimization
     const normalizedQuery = query.replace(/\s+/g, ' ').trim();
-    const keyData = { query: normalizedQuery, variables };
+
+    // Sort variables for consistent cache keys and normalize critical pagination/filter params
+    const normalizedVariables = this.normalizeVariables(variables);
+    const keyData = { query: normalizedQuery, variables: normalizedVariables };
 
     // Log cache key creation for debugging
     if (variables?.filter?.viewType) {
@@ -28,11 +38,87 @@ class GraphQLCache {
     return JSON.stringify(keyData);
   }
 
+  private normalizeVariables(variables: any): any {
+    if (!variables) return {};
+
+    // Create a deep copy and normalize key fields that affect caching
+    const normalized = JSON.parse(JSON.stringify(variables));
+
+    // Sort filter keys for consistent cache keys
+    if (normalized.filter) {
+      const sortedFilter: any = {};
+      Object.keys(normalized.filter).sort().forEach(key => {
+        sortedFilter[key] = normalized.filter[key];
+      });
+      normalized.filter = sortedFilter;
+    }
+
+    // Ensure pagination params are included in cache key
+    if (normalized.offset !== undefined) {
+      normalized.offset = Number(normalized.offset);
+    }
+    if (normalized.limit !== undefined) {
+      normalized.limit = Number(normalized.limit);
+    }
+
+    return normalized;
+  }
+
   private isExpired(entry: CacheEntry): boolean {
     return Date.now() - entry.timestamp > this.defaultTTL;
   }
 
+  private loadFromSessionStorage(): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const stored = sessionStorage.getItem(this.sessionStorageKey);
+      if (!stored) return;
+
+      const sessionCache: Record<string, SessionCacheEntry> = JSON.parse(stored);
+      const now = Date.now();
+
+      // Load valid entries from session storage
+      Object.entries(sessionCache).forEach(([key, entry]) => {
+        if (now - entry.timestamp < entry.ttl) {
+          this.cache.set(key, {
+            data: entry.data,
+            timestamp: entry.timestamp,
+          });
+          console.log(`🔄 Restored from session: ${key.substring(0, 50)}...`);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to load cache from session storage:', error);
+    }
+  }
+
+  private saveToSessionStorage(key: string, entry: CacheEntry, ttl: number): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const stored = sessionStorage.getItem(this.sessionStorageKey);
+      const sessionCache: Record<string, SessionCacheEntry> = stored ? JSON.parse(stored) : {};
+
+      sessionCache[key] = {
+        data: entry.data,
+        timestamp: entry.timestamp,
+        ttl: ttl,
+      };
+
+      sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(sessionCache));
+      console.log(`💾 Saved to session: ${key.substring(0, 50)}...`);
+    } catch (error) {
+      console.warn('Failed to save cache to session storage:', error);
+    }
+  }
+
   async request(query: string, variables: any = {}, options: { ttl?: number } = {}): Promise<any> {
+    // Load from session storage on first request
+    if (this.cache.size === 0) {
+      this.loadFromSessionStorage();
+    }
+
     const key = this.createKey(query, variables);
     const ttl = options.ttl || this.defaultTTL;
 
@@ -63,10 +149,14 @@ class GraphQLCache {
       const data = await requestPromise;
 
       // Cache the successful response
-      this.cache.set(key, {
+      const cacheEntry = {
         data,
         timestamp: Date.now(),
-      });
+      };
+      this.cache.set(key, cacheEntry);
+
+      // Save to session storage for persistence across page refreshes
+      this.saveToSessionStorage(key, cacheEntry, ttl);
 
       console.log(`✅ GraphQL Cache: Cached response for ${key.substring(0, 50)}...`);
       return data;
@@ -119,6 +209,48 @@ class GraphQLCache {
   clear(): void {
     this.cache.clear();
     this.pendingRequests.clear();
+
+    // Clear session storage as well
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(this.sessionStorageKey);
+    }
+  }
+
+  // Selective cache invalidation for filter/pagination changes
+  invalidateByPattern(pattern: string): void {
+    const keysToDelete: string[] = [];
+
+    for (const [key] of Array.from(this.cache.entries())) {
+      if (key.includes(pattern)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    keysToDelete.forEach(key => {
+      this.cache.delete(key);
+      console.log(`🗑️ GraphQL Cache: Invalidated cache for pattern "${pattern}": ${key.substring(0, 50)}...`);
+    });
+
+    // Also clear from session storage
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem(this.sessionStorageKey);
+        if (stored) {
+          const sessionCache: Record<string, SessionCacheEntry> = JSON.parse(stored);
+          const filteredCache: Record<string, SessionCacheEntry> = {};
+
+          Object.entries(sessionCache).forEach(([key, entry]) => {
+            if (!key.includes(pattern)) {
+              filteredCache[key] = entry;
+            }
+          });
+
+          sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(filteredCache));
+        }
+      } catch (error) {
+        console.warn('Failed to invalidate session storage cache:', error);
+      }
+    }
   }
 
   // Get cache stats
@@ -148,4 +280,16 @@ export async function cachedGraphQLRequest(
   options?: { ttl?: number }
 ): Promise<any> {
   return graphqlCache.request(query, variables, options);
+}
+
+// Clear cache function for development/debugging
+export function clearGraphQLCache(): void {
+  graphqlCache.clear();
+  console.log('🧹 GraphQL Cache: Manually cleared all cache');
+}
+
+// Invalidate cache by pattern for filter/pagination changes
+export function invalidateGraphQLCache(pattern: string): void {
+  graphqlCache.invalidateByPattern(pattern);
+  console.log(`🗑️ GraphQL Cache: Invalidated cache for pattern: ${pattern}`);
 }

@@ -30,12 +30,9 @@ interface CategoryCache {
 
 // Store state interface
 interface FiltersState {
-  // Core filter data - ALL specs are handled dynamically through attributes
+  // Core filter data - ALL filters are handled dynamically through attributes
   attributes: AttributeWithProcessedOptions[];
-  // Only non-spec filters
-  sellerTypes: DynamicFilterOption[];
-  provinces: string[];
-  cities: string[];
+  // Legacy fields removed - everything is now in attributes array
 
   // Total results count from backend
   totalResults: number;
@@ -57,10 +54,11 @@ interface FiltersActions {
   setLoading: (loading: boolean) => void;
   setLoadingCounts: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setFilters: (filters: Partial<FiltersState>) => void;
 
   // Main data fetching
   fetchFilterData: (categorySlug: string) => Promise<void>;
-  fetchCities: (province: string) => Promise<void>;
+  // fetchCities removed - cities handled through unified attributes
 
   // Cascading filter support
   updateFiltersWithCascading: (
@@ -84,9 +82,6 @@ const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 // Initial state
 const initialState: FiltersState = {
   attributes: [],
-  sellerTypes: [],
-  provinces: [],
-  cities: [],
   totalResults: 0,
   categoryCache: {},
   currentCategorySlug: null,
@@ -104,8 +99,6 @@ async function getListingAggregations(
   additionalFilter?: any
 ): Promise<{
   attributes: Record<string, Record<string, number>>;
-  provinces?: string[];
-  cities?: string[];
   rawAggregations?: any; // Keep raw data for brandId/modelId
 }> {
   console.log(
@@ -153,18 +146,23 @@ async function getListingAggregations(
     });
   });
 
-  // Provinces are now handled through global attributes - no extraction needed
-  const provinces: string[] = [];
-  const cities: string[] = [];
+  // Everything is now in attributes array - no separate extraction needed
+  // All attributes (location, sellerType, etc.) are processed uniformly
+  (aggregations.attributes || []).forEach((attr: any) => {
+    if (!attributes[attr.field]) {
+      attributes[attr.field] = {};
+      (attr.options || []).forEach((option: any) => {
+        attributes[attr.field][option.key || option.value] = option.count;
+      });
+    }
+  });
 
-  console.log("🏛️ Location now handled through global attributes - no provinces extraction needed");
+  console.log("🚀 Using optimized backend aggregations with direct field queries");
 
-  // Return attributes, provinces, and cities
+  // Return unified attributes structure
   return {
-    attributes, // All specs including brandId/modelId are now in attributes
-    provinces, // Provinces from aggregations
-    cities, // Cities from aggregations
-    rawAggregations: aggregations, // Keep raw data for brandId/modelId processing
+    attributes, // All filters including location, sellerType, brands, models, and category attributes
+    rawAggregations: aggregations, // Keep raw data for additional processing
   };
 }
 
@@ -247,8 +245,6 @@ async function getAllFilterData(categorySlug: string) {
 
   return {
     attributes: attributesWithCounts,
-    sellerTypes: [], // Will be populated from aggregations.sellerTypes
-    provinces: aggregations.provinces || [], // Provinces from aggregations (already processed as strings)
     totalResults: aggregations.rawAggregations?.totalResults || 0, // Include totalResults from rawAggregations
   };
 }
@@ -263,6 +259,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   setLoading: (isLoading: boolean) => set({ isLoading }),
   setLoadingCounts: (isLoadingCounts: boolean) => set({ isLoadingCounts }),
   setError: (error: string | null) => set({ error }),
+  setFilters: (filters: Partial<FiltersState>) => set(filters),
 
   // Main fetch function - gets attributes and their counts
   fetchFilterData: async (categorySlug: string) => {
@@ -363,14 +360,12 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         },
       };
 
-      console.log("🏛️ Location handled through global attributes - no separate provinces array");
+      console.log("🏛️ All filters handled through unified attributes array");
       set({
         attributes: filterData.attributes,
-        provinces: [], // Empty - location handled through global attributes
         totalResults: filterData.totalResults || 0, // Store totalResults from getAllFilterData
         currentCategorySlug: categorySlug,
         categoryCache: newCache,
-        cities: [],
         isLoading: false,
         error: null,
       });
@@ -384,21 +379,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
   // Models are handled through dynamic attributes - no separate fetch needed
 
-  // Fetch cities for selected province - placeholder for now
-  fetchCities: async (province: string) => {
-    set({ isLoading: true, error: null });
-
-    try {
-      // For now, return empty array since we don't have city data in the current backend
-      const cities: string[] = [];
-      set({ cities, isLoading: false, error: null });
-    } catch (error) {
-      set({
-        isLoading: false,
-        error: (error as Error).message || "Failed to load cities",
-      });
-    }
-  },
+  // Cities are now handled through unified attributes - no separate fetch needed
 
   // Update filters with cascading logic (when user selects a brand, update other filters)
   updateFiltersWithCascading: async (
@@ -503,7 +484,6 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         attributes: attributesWithCascadingCounts,
         totalResults: cascadingAggregations.rawAggregations?.totalResults || 0,
         currentCategorySlug: categorySlug,
-        cities: [],
         isLoadingCounts: false,
         error: null,
       });
@@ -555,12 +535,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   },
 }));
 
-// Selectors for easy component access
+// Selectors for easy component access - simplified for unified attributes
 export const useFilterAttributes = () =>
   useFiltersStore((state) => state.attributes);
-export const useFilterProvinces = () =>
-  useFiltersStore((state) => state.provinces);
-export const useFilterCities = () => useFiltersStore((state) => state.cities);
 export const useFilterTotalResults = () =>
   useFiltersStore((state) => state.totalResults);
 export const useFiltersLoading = () =>
@@ -568,3 +545,13 @@ export const useFiltersLoading = () =>
 export const useFiltersCountsLoading = () =>
   useFiltersStore((state) => state.isLoadingCounts);
 export const useFiltersError = () => useFiltersStore((state) => state.error);
+
+// Helper selectors for common attributes (extracted from unified attributes array)
+export const useLocationAttribute = () =>
+  useFiltersStore((state) =>
+    state.attributes.find(attr => attr.key === 'location')
+  );
+export const useSellerTypeAttribute = () =>
+  useFiltersStore((state) =>
+    state.attributes.find(attr => attr.key === 'sellerType')
+  );

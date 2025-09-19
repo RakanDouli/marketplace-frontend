@@ -11,6 +11,8 @@ export const LISTINGS_GRID_QUERY = `
       imageKeys
       categoryId
       sellerType
+      city
+      province
       specs
       specsDisplay
       prices {
@@ -33,6 +35,8 @@ export const LISTINGS_LIST_QUERY = `
       createdAt
       categoryId
       sellerType
+      city
+      province
       specs
       specsDisplay
       prices {
@@ -56,6 +60,8 @@ export const LISTINGS_DETAIL_QUERY = `
       createdAt
       categoryId
       sellerType
+      city
+      province
       specs
       specsDisplay
       prices {
@@ -79,6 +85,8 @@ export const LISTINGS_SEARCH_QUERY = `
       createdAt
       categoryId
       sellerType
+      city
+      province
       specs
       specsDisplay
       prices {
@@ -89,14 +97,6 @@ export const LISTINGS_SEARCH_QUERY = `
   }
 `;
 
-// Get total results count for pagination
-export const LISTINGS_AGGREGATIONS_QUERY = `
-  query GetAggregations($filter: ListingFilterInput) {
-    listingsAggregations(filter: $filter) {
-      totalResults
-    }
-  }
-`;
 
 // Query selector based on view type for optimal payload
 export const getQueryByViewType = (viewType: 'grid' | 'list' | 'detail'): string => {

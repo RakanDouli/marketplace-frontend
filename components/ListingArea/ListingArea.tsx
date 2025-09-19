@@ -161,7 +161,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
 
   // Convert store listings to component format
   const listingData: ListingData[] = (listings || []).map((listing) => {
-    const allSpecs = listing.specs || {};
+    // Use specsDisplay for Arabic values if available, fallback to specs
+    const allSpecs = listing.specsDisplay || listing.specs || {};
 
     // Filter specs based on current view type and attribute flags
     const viewFilteredSpecs = filterSpecsByViewType(allSpecs, viewType);
@@ -191,7 +192,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       title: listing.title,
       price: displayPrice,
       currency: displayCurrency,
-      location: listing.city || "",
+      location: (allSpecs as any).location || (listing as any).province || (listing as any).city || "",
       sellerType:
         listing.sellerType === "PRIVATE"
           ? "private"
