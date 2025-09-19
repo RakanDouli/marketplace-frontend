@@ -20,6 +20,9 @@ export const LISTINGS_GRID_QUERY = `
         currency
       }
     }
+    listingsAggregations(filter: $filter) {
+      totalResults
+    }
   }
 `;
 
@@ -43,6 +46,9 @@ export const LISTINGS_LIST_QUERY = `
         value
         currency
       }
+    }
+    listingsAggregations(filter: $filter) {
+      totalResults
     }
   }
 `;
@@ -69,6 +75,9 @@ export const LISTINGS_DETAIL_QUERY = `
         currency
       }
     }
+    listingsAggregations(filter: $filter) {
+      totalResults
+    }
   }
 `;
 
@@ -93,6 +102,9 @@ export const LISTINGS_SEARCH_QUERY = `
         value
         currency
       }
+    }
+    listingsAggregations(filter: $filter) {
+      totalResults
     }
   }
 `;

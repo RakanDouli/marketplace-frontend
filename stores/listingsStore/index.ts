@@ -248,9 +248,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         { ttl: 2 * 60 * 1000 }
       ); // Cache for 2 minutes
 
-      // Get totalResults from FiltersStore (avoiding redundant API call)
-      const filtersStore = useFiltersStore.getState();
-      const totalResultsFromFilters = filtersStore.totalResults;
+      // Get totalResults from the query response (accurate and up-to-date)
+      const totalResultsFromQuery = data.listingsAggregations?.totalResults;
 
       const listings: Listing[] = (data.listingsSearch || []).map(
         (item: any) => {
@@ -297,8 +296,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         }
       );
 
-      // Use totalResults from FiltersStore to avoid redundant API calls
-      const totalResults = totalResultsFromFilters || listings.length; // Fallback to listings count if FiltersStore not loaded
+      // Use totalResults from the query response for accurate pagination
+      const totalResults = totalResultsFromQuery || listings.length; // Fallback to listings count if not available
       const hasMore = offset + listings.length < totalResults;
 
       // console.log("🚗 ===== LISTINGS STORE: fetchListings SUCCESS =====");

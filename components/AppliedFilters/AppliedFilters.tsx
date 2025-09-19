@@ -22,6 +22,11 @@ export function AppliedFilters() {
     if (filterKey.startsWith("specs.")) {
       const specKey = filterKey.replace("specs.", "");
       removeSpecFilter(specKey);
+    } else if (filterKey === "price") {
+      // Special handling for price filter - remove all price-related filters
+      removeFilter("priceMinMinor");
+      removeFilter("priceMaxMinor");
+      removeFilter("priceCurrency");
     } else {
       removeFilter(filterKey as any);
     }
