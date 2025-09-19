@@ -14,17 +14,18 @@ import {
 import { Aside, Text, Button } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { Input } from "../slices/Input/Input";
-import { useTranslation } from "../../hooks/useTranslation";
+import {
+  useTranslation,
+  useFilterActions,
+  useAttributeFilters
+} from "../../hooks";
 import {
   useFiltersStore,
-  useSearchStore,
   useListingsStore,
+  useSearchStore,
 } from "../../stores";
 import {
   CURRENCY_LABELS,
-  convertToUSD,
-  parsePrice,
-  type Currency,
 } from "../../utils/currency";
 import styles from "./Filter.module.scss";
 import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
@@ -91,125 +92,30 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
   // Manage own visibility state (self-sufficient)
   const [isOpen, setIsOpen] = useState(false);
 
-  // Use centralized search store instead of local state
+  // Custom hooks for filter management
+  const filterActions = useFilterActions(categorySlug);
+  const attributeFilters = useAttributeFilters();
+
+  // Search store for draft functionality
   const {
-    activeFilters,
-    setFilter,
-    setSpecFilter,
-    clearAllFilters,
-    getStoreFilters,
-    getBackendFilters,
+    draftFilters,
+    setDraftFilter,
+    setDraftSpecFilter,
+    applyDrafts,
+    hasPriceDraftChanges,
+    hasRangeDraftChanges,
+    hasSearchDraftChanges,
   } = useSearchStore();
-
-  // Local state for price inputs (before applying)
-  const [localPriceMin, setLocalPriceMin] = useState<string>("");
-  const [localPriceMax, setLocalPriceMax] = useState<string>("");
-  const [localCurrency, setLocalCurrency] = useState<string>("USD");
-
-  // Local state for range inputs (before applying)
-  const [localRangeInputs, setLocalRangeInputs] = useState<
-    Record<string, { min: string; max: string }>
-  >({});
-
-  // Local state for search input (before applying)
-  const [localSearchText, setLocalSearchText] = useState<string>("");
 
   // Note: isLoading already available from useFiltersStore above - reusing DRY
 
-  // Check if price values have changed from applied values
-  const hasPriceChanges = () => {
-    const currentMin = activeFilters.priceMinMinor
-      ? (activeFilters.priceMinMinor / 100).toString()
-      : "";
-    const currentMax = activeFilters.priceMaxMinor
-      ? (activeFilters.priceMaxMinor / 100).toString()
-      : "";
-    const currentCurrency = activeFilters.priceCurrency || "USD";
-
-    return (
-      localPriceMin !== currentMin ||
-      localPriceMax !== currentMax ||
-      localCurrency !== currentCurrency
-    );
-  };
-
-  // Check if range values have changed for a specific attribute
-  const hasRangeChanges = (attributeKey: string) => {
-    const local = localRangeInputs[attributeKey] || { min: "", max: "" };
-    const applied = activeFilters.specs?.[attributeKey];
-    const appliedMin = Array.isArray(applied)
-      ? applied[0]?.toString() || ""
-      : "";
-    const appliedMax = Array.isArray(applied)
-      ? applied[1]?.toString() || ""
-      : "";
-
-    return local.min !== appliedMin || local.max !== appliedMax;
-  };
-
-  // Check if search text has changed from applied value
-  const hasSearchChanges = () => {
-    const applied = activeFilters.search || "";
-    return localSearchText.trim() !== applied.trim();
-  };
-
-  // Filters are now initialized directly from the store, no need for initialValues initialization
-
-  // Initialize local price inputs with applied values
-  React.useEffect(() => {
-    const currentMin = activeFilters.priceMinMinor
-      ? (activeFilters.priceMinMinor / 100).toString()
-      : "";
-    const currentMax = activeFilters.priceMaxMinor
-      ? (activeFilters.priceMaxMinor / 100).toString()
-      : "";
-    const currentCurrency = activeFilters.priceCurrency || "USD";
-
-    setLocalPriceMin(currentMin);
-    setLocalPriceMax(currentMax);
-    setLocalCurrency(currentCurrency);
-  }, [
-    activeFilters.priceMinMinor,
-    activeFilters.priceMaxMinor,
-    activeFilters.priceCurrency,
-  ]);
-
-  // Initialize local search text with applied value
-  React.useEffect(() => {
-    const currentSearch = activeFilters.search || "";
-    setLocalSearchText(currentSearch);
-  }, [activeFilters.search]);
-
-  // Initialize local range inputs with applied values
-  React.useEffect(() => {
-    if (activeFilters.specs) {
-      const newLocalRangeInputs: Record<string, { min: string; max: string }> =
-        {};
-
-      Object.entries(activeFilters.specs).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          newLocalRangeInputs[key] = {
-            min: value[0]?.toString() || "",
-            max: value[1]?.toString() || "",
-          };
-        }
-      });
-
-      setLocalRangeInputs((prev) => ({ ...prev, ...newLocalRangeInputs }));
-    }
-  }, [activeFilters.specs]);
-
   // Store hooks
   const {
-    attributes, // All filters (including location/sellerType/brands/models) are in attributes now
     isLoading: filtersLoading,
     fetchFilterData,
-    updateFiltersWithCascading,
   } = useFiltersStore();
   const {
     pagination,
-    fetchListingsByCategory,
-    setPagination,
     isLoading: listingsLoading,
   } = useListingsStore();
 
@@ -219,132 +125,83 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
     fetchFilterData(categorySlug);
   }, [categorySlug, fetchFilterData]);
 
-  // Models are now handled through dynamic attributes with cascading counts
+  // Helper functions for draft values
+  const getDraftPriceMin = () => draftFilters.priceMinMinor ? (draftFilters.priceMinMinor / 100).toString() : "";
+  const getDraftPriceMax = () => draftFilters.priceMaxMinor ? (draftFilters.priceMaxMinor / 100).toString() : "";
+  const getDraftCurrency = () => draftFilters.priceCurrency || "USD";
+  const getDraftSearch = () => draftFilters.search || "";
 
-  // All filters are now handled through handleSpecChange - no separate province/city handling needed
+  const setDraftPriceMin = (value: string) => {
+    const minorValue = value ? parseFloat(value) * 100 : undefined;
+    setDraftFilter("priceMinMinor", minorValue || undefined);
+  };
 
-  const handleSpecChange = async (attributeKey: string, value: any) => {
-    if (!categorySlug) return;
+  const setDraftPriceMax = (value: string) => {
+    const minorValue = value ? parseFloat(value) * 100 : undefined;
+    setDraftFilter("priceMaxMinor", minorValue || undefined);
+  };
 
-    console.log("🎯 Filter: Spec change:", {
-      attributeKey,
-      value,
-      valueType: typeof value,
-      isArray: Array.isArray(value),
-      currentSpecs: activeFilters.specs,
-    });
+  const setDraftCurrency = (value: string) => {
+    setDraftFilter("priceCurrency", value);
+  };
 
-    // Set the spec filter in store - store values directly, not wrapped in objects
-    setSpecFilter(attributeKey, value);
+  const setDraftSearch = (value: string) => {
+    setDraftFilter("search", value);
+  };
 
-    // Apply filters with store coordination
-    try {
-      await applyFiltersToStores();
-    } catch (error) {
-      console.error("❌ Error applying spec filter:", error);
+  // Helper for range inputs
+  const getDraftRangeValue = (attributeKey: string, field: 'min' | 'max') => {
+    const value = draftFilters.specs?.[attributeKey];
+    if (Array.isArray(value)) {
+      return field === 'min' ? value[0]?.toString() || "" : value[1]?.toString() || "";
     }
+    return "";
   };
 
-  // Common function to apply filters to stores after changes
-  const applyFiltersToStores = async () => {
-    if (!categorySlug) return;
+  const updateDraftRangeInput = (attributeKey: string, field: 'min' | 'max', value: string) => {
+    const currentValue = draftFilters.specs?.[attributeKey] || [undefined, undefined];
+    const newValue = [...currentValue];
+    const numValue = value ? parseFloat(value) : undefined;
 
-    const backendFilters = {
-      categoryId: categorySlug,
-      ...getBackendFilters(),
-    };
-    await updateFiltersWithCascading(categorySlug, backendFilters);
-
-    const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
-    setPagination({ page: 1 });
-    await fetchListingsByCategory(categorySlug, storeFilters, "grid");
-  };
-
-  // Handle range filter apply (for numeric ranges like mileage, year, etc.)
-  const handleApplyRangeFilter = async (attributeKey: string) => {
-    if (!categorySlug) return;
-
-    try {
-      // Apply the local range values to the store
-      const local = localRangeInputs[attributeKey] || { min: "", max: "" };
-      const minValue = local.min ? Number(local.min) : null;
-      const maxValue = local.max ? Number(local.max) : null;
-      const newValue = [minValue, maxValue].filter(
-        (v) => v !== null
-      ) as number[];
-
-      if (newValue.length > 0) {
-        setSpecFilter(attributeKey, newValue);
-      } else {
-        setSpecFilter(attributeKey, undefined);
-      }
-
-      // Apply filters with store coordination
-      await applyFiltersToStores();
-    } catch (error) {
-      console.error("❌ Error applying range filter:", error);
+    if (field === 'min') {
+      newValue[0] = numValue;
+    } else {
+      newValue[1] = numValue;
     }
+
+    // Remove undefined values and set to undefined if empty
+    const cleanValue = newValue.filter(v => v !== undefined);
+    setDraftSpecFilter(attributeKey, cleanValue.length > 0 ? newValue : undefined);
   };
 
-  // Handle price filter apply (with currency conversion)
-  const handleApplyPriceFilter = async () => {
-    if (!categorySlug) return;
+  const {
+    handleSpecChange,
+    handleClearAll,
+  } = filterActions;
 
-    try {
-      let minUSD: number | undefined;
-      let maxUSD: number | undefined;
-
-      // Convert prices to USD if provided
-      if (localPriceMin && localPriceMin.trim() !== "") {
-        const minMinor = parsePrice(localPriceMin);
-        minUSD = await convertToUSD(minMinor, localCurrency as Currency);
-      }
-      if (localPriceMax && localPriceMax.trim() !== "") {
-        const maxMinor = parsePrice(localPriceMax);
-        maxUSD = await convertToUSD(maxMinor, localCurrency as Currency);
-      }
-
-      // Update filters
-      setFilter("priceMinMinor", minUSD);
-      setFilter("priceMaxMinor", maxUSD);
-      setFilter("priceCurrency", localCurrency);
-
-      // Apply filters with store coordination
-      await applyFiltersToStores();
-    } catch (error) {
-      console.error("Error applying price filter:", error);
-    }
+  // Simplified apply handlers using draft functionality
+  const handleApplyPriceFilter = () => {
+    applyDrafts();
   };
 
-  // Handle search filter apply
-  const handleApplySearchFilter = async () => {
-    if (!categorySlug) return;
-
-    try {
-      // Update search filter in store
-      const searchValue = localSearchText.trim() || undefined;
-      setFilter("search", searchValue);
-
-      // Apply filters with store coordination
-      await applyFiltersToStores();
-    } catch (error) {
-      console.error("Error applying search filter:", error);
-    }
+  const handleApplySearchFilter = () => {
+    applyDrafts();
   };
 
-  const handleClearAll = async () => {
-    if (!categorySlug) return;
-
-    console.log("🧹 Filter: Clearing all filters");
-    clearAllFilters();
-
-    // Apply cleared filters with store coordination
-    try {
-      await applyFiltersToStores();
-    } catch (error) {
-      console.error("❌ Error clearing filters:", error);
-    }
+  const handleApplyRangeFilter = () => {
+    applyDrafts();
   };
+
+  const {
+    getFilterableAttributes,
+    isOptionSelectedInMulti,
+    getSelectedOptions,
+    shouldDisableOption,
+    getSingleSelectorValue,
+    getSelectionCounterText,
+    toggleMultiSelection,
+    handleCheckboxChange,
+  } = attributeFilters;
 
   const totalResults = pagination.total;
 
@@ -359,7 +216,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
           aria-label={t("search.filters")}
         >
           <FilterIcon size={24} />
-          {t("search.filters")}سسس
+          {t("search.filters")}
         </Button>
       )}
 
@@ -422,15 +279,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
               {/* Location and SellerType are now handled through dynamic attributes below */}
 
               {/* Dynamic Attributes - Now using Arabic-only data from backend */}
-              {attributes
-                .filter(
-                  (attr) =>
-                    attr.type === "SELECTOR" ||
-                    attr.type === "MULTI_SELECTOR" ||
-                    attr.type === "RANGE" ||
-                    attr.type === "CURRENCY"
-                )
-                .map((attribute) => {
+              {getFilterableAttributes().map((attribute) => {
                   return (
                     <div key={attribute.id} className={styles.filterSection}>
                       <Text variant="small" className={styles.sectionTitle}>
@@ -448,40 +297,26 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                 {attribute.maxSelections && (
                                   <div className={styles.selectionCounter}>
                                     <Text variant="xs">
-                                      {(() => {
-                                        const currentSpec =
-                                          activeFilters.specs?.[attribute.key];
-                                        const selectedCount = Array.isArray(
-                                          currentSpec
-                                        )
-                                          ? currentSpec.length
-                                          : currentSpec
-                                          ? 1
-                                          : 0;
-                                        return `${selectedCount}/${attribute.maxSelections} selected`;
-                                      })()}
+                                      {getSelectionCounterText(
+                                        attribute.key,
+                                        attribute.maxSelections
+                                      )}
                                     </Text>
                                   </div>
                                 )}
                                 {attribute.processedOptions.map((option) => {
-                                  const currentSpec =
-                                    activeFilters.specs?.[attribute.key];
-                                  const currentSelected = Array.isArray(
-                                    currentSpec
-                                  )
-                                    ? currentSpec
-                                    : typeof currentSpec === "string"
-                                    ? [currentSpec]
-                                    : [];
-                                  const isSelected = currentSelected.includes(
+                                  const currentSelected = getSelectedOptions(
+                                    attribute.key
+                                  );
+                                  const isSelected = isOptionSelectedInMulti(
+                                    attribute.key,
                                     option.key
                                   );
-                                  const isAtLimit =
-                                    attribute.maxSelections &&
-                                    currentSelected.length >=
-                                      attribute.maxSelections;
-                                  const shouldDisable =
-                                    isAtLimit && !isSelected;
+                                  const shouldDisable = shouldDisableOption(
+                                    attribute.key,
+                                    option.key,
+                                    attribute.maxSelections || undefined
+                                  );
 
                                   return (
                                     <button
@@ -496,18 +331,15 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                       onClick={() => {
                                         if (shouldDisable) return;
 
-                                        // Toggle selection
-                                        let newSelected: string[] = isSelected
-                                          ? currentSelected.filter(
-                                              (key) => key !== option.key
-                                            )
-                                          : [...currentSelected, option.key];
+                                        const newSelected = toggleMultiSelection(
+                                          attribute.key,
+                                          option.key,
+                                          currentSelected
+                                        );
 
                                         handleSpecChange(
                                           attribute.key,
-                                          newSelected.length > 0
-                                            ? newSelected
-                                            : undefined
+                                          newSelected
                                         );
                                       }}
                                     >
@@ -531,45 +363,27 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                 {attribute.maxSelections && (
                                   <div className={styles.selectionCounter}>
                                     <Text variant="xs">
-                                      {(() => {
-                                        const currentSpec =
-                                          activeFilters.specs?.[attribute.key];
-                                        const selectedCount = Array.isArray(
-                                          currentSpec
-                                        )
-                                          ? currentSpec.length
-                                          : currentSpec
-                                          ? 1
-                                          : 0;
-                                        return `${selectedCount}/${attribute.maxSelections} selected`;
-                                      })()}
+                                      {getSelectionCounterText(
+                                        attribute.key,
+                                        attribute.maxSelections
+                                      )}
                                     </Text>
                                   </div>
                                 )}
 
                                 {attribute.processedOptions.map((option) => {
-                                  const currentSpec =
-                                    activeFilters.specs?.[attribute.key];
-                                  let currentSelected: string[];
-
-                                  // Handle both array and string formats from store
-                                  if (Array.isArray(currentSpec)) {
-                                    currentSelected = currentSpec;
-                                  } else if (typeof currentSpec === "string") {
-                                    currentSelected = [currentSpec];
-                                  } else {
-                                    currentSelected = [];
-                                  }
-
-                                  const isSelected = currentSelected.includes(
+                                  const currentSelected = getSelectedOptions(
+                                    attribute.key
+                                  );
+                                  const isSelected = isOptionSelectedInMulti(
+                                    attribute.key,
                                     option.key
                                   );
-                                  const isAtLimit =
-                                    attribute.maxSelections &&
-                                    currentSelected.length >=
-                                      attribute.maxSelections;
-                                  const shouldDisable =
-                                    isAtLimit && !isSelected;
+                                  const shouldDisable = shouldDisableOption(
+                                    attribute.key,
+                                    option.key,
+                                    attribute.maxSelections || undefined
+                                  );
 
                                   return (
                                     <label
@@ -585,18 +399,17 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                         onChange={(e) => {
                                           if (shouldDisable) return;
 
-                                          let newSelected: string[] = e.target
-                                            .checked
-                                            ? [...currentSelected, option.key]
-                                            : currentSelected.filter(
-                                                (key) => key !== option.key
-                                              );
+                                          const newSelected =
+                                            handleCheckboxChange(
+                                              attribute.key,
+                                              option.key,
+                                              e.target.checked,
+                                              currentSelected
+                                            );
 
                                           handleSpecChange(
                                             attribute.key,
-                                            newSelected.length > 0
-                                              ? newSelected
-                                              : undefined
+                                            newSelected
                                           );
                                         }}
                                       />
@@ -616,15 +429,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                               // Regular dropdown for single SELECTOR attributes
                               <Input
                                 type="select"
-                                value={(() => {
-                                  const currentSpec =
-                                    activeFilters.specs?.[attribute.key];
-                                  if (!currentSpec) return "";
-                                  // Handle string values directly from store
-                                  return typeof currentSpec === "string"
-                                    ? currentSpec
-                                    : "";
-                                })()}
+                                value={getSingleSelectorValue(attribute.key)}
                                 onChange={(e) =>
                                   handleSpecChange(
                                     attribute.key,
@@ -661,17 +466,14 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                               placeholder={`${t("search.min")} ${
                                 attribute.name
                               }`}
-                              value={localRangeInputs[attribute.key]?.min || ""}
-                              onChange={(e) => {
-                                setLocalRangeInputs((prev) => ({
-                                  ...prev,
-                                  [attribute.key]: {
-                                    ...prev[attribute.key],
-                                    min: e.target.value,
-                                    max: prev[attribute.key]?.max || "",
-                                  },
-                                }));
-                              }}
+                              value={getDraftRangeValue(attribute.key, "min")}
+                              onChange={(e) =>
+                                updateDraftRangeInput(
+                                  attribute.key,
+                                  "min",
+                                  e.target.value
+                                )
+                              }
                               size="sm"
                             />
                             <Input
@@ -679,17 +481,14 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                               placeholder={`${t("search.max")} ${
                                 attribute.name
                               }`}
-                              value={localRangeInputs[attribute.key]?.max || ""}
-                              onChange={(e) => {
-                                setLocalRangeInputs((prev) => ({
-                                  ...prev,
-                                  [attribute.key]: {
-                                    ...prev[attribute.key],
-                                    min: prev[attribute.key]?.min || "",
-                                    max: e.target.value,
-                                  },
-                                }));
-                              }}
+                              value={getDraftRangeValue(attribute.key, "max")}
+                              onChange={(e) =>
+                                updateDraftRangeInput(
+                                  attribute.key,
+                                  "max",
+                                  e.target.value
+                                )
+                              }
                               size="sm"
                             />
                           </div>
@@ -697,10 +496,8 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                             variant="primary"
                             size="sm"
                             loading={listingsLoading}
-                            disabled={!hasRangeChanges(attribute.key)}
-                            onClick={() =>
-                              handleApplyRangeFilter(attribute.key)
-                            }
+                            disabled={!hasRangeDraftChanges(attribute.key)}
+                            onClick={handleApplyRangeFilter}
                             className={styles.applyButton}
                           >
                             {t("common.apply")}
@@ -719,14 +516,14 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                   <Input
                     type="search"
                     placeholder={t("search.placeholder")}
-                    value={localSearchText}
-                    onChange={(e) => setLocalSearchText(e.target.value)}
+                    value={getDraftSearch()}
+                    onChange={(e) => setDraftSearch(e.target.value)}
                   />
                   <Button
                     variant="primary"
                     size="sm"
                     loading={listingsLoading}
-                    disabled={!hasSearchChanges()}
+                    disabled={!hasSearchDraftChanges()}
                     onClick={handleApplySearchFilter}
                     className={styles.applyButton}
                   >
@@ -745,22 +542,22 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                     <Input
                       type="number"
                       placeholder={t("search.minPrice")}
-                      value={localPriceMin}
-                      onChange={(e) => setLocalPriceMin(e.target.value)}
+                      value={getDraftPriceMin()}
+                      onChange={(e) => setDraftPriceMin(e.target.value)}
                       size="sm"
                     />
                     <Input
                       type="number"
                       placeholder={t("search.maxPrice")}
-                      value={localPriceMax}
-                      onChange={(e) => setLocalPriceMax(e.target.value)}
+                      value={getDraftPriceMax()}
+                      onChange={(e) => setDraftPriceMax(e.target.value)}
                       size="sm"
                     />
                   </div>
                   <Input
                     type="select"
-                    value={localCurrency}
-                    onChange={(e) => setLocalCurrency(e.target.value)}
+                    value={getDraftCurrency()}
+                    onChange={(e) => setDraftCurrency(e.target.value)}
                     size="sm"
                     options={[
                       { value: "USD", label: CURRENCY_LABELS.USD },
@@ -772,7 +569,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                     variant="primary"
                     size="sm"
                     loading={listingsLoading}
-                    disabled={!hasPriceChanges()}
+                    disabled={!hasPriceDraftChanges()}
                     onClick={handleApplyPriceFilter}
                     className={styles.applyButton}
                   >

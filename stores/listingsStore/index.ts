@@ -51,6 +51,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   viewType: "grid", // Default to grid view for performance
   filters: {},
   pagination: initialPagination,
+  currentCategoryId: null, // Track current category for cache invalidation
   // Simple cache to prevent redundant requests
 
   // Actions
@@ -350,6 +351,27 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     filterOverrides = {},
     viewType?: "grid" | "list" | "detail"
   ) => {
+    const { currentCategoryId } = get();
+
+    // Clear listings and invalidate cache when category changes
+    if (currentCategoryId !== categorySlug) {
+      console.log(`🔄 Category changed: ${currentCategoryId} → ${categorySlug}. Clearing listings and cache.`);
+
+      // Clear current listings immediately to prevent showing wrong category data
+      set({
+        listings: [],
+        currentCategoryId: categorySlug,
+        pagination: initialPagination
+      });
+
+      // Invalidate all cached data for fresh fetch
+      invalidateGraphQLCache('listingsSearch');
+      invalidateGraphQLCache('listingsAggregations');
+      invalidateGraphQLCache('ListingsGrid');
+      invalidateGraphQLCache('ListingsList');
+      invalidateGraphQLCache('ListingsDetail');
+    }
+
     await get().fetchListings(
       { ...filterOverrides, categoryId: categorySlug },
       viewType

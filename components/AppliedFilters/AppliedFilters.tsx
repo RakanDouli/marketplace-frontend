@@ -10,7 +10,7 @@ export function AppliedFilters() {
   const { t } = useTranslation();
 
   // Get filters and handlers from stores
-  const { activeFilters: filters, removeFilter, removeSpecFilter, clearAllFilters, getStoreFilters, getBackendFilters } = useSearchStore();
+  const { appliedFilters: filters, removeFilter, removeSpecFilter, clearAllFilters, getStoreFilters, getBackendFilters } = useSearchStore();
   const { attributes, updateFiltersWithCascading, currentCategorySlug } = useFiltersStore();
   const { fetchListingsByCategory, setPagination } = useListingsStore();
 

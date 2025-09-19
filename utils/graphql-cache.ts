@@ -1,26 +1,16 @@
-// GraphQL Request Cache and Deduplication with Session Storage
+// GraphQL Request Cache and Deduplication (In-Memory Only)
 interface CacheEntry {
   data: any;
   timestamp: number;
   promise?: Promise<any>;
 }
 
-interface SessionCacheEntry {
-  data: any;
-  timestamp: number;
-  ttl: number;
-}
 
-interface RequestKey {
-  query: string;
-  variables: any;
-}
 
 class GraphQLCache {
   private cache = new Map<string, CacheEntry>();
   private pendingRequests = new Map<string, Promise<any>>();
   private defaultTTL = 5 * 60 * 1000; // 5 minutes
-  private sessionStorageKey = 'marketplace_graphql_cache';
 
   private createKey(query: string, variables: any = {}): string {
     // Include viewType in cache key for view-specific optimization
@@ -68,59 +58,10 @@ class GraphQLCache {
     return Date.now() - entry.timestamp > this.defaultTTL;
   }
 
-  private loadFromSessionStorage(): void {
-    if (typeof window === 'undefined') return;
 
-    try {
-      const stored = sessionStorage.getItem(this.sessionStorageKey);
-      if (!stored) return;
 
-      const sessionCache: Record<string, SessionCacheEntry> = JSON.parse(stored);
-      const now = Date.now();
-
-      // Load valid entries from session storage
-      Object.entries(sessionCache).forEach(([key, entry]) => {
-        if (now - entry.timestamp < entry.ttl) {
-          this.cache.set(key, {
-            data: entry.data,
-            timestamp: entry.timestamp,
-          });
-          console.log(`🔄 Restored from session: ${key.substring(0, 50)}...`);
-        }
-      });
-    } catch (error) {
-      console.warn('Failed to load cache from session storage:', error);
-    }
-  }
-
-  private saveToSessionStorage(key: string, entry: CacheEntry, ttl: number): void {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = sessionStorage.getItem(this.sessionStorageKey);
-      const sessionCache: Record<string, SessionCacheEntry> = stored ? JSON.parse(stored) : {};
-
-      sessionCache[key] = {
-        data: entry.data,
-        timestamp: entry.timestamp,
-        ttl: ttl,
-      };
-
-      sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(sessionCache));
-      console.log(`💾 Saved to session: ${key.substring(0, 50)}...`);
-    } catch (error) {
-      console.warn('Failed to save cache to session storage:', error);
-    }
-  }
-
-  async request(query: string, variables: any = {}, options: { ttl?: number } = {}): Promise<any> {
-    // Load from session storage on first request
-    if (this.cache.size === 0) {
-      this.loadFromSessionStorage();
-    }
-
+  async request(query: string, variables: any = {}): Promise<any> {
     const key = this.createKey(query, variables);
-    const ttl = options.ttl || this.defaultTTL;
 
     console.log(`🔍 GraphQL Cache: Checking cache for key: ${key.substring(0, 100)}...`);
 
@@ -154,9 +95,6 @@ class GraphQLCache {
         timestamp: Date.now(),
       };
       this.cache.set(key, cacheEntry);
-
-      // Save to session storage for persistence across page refreshes
-      this.saveToSessionStorage(key, cacheEntry, ttl);
 
       console.log(`✅ GraphQL Cache: Cached response for ${key.substring(0, 50)}...`);
       return data;
@@ -209,11 +147,6 @@ class GraphQLCache {
   clear(): void {
     this.cache.clear();
     this.pendingRequests.clear();
-
-    // Clear session storage as well
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem(this.sessionStorageKey);
-    }
   }
 
   // Selective cache invalidation for filter/pagination changes
@@ -230,27 +163,6 @@ class GraphQLCache {
       this.cache.delete(key);
       console.log(`🗑️ GraphQL Cache: Invalidated cache for pattern "${pattern}": ${key.substring(0, 50)}...`);
     });
-
-    // Also clear from session storage
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = sessionStorage.getItem(this.sessionStorageKey);
-        if (stored) {
-          const sessionCache: Record<string, SessionCacheEntry> = JSON.parse(stored);
-          const filteredCache: Record<string, SessionCacheEntry> = {};
-
-          Object.entries(sessionCache).forEach(([key, entry]) => {
-            if (!key.includes(pattern)) {
-              filteredCache[key] = entry;
-            }
-          });
-
-          sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(filteredCache));
-        }
-      } catch (error) {
-        console.warn('Failed to invalidate session storage cache:', error);
-      }
-    }
   }
 
   // Get cache stats
@@ -276,10 +188,9 @@ if (typeof window !== 'undefined') {
 // Wrapper function for easy use
 export async function cachedGraphQLRequest(
   query: string,
-  variables?: any,
-  options?: { ttl?: number }
+  variables?: any
 ): Promise<any> {
-  return graphqlCache.request(query, variables, options);
+  return graphqlCache.request(query, variables);
 }
 
 // Clear cache function for development/debugging

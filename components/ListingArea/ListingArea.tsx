@@ -48,7 +48,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   } = useListingsStore();
 
   const viewType = useListingsViewType();
-  const { activeFilters, getStoreFilters, setFilter } = useSearchStore();
+  const { appliedFilters, getStoreFilters, setFilter } = useSearchStore();
   const { attributes, isLoading: countLoading } = useFiltersStore();
 
   // Store-based handlers (previously passed as props)
@@ -206,7 +206,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   });
 
   // Current sort from active filters or default to empty (shows disabled placeholder)
-  const currentSort = (activeFilters.sort as SortOption) || "";
+  const currentSort = (appliedFilters.sort as SortOption) || "";
 
   // Results count and pagination calculations
   const totalResults = pagination.total;

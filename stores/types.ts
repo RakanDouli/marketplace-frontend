@@ -44,6 +44,7 @@ export interface ListingsState {
   isLoading: boolean;
   error: string | null;
   viewType: 'grid' | 'list' | 'detail';
+  currentCategoryId: string | null; // Track current category for cache invalidation
   filters: {
     categoryId?: string;
     // Price filters

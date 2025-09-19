@@ -39,27 +39,37 @@ export interface SearchFilters {
 
 // Store state interface
 interface SearchState {
-  // Current active filters
-  activeFilters: SearchFilters;
+  // Applied filters (used for API calls and listings)
+  appliedFilters: SearchFilters;
+
+  // Draft filters (UI input state before applying)
+  draftFilters: SearchFilters;
 
   // Loading states
   isApplying: boolean;
-
-  // Debounce timer
-  debounceTimer: NodeJS.Timeout | null;
 }
 
 // Store actions interface
 interface SearchActions {
-  // Core filter management
+  // Applied filters (immediate effect, used by listings)
   setFilter: (key: keyof SearchFilters, value: any) => void;
   setSpecFilter: (specKey: string, value: any) => void;
   removeFilter: (key: keyof SearchFilters) => void;
   removeSpecFilter: (specKey: string) => void;
   clearAllFilters: () => void;
-
-  // Batch operations
   setFilters: (filters: Partial<SearchFilters>) => void;
+
+  // Draft filters (UI state, requires apply)
+  setDraftFilter: (key: keyof SearchFilters, value: any) => void;
+  setDraftSpecFilter: (specKey: string, value: any) => void;
+  applyDrafts: () => void;
+  resetDrafts: () => void;
+
+  // Draft state helpers
+  hasDraftChanges: () => boolean;
+  hasPriceDraftChanges: () => boolean;
+  hasRangeDraftChanges: (attributeKey: string) => boolean;
+  hasSearchDraftChanges: () => boolean;
 
   // Backend conversion
   getBackendFilters: () => any;
@@ -81,77 +91,21 @@ const initialFilters: SearchFilters = {
   limit: 20,
 };
 
-// Session storage helpers for filter persistence
-const SESSION_FILTERS_KEY = 'marketplace_search_filters';
-const SESSION_TTL = 30 * 60 * 1000; // 30 minutes
-
-const loadFiltersFromSession = (): SearchFilters => {
-  if (typeof window === 'undefined') return initialFilters;
-
-  try {
-    const stored = sessionStorage.getItem(SESSION_FILTERS_KEY);
-    if (!stored) return initialFilters;
-
-    const { filters, timestamp } = JSON.parse(stored);
-
-    // Check if session data is still valid
-    if (Date.now() - timestamp > SESSION_TTL) {
-      sessionStorage.removeItem(SESSION_FILTERS_KEY);
-      return initialFilters;
-    }
-
-    console.log('🔄 Restored search filters from session storage');
-    return { ...initialFilters, ...filters };
-  } catch (error) {
-    console.warn('Failed to load search filters from session storage:', error);
-    return initialFilters;
-  }
-};
-
-const saveFiltersToSession = (filters: SearchFilters): void => {
-  if (typeof window === 'undefined') return;
-
-  try {
-    // Only save non-default filters to reduce storage usage
-    const filtersToSave = Object.fromEntries(
-      Object.entries(filters).filter(([key, value]) => {
-        if (key === 'page' || key === 'limit') return false; // Don't persist pagination
-        return value !== null && value !== undefined && value !== '';
-      })
-    );
-
-    if (Object.keys(filtersToSave).length === 0) {
-      sessionStorage.removeItem(SESSION_FILTERS_KEY);
-      return;
-    }
-
-    sessionStorage.setItem(SESSION_FILTERS_KEY, JSON.stringify({
-      filters: filtersToSave,
-      timestamp: Date.now(),
-    }));
-
-    console.log('💾 Saved search filters to session storage');
-  } catch (error) {
-    console.warn('Failed to save search filters to session storage:', error);
-  }
-};
 
 const initialState: SearchState = {
-  activeFilters: loadFiltersFromSession(),
+  appliedFilters: initialFilters,
+  draftFilters: initialFilters,
   isApplying: false,
-  debounceTimer: null,
 };
 
 export const useSearchStore = create<SearchStore>()(
   subscribeWithSelector((set, get) => ({
     ...initialState,
 
-    // Set individual filter
+    // Set individual applied filter (immediate effect)
     setFilter: (key: keyof SearchFilters, value: any) => {
-      // console.log(`🔧 SearchStore: Setting ${key} =`, value);
-
-      const { activeFilters } = get();
-      const newFilters = { ...activeFilters };
+      const { appliedFilters } = get();
+      const newFilters = { ...appliedFilters };
 
       if (value === null || value === undefined || value === "") {
         delete newFilters[key];
@@ -164,27 +118,14 @@ export const useSearchStore = create<SearchStore>()(
         newFilters.page = 1;
       }
 
-      set({ activeFilters: newFilters });
-
-      // Save to session storage for persistence
-      saveFiltersToSession(newFilters);
-
-      // console.log("📦 SearchStore: Updated filters", {
-      //   previous: activeFilters,
-      //   new: newFilters,
-      //   changed: key,
-      //   value: value
-      // });
+      set({ appliedFilters: newFilters });
     },
 
-    // Set spec filter (dynamic attributes)
+    // Set spec filter (dynamic attributes) - immediate effect
     setSpecFilter: (specKey: string, value: any) => {
-      console.log(`🎯 SearchStore: Setting spec ${specKey} =`, value);
+      const { appliedFilters } = get();
+      const newSpecs = { ...appliedFilters.specs };
 
-      const { activeFilters } = get();
-      const newSpecs = { ...activeFilters.specs };
-
-      // Simplified logic - store values directly
       if (
         value === null ||
         value === undefined ||
@@ -197,124 +138,173 @@ export const useSearchStore = create<SearchStore>()(
       }
 
       const newFilters = {
-        ...activeFilters,
+        ...appliedFilters,
         specs: Object.keys(newSpecs).length > 0 ? newSpecs : undefined,
-        page: 1, // Reset page when filters change
+        page: 1,
       };
 
-      set({ activeFilters: newFilters });
-
-      // Save to session storage for persistence
-      saveFiltersToSession(newFilters);
-
-      console.log("🎯 SearchStore: Updated spec filters", {
-        specKey,
-        value,
-        newSpecs,
-        finalFilters: newFilters,
-      });
+      set({ appliedFilters: newFilters });
     },
 
     // Remove individual filter
     removeFilter: (key: keyof SearchFilters) => {
-      console.log(`🗑️ SearchStore: Removing ${key}`);
-
-      const { activeFilters } = get();
-      const newFilters = { ...activeFilters };
-
-      // Just delete the filter (no special handling needed for sort)
+      const { appliedFilters } = get();
+      const newFilters = { ...appliedFilters };
       delete newFilters[key];
 
-      set({ activeFilters: newFilters });
-
-      // Save to session storage for persistence
-      saveFiltersToSession(newFilters);
+      set({ appliedFilters: newFilters });
     },
 
     // Remove spec filter
     removeSpecFilter: (specKey: string) => {
-      console.log(`🗑️ SearchStore: Removing spec ${specKey}`);
+      const { appliedFilters } = get();
+      if (!appliedFilters.specs) return;
 
-      const { activeFilters } = get();
-      if (!activeFilters.specs) return;
-
-      const newSpecs = { ...activeFilters.specs };
+      const newSpecs = { ...appliedFilters.specs };
       delete newSpecs[specKey];
 
       const newFilters = {
-        ...activeFilters,
+        ...appliedFilters,
         specs: Object.keys(newSpecs).length > 0 ? newSpecs : undefined,
       };
 
-      set({ activeFilters: newFilters });
-
-      // Save to session storage for persistence
-      saveFiltersToSession(newFilters);
+      set({ appliedFilters: newFilters });
     },
 
     // Clear all filters
     clearAllFilters: () => {
-      // console.log("🧹 SearchStore: Clearing all filters");
-      set({ activeFilters: initialFilters });
-
-      // Clear session storage as well
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem(SESSION_FILTERS_KEY);
-      }
+      set({
+        appliedFilters: initialFilters,
+        draftFilters: initialFilters
+      });
     },
 
     // Set multiple filters at once
     setFilters: (filters: Partial<SearchFilters>) => {
-      // console.log("📋 SearchStore: Setting multiple filters", filters);
+      const { appliedFilters } = get();
+      const newFilters = { ...appliedFilters, ...filters };
 
-      const { activeFilters } = get();
-      const newFilters = { ...activeFilters, ...filters };
-
-      set({ activeFilters: newFilters });
-
-      // Save to session storage for persistence
-      saveFiltersToSession(newFilters);
+      set({ appliedFilters: newFilters });
     },
+
+    // === DRAFT FILTER METHODS ===
+
+    // Set draft filter (UI state only)
+    setDraftFilter: (key: keyof SearchFilters, value: any) => {
+      const { draftFilters } = get();
+      const newDrafts = { ...draftFilters };
+
+      if (value === null || value === undefined || value === "") {
+        delete newDrafts[key];
+      } else {
+        newDrafts[key] = value;
+      }
+
+      set({ draftFilters: newDrafts });
+    },
+
+    // Set draft spec filter (UI state only)
+    setDraftSpecFilter: (specKey: string, value: any) => {
+      const { draftFilters } = get();
+      const newSpecs = { ...draftFilters.specs };
+
+      if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
+        delete newSpecs[specKey];
+      } else {
+        newSpecs[specKey] = value;
+      }
+
+      const newDrafts = {
+        ...draftFilters,
+        specs: Object.keys(newSpecs).length > 0 ? newSpecs : undefined,
+      };
+
+      set({ draftFilters: newDrafts });
+    },
+
+    // Apply draft filters to applied filters
+    applyDrafts: () => {
+      const { draftFilters } = get();
+      const newApplied = { ...draftFilters, page: 1 }; // Reset page on apply
+
+      set({ appliedFilters: newApplied });
+    },
+
+    // Reset drafts to match applied filters
+    resetDrafts: () => {
+      const { appliedFilters } = get();
+      set({ draftFilters: { ...appliedFilters } });
+    },
+
+    // === DRAFT STATE HELPERS ===
+
+    // Check if any draft changes exist
+    hasDraftChanges: () => {
+      const { appliedFilters, draftFilters } = get();
+      return JSON.stringify(appliedFilters) !== JSON.stringify(draftFilters);
+    },
+
+    // Check if price drafts have changes
+    hasPriceDraftChanges: () => {
+      const { appliedFilters, draftFilters } = get();
+      return (
+        appliedFilters.priceMinMinor !== draftFilters.priceMinMinor ||
+        appliedFilters.priceMaxMinor !== draftFilters.priceMaxMinor ||
+        appliedFilters.priceCurrency !== draftFilters.priceCurrency
+      );
+    },
+
+    // Check if range drafts have changes for specific attribute
+    hasRangeDraftChanges: (attributeKey: string) => {
+      const { appliedFilters, draftFilters } = get();
+      const appliedValue = appliedFilters.specs?.[attributeKey];
+      const draftValue = draftFilters.specs?.[attributeKey];
+      return JSON.stringify(appliedValue) !== JSON.stringify(draftValue);
+    },
+
+    // Check if search draft has changes
+    hasSearchDraftChanges: () => {
+      const { appliedFilters, draftFilters } = get();
+      return (appliedFilters.search || "").trim() !== (draftFilters.search || "").trim();
+    },
+
+    // === BACKEND CONVERSION ===
 
     // Convert filters for backend aggregation calls
     getBackendFilters: () => {
-      const { activeFilters } = get();
-      console.log("🔄 SearchStore: Converting for backend", activeFilters);
-
+      const { appliedFilters } = get();
       const backendFilters: any = {};
 
-      if (activeFilters.categoryId) {
-        backendFilters.categoryId = activeFilters.categoryId;
+      if (appliedFilters.categoryId) {
+        backendFilters.categoryId = appliedFilters.categoryId;
       }
 
       // Handle location filter: province (frontend) maps to location (backend specs)
-      if (activeFilters.province) {
+      if (appliedFilters.province) {
         if (!backendFilters.specs) backendFilters.specs = {};
-        backendFilters.specs.location = activeFilters.province;
+        backendFilters.specs.location = appliedFilters.province;
       }
 
       // Handle brandId and modelId (legacy top-level filters now moved to specs)
-      if (activeFilters.brandId) {
+      if (appliedFilters.brandId) {
         if (!backendFilters.specs) backendFilters.specs = {};
-        backendFilters.specs.brandId = activeFilters.brandId;
+        backendFilters.specs.brandId = appliedFilters.brandId;
       }
-      if (activeFilters.modelId) {
+      if (appliedFilters.modelId) {
         if (!backendFilters.specs) backendFilters.specs = {};
-        backendFilters.specs.modelId = activeFilters.modelId;
+        backendFilters.specs.modelId = appliedFilters.modelId;
       }
 
-      // Convert specs to backend format - simplified since we store values directly
-      if (activeFilters.specs && Object.keys(activeFilters.specs).length > 0) {
-        const specs: Record<string, any> = { ...backendFilters.specs }; // Merge with location if set
+      // Convert specs to backend format
+      if (appliedFilters.specs && Object.keys(appliedFilters.specs).length > 0) {
+        const specs: Record<string, any> = { ...backendFilters.specs };
 
-        Object.entries(activeFilters.specs).forEach(([key, value]) => {
-          console.log(`🔍 Backend conversion - Processing spec: ${key}`, {
-            value,
-            isArray: Array.isArray(value),
-            valueType: typeof value,
-          });
-
-          // Store values directly - no complex object handling needed
+        Object.entries(appliedFilters.specs).forEach(([key, value]) => {
           specs[key] = value;
         });
 
@@ -323,73 +313,68 @@ export const useSearchStore = create<SearchStore>()(
         }
       }
 
-      console.log("✅ Backend filters:", backendFilters);
       return backendFilters;
     },
 
     // Convert filters for listings store
     getStoreFilters: () => {
-      const { activeFilters } = get();
-      // console.log("📊 SearchStore: Converting for store", activeFilters);
-
+      const { appliedFilters } = get();
       const storeFilters: any = {};
 
-      if (activeFilters.categoryId) {
-        storeFilters.categoryId = activeFilters.categoryId;
+      if (appliedFilters.categoryId) {
+        storeFilters.categoryId = appliedFilters.categoryId;
       }
 
       // Price filters
-      if (activeFilters.priceMinMinor) {
-        storeFilters.priceMinMinor = activeFilters.priceMinMinor;
+      if (appliedFilters.priceMinMinor) {
+        storeFilters.priceMinMinor = appliedFilters.priceMinMinor;
       }
-      if (activeFilters.priceMaxMinor) {
-        storeFilters.priceMaxMinor = activeFilters.priceMaxMinor;
+      if (appliedFilters.priceMaxMinor) {
+        storeFilters.priceMaxMinor = appliedFilters.priceMaxMinor;
       }
-      if (activeFilters.priceCurrency) {
-        storeFilters.priceCurrency = activeFilters.priceCurrency;
-      }
-
-      // Location filters - now handled through specs.location (global attribute)
-      // Keep backward compatibility for deprecated province/city fields
-      if (activeFilters.province) {
-        if (!storeFilters.specs) storeFilters.specs = {};
-        storeFilters.specs.location = activeFilters.province;
-      }
-      if (activeFilters.city) {
-        storeFilters.city = activeFilters.city; // Still supported for city-level filtering
+      if (appliedFilters.priceCurrency) {
+        storeFilters.priceCurrency = appliedFilters.priceCurrency;
       }
 
-      // Handle brandId and modelId (legacy top-level filters now moved to specs)
-      if (activeFilters.brandId) {
+      // Location filters
+      if (appliedFilters.province) {
         if (!storeFilters.specs) storeFilters.specs = {};
-        storeFilters.specs.brandId = activeFilters.brandId;
+        storeFilters.specs.location = appliedFilters.province;
       }
-      if (activeFilters.modelId) {
+      if (appliedFilters.city) {
+        storeFilters.city = appliedFilters.city;
+      }
+
+      // Brand/Model
+      if (appliedFilters.brandId) {
         if (!storeFilters.specs) storeFilters.specs = {};
-        storeFilters.specs.modelId = activeFilters.modelId;
+        storeFilters.specs.brandId = appliedFilters.brandId;
+      }
+      if (appliedFilters.modelId) {
+        if (!storeFilters.specs) storeFilters.specs = {};
+        storeFilters.specs.modelId = appliedFilters.modelId;
       }
 
       // Search
-      if (activeFilters.search) {
-        storeFilters.search = activeFilters.search;
+      if (appliedFilters.search) {
+        storeFilters.search = appliedFilters.search;
       }
 
       // Seller type
-      if (activeFilters.sellerType) {
-        storeFilters.sellerType = activeFilters.sellerType;
+      if (appliedFilters.sellerType) {
+        storeFilters.sellerType = appliedFilters.sellerType;
       }
 
       // Sort
-      if (activeFilters.sort) {
-        storeFilters.sort = activeFilters.sort;
+      if (appliedFilters.sort) {
+        storeFilters.sort = appliedFilters.sort;
       }
 
-      // Convert specs - simplified since we store values directly
-      if (activeFilters.specs && Object.keys(activeFilters.specs).length > 0) {
-        const specs: Record<string, any> = {};
+      // Convert specs
+      if (appliedFilters.specs && Object.keys(appliedFilters.specs).length > 0) {
+        const specs: Record<string, any> = { ...storeFilters.specs };
 
-        Object.entries(activeFilters.specs).forEach(([key, value]) => {
-          // Store values directly - no complex object handling needed
+        Object.entries(appliedFilters.specs).forEach(([key, value]) => {
           specs[key] = value;
         });
 
@@ -398,30 +383,27 @@ export const useSearchStore = create<SearchStore>()(
         }
       }
 
-      console.log("✅ Store filters:", storeFilters);
       return storeFilters;
     },
 
     // Convert to URL search parameters
     getUrlParams: () => {
-      const { activeFilters } = get();
+      const { appliedFilters } = get();
       const params = new URLSearchParams();
 
-      // Add basic filters to URL
-      if (activeFilters.search) params.set("search", activeFilters.search);
-      if (activeFilters.province)
-        params.set("location", activeFilters.province); // Use 'location' instead of 'province' for URL
-      if (activeFilters.city) params.set("city", activeFilters.city);
-      if (activeFilters.priceMinMinor)
-        params.set("minPrice", (activeFilters.priceMinMinor / 100).toString());
-      if (activeFilters.priceMaxMinor)
-        params.set("maxPrice", (activeFilters.priceMaxMinor / 100).toString());
-      if (activeFilters.page && activeFilters.page > 1)
-        params.set("page", activeFilters.page.toString());
+      if (appliedFilters.search) params.set("search", appliedFilters.search);
+      if (appliedFilters.province) params.set("location", appliedFilters.province);
+      if (appliedFilters.city) params.set("city", appliedFilters.city);
+      if (appliedFilters.priceMinMinor)
+        params.set("minPrice", (appliedFilters.priceMinMinor / 100).toString());
+      if (appliedFilters.priceMaxMinor)
+        params.set("maxPrice", (appliedFilters.priceMaxMinor / 100).toString());
+      if (appliedFilters.page && appliedFilters.page > 1)
+        params.set("page", appliedFilters.page.toString());
 
-      // Add spec filters to URL (flattened) - simplified
-      if (activeFilters.specs) {
-        Object.entries(activeFilters.specs).forEach(([key, value]) => {
+      // Add spec filters to URL
+      if (appliedFilters.specs) {
+        Object.entries(appliedFilters.specs).forEach(([key, value]) => {
           if (Array.isArray(value)) {
             params.set(key, value.join(","));
           } else if (value) {
@@ -435,57 +417,63 @@ export const useSearchStore = create<SearchStore>()(
 
     // Set filters from URL parameters
     setFromUrlParams: (searchParams: URLSearchParams) => {
-      // console.log("🔗 SearchStore: Setting from URL params");
-
       const newFilters: SearchFilters = { ...initialFilters };
 
-      // Parse basic filters
       if (searchParams.get("search"))
         newFilters.search = searchParams.get("search")!;
       if (searchParams.get("location"))
-        newFilters.province = searchParams.get("location")!; // Map 'location' URL param to province
+        newFilters.province = searchParams.get("location")!;
       if (searchParams.get("province"))
-        newFilters.province = searchParams.get("province")!; // Backward compatibility
-      if (searchParams.get("city")) newFilters.city = searchParams.get("city")!;
+        newFilters.province = searchParams.get("province")!;
+      if (searchParams.get("city"))
+        newFilters.city = searchParams.get("city")!;
       if (searchParams.get("minPrice"))
-        newFilters.priceMinMinor =
-          parseFloat(searchParams.get("minPrice")!) * 100;
+        newFilters.priceMinMinor = parseFloat(searchParams.get("minPrice")!) * 100;
       if (searchParams.get("maxPrice"))
-        newFilters.priceMaxMinor =
-          parseFloat(searchParams.get("maxPrice")!) * 100;
+        newFilters.priceMaxMinor = parseFloat(searchParams.get("maxPrice")!) * 100;
       if (searchParams.get("page"))
         newFilters.page = parseInt(searchParams.get("page")!);
 
-      // Parse spec filters (these would need to be reconstructed based on attribute types)
-      // For now, we'll skip this as it requires knowledge of attribute types
-
-      set({ activeFilters: newFilters });
+      set({
+        appliedFilters: newFilters,
+        draftFilters: { ...newFilters }
+      });
     },
 
     // Check if any filters are active
     hasActiveFilters: () => {
-      const { activeFilters } = get();
-      return Object.keys(activeFilters).some(
+      const { appliedFilters } = get();
+      return Object.keys(appliedFilters).some(
         (key) =>
           key !== "sort" &&
           key !== "page" &&
           key !== "limit" &&
-          activeFilters[key as keyof SearchFilters]
+          appliedFilters[key as keyof SearchFilters]
       );
     },
 
     // Reset to default values
     resetToDefaults: () => {
-      // console.log("🔄 SearchStore: Resetting to defaults");
-      set({ activeFilters: initialFilters });
+      set({
+        appliedFilters: initialFilters,
+        draftFilters: initialFilters
+      });
     },
   }))
 );
 
 // Selectors for easy component access
-export const useActiveFilters = () =>
-  useSearchStore((state) => state.activeFilters);
+export const useAppliedFilters = () =>
+  useSearchStore((state) => state.appliedFilters);
+export const useDraftFilters = () =>
+  useSearchStore((state) => state.draftFilters);
 export const useSearchFiltersLoading = () =>
   useSearchStore((state) => state.isApplying);
 export const useHasActiveFilters = () =>
   useSearchStore((state) => state.hasActiveFilters());
+export const useHasDraftChanges = () =>
+  useSearchStore((state) => state.hasDraftChanges());
+
+// Legacy selector for compatibility
+export const useActiveFilters = () =>
+  useSearchStore((state) => state.appliedFilters);
