@@ -1,0 +1,29 @@
+@import "../../styles/variables.scss";
+
+.content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: $space-md;
+  align-items: start;
+  min-height: calc(100vh - $header-height);
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: 1fr;
+    gap: $space-md;
+  }
+}
+
+.sideNavSection {
+    background-color: $bg;
+  @media (max-width: $breakpoint-lg) {
+    order: 2;
+  }
+}
+
+.listingsSection {
+  min-width: 0; // Prevent grid overflow
+  background-color: $bg;
+  @media (max-width: $breakpoint-lg) {
+    order: 1;
+  }
+}

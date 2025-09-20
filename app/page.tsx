@@ -1,13 +1,13 @@
 "use client";
 
-import Container from "../../components/slices/Container/Container";
-import TextSection from "../../components/slices/TextSection/TextSection";
-import Text from "../../components/slices/Text/Text";
-import Image from "../../components/slices/Image/Image";
-import Button from "../../components/slices/Button/Button";
-import { useTranslation } from "../../hooks/useTranslation";
-import { useNotificationStore } from "../../stores";
-import SubmitButton from "../../components/slices/Button/SubmitButton";
+import Container from "../components/slices/Container/Container";
+import TextSection from "../components/slices/TextSection/TextSection";
+import Text from "../components/slices/Text/Text";
+import Image from "../components/slices/Image/Image";
+import Button from "../components/slices/Button/Button";
+import { useTranslation } from "../hooks/useTranslation";
+import { useNotificationStore } from "../stores";
+import SubmitButton from "../components/slices/Button/SubmitButton";
 
 export default function HomePage() {
   const { t } = useTranslation();

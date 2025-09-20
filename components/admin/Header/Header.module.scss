@@ -1,8 +1,8 @@
 .header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  // position: fixed;
+  // top: 0;
+  // left: 0;
+  // right: 0;
   height: $header-height;
   z-index: $z-nav;
   background-color: $surface;
@@ -39,6 +39,28 @@
     max-width: $container-lg;
     padding-left: 0;
     padding-right: 0;
+  }
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  color: $text;
+  cursor: pointer;
+  padding: $space-xs;
+  border-radius: $radius-sm;
+  transition: all 0.3s ease;
+  margin-right: $space-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $surface;
+  }
+
+  @media (min-width: $breakpoint-lg) {
+    display: none;
   }
 }
 
@@ -117,10 +139,6 @@
   align-items: center;
   justify-content: center;
   gap: $space-sm;
-
-  @media (max-width: $breakpoint-lg) {
-    display: none;
-  }
 }
 
 .authButtons {

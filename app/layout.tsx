@@ -5,6 +5,7 @@ import { LanguageProvider } from '../contexts/LanguageContext';
 import { NotificationToast } from '../components/slices/NotificationToast/NotificationToast';
 import { ErrorBoundary } from '../components/slices';
 import { generateDefaultMetadata } from '../utils/seo';
+import { PublicLayoutClient } from '../components/layouts/PublicLayoutClient';
 
 export const metadata: Metadata = generateDefaultMetadata('ar');
 
@@ -23,7 +24,9 @@ export default function RootLayout({
         <LanguageProvider defaultLanguage="ar">
           <ThemeProvider>
             <ErrorBoundary>
-              {children}
+              <PublicLayoutClient>
+                {children}
+              </PublicLayoutClient>
             </ErrorBoundary>
             <NotificationToast />
           </ThemeProvider>

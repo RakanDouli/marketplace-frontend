@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
-import Container from "../../../components/slices/Container/Container";
-import Filter from "../../../components/Filter/Filter";
-import ListingArea from "../../../components/ListingArea/ListingArea";
-import { Loading } from "../../../components/slices/Loading/Loading";
+import Container from "../../components/slices/Container/Container";
+import Filter from "../../components/Filter/Filter";
+import ListingArea from "../../components/ListingArea/ListingArea";
+import { Loading } from "../../components/slices/Loading/Loading";
 import {
   useCategoriesStore,
   useFiltersStore,
-} from "../../../stores";
-import type { Category } from "../../../stores/types";
+} from "../../stores";
+import type { Category } from "../../stores/types";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
