@@ -1,18 +1,36 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAdminAuthStore } from '@/stores/adminAuthStore';
+import AdminDashboard from '@/components/admin/AdminDashboard';
+import { Loading } from '@/components';
 
-export default function AdminRoot() {
-  const router = useRouter();
+export default function AdminMainPage() {
+  const { isAuthenticated, refreshAuth, isLoading } = useAdminAuthStore();
 
   useEffect(() => {
-    router.replace('/admin/login');
-  }, [router]);
+    if (!isAuthenticated) {
+      refreshAuth();
+    }
+  }, [isAuthenticated, refreshAuth]);
 
-  return (
-    <div>
-      <p>Redirecting to admin login...</p>
-    </div>
-  );
+  // Redirect to login if not authenticated
+  if (!isLoading && !isAuthenticated) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin/login';
+    }
+    return null;
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading type='svg' />
+      </div>
+    );
+  }
+
+  // Main dashboard only
+  return <AdminDashboard />;
 }

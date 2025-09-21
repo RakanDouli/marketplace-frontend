@@ -1,32 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { AdminUser, AdminAuthState, UserRole } from '@/lib/admin/types';
 
-// Types matching our backend
-interface AdminUser {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  permissions: string[];
-}
-
-interface AdminAuthState {
-  // Auth state
-  user: AdminUser | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-
-  // Actions
+// Enhanced admin auth state interface
+interface AdminAuthStore extends AdminAuthState {
+  // Additional actions
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   checkPermission: (permission: string) => boolean;
+  hasAnyPermission: (permissions: string[]) => boolean;
+  hasAllPermissions: (permissions: string[]) => boolean;
   refreshAuth: () => Promise<void>;
   clearError: () => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
-// Flexible admin login - accepts any credentials for development
+// Temporary simplified authentication - TODO: Implement full Supabase flow
 const mockAdminLogin = async (email: string, password: string) => {
   return new Promise<{
     success: boolean;
@@ -35,59 +25,78 @@ const mockAdminLogin = async (email: string, password: string) => {
     error?: string;
   }>((resolve) => {
     setTimeout(() => {
-      // Accept any credentials for development - replace with actual backend auth later
-      if (email && password) {
-        resolve({
-          success: true,
-          token: 'admin_token_' + Date.now(),
-          user: {
-            id: '1',
-            email: email,
-            name: email.includes('superadmin') ? 'Super Admin' : 'Admin User',
-            role: 'SUPER_ADMIN',
-            permissions: [
-              'roles.manage',
-              'subscriptions.manage',
-              'analytics.view',
-              'email_templates.manage',
-              'campaigns.manage',
-              'categories.manage',
-              'listings.manage'
-            ]
-          }
-        });
-      } else {
+      // Check against known seeded admin accounts from backend
+      const adminAccounts = [
+        { email: 'superadmin@marketplace.com', role: 'SUPER_ADMIN', name: 'Super Admin' },
+        { email: 'admin@marketplace.com', role: 'ADMIN', name: 'Platform Admin' },
+        { email: 'editor@marketplace.com', role: 'EDITOR', name: 'Content Editor' },
+        { email: 'adsmanager@marketplace.com', role: 'ADS_MANAGER', name: 'Ads Manager' }
+      ];
+
+      const account = adminAccounts.find(acc => acc.email === email);
+
+      if (!account) {
         resolve({
           success: false,
-          error: 'Please enter both email and password.'
+          error: 'هذا الحساب ليس له صلاحيات إدارية. يرجى استخدام حساب مدير. This account does not have admin privileges.'
         });
+        return;
       }
+
+      // Map role to permissions
+      let permissions: string[] = [];
+      switch (account.role) {
+        case 'SUPER_ADMIN':
+          permissions = ['*'];
+          break;
+        case 'ADMIN':
+          permissions = ['dashboard.view', 'users.manage', 'roles.view', 'listings.manage', 'categories.manage', 'analytics.view', 'audit.read'];
+          break;
+        case 'EDITOR':
+          permissions = ['dashboard.view', 'listings.moderate', 'users.view', 'analytics.basic'];
+          break;
+        case 'ADS_MANAGER':
+          permissions = ['dashboard.view', 'campaigns.manage', 'clients.manage', 'packages.manage', 'analytics.ads'];
+          break;
+      }
+
+      resolve({
+        success: true,
+        token: 'mock_admin_token_' + Date.now(),
+        user: {
+          id: Date.now().toString(),
+          email: account.email,
+          name: account.name,
+          role: account.role as UserRole,
+          permissions,
+          isActive: true,
+          createdAt: new Date().toISOString()
+        }
+      });
     }, 1000);
   });
 };
 
-export const useAdminAuthStore = create<AdminAuthState>()(
+export const useAdminAuthStore = create<AdminAuthStore>()(
   persist(
     (set, get) => ({
       // Initial state
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
 
-      // Login action
+      // Enhanced login action
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
 
         try {
-          // TODO: Replace with actual Supabase authentication
+          // TODO: Replace with actual backend authentication
           const response = await mockAdminLogin(email, password);
 
           if (response.success && response.token && response.user) {
             set({
               user: response.user,
-              token: response.token,
               isAuthenticated: true,
               isLoading: false,
               error: null
@@ -95,64 +104,103 @@ export const useAdminAuthStore = create<AdminAuthState>()(
           } else {
             set({
               user: null,
-              token: null,
               isAuthenticated: false,
               isLoading: false,
-              error: response.error || 'Login failed'
+              error: response.error || 'تسجيل الدخول فشل. Login failed.'
             });
+            // Let the component handle the notification
+            throw new Error(response.error || 'Login failed');
           }
         } catch (error) {
           console.error('Admin login error:', error);
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             isLoading: false,
-            error: 'Login failed. Please check your credentials.'
+            error: 'خطأ في تسجيل الدخول. يرجى التحقق من بيانات الاعتماد. Login failed. Please check your credentials.'
           });
+          // Let the component handle the notification
+          throw error;
         }
       },
 
-      // Logout action
+      // Enhanced logout action
       logout: () => {
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           error: null
         });
+
+        // Clear any persisted admin data
+        localStorage.removeItem('admin-modules-storage');
+        localStorage.removeItem('admin-permissions-storage');
       },
 
-      // Permission checking
+      // Enhanced permission checking
       checkPermission: (permission: string) => {
         const { user } = get();
         if (!user || !user.permissions) return false;
+
+        // Super admin has all permissions
+        if (user.permissions.includes('*')) return true;
+
         return user.permissions.includes(permission);
       },
 
-      // Refresh authentication (check if token is still valid)
+      // Check if user has any of the specified permissions
+      hasAnyPermission: (permissions: string[]) => {
+        const { user } = get();
+        if (!user || !user.permissions) return false;
+
+        // Super admin has all permissions
+        if (user.permissions.includes('*')) return true;
+
+        return permissions.some(permission => user.permissions.includes(permission));
+      },
+
+      // Check if user has all of the specified permissions
+      hasAllPermissions: (permissions: string[]) => {
+        const { user } = get();
+        if (!user || !user.permissions) return false;
+
+        // Super admin has all permissions
+        if (user.permissions.includes('*')) return true;
+
+        return permissions.every(permission => user.permissions.includes(permission));
+      },
+
+      // Enhanced authentication refresh
       refreshAuth: async () => {
-        const { token } = get();
-        if (!token) {
+        const state = get();
+        if (!state.user) {
           set({ isAuthenticated: false, user: null });
           return;
         }
 
         try {
           // TODO: Replace with actual token validation against backend
-          // For now, just verify the mock token format
-          if (token.startsWith('mock_admin_token_')) {
+          // For now, just verify we have a valid user object
+          if (state.user.id && state.user.email && state.user.role) {
             set({ isAuthenticated: true });
           } else {
-            set({ isAuthenticated: false, user: null, token: null });
+            set({ isAuthenticated: false, user: null });
           }
         } catch (error) {
           console.error('Token refresh error:', error);
-          set({ isAuthenticated: false, user: null, token: null });
+          set({ isAuthenticated: false, user: null });
         }
       },
 
-      // Clear error
+      // Utility actions
+      setLoading: (loading: boolean) => {
+        set({ isLoading: loading });
+      },
+
+      setError: (error: string | null) => {
+        set({ error });
+      },
+
       clearError: () => {
         set({ error: null });
       }

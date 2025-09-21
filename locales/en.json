@@ -279,5 +279,40 @@
         "5": "5 doors"
       }
     }
+  },
+  "admin": {
+    "navigation": {
+      "dashboard": "Dashboard",
+      "roles": "Roles & Permissions",
+      "subscriptions": "User Subscriptions",
+      "analytics": "Analytics & Reports",
+      "emails": "Email Templates",
+      "campaigns": "Campaigns",
+      "categories": "Categories",
+      "listings": "Listings",
+      "settings": "Settings",
+      "signOut": "Sign Out"
+    },
+    "userInfo": {
+      "welcomeBack": "Welcome back",
+      "role": "Role",
+      "permissions": "Permissions"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Welcome back! Here's what's happening with your marketplace",
+      "stats": {
+        "users": "Users",
+        "listings": "Listings",
+        "revenue": "Revenue",
+        "growth": "Growth"
+      },
+      "metrics": {
+        "fromLastMonth": "from last month",
+        "totalUsers": "Total Users",
+        "totalListings": "Total Listings",
+        "totalRevenue": "Total Revenue"
+      }
+    }
   }
 }

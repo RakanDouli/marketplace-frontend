@@ -1,0 +1,140 @@
+// AdminForm component styles using theme variables
+@import "@/styles/variables";
+
+.formContainer {
+  background: $bg;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+}
+
+.header {
+  padding: $space-lg;
+  border-bottom: 1px solid $border;
+  background: $bg;
+}
+
+.form {
+  padding: $space-lg;
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: $space-lg;
+  margin-bottom: $space-xl;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.checkboxField {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  cursor: pointer;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $text;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  cursor: pointer;
+  accent-color: $primary;
+  transition: all 0.2s ease;
+
+  &:checked {
+    background: $primary;
+    border-color: $primary;
+  }
+
+  &:focus {
+    outline: 2px solid $primary-subtle;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.checkboxText {
+  user-select: none;
+}
+
+.required {
+  color: $error;
+  margin-left: $space-xs;
+  font-weight: $weight-bold;
+}
+
+.fieldError {
+  font-size: $font-xs;
+  color: $error;
+  margin-top: $space-xs;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-md;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+}
+
+.emptyState {
+  padding: $space-xl;
+  text-align: center;
+
+  p {
+    color: $text-secondary;
+    margin: 0;
+  }
+}
+
+// Responsive design
+@media screen and (max-width: 768px) {
+  .formContainer {
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .header {
+    padding: $space-md;
+  }
+
+  .form {
+    padding: $space-md;
+  }
+
+  .fieldsGrid {
+    grid-template-columns: 1fr;
+    gap: $space-md;
+    margin-bottom: $space-lg;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    gap: $space-sm;
+
+    button {
+      width: 100%;
+    }
+  }
+}

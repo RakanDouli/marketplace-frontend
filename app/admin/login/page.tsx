@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdminAuthStore } from '../../../stores/adminAuthStore';
+import { useAdminAuthStore } from '@/stores/adminAuthStore';
+import { useNotificationStore } from '@/stores/notificationStore';
+import { Text, Button, Input } from '@/components/slices';
+import styles from './AdminLogin.module.scss';
 
 // Predefined credential options from backend
 const CREDENTIAL_OPTIONS = [
@@ -52,7 +55,8 @@ const CREDENTIAL_OPTIONS = [
 
 export default function AdminLogin() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading, error, clearError } = useAdminAuthStore();
+  const { login, isAuthenticated, isLoading, error } = useAdminAuthStore();
+  const { addNotification } = useNotificationStore();
   const [selectedOption, setSelectedOption] = useState(0);
   const [formData, setFormData] = useState({
     email: CREDENTIAL_OPTIONS[0].email,
@@ -62,7 +66,7 @@ export default function AdminLogin() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/admin/dashboard');
+      router.push('/admin');
     }
   }, [isAuthenticated, router]);
 
@@ -73,8 +77,7 @@ export default function AdminLogin() {
       email: option.email,
       password: option.password
     });
-    if (error) clearError();
-  }, [selectedOption, error, clearError]);
+  }, [selectedOption]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,141 +85,114 @@ export default function AdminLogin() {
       ...prev,
       [name]: value
     }));
-    if (error) clearError();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      addNotification({
+        type: 'error',
+        title: 'بيانات ناقصة',
+        message: 'يرجى إدخال البريد الإلكتروني وكلمة المرور. Please enter both email and password.'
+      });
+      return;
+    }
+
     try {
       await login(formData.email, formData.password);
-    } catch (error) {
-      console.error('Login error:', error);
+      // Success notification
+      addNotification({
+        type: 'success',
+        title: 'تسجيل دخول ناجح',
+        message: 'تم تسجيل الدخول بنجاح! Login successful!'
+      });
+      // Redirect to admin dashboard
+      router.push('/admin');
+    } catch (loginError) {
+      console.error('Login error:', loginError);
+      // Show the error from the store in a notification
+      addNotification({
+        type: 'error',
+        title: 'خطأ في تسجيل الدخول',
+        message: error || 'يرجى التحقق من بيانات الاعتماد. Please check your credentials.'
+      });
     }
   };
 
   return (
-    <div style={{padding: '20px', maxWidth: '400px', margin: '0 auto'}}>
-      <h1 style={{textAlign: 'center', marginBottom: '20px'}}>Admin Login</h1>
-
-      {/* Credential Selector */}
-      <div style={{marginBottom: '20px'}}>
-        <label style={{display: 'block', marginBottom: '8px', fontWeight: 'bold'}}>
-          Quick Login Options:
-        </label>
-        <select
-          value={selectedOption}
-          onChange={(e) => setSelectedOption(Number(e.target.value))}
-          style={{
-            width: '100%',
-            padding: '10px',
-            marginBottom: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '14px'
-          }}
-        >
-          {CREDENTIAL_OPTIONS.map((option, index) => (
-            <option key={index} value={index}>
-              {option.role === 'CUSTOM' ? option.name : `${option.name} (${option.role})`}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Login Form */}
-      <form onSubmit={handleSubmit}>
-        {error && (
-          <div style={{
-            padding: '10px',
-            marginBottom: '15px',
-            backgroundColor: '#fee',
-            color: '#c33',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
-            fontSize: '14px'
-          }}>
-            {error}
+    <div className={styles.container}>
+      <div className={styles.loginCard}>
+        <div className={styles.content}>
+          {/* Credential Selector */}
+          <div className={styles.credentialSelector}>
+            <label className={styles.selectorLabel}>
+              خيارات تسجيل الدخول السريع:
+            </label>
+            <select
+              value={selectedOption}
+              onChange={(e) => setSelectedOption(Number(e.target.value))}
+              className={styles.select}
+              disabled={isLoading}
+            >
+              {CREDENTIAL_OPTIONS.map((option, index) => (
+                <option key={index} value={index}>
+                  {option.role === 'CUSTOM' ? option.name : `${option.name} (${option.role})`}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleInputChange}
-          required
-          disabled={isLoading}
-          style={{
-            width: '100%',
-            display: 'block',
-            margin: '10px 0',
-            padding: '12px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
-        />
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>البريد الإلكتروني</label>
+              <Input
+                type="email"
+                name="email"
+                placeholder="admin@example.com"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                disabled={isLoading}
+                className={styles.input}
+              />
+            </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleInputChange}
-          required
-          disabled={isLoading}
-          style={{
-            width: '100%',
-            display: 'block',
-            margin: '10px 0',
-            padding: '12px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '16px'
-          }}
-        />
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>كلمة المرور</label>
+              <Input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                disabled={isLoading}
+                className={styles.input}
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          style={{
-            width: '100%',
-            padding: '12px 20px',
-            backgroundColor: isLoading ? '#6c757d' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            fontSize: '16px',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            marginTop: '10px'
-          }}
-        >
-          {isLoading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.email || !formData.password}
+              className={styles.submitButton}
+            >
+              {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+            </Button>
+          </form>
 
-      {/* Info */}
-      <div style={{
-        marginTop: '20px',
-        padding: '15px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '4px',
-        fontSize: '14px',
-        color: '#6c757d'
-      }}>
-        <p style={{margin: '0 0 10px 0'}}><strong>Available Backend Users:</strong></p>
-        <ul style={{margin: 0, paddingLeft: '20px'}}>
-          <li><strong>Super Admin</strong> - Full system access</li>
-          <li><strong>Admin</strong> - Administrative privileges</li>
-          <li><strong>Editor</strong> - Content management</li>
-          <li><strong>Ads Manager</strong> - Advertisement management</li>
-          <li><strong>User 1 & 2</strong> - Regular users</li>
-          <li><strong>Custom Login</strong> - Enter any credentials</li>
-        </ul>
-        <p style={{margin: '10px 0 0 0', fontSize: '12px', fontStyle: 'italic'}}>
-          All credentials are from your backend seed data
-        </p>
+          <div className={styles.backLink}>
+            <Button
+              variant="link"
+              onClick={() => router.push('/')}
+              className={styles.backButton}
+            >
+              ← العودة للصفحة الرئيسية
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

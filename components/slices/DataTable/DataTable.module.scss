@@ -1,0 +1,366 @@
+// DataTable component styles using theme variables
+@import '@/styles/variables';
+
+.container {
+  background: $bg;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+}
+
+.header {
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid $border;
+  background: $bg;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  flex: 1;
+}
+
+.title {
+  font-size: $font-lg;
+  font-weight: $weight-bold;
+  color: $text;
+  margin: 0;
+}
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  background: $bg;
+  border-radius: $radius-sm;
+  border: 1px solid $primary-border;
+}
+
+.selectionCount {
+  font-size: $font-sm;
+  color: $text-secondary;
+  font-weight: $weight-medium;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  max-height: 70vh;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-sm;
+}
+
+.thead {
+  background: $bg;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.th {
+  padding: $space-sm $space-md;
+  text-align: right;
+  font-weight: $weight-medium;
+  color: $text-secondary;
+  border-bottom: 1px solid $border;
+  white-space: nowrap;
+
+  &:first-child {
+    padding-right: $space-lg;
+  }
+
+  &:last-child {
+    padding-left: $space-lg;
+  }
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  justify-content: flex-end;
+}
+
+.sortButton {
+  background: none;
+  border: none;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: $space-xs;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $surface;
+    color: $text;
+  }
+}
+
+.sortIcons {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  opacity: 0.5;
+}
+
+.checkboxHeader {
+  width: 40px;
+  padding: $space-sm;
+  text-align: center;
+}
+
+.tbody {
+  .tr {
+    border-bottom: 1px solid $border;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: $surface;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.td {
+  padding: $space-md;
+  color: $text;
+  vertical-align: top;
+
+  &:first-child {
+    padding-right: $space-lg;
+  }
+
+  &:last-child {
+    padding-left: $space-lg;
+  }
+}
+
+.checkboxCell {
+  width: 40px;
+  padding: $space-sm;
+  text-align: center;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  cursor: pointer;
+  accent-color: $primary;
+
+  &:checked {
+    background: $primary;
+    border-color: $primary;
+  }
+}
+
+.actionsCell {
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: $space-xs;
+  justify-content: flex-start;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+  white-space: nowrap;
+
+  &Success {
+    background: $success-subtle;
+    color: $success;
+    border: 1px solid $success-border;
+  }
+
+  &Error {
+    background: $error-subtle;
+    color: $error;
+    border: 1px solid $error-border;
+  }
+
+  &Info {
+    background: $info-subtle;
+    color: $info;
+    border: 1px solid $info-border;
+  }
+}
+
+.emptyValue {
+  color: rgba($text, .8);
+  font-style: italic;
+}
+
+.emptyCell {
+  padding: $space-xl;
+  text-align: center;
+  color: $text-secondary;
+  font-style: italic;
+}
+
+.emptyState {
+  padding: $space-xl;
+  text-align: center;
+  color: $text-secondary;
+
+  p {
+    margin: 0;
+
+  }
+}
+
+.loadingContainer {
+  padding: $space-xl;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-md $space-lg;
+  border-top: 1px solid $border;
+  background: $bg;
+}
+
+.paginationInfo {
+  font-size: $font-sm;
+  color: $text-secondary;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.pageInfo {
+  font-size: $font-sm;
+  color: $text;
+  padding: 0 $space-sm;
+  font-weight: $weight-medium;
+}
+
+// Responsive design
+@media screen and (max-width: 768px) {
+  .header {
+    padding: $space-sm $space-md;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+
+  .bulkActions {
+    flex-wrap: wrap;
+  }
+
+  .th,
+  .td {
+    padding: $space-sm;
+    font-size: $font-xs;
+
+    &:first-child {
+      padding-right: $space-sm;
+    }
+
+    &:last-child {
+      padding-left: $space-sm;
+    }
+  }
+
+  .title {
+
+  }
+
+  .pagination {
+    padding: $space-sm $space-md;
+    flex-direction: column;
+    gap: $space-sm;
+  }
+
+  .paginationControls {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+// RTL support
+:global([dir="rtl"]) {
+  .table {
+    direction: rtl;
+  }
+
+  .thContent {
+    justify-content: flex-start;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+// Dark theme support
+:global([data-theme="dark"]) {
+  .container {
+    background: var(--bg-dark, $bg);
+    border-color: var(--border-dark, $border);
+  }
+
+  .header {
+    background: var(--bg-subtle-dark, $bg);
+    border-color: var(--border-dark, $border);
+  }
+
+  .title {
+    color: var(--text-dark, $text);
+  }
+
+  .th {
+    color: var(--text-secondary-dark, $text-secondary);
+    border-color: var(--border-dark, $border);
+  }
+
+  .td {
+    color: var(--text-dark, $text);
+  }
+
+  .tbody .tr {
+    border-color: var(--border-dark, $border);
+
+    &:hover {
+      background: var(--bg-hover-dark, $bg-hover);
+    }
+  }
+}

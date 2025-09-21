@@ -1,0 +1,152 @@
+// AdminHeader component styles using theme variables
+@import "@/styles/variables";
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: $bg;
+  border-bottom: 1px solid $border;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(8px);
+  height: $header-height;
+  z-index: $z-nav;
+  display: flex;
+  align-items: center;
+  @media screen and (max-width: $breakpoint-md) {
+    height: $header-height-mobile;
+  }
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.sidebarToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-md;
+  border: none;
+  background: transparent;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $bg;
+    color: $text;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  // Hide on desktop by default
+  @media screen and (min-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: $bg;
+  border-radius: $radius-md;
+  font-size: $font-lg;
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logoMain {
+  font-weight: $weight-bold;
+  color: $text;
+  line-height: 1.2;
+}
+
+.logoSub {
+  font-size: $font-xs;
+  color: $text-secondary;
+  line-height: 1.2;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  flex: 1;
+  justify-content: end;
+}
+
+.adminInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-xs $space-sm;
+  background: $bg;
+}
+
+.adminAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: $bg;
+  border-radius: $radius-full;
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.adminDetails {
+  display: flex;
+  flex-direction: column;
+  direction: ltr;
+  min-width: 0;
+}
+.adminRole {
+  font-size: 8px !important;
+  color: rgba($text, 0.5);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.logoutText {
+  display: flex;
+  align-items: center;
+  @media screen and (max-width: $breakpoint-md) {
+    display: none;
+  }
+}

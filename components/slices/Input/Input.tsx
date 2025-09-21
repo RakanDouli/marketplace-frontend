@@ -1,3 +1,4 @@
+'use client';
 import React, { forwardRef, useState, useId } from "react";
 import styles from "./Input.module.scss";
 
@@ -18,7 +19,10 @@ export interface InputProps
     | "url"
     | "search"
     | "textarea"
-    | "select";
+    | "boolean"
+    | "select"
+    | "date"
+    | "file";
   /** Input label */
   label?: string;
   /** Error message */
@@ -77,6 +81,22 @@ export const Input = forwardRef<
     const handleBlur = () => setIsFocused(false);
 
     const renderInput = () => {
+      if (type === "boolean") {
+        const checkboxProps = props as React.InputHTMLAttributes<HTMLInputElement>;
+        return (
+          <input
+            ref={ref as React.RefObject<HTMLInputElement>}
+            type="checkbox"
+            className={`${inputClasses} ${styles.checkbox}`}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            {...checkboxProps}
+            id={checkboxProps.id || checkboxProps.name || generatedId}
+            name={checkboxProps.name || checkboxProps.id || generatedId}
+          />
+        );
+      }
+
       if (type === "textarea") {
         const textareaProps = props as React.TextareaHTMLAttributes<HTMLTextAreaElement>;
         return (

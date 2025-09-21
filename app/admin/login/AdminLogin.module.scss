@@ -1,0 +1,102 @@
+@import '@/styles/variables';
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $bg-subtle;
+  padding: $space-md;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 400px;
+  background: $bg;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border;
+  overflow: hidden;
+}
+
+.content {
+  padding: $space-lg;
+}
+
+.credentialSelector {
+  margin-bottom: $space-lg;
+}
+
+.selectorLabel {
+  display: block;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $text;
+  margin-bottom: $space-sm;
+}
+
+.select {
+  width: 100%;
+  padding: $space-sm $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  background: $bg;
+  color: $text;
+  font-size: $font-sm;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(54, 141, 255, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.label {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $text;
+}
+
+.input {
+  padding: $space-sm $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  background: $bg;
+  color: $text;
+  font-size: $font-base;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(54, 141, 255, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: $bg-subtle;
+  }
+
+  &::placeholder {
+    color: $text-muted;
+  }
+}

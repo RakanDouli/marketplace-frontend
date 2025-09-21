@@ -1,0 +1,151 @@
+// AdminDashboard component styles using theme variables
+.adminLayout {
+  min-height: 100vh;
+  background: $bg;
+  display: flex;
+  flex-direction: column;
+  background-color: $surface;
+}
+
+.layoutContainer {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+
+  @media screen and (min-width: 1024px) {
+    height: calc(100vh - 60px);
+  }
+}
+
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.dashboard {
+  padding: $space-lg;
+}
+
+.authRequired {
+  min-height: 100vh;
+  background: $bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: $space-md;
+  margin-bottom: $space-xl;
+  @media screen and (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.statCard {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-sm;
+  text-align: center;
+}
+
+.modulesSection {
+  margin-bottom: $space-xl;
+}
+
+.modulesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24%, 1fr));
+  gap: $space-md;
+  margin: $space-lg 0;
+  @media screen and (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr 1fr;
+  }
+  @media screen and (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.moduleCard {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-md;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+    border-color: $primary;
+
+    .moduleArrow {
+      transform: translateX(-4px);
+      color: $primary;
+    }
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+}
+
+.moduleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: $bg;
+  border-radius: $radius-md;
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.moduleContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+// .moduleArrow {
+//   font-size: $font-xl;
+//   font-weight: $weight-bold;
+//   color: $text-secondary;
+//   transition: all 0.3s ease;
+// }
+
+.quickActions {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-lg;
+  box-shadow: $shadow-sm;
+}
+
+.actionsGrid {
+  display: flex;
+  gap: $space-md;
+  margin-top: $space-md;
+  flex-wrap: wrap;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  background: $bg;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+}

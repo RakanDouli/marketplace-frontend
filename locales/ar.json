@@ -279,5 +279,40 @@
         "5": "خمسة أبواب"
       }
     }
+  },
+  "admin": {
+    "navigation": {
+      "dashboard": "لوحة التحكم",
+      "roles": "الأدوار والصلاحيات",
+      "subscriptions": "اشتراكات المستخدمين",
+      "analytics": "التحليلات والتقارير",
+      "emails": "قوالب البريد الإلكتروني",
+      "campaigns": "الحملات الإعلانية",
+      "categories": "الفئات",
+      "listings": "الإعلانات",
+      "settings": "الإعدادات",
+      "signOut": "تسجيل الخروج"
+    },
+    "userInfo": {
+      "welcomeBack": "مرحباً بعودتك",
+      "role": "الدور",
+      "permissions": "الصلاحيات"
+    },
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "subtitle": "مرحباً بعودتك! إليك ما يحدث في السوق",
+      "stats": {
+        "users": "المستخدمون",
+        "listings": "الإعلانات",
+        "revenue": "الإيرادات",
+        "growth": "النمو"
+      },
+      "metrics": {
+        "fromLastMonth": "من الشهر الماضي",
+        "totalUsers": "إجمالي المستخدمين",
+        "totalListings": "إجمالي الإعلانات",
+        "totalRevenue": "إجمالي الإيرادات"
+      }
+    }
   }
 }
