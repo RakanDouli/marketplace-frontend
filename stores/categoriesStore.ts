@@ -8,8 +8,16 @@ const CATEGORIES_QUERY = `
     categories {
       id
       name
+      nameAr
       slug
+      description
+      descriptionAr
+      parentId
+      level
+      imageUrl
       isActive
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -105,9 +113,16 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
       const categories: Category[] = (data.categories || []).map((cat: any) => ({
         id: cat.id,
         name: cat.name,
-        nameAr: cat.name, // Backend should provide Arabic version
+        nameAr: cat.nameAr || cat.name, // Use Arabic name from backend or fallback to English
         slug: cat.slug,
+        description: cat.description,
+        descriptionAr: cat.descriptionAr,
+        parentId: cat.parentId,
+        level: cat.level || 0,
+        imageUrl: cat.imageUrl,
         isActive: cat.isActive,
+        createdAt: cat.createdAt,
+        updatedAt: cat.updatedAt,
       }));
 
       set({

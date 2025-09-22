@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button, Text } from '@/components/slices';
+import { Button } from '@/components/slices';
+import Text from '@/components/slices/Text/Text';
 import {
   Users,
   Shield,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAdminAuthStore } from '@/stores/adminAuthStore';
+import { useAdminAuthStore } from '@/stores/admin';
 import { useAdminPermissionsStore } from '@/stores/adminPermissionsStore';
-import useAdminModulesStore from '@/stores/adminModulesStore';
+import { useAdminModulesStore } from '@/stores/admin';
 import { PermissionChecker } from './permissions';
 import type { AdminModule, ModulePermission, UserRole, FormState } from '../types';
 

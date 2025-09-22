@@ -11,8 +11,11 @@ export type TextVariant =
   | "xs"
   | "navlink";
 
+export type TextColor = "primary" | "secondary" | "error" | "success" | "warning";
+
 export interface TextProps {
   variant?: TextVariant;
+  color?: TextColor;
   children: React.ReactNode;
   className?: string;
   as?: keyof JSX.IntrinsicElements;
@@ -32,6 +35,7 @@ const variantToElement: Record<TextVariant, keyof JSX.IntrinsicElements> = {
 
 export const Text: React.FC<TextProps> = ({
   variant = "paragraph",
+  color,
   children,
   className = "",
   as,
@@ -39,9 +43,10 @@ export const Text: React.FC<TextProps> = ({
 }) => {
   const Element = as || variantToElement[variant];
   const variantClass = styles[variant];
+  const colorClass = color ? styles[color] : '';
 
   return (
-    <Element className={`${variantClass} ${className}`.trim()} {...props}>
+    <Element className={`${variantClass} ${colorClass} ${className}`.trim()} {...props}>
       {children}
     </Element>
   );

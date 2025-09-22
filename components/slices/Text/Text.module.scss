@@ -85,6 +85,27 @@
   }
 }
 
+// Color variants
+.primary {
+  color: $primary !important;
+}
+
+.secondary {
+  color: $text-muted !important;
+}
+
+.error {
+  color: $error !important;
+}
+
+.success {
+  color: $success !important;
+}
+
+.warning {
+  color: $warning !important;
+}
+
 // RTL Support - Following SYR_APP pattern
 .rtl {
   %text-base,

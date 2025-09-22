@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAdminAuthStore } from '../../stores/adminAuthStore';
+import { useAdminAuthStore } from '../../stores/admin';
 import { NotificationToast } from '../../components/slices/NotificationToast/NotificationToast';
 import AdminHeader from '../../components/admin/AdminHeader';
-import AdminAside from '../../components/admin/AdminAside';
+// import AdminAside from '../../components/admin/AdminAside';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -30,7 +30,6 @@ const getFeatureNavigation = (featureKey: string) => {
     'listings': 'listing-management',
     'roles': 'role-management',
     'campaigns': 'campaign-management',
-    'categories': 'category-management',
     'analytics': 'analytics',
     'audit': 'audit-logs'
   };
@@ -55,9 +54,6 @@ const getFeatureNavigation = (featureKey: string) => {
     ],
     'campaign-management': [
       { key: 'campaigns-list', label: 'إدارة الحملات', path: '/admin/campaigns' }
-    ],
-    'category-management': [
-      { key: 'categories-list', label: 'إدارة الفئات', path: '/admin/categories' }
     ],
     'analytics': [
       { key: 'analytics-dashboard', label: 'لوحة التحليلات', path: '/admin/analytics' }
@@ -163,10 +159,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <AdminHeader />
 
         <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
-          <AdminAside
-            featureKey={currentFeature}
-            onBackToDashboard={() => router.push('/admin')}
-          />
 
           <main style={{
             flex: 1,

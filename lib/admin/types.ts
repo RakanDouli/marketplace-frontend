@@ -35,6 +35,7 @@ export interface ModulePermission {
 
 // Admin Module Configuration
 export interface AdminModule {
+  id?: string; // Backend feature ID
   key: string;
   name: string;
   nameAr: string;
@@ -58,7 +59,14 @@ export interface AdminModule {
 
   // Permissions
   requiredFeatures: string[];
-  permissions: PermissionConfig;
+  permissions?: PermissionConfig;
+
+  // Backend metadata (optional)
+  backendFeature?: {
+    id: string;
+    name: string;
+    defaultPermissions: any;
+  };
 }
 
 // Module UI Configuration
@@ -152,6 +160,7 @@ export interface AdminUser {
   isActive: boolean;
   createdAt: string;
   lastLoginAt?: string;
+  token?: string; // JWT token for API authentication
 }
 
 export interface AdminAuthState {

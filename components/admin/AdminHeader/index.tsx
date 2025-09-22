@@ -3,8 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { Menu, LogOut, User } from 'lucide-react';
-import { useAdminAuthStore } from '@/stores/adminAuthStore';
-import { ThemeToggle, Button, Text, Container } from '@/components/slices';
+import { useAdminAuthStore } from '@/stores/admin';
+import { ThemeToggle, Button, Container } from '@/components/slices';
+import Text from '@/components/slices/Text/Text';
 import styles from './AdminHeader.module.scss';
 
 interface AdminHeaderProps {

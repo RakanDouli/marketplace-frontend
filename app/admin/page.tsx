@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAdminAuthStore } from '@/stores/adminAuthStore';
+import { useAdminAuthStore } from '@/stores/admin';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { Loading } from '@/components';
 

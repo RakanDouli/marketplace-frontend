@@ -31,8 +31,25 @@ export interface Listing {
 export interface Category {
   id: string;
   name: string;
+  nameAr: string;
   slug: string;
+  description?: string;
+  descriptionAr?: string;
+  parentId?: string | null;
+  level: number;
+  imageUrl?: string | null;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  parent?: Category | null;
+  children?: Category[];
+  // Counts for admin
+  _count?: {
+    children: number;
+    listings: number;
+    attributes: number;
+  };
 }
 
 // Brand and Model are now dynamic - handled through specs and aggregations

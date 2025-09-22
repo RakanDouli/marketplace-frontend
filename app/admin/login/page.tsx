@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdminAuthStore } from '@/stores/adminAuthStore';
+import { useAdminAuthStore } from '@/stores/admin';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { Text, Button, Input } from '@/components/slices';
+import { Button, Input } from '@/components/slices';
+import Text from '@/components/slices/Text/Text';
 import styles from './AdminLogin.module.scss';
 
-// Predefined credential options from backend
+// Real backend credentials from get-token.js and user seeders
 const CREDENTIAL_OPTIONS = [
   {
     name: 'Super Admin',
@@ -34,7 +35,7 @@ const CREDENTIAL_OPTIONS = [
     password: 'AdsManager123!'
   },
   {
-    name: 'User 1',
+    name: 'User',
     role: 'USER',
     email: 'user@marketplace.com',
     password: 'User123!'
@@ -125,10 +126,17 @@ export default function AdminLogin() {
     <div className={styles.container}>
       <div className={styles.loginCard}>
         <div className={styles.content}>
+          <div className={styles.header}>
+            <Text variant="h1">تسجيل دخول الإدارة</Text>
+            <Text variant="paragraph" color="secondary">
+              Admin Login - Real Supabase Authentication
+            </Text>
+          </div>
+
           {/* Credential Selector */}
           <div className={styles.credentialSelector}>
             <label className={styles.selectorLabel}>
-              خيارات تسجيل الدخول السريع:
+              اختر حساب من قاعدة البيانات:
             </label>
             <select
               value={selectedOption}
