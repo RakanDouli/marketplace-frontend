@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { CategoriesState, Category } from './types';
-import { cachedGraphQLRequest } from '../utils/graphql-cache';
+import { create } from "zustand";
+import { CategoriesState, Category } from "./types";
+import { cachedGraphQLRequest } from "../utils/graphql-cache";
 
 // GraphQL queries
 const CATEGORIES_QUERY = `
@@ -8,16 +8,8 @@ const CATEGORIES_QUERY = `
     categories {
       id
       name
-      nameAr
       slug
-      description
-      descriptionAr
-      parentId
-      level
-      imageUrl
       isActive
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -56,25 +48,27 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
 
   addCategory: (category: Category) => {
     const { categories } = get();
-    set({ 
+    set({
       categories: [...categories, category],
-      error: null 
+      error: null,
     });
   },
 
   updateCategory: (id: string, updates: Partial<Category>) => {
     const { categories } = get();
-    const updatedCategories = categories.map(category =>
+    const updatedCategories = categories.map((category) =>
       category.id === id ? { ...category, ...updates } : category
     );
-    
+
     set({ categories: updatedCategories });
   },
 
   removeCategory: (id: string) => {
     const { categories } = get();
-    const filteredCategories = categories.filter(category => category.id !== id);
-    
+    const filteredCategories = categories.filter(
+      (category) => category.id !== id
+    );
+
     set({ categories: filteredCategories });
   },
 
@@ -100,45 +94,44 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
 
     // Skip if already initialized
     if (isInitialized) {
-      console.log('🚫 Categories already initialized, skipping fetch');
+      console.log("🚫 Categories already initialized, skipping fetch");
       return;
     }
 
     set({ isLoading: true, error: null });
 
     try {
-      console.log('🔄 Fetching categories for first time...');
-      const data = await cachedGraphQLRequest(CATEGORIES_QUERY, {}, { ttl: 10 * 60 * 1000 }); // Cache for 10 minutes
+      console.log("🔄 Fetching categories for first time...");
+      const data = await cachedGraphQLRequest(
+        CATEGORIES_QUERY,
+        {},
+        { ttl: 10 * 60 * 1000 }
+      ); // Cache for 10 minutes
 
-      const categories: Category[] = (data.categories || []).map((cat: any) => ({
-        id: cat.id,
-        name: cat.name,
-        nameAr: cat.nameAr || cat.name, // Use Arabic name from backend or fallback to English
-        slug: cat.slug,
-        description: cat.description,
-        descriptionAr: cat.descriptionAr,
-        parentId: cat.parentId,
-        level: cat.level || 0,
-        imageUrl: cat.imageUrl,
-        isActive: cat.isActive,
-        createdAt: cat.createdAt,
-        updatedAt: cat.updatedAt,
-      }));
+      const categories: Category[] = (data.categories || []).map(
+        (cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          nameAr: cat.name, // Backend should provide Arabic version
+          slug: cat.slug,
+          isActive: cat.isActive,
+        })
+      );
 
       set({
         categories,
         isLoading: false,
         error: null,
-        isInitialized: true
+        isInitialized: true,
       });
-      console.log('✅ Categories initialized successfully:', categories.length);
+      console.log("✅ Categories initialized successfully:", categories.length);
     } catch (error: any) {
-      console.error('❌ Failed to fetch categories:', error);
+      console.error("❌ Failed to fetch categories:", error);
       set({
         isLoading: false,
-        error: error.message || 'Failed to load categories',
+        error: error.message || "Failed to load categories",
         categories: [],
-        isInitialized: false
+        isInitialized: false,
       });
     }
   },
@@ -148,7 +141,7 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
     const { isInitialized } = get();
 
     if (isInitialized) {
-      console.log('🚫 Categories already initialized');
+      console.log("🚫 Categories already initialized");
       return;
     }
 
@@ -158,18 +151,24 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
   // Helper methods - USE CACHED DATA ONLY
   getCategoryById: (id: string) => {
     const { categories } = get();
-    return categories.find(category => category.id === id);
+    return categories.find((category) => category.id === id);
   },
 
   // NEW: Get category by slug from cached data (NO API CALL)
   getCategoryBySlug: (slug: string) => {
     const { categories } = get();
-    return categories.find(category => category.slug === slug && category.isActive);
+    return categories.find(
+      (category) => category.slug === slug && category.isActive
+    );
   },
 }));
 
 // Selectors
-export const useCategories = () => useCategoriesStore((state) => state.categories);
-export const useSelectedCategory = () => useCategoriesStore((state) => state.selectedCategory);
-export const useCategoriesLoading = () => useCategoriesStore((state) => state.isLoading);
-export const useCategoriesError = () => useCategoriesStore((state) => state.error);
+export const useCategories = () =>
+  useCategoriesStore((state) => state.categories);
+export const useSelectedCategory = () =>
+  useCategoriesStore((state) => state.selectedCategory);
+export const useCategoriesLoading = () =>
+  useCategoriesStore((state) => state.isLoading);
+export const useCategoriesError = () =>
+  useCategoriesStore((state) => state.error);
