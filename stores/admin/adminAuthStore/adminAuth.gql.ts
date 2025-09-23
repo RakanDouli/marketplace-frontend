@@ -1,53 +1,48 @@
-/**
- * Admin Authentication GraphQL queries and mutations
- */
+// GraphQL queries for admin authentication and permissions
 
-// Admin login mutation
-export const ADMIN_LOGIN = `
-  mutation AdminLogin($email: String!, $password: String!) {
-    adminLogin(email: $email, password: $password) {
+// ✅ USED: Main authentication query - optimized single call
+export const ME_QUERY = `
+  query Me {
+    me {
       user {
         id
-        name
         email
+        name
         role
-        permissions
+        roleEntity {
+          id
+          name
+          featurePermissions
+        }
       }
-      accessToken
-      refreshToken
+      tokenExpiresAt
     }
   }
 `;
 
-// Admin logout mutation
-export const ADMIN_LOGOUT = `
-  mutation AdminLogout {
-    adminLogout {
-      success
-    }
-  }
-`;
-
-// Get current admin user
-export const GET_CURRENT_ADMIN_USER = `
-  query GetCurrentAdminUser {
-    currentAdminUser {
+// 🔮 FUTURE: Role management interface (not used in auth store anymore)
+export const GET_ALL_ROLES_QUERY = `
+  query GetAllRoles {
+    getAllCustomRoles {
       id
       name
-      email
-      role
-      permissions
-      lastLoginAt
+      description
+      priority
+      isActive
     }
   }
 `;
 
-// Refresh admin token
-export const REFRESH_ADMIN_TOKEN = `
-  mutation RefreshAdminToken($refreshToken: String!) {
-    refreshAdminToken(refreshToken: $refreshToken) {
-      accessToken
-      refreshToken
+// 🔮 FUTURE: Role management interface (not used in auth store anymore)
+export const GET_ROLE_WITH_PERMISSIONS_QUERY = `
+  query GetRoleWithPermissions($roleId: String!) {
+    getRoleWithPermissions(roleId: $roleId) {
+      id
+      name
+      description
+      priority
+      isActive
+      featurePermissions
     }
   }
 `;
