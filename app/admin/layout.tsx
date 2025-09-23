@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAdminAuthStore } from '../../stores/admin';
 import { NotificationToast } from '../../components/slices/NotificationToast/NotificationToast';
 import AdminHeader from '../../components/admin/AdminHeader';
+import { AdminLayout as TokenExpirationWrapper } from '../../components/admin/AdminLayout';
+import { Button, Container, Loading, Text } from '@/components';
 // import AdminAside from '../../components/admin/AdminAside';
 
 interface AdminLayoutProps {
@@ -104,9 +106,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <div>جاري التحقق من صلاحيات المدير...</div>
-        </div>
+        <Loading type='svg' />
         <NotificationToast />
       </div>
     );
@@ -128,26 +128,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // If user is not an admin, show access denied
   if (!isAdminUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md text-center">
-          <div className="text-red-600 text-xl font-bold mb-4">❌ وصول مرفوض</div>
-          <div className="text-gray-700 mb-4">
-            ليس لديك صلاحيات للوصول إلى لوحة الإدارة. هذه المنطقة مخصصة للمديرين فقط.
-          </div>
-          <div className="text-sm text-gray-500 mb-4">
-            Access Denied - Admin privileges required
-          </div>
-          <button
-            onClick={() => {
-              router.push('/');
-            }}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            العودة للصفحة الرئيسية
-          </button>
-        </div>
-        <NotificationToast />
-      </div>
+      <Container>
+        <Text variant='h4'>وصول مرفوض</Text>
+        <Text variant='paragraph'>
+          ليس لديك صلاحيات للوصول إلى لوحة الإدارة. هذه المنطقة مخصصة للمديرين فقط.
+        </Text>
+        <Text variant='paragraph'>
+          Access Denied - Admin privileges required
+        </Text>
+        <Button href={'/'}>
+          العودة للصفحة الرئيسية
+        </Button>
+      </Container>
     );
   }
 
@@ -155,31 +147,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   if (isFeaturePage) {
     // Feature page with new AdminAside
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <TokenExpirationWrapper>
+
         <AdminHeader />
-
-        <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
-
-          <main style={{
-            flex: 1,
-            overflow: 'auto',
-            marginRight: '60px', // Space for collapsed aside
-            transition: 'margin-right 0.3s ease'
-          }}>
-            {children}
-          </main>
-        </div>
-
         <NotificationToast />
-      </div>
+        <main >
+          {children}
+        </main>
+
+      </TokenExpirationWrapper>
     );
   } else {
     // Main dashboard - no aside, children handle their own layout
     return (
-      <>
+      <TokenExpirationWrapper>
         {children}
         <NotificationToast />
-      </>
+      </TokenExpirationWrapper>
     );
   }
 }

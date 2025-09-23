@@ -21,11 +21,11 @@ export default function GlobalError({ error, reset }: ErrorPageProps) {
 
   return (
     <Container>
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <Text variant="h1" style={{ marginBottom: '1rem' }}>
+      <div>
+        <Text variant="h1" >
           {t('errors.generic.title')}
         </Text>
-        <Text variant="paragraph" style={{ marginBottom: '2rem' }}>
+        <Text variant="paragraph" >
           {t('errors.generic.description')}
         </Text>
         <Button onClick={reset} variant="primary">

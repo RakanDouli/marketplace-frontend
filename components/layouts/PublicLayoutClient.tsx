@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Header from "../Header/Header";
+import { NotificationToast } from '../slices';
 
 interface PublicLayoutClientProps {
   children: React.ReactNode;
@@ -18,9 +19,10 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div>
       <Header />
-      <main className="flex-1">{children}</main>
+      <NotificationToast />
+      <main>{children}</main>
       {/* Footer will be added later */}
     </div>
   );

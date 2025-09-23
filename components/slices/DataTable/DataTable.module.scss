@@ -1,19 +1,23 @@
 // DataTable component styles using theme variables
-@import '@/styles/variables';
+@import "@/styles/variables";
 
 .container {
   background: $bg;
   border-radius: $radius-md;
   border: 1px solid $border;
   overflow: hidden;
+  min-height: 30vh;
   box-shadow: $shadow-sm;
 }
 
-.header {
-  padding: $space-md $space-lg;
-  border-bottom: 1px solid $border;
-  background: $bg;
-}
+// .header {
+//   display: flex;
+//   align-items: center;
+//   justify-content: space-between;
+//   padding: $space-sm $space-md;
+//   border-bottom: 1px solid $border;
+//   background: $bg;
+// }
 
 .headerContent {
   display: flex;
@@ -90,33 +94,7 @@
 .thContent {
   display: flex;
   align-items: center;
-  gap: $space-xs;
   justify-content: flex-end;
-}
-
-.sortButton {
-  background: none;
-  border: none;
-  color: $text-secondary;
-  cursor: pointer;
-  padding: $space-xs;
-  border-radius: $radius-sm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: $surface;
-    color: $text;
-  }
-}
-
-.sortIcons {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  opacity: 0.5;
 }
 
 .checkboxHeader {
@@ -194,32 +172,38 @@
   white-space: nowrap;
 
   &Success {
-    background: $success-subtle;
+    background: $success-bg;
     color: $success;
     border: 1px solid $success-border;
   }
 
   &Error {
-    background: $error-subtle;
+    background: $error-bg;
     color: $error;
     border: 1px solid $error-border;
   }
 
   &Info {
-    background: $info-subtle;
+    background: $info-bg;
     color: $info;
     border: 1px solid $info-border;
   }
 }
 
 .emptyValue {
-  color: rgba($text, .8);
+  color: rgba($text, 0.8);
   font-style: italic;
 }
 
 .emptyCell {
   padding: $space-xl;
   text-align: center;
+  color: $text-secondary;
+  font-style: italic;
+}
+
+.emptyText {
+  font-size: $font-md;
   color: $text-secondary;
   font-style: italic;
 }
@@ -231,7 +215,6 @@
 
   p {
     margin: 0;
-
   }
 }
 
@@ -301,7 +284,6 @@
   }
 
   .title {
-
   }
 
   .pagination {
@@ -313,54 +295,5 @@
   .paginationControls {
     justify-content: center;
     width: 100%;
-  }
-}
-
-// RTL support
-:global([dir="rtl"]) {
-  .table {
-    direction: rtl;
-  }
-
-  .thContent {
-    justify-content: flex-start;
-  }
-
-  .actions {
-    justify-content: flex-end;
-  }
-}
-
-// Dark theme support
-:global([data-theme="dark"]) {
-  .container {
-    background: var(--bg-dark, $bg);
-    border-color: var(--border-dark, $border);
-  }
-
-  .header {
-    background: var(--bg-subtle-dark, $bg);
-    border-color: var(--border-dark, $border);
-  }
-
-  .title {
-    color: var(--text-dark, $text);
-  }
-
-  .th {
-    color: var(--text-secondary-dark, $text-secondary);
-    border-color: var(--border-dark, $border);
-  }
-
-  .td {
-    color: var(--text-dark, $text);
-  }
-
-  .tbody .tr {
-    border-color: var(--border-dark, $border);
-
-    &:hover {
-      background: var(--bg-hover-dark, $bg-hover);
-    }
   }
 }

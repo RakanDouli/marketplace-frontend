@@ -5,17 +5,21 @@
 // Single source of truth for ALL colors
 :root {
   // 3 Base Colors (for general UI)
-  --primary: #1a5490; // Syrian blue
-  --secondary: #d63447; // Syrian red
-  --accent: #27ae60; // General accent
+  --primary: rgb(26, 82, 142); // Syrian blue
+  --secondary: rgb(213, 52, 71); // Syrian red
+  --accent: rgb(39, 174, 96); // General accent
 
   // Notification Colors (original values)
-  --success: #27ae60; // Success green
-  --warning: #f39c12; // Warning amber
-  --error: #e74c3c; // Error red
-  --info: #3498db; // Info blue
+  --success: rgb(39, 174, 96); // Success green
+  --warning: rgb(243, 156, 18); // Warning amber
+  --error: rgb(231, 76, 60); // Error red
+  --info: rgb(52, 152, 219); // Info blue
 
-  // 3 Background Colors
+  --success-bg: rgba(39, 174, 96, 0.1); // 3 Background Colors
+  --warning-bg: rgba(243, 156, 18, 0.1); // Warning amber
+  --error-bg: rgba(231, 76, 60, 0.1); // Error red
+  --info-bg: rgba(52, 152, 219, 0.1); // Info blue
+
   --bg-light: #ffffff; // Pure white (light theme main)
   --bg-body-light: #f7f7f6; // Medium gray (universal surface)
   --bg-body-dark: #16191e; // Medium gray (universal surface)

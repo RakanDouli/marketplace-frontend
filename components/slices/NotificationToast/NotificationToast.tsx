@@ -68,7 +68,7 @@ export const NotificationToast: React.FC = () => {
           </div>
 
           <div className={styles.content}>
-            <div className={styles.title}>{notification.title}</div>
+            {/* <div className={styles.title}>{notification.title}</div> */}
             {notification.message && (
               <div className={styles.message}>{notification.message}</div>
             )}

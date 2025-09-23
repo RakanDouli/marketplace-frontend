@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuthStore } from '@/stores/admin';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { Button, Input } from '@/components/slices';
+import { Button, Container, Input } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
 import styles from './AdminLogin.module.scss';
 
@@ -58,10 +58,13 @@ export default function AdminLogin() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading, error } = useAdminAuthStore();
   const { addNotification } = useNotificationStore();
+  // Check if we're in production mode
+  const isProduction = process.env.NODE_ENV === 'production';
+
   const [selectedOption, setSelectedOption] = useState(0);
   const [formData, setFormData] = useState({
-    email: CREDENTIAL_OPTIONS[0].email,
-    password: CREDENTIAL_OPTIONS[0].password
+    email: isProduction ? '' : CREDENTIAL_OPTIONS[0].email,
+    password: isProduction ? '' : CREDENTIAL_OPTIONS[0].password
   });
 
   // Redirect if already authenticated
@@ -71,14 +74,16 @@ export default function AdminLogin() {
     }
   }, [isAuthenticated, router]);
 
-  // Update form when option changes
+  // Update form when option changes (development only)
   useEffect(() => {
-    const option = CREDENTIAL_OPTIONS[selectedOption];
-    setFormData({
-      email: option.email,
-      password: option.password
-    });
-  }, [selectedOption]);
+    if (!isProduction) {
+      const option = CREDENTIAL_OPTIONS[selectedOption];
+      setFormData({
+        email: option.email,
+        password: option.password
+      });
+    }
+  }, [selectedOption, isProduction]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -123,34 +128,32 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className={styles.container}>
+    <Container>
       <div className={styles.loginCard}>
         <div className={styles.content}>
-          <div className={styles.header}>
-            <Text variant="h1">تسجيل دخول الإدارة</Text>
-            <Text variant="paragraph" color="secondary">
-              Admin Login - Real Supabase Authentication
-            </Text>
-          </div>
 
-          {/* Credential Selector */}
-          <div className={styles.credentialSelector}>
-            <label className={styles.selectorLabel}>
-              اختر حساب من قاعدة البيانات:
-            </label>
-            <select
-              value={selectedOption}
-              onChange={(e) => setSelectedOption(Number(e.target.value))}
-              className={styles.select}
-              disabled={isLoading}
-            >
-              {CREDENTIAL_OPTIONS.map((option, index) => (
-                <option key={index} value={index}>
-                  {option.role === 'CUSTOM' ? option.name : `${option.name} (${option.role})`}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Text variant="h3">تسجيل دخول الإدارة</Text>
+
+          {/* Credential Selector - Development Only */}
+          {!isProduction && (
+            <div className={styles.credentialSelector}>
+              <label className={styles.selectorLabel}>
+                اختر حساب من قاعدة البيانات:
+              </label>
+              <select
+                value={selectedOption}
+                onChange={(e) => setSelectedOption(Number(e.target.value))}
+                className={styles.select}
+                disabled={isLoading}
+              >
+                {CREDENTIAL_OPTIONS.map((option, index) => (
+                  <option key={index} value={index}>
+                    {option.role === 'CUSTOM' ? option.name : `${option.name} (${option.role})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className={styles.form}>
@@ -202,6 +205,6 @@ export default function AdminLogin() {
           </div>
         </div>
       </div>
-    </div>
+    </Container>
   );
 }

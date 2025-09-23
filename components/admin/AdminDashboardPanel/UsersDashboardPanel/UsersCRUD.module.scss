@@ -2,14 +2,15 @@
 .usersCRUD {
   padding: 1rem;
   min-height: 100vh;
+  background-color: $bg;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
-  gap: 2rem;
+  margin-bottom: $space-md;
+  gap: $space-sm;
 }
 
 .headerContent {

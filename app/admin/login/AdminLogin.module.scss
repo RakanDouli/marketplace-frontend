@@ -1,30 +1,18 @@
-@import '@/styles/variables';
-
-.container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $bg-subtle;
-  padding: $space-md;
-}
+@import "@/styles/variables";
 
 .loginCard {
   width: 100%;
   max-width: 400px;
   background: $bg;
+  margin: 8% auto 0 auto;
+  padding: $space-lg;
   border-radius: $radius-lg;
   box-shadow: $shadow-lg;
   border: 1px solid $border;
   overflow: hidden;
-}
-
-.content {
-  padding: $space-lg;
-}
-
-.credentialSelector {
-  margin-bottom: $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
 }
 
 .selectorLabel {
@@ -32,12 +20,11 @@
   font-size: $font-sm;
   font-weight: $weight-medium;
   color: $text;
-  margin-bottom: $space-sm;
 }
 
 .select {
   width: 100%;
-  padding: $space-sm $space-md;
+
   border: 1px solid $border;
   border-radius: $radius-base;
   background: $bg;
@@ -93,7 +80,7 @@
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    background: $bg-subtle;
+    background: $bg;
   }
 
   &::placeholder {

@@ -2,7 +2,6 @@ import '../styles/main.scss';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
-import { NotificationToast } from '../components/slices/NotificationToast/NotificationToast';
 import { ErrorBoundary } from '../components/slices';
 import { generateDefaultMetadata } from '../utils/seo';
 import { PublicLayoutClient } from '../components/layouts/PublicLayoutClient';
@@ -22,13 +21,13 @@ export default function RootLayout({
       </head>
       <body>
         <LanguageProvider defaultLanguage="ar">
+
           <ThemeProvider>
             <ErrorBoundary>
               <PublicLayoutClient>
                 {children}
               </PublicLayoutClient>
             </ErrorBoundary>
-            <NotificationToast />
           </ThemeProvider>
         </LanguageProvider>
       </body>

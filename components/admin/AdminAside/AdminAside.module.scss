@@ -1,109 +1,109 @@
-@import "@/styles/variables";
+// @import "@/styles/variables";
 
-.aside {
-  position: fixed;
-  top: $header-height;
-  right: 0;
-  height: calc(100vh - $header-height);
-  background: $bg;
-  border-left: 1px solid $border;
-  box-shadow: $shadow-md;
-  z-index: $z-nav;
-  display: flex;
-  flex-direction: column;
-  transition: width 0.3s ease;
-  // padding: 0 $space-md;
-  @media (max-width: $breakpoint-md) {
-    top: $header-height-mobile;
-    height: calc(100vh - $header-height-mobile);
-  }
-  // Collapsed state (icon-only)
-  &.collapsed {
-    width: 70px;
-  }
+// .aside {
+//   position: fixed;
+//   top: $header-height;
+//   right: 0;
+//   height: calc(100vh - $header-height);
+//   background: $bg;
+//   border-left: 1px solid $border;
+//   box-shadow: $shadow-md;
+//   z-index: $z-nav;
+//   display: flex;
+//   flex-direction: column;
+//   transition: width 0.3s ease;
+//   // padding: 0 $space-md;
+//   @media (max-width: $breakpoint-md) {
+//     top: $header-height-mobile;
+//     height: calc(100vh - $header-height-mobile);
+//   }
+//   // Collapsed state (icon-only)
+//   &.collapsed {
+//     width: 70px;
+//   }
 
-  // Expanded state (icon + text)
-  &.expanded {
-    width: 25%;
-    max-width: 380px;
-  }
+//   // Expanded state (icon + text)
+//   &.expanded {
+//     width: 25%;
+//     max-width: 380px;
+//   }
 
-  // Mobile behavior
-  @media (max-width: $breakpoint-lg) {
-    &.collapsed {
-      width: 0;
-      border: none;
-      box-shadow: none;
-    }
+//   // Mobile behavior
+//   @media (max-width: $breakpoint-lg) {
+//     &.collapsed {
+//       width: 0;
+//       border: none;
+//       box-shadow: none;
+//     }
 
-    &.expanded {
-      width: 280px;
-      box-shadow: $shadow-lg;
-    }
-  }
-}
+//     &.expanded {
+//       width: 280px;
+//       box-shadow: $shadow-lg;
+//     }
+//   }
+// }
 
-.toggleButton {
-  cursor: pointer;
-  padding: $space-sm;
-}
+// .toggleButton {
+//   cursor: pointer;
+//   padding: $space-sm;
+// }
 
-.title {
-  display: block;
-  opacity: 1;
-  padding: 0 $space-md;
-  height: 30px;
-  .collapsed & {
-    opacity: 0;
-  }
-}
+// .title {
+//   display: block;
+//   opacity: 1;
+//   padding: 0 $space-md;
+//   height: 30px;
+//   .collapsed & {
+//     opacity: 0;
+//   }
+// }
 
-.nav {
-  flex: 1;
-  padding: $space-md 0;
-  overflow-y: auto;
-}
+// .nav {
+//   flex: 1;
+//   padding: $space-md 0;
+//   overflow-y: auto;
+// }
 
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  padding: $space-sm;
-  color: $text-secondary;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border-right: 3px solid transparent;
-  margin: 0 $space-xs;
-  border-radius: $radius-base;
-  height: 30px;
-  &:hover {
-    background: $surface;
-    color: $text-inverse;
-  }
+// .navItem {
+//   display: flex;
+//   align-items: center;
+//   gap: $space-sm;
+//   padding: $space-sm;
+//   color: $text-secondary;
+//   text-decoration: none;
+//   transition: all 0.2s ease;
+//   border-right: 3px solid transparent;
+//   margin: 0 $space-xs;
+//   border-radius: $radius-base;
+//   height: 30px;
+//   &:hover {
+//     background: $surface;
+//     color: $text-inverse;
+//   }
 
-  &.active {
-    background: rgba($primary, 0.1);
-    color: $primary;
-    border-right-color: $primary;
-  }
+//   &.active {
+//     background: rgba($primary, 0.1);
+//     color: $primary;
+//     border-right-color: $primary;
+//   }
 
-  .collapsed & {
-    justify-content: center;
-    // padding: $space-sm $space-xs;
-  }
-}
+//   .collapsed & {
+//     justify-content: center;
+//     // padding: $space-sm $space-xs;
+//   }
+// }
 
-.navIcon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-}
+// .navIcon {
+//   flex-shrink: 0;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   width: 20px;
+//   height: 20px;
+// }
 
-.navLabel {
-  .collapsed & {
-    display: none;
-  }
-}
+// .navLabel {
+//   .collapsed & {
+//     display: none;
+//   }
+// }

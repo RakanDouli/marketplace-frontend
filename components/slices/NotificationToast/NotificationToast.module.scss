@@ -1,47 +1,43 @@
 .container {
-  position: fixed;
-  top: $space-md;
-  right: $space-md;
-  z-index: $z-toast;
+  position: relative;
+  padding: $space-sm;
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
-  max-width: 400px;
+  gap: $space-xs;
   width: 100%;
-
-  @media (max-width: $breakpoint-md) {
-    left: $space-md;
-    right: $space-md;
-    max-width: none;
-  }
+  z-index: $z-popover;
 }
 
 .toast {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: $surface;
+  // background-color: $surface;
   border-radius: $radius-md;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  border: 1px solid $border;
-  padding: $space-md;
+  width: 100%;
+  // border: 1px solid $border;
+  padding: $space-sm $space-md;
   gap: $space-md;
   animation: slideIn 0.3s ease-out;
 
   &.success {
-    border-left: 4px solid $success;
+    border-right: 10px solid $success;
+    background-color: $success-bg;
   }
 
   &.error {
-    border-left: 4px solid $error;
+    border-right: 10px solid $error;
+    background-color: $error-bg;
   }
 
   &.warning {
-    border-left: 4px solid $warning;
+    border-right: 10px solid $warning;
+    background-color: $warning-bg;
   }
 
   &.info {
-    border-left: 4px solid $info;
+    border-right: 10px solid $info;
+    background-color: $info-bg;
   }
 }
 
@@ -86,7 +82,12 @@
   color: $primary;
   padding: $space-xs $space-sm;
   border-radius: $radius-sm;
-  transition: color, background-color, border-color, text-decoration-color, fill,
+  transition:
+    color,
+    background-color,
+    border-color,
+    text-decoration-color,
+    fill,
     stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
@@ -113,7 +114,12 @@
   height: 24px;
   border-radius: $radius-sm;
   color: $text-muted;
-  transition: color, background-color, border-color, text-decoration-color, fill,
+  transition:
+    color,
+    background-color,
+    border-color,
+    text-decoration-color,
+    fill,
     stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
@@ -155,11 +161,11 @@
 
 @keyframes slideIn {
   from {
-    transform: translateX(100%);
+    transform: translateY(-100%);
     opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: translateY(0);
     opacity: 1;
   }
 }

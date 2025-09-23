@@ -1,0 +1,73 @@
+// Pagination component styles using theme variables
+@import "@/styles/variables";
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $space-sm;
+  margin-top: $space-xl;
+  padding: $space-md 0;
+}
+
+.pageNumbers {
+  display: flex;
+  gap: $space-xs;
+  align-items: center;
+}
+
+.pageButton {
+  padding: $space-xs $space-sm;
+  border: 1px solid $border;
+  background: $bg;
+  color: $text;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  text-align: center;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+
+  &:hover {
+    background: $surface;
+    border-color: $primary;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &.active {
+    background: $primary;
+    color: $text-inverse;
+    border-color: $primary;
+  }
+}
+
+.ellipsis {
+  color: $text-secondary;
+  padding: 0 $space-xs;
+  font-size: $font-sm;
+  user-select: none;
+}
+
+// Responsive design
+@media screen and (max-width: 768px) {
+  .pagination {
+    gap: $space-xs;
+    margin-top: $space-md;
+    padding: $space-sm 0;
+  }
+
+  .pageButton {
+    min-width: 36px;
+    padding: $space-xs;
+    font-size: $font-xs;
+  }
+
+  .pageNumbers {
+    gap: $space-xs;
+  }
+}

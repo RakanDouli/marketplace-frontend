@@ -118,7 +118,9 @@
   display: flex;
   align-items: center;
   color: var(--color-text-secondary);
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
   flex-shrink: 0;
 
   .header:hover:not(.disabled) & {
@@ -185,7 +187,9 @@
 
 .content {
   overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
 
   &.collapsed {
     max-height: 0;
@@ -252,13 +256,15 @@
 // Animation for smooth expand/collapse
 @media (prefers-reduced-motion: no-preference) {
   .content {
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .chevron {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                color 0.2s ease;
+    transition:
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.2s ease;
   }
 }
 
@@ -267,19 +273,4 @@
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
   border-radius: 0.25rem;
-}
-
-// High contrast mode support
-@media (prefers-contrast: high) {
-  .collapsibleSection {
-    border-width: 2px;
-  }
-
-  .header {
-    border-bottom-width: 2px;
-  }
-
-  .contentInner {
-    border-top-width: 2px;
-  }
 }

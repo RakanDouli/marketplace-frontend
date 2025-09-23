@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuthStore } from '@/stores/admin';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Container, Button } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
 import AdminHeader from '../AdminHeader';
@@ -68,49 +69,100 @@ const getModuleIcon = (iconString: string) => {
 export function AdminDashboard() {
   const router = useRouter();
   const { user } = useAdminAuthStore();
+  const permissions = usePermissions();
 
-  // Static list of available admin features
+  // Dynamic permission-based modules
   const availableModules = useMemo(() => {
     if (!user) return [];
 
-    const modules = [
+    const allModules = [
       {
         key: 'users',
         name: 'Users Management',
         nameAr: 'إدارة المستخدمين',
         icon: 'Users',
-        basePath: '/admin/users'
+        basePath: '/admin/users',
+        feature: 'users'
       },
       {
         key: 'categories',
         name: 'Categories Management',
         nameAr: 'إدارة الفئات',
         icon: 'FolderTree',
-        basePath: '/admin/categories'
+        basePath: '/admin/categories',
+        feature: 'categories'
       },
       {
         key: 'attributes',
         name: 'Attributes Management',
         nameAr: 'إدارة الخصائص',
         icon: 'Tags',
-        basePath: '/admin/attributes'
+        basePath: '/admin/attributes',
+        feature: 'attributes'
       },
       {
         key: 'listings',
         name: 'Listings Management',
         nameAr: 'إدارة الإعلانات',
         icon: 'FileText',
-        basePath: '/admin/listings'
+        basePath: '/admin/listings',
+        feature: 'listings'
+      },
+      {
+        key: 'roles',
+        name: 'Roles Management',
+        nameAr: 'إدارة الأدوار',
+        icon: 'Shield',
+        basePath: '/admin/roles',
+        feature: 'roles'
+      },
+      {
+        key: 'ad-packages',
+        name: 'Ad Packages',
+        nameAr: 'حزم الإعلانات',
+        icon: 'Package',
+        basePath: '/admin/ad-packages',
+        feature: 'ad_packages'
+      },
+      {
+        key: 'ad-clients',
+        name: 'Ad Clients',
+        nameAr: 'عملاء الإعلانات',
+        icon: 'UserCircle',
+        basePath: '/admin/ad-clients',
+        feature: 'ad_clients'
+      },
+      {
+        key: 'ad-campaigns',
+        name: 'Ad Campaigns',
+        nameAr: 'حملات الإعلانات',
+        icon: 'Megaphone',
+        basePath: '/admin/ad-campaigns',
+        feature: 'ad_campaigns'
+      },
+      {
+        key: 'analytics',
+        name: 'Analytics',
+        nameAr: 'التحليلات',
+        icon: 'BarChart3',
+        basePath: '/admin/analytics',
+        feature: 'analytics'
+      },
+      {
+        key: 'audit-logs',
+        name: 'Audit Logs',
+        nameAr: 'سجلات المراجعة',
+        icon: 'Eye',
+        basePath: '/admin/audit-logs',
+        feature: 'audit_logs'
       }
     ];
 
-    // Simple role-based filtering
-    if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
-      return modules;
-    }
-
-    return [];
-  }, [user]);
+    // Filter modules based on user permissions
+    return allModules.filter(module =>
+      permissions.canAccess(module.feature, 'view')
+    );
+  }, [user, permissions]);
 
   const handleModuleClick = (module: any) => {
     router.push(module.basePath);

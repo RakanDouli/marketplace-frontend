@@ -4,19 +4,18 @@
 
 // Colors - using CSS custom properties from themes.scss
 $primary: var(--primary);
-$primary-subtle: var(--primary-subtle, #dbeafe);
 $secondary: var(--secondary);
 $accent: var(--accent);
 
 // Notification Colors
 $success: var(--success);
-$success-subtle: var(--success-subtle, #f0fdf4);
+$success-bg: var(--success-bg);
 $warning: var(--warning);
-$warning-subtle: var(--warning-subtle, #fffbeb);
+$warning-bg: var(--warning-bg);
 $error: var(--error);
-$error-subtle: var(--error-subtle, #fef2f2);
+$error-bg: var(--error-bg);
 $info: var(--info);
-$info-subtle: var(--info-subtle, #eff6ff);
+$info-bg: var(--info-bg);
 
 // Background Colors
 $bg: var(--bg);
@@ -76,7 +75,12 @@ $line-loose: 2;
 
 // Font Families - Direct SCSS variables
 $font-headers: "Beiruti", "Cairo", "Segoe UI", Tahoma, Geneva, sans-serif;
-$font-body: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+$font-body:
+  "Rubik",
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Roboto,
   sans-serif;
 $font-mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
 
@@ -112,10 +116,18 @@ $header-height-mobile: 70px;
 
 // Shadows - Direct SCSS variables
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-base:
+  0 1px 3px 0 rgba(0, 0, 0, 0.1),
+  0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$shadow-md:
+  0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg:
+  0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl:
+  0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  0 10px 10px -5px rgba(0, 0, 0, 0.04);
 $shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
 // Z-index (proper layering hierarchy)

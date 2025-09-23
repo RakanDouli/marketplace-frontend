@@ -5,8 +5,6 @@ interface CacheEntry {
   promise?: Promise<any>;
 }
 
-
-
 class GraphQLCache {
   private cache = new Map<string, CacheEntry>();
   private pendingRequests = new Map<string, Promise<any>>();
@@ -14,7 +12,7 @@ class GraphQLCache {
 
   private createKey(query: string, variables: any = {}): string {
     // Include viewType in cache key for view-specific optimization
-    const normalizedQuery = query.replace(/\s+/g, ' ').trim();
+    const normalizedQuery = query.replace(/\s+/g, " ").trim();
 
     // Sort variables for consistent cache keys and normalize critical pagination/filter params
     const normalizedVariables = this.normalizeVariables(variables);
@@ -22,7 +20,9 @@ class GraphQLCache {
 
     // Log cache key creation for debugging
     if (variables?.filter?.viewType) {
-      console.log(`🔑 GraphQL Cache: Creating cache key with viewType: ${variables.filter.viewType}`);
+      console.log(
+        `🔑 GraphQL Cache: Creating cache key with viewType: ${variables.filter.viewType}`
+      );
     }
 
     return JSON.stringify(keyData);
@@ -37,9 +37,11 @@ class GraphQLCache {
     // Sort filter keys for consistent cache keys
     if (normalized.filter) {
       const sortedFilter: any = {};
-      Object.keys(normalized.filter).sort().forEach(key => {
-        sortedFilter[key] = normalized.filter[key];
-      });
+      Object.keys(normalized.filter)
+        .sort()
+        .forEach((key) => {
+          sortedFilter[key] = normalized.filter[key];
+        });
       normalized.filter = sortedFilter;
     }
 
@@ -58,12 +60,12 @@ class GraphQLCache {
     return Date.now() - entry.timestamp > this.defaultTTL;
   }
 
-
-
   async request(query: string, variables: any = {}): Promise<any> {
     const key = this.createKey(query, variables);
 
-    console.log(`🔍 GraphQL Cache: Checking cache for key: ${key.substring(0, 100)}...`);
+    console.log(
+      `🔍 GraphQL Cache: Checking cache for key: ${key.substring(0, 100)}...`
+    );
 
     // Check if we have a valid cached response
     const cached = this.cache.get(key);
@@ -75,12 +77,16 @@ class GraphQLCache {
     // Check if there's already a pending request for this exact query
     const pending = this.pendingRequests.get(key);
     if (pending) {
-      console.log(`⏳ GraphQL Cache: Request DEDUP for ${key.substring(0, 50)}...`);
+      console.log(
+        `⏳ GraphQL Cache: Request DEDUP for ${key.substring(0, 50)}...`
+      );
       return pending;
     }
 
     // Make the actual request
-    console.log(`🚀 GraphQL Cache: Making new request for ${key.substring(0, 50)}...`);
+    console.log(
+      `🚀 GraphQL Cache: Making new request for ${key.substring(0, 50)}...`
+    );
     const requestPromise = this.makeRequest(query, variables);
 
     // Store the pending promise to deduplicate concurrent requests
@@ -96,10 +102,15 @@ class GraphQLCache {
       };
       this.cache.set(key, cacheEntry);
 
-      console.log(`✅ GraphQL Cache: Cached response for ${key.substring(0, 50)}...`);
+      console.log(
+        `✅ GraphQL Cache: Cached response for ${key.substring(0, 50)}...`
+      );
       return data;
     } catch (error) {
-      console.error(`❌ GraphQL Cache: Request failed for ${key.substring(0, 50)}...`, error);
+      console.error(
+        `❌ GraphQL Cache: Request failed for ${key.substring(0, 50)}...`,
+        error
+      );
       throw error;
     } finally {
       // Remove from pending requests
@@ -108,12 +119,14 @@ class GraphQLCache {
   }
 
   private async makeRequest(query: string, variables: any = {}): Promise<any> {
-    const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+    const endpoint =
+      process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
+      "http://localhost:4000/graphql";
 
     const response = await fetch(endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         query,
@@ -159,9 +172,14 @@ class GraphQLCache {
       }
     }
 
-    keysToDelete.forEach(key => {
+    keysToDelete.forEach((key) => {
       this.cache.delete(key);
-      console.log(`🗑️ GraphQL Cache: Invalidated cache for pattern "${pattern}": ${key.substring(0, 50)}...`);
+      console.log(
+        `🗑️ GraphQL Cache: Invalidated cache for pattern "${pattern}": ${key.substring(
+          0,
+          50
+        )}...`
+      );
     });
   }
 
@@ -178,10 +196,10 @@ class GraphQLCache {
 export const graphqlCache = new GraphQLCache();
 
 // Auto cleanup every 5 minutes
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   setInterval(() => {
     graphqlCache.cleanup();
-    console.log('🧹 GraphQL Cache: Cleanup completed', graphqlCache.getStats());
+    console.log("🧹 GraphQL Cache: Cleanup completed", graphqlCache.getStats());
   }, 5 * 60 * 1000);
 }
 
@@ -196,7 +214,7 @@ export async function cachedGraphQLRequest(
 // Clear cache function for development/debugging
 export function clearGraphQLCache(): void {
   graphqlCache.clear();
-  console.log('🧹 GraphQL Cache: Manually cleared all cache');
+  console.log("🧹 GraphQL Cache: Manually cleared all cache");
 }
 
 // Invalidate cache by pattern for filter/pagination changes

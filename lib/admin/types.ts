@@ -1,6 +1,6 @@
 // Core TypeScript interfaces for admin system
 
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'EDITOR' | 'ADS_MANAGER' | 'USER';
+export type UserRole = string; // Dynamic role names from backend
 
 export type ModuleType = 'crud' | 'dashboard' | 'workflow';
 
@@ -157,10 +157,12 @@ export interface AdminUser {
   email: string;
   role: UserRole;
   permissions: string[];
+  featurePermissions?: any; // Dynamic feature-based permissions from backend
   isActive: boolean;
   createdAt: string;
   lastLoginAt?: string;
   token?: string; // JWT token for API authentication
+  tokenExpiresAt?: number; // Token expiration timestamp in milliseconds
 }
 
 export interface AdminAuthState {
@@ -168,6 +170,10 @@ export interface AdminAuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  // Token expiration management
+  showExpirationWarning: boolean;
+  sessionExtensionAttempts: number;
+  lastExtensionAt?: number;
 }
 
 // Admin Permissions State
