@@ -22,8 +22,11 @@ export interface Feature {
   id: string;
   name: string;
   description: string;
-  category: string;
+  displayName: string;
+  icon: string;
+  defaultPermissions: string;
   isActive: boolean;
+  isAdminFeature?: boolean;
 }
 
 export interface FeaturePermissions {

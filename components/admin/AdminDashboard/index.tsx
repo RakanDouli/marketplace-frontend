@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdminAuthStore } from '@/stores/admin';
+import { useAdminAuthStore, useAdminFeaturesStore } from '@/stores/admin';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Container, Button } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
@@ -25,7 +25,8 @@ import {
   User,
   UserCircle,
   MessageCircle,
-  Eye
+  Eye,
+  Mail
 } from 'lucide-react';
 import styles from './AdminDashboard.module.scss';
 
@@ -41,7 +42,7 @@ const getModuleIcon = (iconString: string) => {
     );
   }
 
-  // Icon name mapping for Lucide icons
+  // Icon name mapping for Lucide icons - covers all backend features
   const icons: Record<string, React.ReactNode> = {
     'LayoutDashboard': <LayoutDashboard size={32} />,
     'Users': <Users size={32} />,
@@ -60,7 +61,8 @@ const getModuleIcon = (iconString: string) => {
     'User': <User size={32} />,
     'UserCircle': <UserCircle size={32} />,
     'MessageCircle': <MessageCircle size={32} />,
-    'Eye': <Eye size={32} />
+    'Eye': <Eye size={32} />,
+    'Mail': <Mail size={32} />
   };
 
   return icons[iconString] || <LayoutDashboard size={32} />;
@@ -69,100 +71,19 @@ const getModuleIcon = (iconString: string) => {
 export function AdminDashboard() {
   const router = useRouter();
   const { user } = useAdminAuthStore();
+  const { loadFeatures, getAvailableModules, loading, error, modules } = useAdminFeaturesStore();
   const permissions = usePermissions();
 
-  // Dynamic permission-based modules
+  // Load features from backend on component mount
+  useEffect(() => {
+    loadFeatures();
+  }, [loadFeatures]);
+
+  // Get available modules based on backend features and user permissions
   const availableModules = useMemo(() => {
     if (!user) return [];
-
-    const allModules = [
-      {
-        key: 'users',
-        name: 'Users Management',
-        nameAr: 'إدارة المستخدمين',
-        icon: 'Users',
-        basePath: '/admin/users',
-        feature: 'users'
-      },
-      {
-        key: 'categories',
-        name: 'Categories Management',
-        nameAr: 'إدارة الفئات',
-        icon: 'FolderTree',
-        basePath: '/admin/categories',
-        feature: 'categories'
-      },
-      {
-        key: 'attributes',
-        name: 'Attributes Management',
-        nameAr: 'إدارة الخصائص',
-        icon: 'Tags',
-        basePath: '/admin/attributes',
-        feature: 'attributes'
-      },
-      {
-        key: 'listings',
-        name: 'Listings Management',
-        nameAr: 'إدارة الإعلانات',
-        icon: 'FileText',
-        basePath: '/admin/listings',
-        feature: 'listings'
-      },
-      {
-        key: 'roles',
-        name: 'Roles Management',
-        nameAr: 'إدارة الأدوار',
-        icon: 'Shield',
-        basePath: '/admin/roles',
-        feature: 'roles'
-      },
-      {
-        key: 'ad-packages',
-        name: 'Ad Packages',
-        nameAr: 'حزم الإعلانات',
-        icon: 'Package',
-        basePath: '/admin/ad-packages',
-        feature: 'ad_packages'
-      },
-      {
-        key: 'ad-clients',
-        name: 'Ad Clients',
-        nameAr: 'عملاء الإعلانات',
-        icon: 'UserCircle',
-        basePath: '/admin/ad-clients',
-        feature: 'ad_clients'
-      },
-      {
-        key: 'ad-campaigns',
-        name: 'Ad Campaigns',
-        nameAr: 'حملات الإعلانات',
-        icon: 'Megaphone',
-        basePath: '/admin/ad-campaigns',
-        feature: 'ad_campaigns'
-      },
-      {
-        key: 'analytics',
-        name: 'Analytics',
-        nameAr: 'التحليلات',
-        icon: 'BarChart3',
-        basePath: '/admin/analytics',
-        feature: 'analytics'
-      },
-      {
-        key: 'audit-logs',
-        name: 'Audit Logs',
-        nameAr: 'سجلات المراجعة',
-        icon: 'Eye',
-        basePath: '/admin/audit-logs',
-        feature: 'audit_logs'
-      }
-    ];
-
-    // Filter modules based on user permissions
-    return allModules.filter(module =>
-      permissions.canAccess(module.feature, 'view')
-    );
-  }, [user, permissions]);
+    return getAvailableModules(permissions);
+  }, [user, permissions, getAvailableModules, modules]);
 
   const handleModuleClick = (module: any) => {
     router.push(module.basePath);
@@ -196,7 +117,19 @@ export function AdminDashboard() {
 
               {/* Modules Grid */}
               <div className={styles.modulesGrid}>
-                {availableModules.length > 0 ? (
+                {loading ? (
+                  <div className={styles.loadingState}>
+                    <Text variant="paragraph" color="secondary">
+                      جاري تحميل الميزات...
+                    </Text>
+                  </div>
+                ) : error ? (
+                  <div className={styles.errorState}>
+                    <Text variant="paragraph" color="secondary">
+                      خطأ في تحميل الميزات: {error}
+                    </Text>
+                  </div>
+                ) : availableModules.length > 0 ? (
                   availableModules.map((module: any) => (
                     <div
                       key={module.key}

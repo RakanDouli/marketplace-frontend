@@ -4,11 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { Container } from '@/components/slices/Container/Container';
 import { Button, Loading } from '@/components/slices';
 import { useAdminRolesStore } from '@/stores/admin/adminRolesStore';
-import type { Role, RoleWithPermissions } from '@/stores/admin/adminRolesStore';
+import type { Role } from '@/stores/admin/adminRolesStore';
 import { Table, TableHead, TableBody, TableRow, TableCell } from '@/components/slices';
 import { useFeaturePermissions } from '@/hooks/usePermissions';
-import { Plus, RefreshCw, AlertCircle, Shield, Users, Eye, Settings, Trash2 } from 'lucide-react';
-import { RoleForm } from '../../RoleManagement/RoleForm';
+import { useNotificationStore } from '@/stores/notificationStore';
+import { Plus, RefreshCw, Edit, Trash2, Shield, Users, Eye, Settings } from 'lucide-react';
+import { CreateRoleModal, EditRoleModal, DeleteRoleModal } from './modals';
 import styles from './RolesCRUD.module.scss';
 
 export const RolesDashboardPanel: React.FC = () => {
@@ -21,17 +22,22 @@ export const RolesDashboardPanel: React.FC = () => {
     loadRoles,
     loadFeatures,
     loadRoleWithPermissions,
+    createRole,
+    updateRolePermissions,
     deleteRole,
     setSelectedRole,
     clearError
   } = useAdminRolesStore();
 
   const { canView, canCreate, canModify, canDelete } = useFeaturePermissions('roles');
+  const { addNotification } = useNotificationStore();
 
-  const [showRoleForm, setShowRoleForm] = useState(false);
-  const [showPermissionMatrix, setShowPermissionMatrix] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [selectedRoleWithPermissions, setSelectedRoleWithPermissions] = useState<RoleWithPermissions | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     loadRoles();
@@ -40,13 +46,17 @@ export const RolesDashboardPanel: React.FC = () => {
 
   useEffect(() => {
     if (error) {
-      // Auto-clear error after 5 seconds
-      const timer = setTimeout(() => {
-        clearError();
-      }, 5000);
-      return () => clearTimeout(timer);
+      // Show error notification using toast system
+      addNotification({
+        type: 'error',
+        title: 'خطأ في إدارة الأدوار',
+        message: error,
+        duration: 5000
+      });
+      // Clear error from store
+      clearError();
     }
-  }, [error, clearError]);
+  }, [error, clearError, addNotification]);
 
   // Simple helper functions for display
   const getPriorityLabel = (priority: number) => {
@@ -62,32 +72,76 @@ export const RolesDashboardPanel: React.FC = () => {
     return isActive ? 'نشط' : 'غير نشط';
   };
 
-  // Simple action handlers
+  // Action handlers for new modal structure
   const handleEdit = (role: Role) => {
     setSelectedRole(role);
-    setFormMode('edit');
-    setShowRoleForm(true);
+    setShowEditModal(true);
   };
 
-  const handleViewPermissions = async (role: Role) => {
-    const roleWithPermissions = await loadRoleWithPermissions(role.id);
-    if (roleWithPermissions) {
-      setSelectedRoleWithPermissions(roleWithPermissions);
-      setShowPermissionMatrix(true);
-    }
-  };
-
-  const handleDelete = async (role: Role) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء.')) {
-      await deleteRole(role.id);
-    }
+  const handleDelete = (role: Role) => {
+    setRoleToDelete(role);
+    setShowDeleteModal(true);
   };
 
   // Handle create new role
   const handleCreateRole = () => {
     setSelectedRole(null);
-    setFormMode('create');
-    setShowRoleForm(true);
+    setShowCreateModal(true);
+  };
+
+  // Handle create form submission
+  const handleCreateSubmit = async (roleData: any) => {
+    try {
+      await createRole(roleData);
+      addNotification({
+        type: 'success',
+        title: 'تم إنشاء الدور بنجاح',
+        message: `تم إنشاء الدور ${roleData.name} بنجاح`,
+        duration: 3000
+      });
+      setShowCreateModal(false);
+      setSelectedRole(null);
+    } catch (error) {
+      console.error('Create role error:', error);
+    }
+  };
+
+  // Handle edit form submission
+  const handleEditSubmit = async (roleData: any) => {
+    try {
+      if (selectedRole) {
+        await updateRolePermissions(selectedRole.id, roleData.featurePermissions);
+        addNotification({
+          type: 'success',
+          title: 'تم تحديث الدور بنجاح',
+          message: 'تم حفظ التغييرات بنجاح',
+          duration: 3000
+        });
+      }
+      setShowEditModal(false);
+      setSelectedRole(null);
+    } catch (error) {
+      console.error('Update role error:', error);
+    }
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (roleToDelete) {
+      try {
+        await deleteRole(roleToDelete.id);
+        addNotification({
+          type: 'success',
+          title: 'تم حذف الدور بنجاح',
+          message: `تم حذف الدور ${roleToDelete.name} بنجاح`,
+          duration: 3000
+        });
+        setShowDeleteModal(false);
+        setRoleToDelete(null);
+      } catch (error) {
+        console.error('Delete role error:', error);
+      }
+    }
   };
 
   return (
@@ -122,19 +176,36 @@ export const RolesDashboardPanel: React.FC = () => {
           </div>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className={styles.errorAlert}>
-            <AlertCircle size={20} />
-            <span>{error}</span>
-            <button
-              onClick={clearError}
-              className={styles.errorClose}
-            >
-              ×
-            </button>
+        {/* Search and Controls */}
+        <div className={styles.searchSection}>
+          <div className={styles.searchRow}>
+            <input
+              type="text"
+              placeholder="البحث بالاسم أو الوصف..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+            <div className={styles.roleCount}>
+              {roles.length}
+            </div>
           </div>
-        )}
+
+          {/* Filter Controls */}
+          <div className={styles.controlsRow}>
+            <div className={styles.filterDropdowns}>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={styles.filterSelect}
+              >
+                <option value="">جميع الحالات</option>
+                <option value="active">نشط</option>
+                <option value="inactive">غير نشط</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         {/* Info Cards */}
         <div className={styles.infoCards}>
@@ -206,16 +277,6 @@ export const RolesDashboardPanel: React.FC = () => {
                   {(canView || canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>
-                        {canView && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleViewPermissions(role)}
-                            title="عرض الصلاحيات"
-                          >
-                            <Eye size={16} />
-                          </Button>
-                        )}
                         {canModify && (
                           <Button
                             variant="secondary"
@@ -223,7 +284,7 @@ export const RolesDashboardPanel: React.FC = () => {
                             onClick={() => handleEdit(role)}
                             title="تعديل"
                           >
-                            <Settings size={16} />
+                            <Edit size={16} />
                           </Button>
                         )}
                         {canDelete && role.name !== 'SUPER_ADMIN' && (
@@ -245,38 +306,43 @@ export const RolesDashboardPanel: React.FC = () => {
           </Table>
         )}
 
-        {/* Role Form Modal */}
-        <RoleForm
-          isVisible={showRoleForm}
+        {/* Create Role Modal */}
+        <CreateRoleModal
+          isVisible={showCreateModal}
           onClose={() => {
-            setShowRoleForm(false);
+            setShowCreateModal(false);
             setSelectedRole(null);
           }}
-          initialData={selectedRole}
-          mode={formMode}
+          onSubmit={handleCreateSubmit}
+          features={features}
+          isLoading={loading}
         />
 
-        {/* Permission Matrix Modal - TODO: Implement */}
-        {showPermissionMatrix && selectedRoleWithPermissions && (
-          <div className={styles.modal}>
-            <div className={styles.modalContent}>
-              <h2>صلاحيات الدور: {selectedRoleWithPermissions.name}</h2>
-              <p>مصفوفة الصلاحيات قيد التطوير...</p>
+        {/* Edit Role Modal */}
+        <EditRoleModal
+          isVisible={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedRole(null);
+          }}
+          onSubmit={handleEditSubmit}
+          initialData={selectedRole}
+          features={features}
+          isLoading={loading}
+          loadRoleWithPermissions={loadRoleWithPermissions}
+        />
 
-              {/* Display current permissions */}
-              <div className={styles.permissionsPreview}>
-                <h3>الصلاحيات الحالية:</h3>
-                <pre>
-                  {JSON.stringify(selectedRoleWithPermissions.featurePermissionsObject, null, 2)}
-                </pre>
-              </div>
-
-              <Button onClick={() => setShowPermissionMatrix(false)} variant="secondary">
-                إغلاق
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Delete Role Modal */}
+        <DeleteRoleModal
+          isVisible={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setRoleToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          role={roleToDelete}
+          isLoading={loading}
+        />
       </div>
     </>
   );

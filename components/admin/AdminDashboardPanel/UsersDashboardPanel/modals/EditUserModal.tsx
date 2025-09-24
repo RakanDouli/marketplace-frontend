@@ -2,11 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/slices';
+import { Input } from '@/components/slices/Input/Input';
 import { Modal } from '@/components/slices';
 import { User, Mail, Shield, Building, Key } from 'lucide-react';
 import styles from './UserModals.module.scss';
 import { GET_USER_STATUSES_QUERY } from '@/stores/admin/adminUsersStore/adminUsersStore.gql';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
+import {
+  validateUserFormEdit,
+  hasValidationErrors,
+  createUserFieldValidator,
+  type UserFormData,
+  type ValidationErrors
+} from '@/lib/admin/validation/userValidation';
 
 interface User {
   id?: string;
@@ -68,6 +76,7 @@ export function EditUserModal({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [userStatuses, setUserStatuses] = useState<Array<{ value: string, label: string }>>([]);
 
   // Helper function for GraphQL calls
@@ -147,17 +156,18 @@ export function EditUserModal({
   }, [initialData, isVisible]);
 
   const validateForm = () => {
+    // Use our new validation system for edit mode
+    const newValidationErrors = validateUserFormEdit(formData);
+    setValidationErrors(newValidationErrors);
+
+    // Keep old errors for existing UI (for now)
     const newErrors: Record<string, string> = {};
-
-    // Only validate fields that can be updated
-    if (!formData.name.trim()) {
-      newErrors.name = 'الاسم مطلوب';
-    }
-
-    // Email cannot be updated, so no validation needed
-
+    Object.entries(newValidationErrors).forEach(([key, value]) => {
+      if (value) newErrors[key] = value;
+    });
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    return !hasValidationErrors(newValidationErrors);
   };
 
   // Map values to GraphQL enum keys
@@ -212,21 +222,17 @@ export function EditUserModal({
     >
       <form onSubmit={handleSubmit} className={styles.form}>
         {/* Name Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <User size={16} />
-            الاسم الكامل
-          </label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            className={`${styles.input} ${errors.name ? styles.error : ''}`}
-            placeholder="أدخل الاسم الكامل"
-            disabled={isLoading}
-          />
-          {errors.name && <span className={styles.errorText}>{errors.name}</span>}
-        </div>
+        <Input
+          label="الاسم الكامل"
+          type="text"
+          value={formData.name}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+          placeholder="أدخل الاسم الكامل"
+          disabled={isLoading}
+          validate={createUserFieldValidator('name', 'edit')}
+          error={validationErrors.name}
+          required
+        />
 
         {/* Email Field - Read Only */}
         <div className={styles.field}>
@@ -319,24 +325,17 @@ export function EditUserModal({
         </div>
 
         {/* Status Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <Shield size={16} />
-            حالة المستخدم
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => handleInputChange('status', e.target.value)}
-            className={styles.select}
-            disabled={isLoading}
-          >
-            {userStatuses.map(status => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Input
+          label="حالة المستخدم"
+          type="select"
+          value={formData.status}
+          onChange={(e) => handleInputChange('status', e.target.value)}
+          disabled={isLoading}
+          validate={createUserFieldValidator('status', 'edit')}
+          error={validationErrors.status}
+          required
+          options={userStatuses}
+        />
 
         {/* Form Actions */}
         <div className={styles.actions}>

@@ -41,6 +41,8 @@ export interface InputProps
   rows?: number;
   /** Show error state */
   hasError?: boolean;
+  /** Validation function for real-time validation */
+  validate?: (value: string) => string | undefined;
 }
 
 export const Input = forwardRef<
@@ -59,18 +61,24 @@ export const Input = forwardRef<
       className = "",
       rows = 4,
       hasError = false,
+      validate,
       ...props
     },
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
+    const [validationError, setValidationError] = useState<string | undefined>();
     const generatedId = useId();
+
+    // Priority: external error > validation error
+    const displayError = error || validationError;
+    const hasAnyError = hasError || !!displayError;
 
     const inputClasses = [
       styles.input,
       styles[`input--${variant}`],
       styles[`input--${size}`],
-      error || hasError ? styles["input--error"] : "",
+      hasAnyError ? styles["input--error"] : "",
       isFocused ? styles["input--focused"] : "",
       className,
     ]
@@ -79,6 +87,22 @@ export const Input = forwardRef<
 
     const handleFocus = () => setIsFocused(true);
     const handleBlur = () => setIsFocused(false);
+
+    // Handle validation on change
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const value = e.target.value;
+
+      // Run validation if provided
+      if (validate) {
+        const validationResult = validate(value);
+        setValidationError(validationResult);
+      }
+
+      // Call original onChange
+      if (props.onChange) {
+        props.onChange(e as any);
+      }
+    };
 
     const renderInput = () => {
       if (type === "boolean") {
@@ -91,6 +115,7 @@ export const Input = forwardRef<
             onFocus={handleFocus}
             onBlur={handleBlur}
             {...checkboxProps}
+            onChange={handleChange}
             id={checkboxProps.id || checkboxProps.name || generatedId}
             name={checkboxProps.name || checkboxProps.id || generatedId}
           />
@@ -107,6 +132,7 @@ export const Input = forwardRef<
             onFocus={handleFocus}
             onBlur={handleBlur}
             {...textareaProps}
+            onChange={handleChange}
             id={textareaProps.id || textareaProps.name || generatedId}
             name={textareaProps.name || textareaProps.id || generatedId}
           />
@@ -122,6 +148,7 @@ export const Input = forwardRef<
             onFocus={handleFocus}
             onBlur={handleBlur}
             {...selectProps}
+            onChange={handleChange}
             id={selectProps.id || selectProps.name || generatedId}
             name={selectProps.name || selectProps.id || generatedId}
           >
@@ -147,6 +174,7 @@ export const Input = forwardRef<
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...inputProps}
+          onChange={handleChange}
           id={inputProps.id || inputProps.name || generatedId}
           name={inputProps.name || inputProps.id || generatedId}
         />
@@ -166,9 +194,9 @@ export const Input = forwardRef<
 
         <div className={styles.inputContainer}>{renderInput()}</div>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {displayError && <div className={styles.error}>{displayError}</div>}
 
-        {helpText && !error && (
+        {helpText && !displayError && (
           <div className={styles.helpText}>{helpText}</div>
         )}
       </div>

@@ -2,26 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/slices/Button/Button';
-import { useAdminRolesStore } from '@/stores/admin/adminRolesStore';
-import type { Role, Feature, FeaturePermissions } from '@/stores/admin/adminRolesStore';
-import { X, Shield, Settings, Users, Eye, Edit, Trash2, Plus } from 'lucide-react';
-import styles from './RoleForm.module.scss';
+import { Input } from '@/components/slices/Input/Input';
+import type { Feature, FeaturePermissions } from '@/stores/admin/adminRolesStore';
+import {
+  validateRoleForm,
+  hasValidationErrors,
+  createFieldValidator,
+  type RoleFormData,
+  type ValidationErrors
+} from '@/lib/admin/validation/roleValidation';
+import { X, Shield, Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import styles from './RoleModal.module.scss';
 
-interface RoleFormProps {
+interface CreateRoleModalProps {
   isVisible: boolean;
   onClose: () => void;
-  initialData?: Role | null;
-  mode: 'create' | 'edit';
+  onSubmit: (data: any) => Promise<void>;
+  features: Feature[];
+  isLoading: boolean;
 }
 
-export const RoleForm: React.FC<RoleFormProps> = ({
+export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
   isVisible,
   onClose,
-  initialData,
-  mode
+  onSubmit,
+  features,
+  isLoading
 }) => {
-  const { features, loading, createRole, updateRolePermissions, loadRoleWithPermissions } = useAdminRolesStore();
-
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -35,50 +42,33 @@ export const RoleForm: React.FC<RoleFormProps> = ({
   const [currentStep, setCurrentStep] = useState<'basic' | 'permissions'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form data
-  useEffect(() => {
-    if (initialData && mode === 'edit') {
-      setFormData({
-        name: initialData.name,
-        description: initialData.description
-      });
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
-      // Load existing permissions
-      loadRoleWithPermissions(initialData.id).then(roleWithPermissions => {
-        if (roleWithPermissions) {
-          setPermissions(roleWithPermissions.featurePermissionsObject || {});
-        }
-      });
-    } else {
-      // Reset for create mode
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (isVisible) {
       setFormData({ name: '', description: '' });
       setPermissions({});
+      setCurrentStep('basic');
     }
-    setCurrentStep('basic');
-  }, [initialData, mode, loadRoleWithPermissions]);
+  }, [isVisible]);
 
   // Handle form submission
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
-      alert('يرجى إدخال اسم الدور');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      if (mode === 'create') {
-        await createRole({
-          name: formData.name,
-          description: formData.description,
-          featurePermissions: permissions
-        });
-      } else if (initialData) {
-        await updateRolePermissions(initialData.id, permissions);
-      }
-      onClose();
+      await onSubmit({
+        name: formData.name,
+        description: formData.description,
+        featurePermissions: permissions
+      });
     } catch (error) {
       console.error('Failed to save role:', error);
-      alert('فشل في حفظ الدور. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsSubmitting(false);
     }
@@ -141,7 +131,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
           <div className={styles.headerContent}>
             <Shield size={24} />
             <div>
-              <h2>{mode === 'create' ? 'إضافة دور جديد' : `تعديل الدور: ${initialData?.name}`}</h2>
+              <h2>إضافة دور جديد</h2>
               <p>
                 {currentStep === 'basic'
                   ? 'أدخل المعلومات الأساسية للدور'
@@ -169,32 +159,39 @@ export const RoleForm: React.FC<RoleFormProps> = ({
         {/* Step 1: Basic Information */}
         {currentStep === 'basic' && (
           <div className={styles.stepContent}>
-            <div className={styles.formGroup}>
-              <label>اسم الدور *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="مثال: مدير المحتوى"
-                disabled={mode === 'edit'} // Can't change name in edit mode
-                className={styles.input}
-              />
-            </div>
+            <Input
+              label="اسم الدور *"
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="مثال: مدير المحتوى"
+              required
+              validate={createFieldValidator('name')}
+              error={validationErrors.name}
+            />
 
-            <div className={styles.formGroup}>
-              <label>وصف الدور</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="وصف مختصر لمسؤوليات هذا الدور..."
-                rows={3}
-                className={styles.textarea}
-              />
-            </div>
+            <Input
+              label="وصف الدور"
+              type="textarea"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="وصف مختصر لمسؤوليات هذا الدور..."
+              rows={3}
+              validate={createFieldValidator('description')}
+              error={validationErrors.description}
+            />
 
             <div className={styles.stepActions}>
               <Button
-                onClick={() => setCurrentStep('permissions')}
+                onClick={() => {
+                  // Validate form before proceeding to next step
+                  const errors = validateRoleForm(formData);
+                  setValidationErrors(errors);
+
+                  if (!hasValidationErrors(errors)) {
+                    setCurrentStep('permissions');
+                  }
+                }}
                 variant="primary"
                 disabled={!formData.name.trim()}
               >
@@ -241,8 +238,8 @@ export const RoleForm: React.FC<RoleFormProps> = ({
                   <div key={feature.id} className={`${styles.featureCard} ${hasAny ? styles.active : ''}`}>
                     <div className={styles.featureHeader}>
                       <div className={styles.featureInfo}>
-                        <h4>{getFeatureDisplayName(feature.name)}</h4>
-                        <p>{feature.description || `إدارة ${getFeatureDisplayName(feature.name)}`}</p>
+                        <h4>{feature.displayName || feature.name}</h4>
+                        <p>{feature.description || `إدارة ${feature.displayName || feature.name}`}</p>
                       </div>
                       <div className={styles.featureToggle}>
                         <input
@@ -311,9 +308,9 @@ export const RoleForm: React.FC<RoleFormProps> = ({
               <Button
                 onClick={handleSubmit}
                 variant="primary"
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting || isLoading}
               >
-                {isSubmitting ? 'جاري الحفظ...' : (mode === 'create' ? 'إنشاء الدور' : 'حفظ التغييرات')}
+                {isSubmitting ? 'جاري الحفظ...' : 'إنشاء الدور'}
               </Button>
             </div>
           </div>
@@ -323,23 +320,3 @@ export const RoleForm: React.FC<RoleFormProps> = ({
   );
 };
 
-// Helper function to get feature display names in Arabic
-function getFeatureDisplayName(featureName: string): string {
-  const displayNames: Record<string, string> = {
-    users: 'المستخدمين',
-    roles: 'الأدوار',
-    categories: 'التصنيفات',
-    attributes: 'الخصائص',
-    listings: 'الإعلانات',
-    ad_packages: 'حزم الإعلانات',
-    ad_clients: 'عملاء الإعلانات',
-    ad_campaigns: 'حملات الإعلانات',
-    analytics: 'التحليلات',
-    audit_logs: 'سجلات المراجعة',
-    own_listings: 'الإعلانات الشخصية',
-    own_chats: 'المحادثات الشخصية',
-    own_account: 'الحساب الشخصي'
-  };
-
-  return displayNames[featureName] || featureName;
-}

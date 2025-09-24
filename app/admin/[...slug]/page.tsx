@@ -10,27 +10,22 @@ import { Button, Text, Container } from '@/components/slices';
 import { ArrowLeft } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 
-// Admin Page Wrapper Component
-const AdminPageWrapper = ({ children, featureName }: { children: React.ReactNode; featureName: string }) => (
-  <>
-    {/* Universal Back Button */}
-    <Container>
-      <div style={{ padding: '1rem 0' }}>
-        <Button
-          variant='link'
-          href='/admin'
-          icon={<ArrowLeft size={18} />}
-        >
-          عودة إلى لوحة التحكم
-        </Button>
-      </div>
-
-      {/* Page Content */}
-      <div>
-        {children}
-      </div>
-    </Container>
-  </>
+// Admin Page Content - simplified without wrapper
+const AdminPageContent = ({ children }: { children: React.ReactNode }) => (
+  <Container>
+    <div style={{ padding: '1rem 0' }}>
+      <Button
+        variant='link'
+        href='/admin'
+        icon={<ArrowLeft size={18} />}
+      >
+        عودة إلى لوحة التحكم
+      </Button>
+    </div>
+    <div>
+      {children}
+    </div>
+  </Container>
 );
 
 // Dynamic Feature Registry - Now uses backend feature names
@@ -178,16 +173,12 @@ export default function AdminPage({ params }: AdminPageProps) {
   // Show access denied if user can't access this feature
   if (!canAccess) {
     return (
-      <AdminPageWrapper featureName={featureName}>
-
-
+      <AdminPageContent>
         <Text variant="h2" color="error">❌ وصول مرفوض</Text>
         <Text variant="paragraph" color="secondary">
           ليس لديك صلاحية للوصول إلى ميزة "{featureName}"
         </Text>
-
-
-      </AdminPageWrapper>
+      </AdminPageContent>
     );
   }
 
@@ -195,28 +186,22 @@ export default function AdminPage({ params }: AdminPageProps) {
   const feature = ADMIN_FEATURES[featureName as keyof typeof ADMIN_FEATURES];
 
   if (feature) {
-    // Feature exists - render it with wrapper
+    // Feature exists - render it with content wrapper
     const FeatureComponent = feature.component;
     return (
-      <AdminPageWrapper featureName={featureName}>
-
+      <AdminPageContent>
         <FeatureComponent />
-
-      </AdminPageWrapper>
+      </AdminPageContent>
     );
   } else {
     // Feature doesn't exist - show under development
     return (
-      <AdminPageWrapper featureName={featureName}>
-
-
+      <AdminPageContent>
         <Text variant="h2">🚧 قيد التطوير</Text>
         <Text variant="paragraph" color="secondary">
           صفحة إدارة "{featureName}" قيد التطوير
         </Text>
-
-
-      </AdminPageWrapper>
+      </AdminPageContent>
     );
   }
 }

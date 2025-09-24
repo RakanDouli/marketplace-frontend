@@ -20,6 +20,9 @@ export const GET_ALL_FEATURES_QUERY = `
       id
       name
       description
+      displayName
+      icon
+      defaultPermissions
       isActive
     }
   }

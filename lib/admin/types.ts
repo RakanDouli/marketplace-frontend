@@ -260,13 +260,7 @@ export interface FormState<T = any> {
   isValid: boolean;
 }
 
-export interface AdminFormProps<T = any> {
-  initialData?: T;
-  fields: FieldConfig[];
-  onSubmit: (data: T) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
-}
+// Removed AdminFormProps - no longer needed with Input component approach
 
 // Data Table Types
 export interface DataTableColumn {

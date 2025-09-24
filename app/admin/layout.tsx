@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAdminAuthStore } from '../../stores/admin';
 import { NotificationToast } from '../../components/slices/NotificationToast/NotificationToast';
 import AdminHeader from '../../components/admin/AdminHeader';
-import { AdminLayout as TokenExpirationWrapper } from '../../components/admin/AdminLayout';
+import { TokenExpirationModal } from '@/components/admin/TokenExpirationModal';
 import { Button, Container, Loading, Text } from '@/components';
 // import AdminAside from '../../components/admin/AdminAside';
 
@@ -71,7 +71,21 @@ const getFeatureNavigation = (featureKey: string) => {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, refreshAuth, isLoading } = useAdminAuthStore();
+  const {
+    isAuthenticated,
+    user,
+    refreshAuth,
+    isLoading,
+    showExpirationWarning,
+    getTimeUntilExpiration,
+    checkTokenExpiration,
+    extendSession,
+    logout,
+    startExpirationWarning,
+    dismissExpirationWarning
+  } = useAdminAuthStore();
+
+  const [isExpirationModalVisible, setIsExpirationModalVisible] = useState(false);
 
   // Don't apply layout to login page
   const isLoginPage = pathname === '/admin/login';
@@ -91,6 +105,70 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       router.push('/admin/login');
     }
   }, [isLoading, isAuthenticated, router, isLoginPage]);
+
+  // Token expiration monitoring
+  useEffect(() => {
+    if (!isAuthenticated || !user || !user.tokenExpiresAt) {
+      return;
+    }
+
+    const checkExpiration = () => {
+      const timeLeft = getTimeUntilExpiration();
+      const isExpired = checkTokenExpiration();
+
+      // If token has expired, logout immediately
+      if (isExpired) {
+        logout();
+        return;
+      }
+
+      // Show warning modal when 25 seconds or less remaining
+      if (timeLeft <= 25 && !showExpirationWarning) {
+        startExpirationWarning();
+        setIsExpirationModalVisible(true);
+      }
+
+      // Hide modal if time is extended beyond warning threshold
+      if (timeLeft > 25 && showExpirationWarning) {
+        dismissExpirationWarning();
+        setIsExpirationModalVisible(false);
+      }
+    };
+
+    // Check immediately
+    checkExpiration();
+
+    // Check every 10 seconds
+    const interval = setInterval(checkExpiration, 10000);
+
+    return () => clearInterval(interval);
+  }, [
+    isAuthenticated,
+    user,
+    showExpirationWarning,
+    getTimeUntilExpiration,
+    checkTokenExpiration,
+    logout,
+    startExpirationWarning,
+    dismissExpirationWarning
+  ]);
+
+  // Token expiration modal handlers
+  const handleExtendSession = async () => {
+    try {
+      await extendSession();
+      setIsExpirationModalVisible(false);
+      dismissExpirationWarning();
+    } catch (error) {
+      console.error('Failed to extend session:', error);
+      // Modal will stay open on failure
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsExpirationModalVisible(false);
+  };
 
   // If it's the login page, render without layout
   if (isLoginPage) {
@@ -145,25 +223,43 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   // Render appropriate layout based on page type
   if (isFeaturePage) {
-    // Feature page with new AdminAside
+    // Feature page with AdminHeader
     return (
-      <TokenExpirationWrapper>
-
+      <>
         <AdminHeader />
+        <main>{children}</main>
         <NotificationToast />
-        <main >
-          {children}
-        </main>
 
-      </TokenExpirationWrapper>
+        {/* Token Expiration Modal */}
+        {isAuthenticated && user && user.tokenExpiresAt && (
+          <TokenExpirationModal
+            isVisible={isExpirationModalVisible}
+            expiresAt={user.tokenExpiresAt}
+            onExtendSession={handleExtendSession}
+            onLogout={handleLogout}
+            warningThreshold={25}
+          />
+        )}
+      </>
     );
   } else {
     // Main dashboard - no aside, children handle their own layout
     return (
-      <TokenExpirationWrapper>
+      <>
         {children}
         <NotificationToast />
-      </TokenExpirationWrapper>
+
+        {/* Token Expiration Modal */}
+        {isAuthenticated && user && user.tokenExpiresAt && (
+          <TokenExpirationModal
+            isVisible={isExpirationModalVisible}
+            expiresAt={user.tokenExpiresAt}
+            onExtendSession={handleExtendSession}
+            onLogout={handleLogout}
+            warningThreshold={25}
+          />
+        )}
+      </>
     );
   }
 }

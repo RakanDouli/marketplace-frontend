@@ -2,11 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/slices';
+import { Input } from '@/components/slices/Input/Input';
 import { Modal } from '@/components/slices';
 import { Eye, EyeOff, User, Mail, Shield } from 'lucide-react';
 import styles from './UserModals.module.scss';
 import { GET_USER_STATUSES_QUERY } from '@/stores/admin/adminUsersStore/adminUsersStore.gql';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
+import {
+  validateUserFormCreate,
+  hasValidationErrors,
+  createUserFieldValidator,
+  type UserFormData,
+  type ValidationErrors
+} from '@/lib/admin/validation/userValidation';
 
 interface Role {
   id: string;
@@ -39,6 +47,7 @@ export function CreateUserModal({
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [userStatuses, setUserStatuses] = useState<Array<{value: string, label: string}>>([]);
 
   // Helper function for GraphQL calls
@@ -118,30 +127,18 @@ export function CreateUserModal({
   }, [isVisible]);
 
   const validateForm = () => {
+    // Use our new validation system
+    const newValidationErrors = validateUserFormCreate(formData);
+    setValidationErrors(newValidationErrors);
+
+    // Keep old errors for existing UI (for now)
     const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'الاسم مطلوب';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'البريد الإلكتروني غير صحيح';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'كلمة المرور مطلوبة';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-    }
-
-    if (!formData.role.trim()) {
-      newErrors.role = 'الدور مطلوب';
-    }
-
+    Object.entries(newValidationErrors).forEach(([key, value]) => {
+      if (value) newErrors[key] = value;
+    });
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    return !hasValidationErrors(newValidationErrors);
   };
 
   // Map values to GraphQL formats
@@ -189,110 +186,88 @@ export function CreateUserModal({
     >
       <form onSubmit={handleSubmit} className={styles.form}>
         {/* Name Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <User size={16} />
-            الاسم الكامل
-          </label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            className={`${styles.input} ${errors.name ? styles.error : ''}`}
-            placeholder="أدخل الاسم الكامل"
-            disabled={isLoading}
-          />
-          {errors.name && <span className={styles.errorText}>{errors.name}</span>}
-        </div>
+        <Input
+          label="الاسم الكامل"
+          type="text"
+          value={formData.name}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+          placeholder="أدخل الاسم الكامل"
+          disabled={isLoading}
+          validate={createUserFieldValidator('name', 'create')}
+          error={validationErrors.name}
+          required
+        />
 
         {/* Email Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <Mail size={16} />
-            البريد الإلكتروني
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            className={`${styles.input} ${errors.email ? styles.error : ''}`}
-            placeholder="أدخل البريد الإلكتروني"
-            disabled={isLoading}
-          />
-          {errors.email && <span className={styles.errorText}>{errors.email}</span>}
-        </div>
+        <Input
+          label="البريد الإلكتروني"
+          type="email"
+          value={formData.email}
+          onChange={(e) => handleInputChange('email', e.target.value)}
+          placeholder="أدخل البريد الإلكتروني"
+          disabled={isLoading}
+          validate={createUserFieldValidator('email', 'create')}
+          error={validationErrors.email}
+          required
+        />
 
         {/* Password Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            كلمة المرور
-          </label>
-          <div className={styles.passwordField}>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
-              onChange={(e) => handleInputChange('password', e.target.value)}
-              className={`${styles.input} ${errors.password ? styles.error : ''}`}
-              placeholder="أدخل كلمة المرور"
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className={styles.passwordToggle}
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-          {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+        <div className={styles.passwordContainer}>
+          <Input
+            label="كلمة المرور"
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={(e) => handleInputChange('password', e.target.value)}
+            placeholder="أدخل كلمة المرور"
+            disabled={isLoading}
+            validate={createUserFieldValidator('password', 'create')}
+            error={validationErrors.password}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className={styles.passwordToggle}
+            title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
         </div>
 
         {/* Role Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <Shield size={16} />
-            الدور الإداري
-          </label>
-          <select
-            value={formData.role}
-            onChange={(e) => handleInputChange('role', e.target.value)}
-            className={styles.select}
-            disabled={isLoading}
-          >
-            <option value="">اختر الدور</option>
-            {roles
-              .filter(role => role.name !== 'USER') // Only exclude USER role (regular users)
-              .map(role => (
-                <option key={role.id} value={role.name}>
-                  {role.name}
-                </option>
-              ))}
-          </select>
-          {errors.role && <span className={styles.errorText}>{errors.role}</span>}
-          <p className={styles.helpText}>
-            💡 يتم إنشاء حسابات إدارية فقط. المستخدمون العاديون يسجلون من الموقع الرئيسي
-          </p>
-        </div>
+        <Input
+          label="الدور الإداري"
+          type="select"
+          value={formData.role}
+          onChange={(e) => handleInputChange('role', e.target.value)}
+          disabled={isLoading}
+          validate={createUserFieldValidator('role', 'create')}
+          error={validationErrors.role}
+          required
+          helpText="💡 يتم إنشاء حسابات إدارية فقط. المستخدمون العاديون يسجلون من الموقع الرئيسي"
+          options={[
+            { value: '', label: 'اختر الدور' },
+            ...roles
+              .filter(role => role.name !== 'USER')
+              .map(role => ({
+                value: role.name,
+                label: role.name
+              }))
+          ]}
+        />
 
         {/* Status Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <Shield size={16} />
-            حالة المستخدم
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => handleInputChange('status', e.target.value)}
-            className={styles.select}
-            disabled={isLoading}
-          >
-            {userStatuses.map(status => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Input
+          label="حالة المستخدم"
+          type="select"
+          value={formData.status}
+          onChange={(e) => handleInputChange('status', e.target.value)}
+          disabled={isLoading}
+          validate={createUserFieldValidator('status', 'create')}
+          error={validationErrors.status}
+          required
+          options={userStatuses}
+        />
 
         {/* Form Actions */}
         <div className={styles.actions}>
