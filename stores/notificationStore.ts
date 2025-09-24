@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { Notification, NotificationPayload } from '@/types/notification';
+import { create } from "zustand";
+import { Notification, NotificationPayload } from "@/types/notification";
 
 interface NotificationStore {
   notifications: Notification[];
@@ -13,7 +13,7 @@ interface NotificationStore {
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-const DEFAULT_DURATION = 5000; // 5 seconds
+const DEFAULT_DURATION = 30000; // 5 seconds
 
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: [],
@@ -55,9 +55,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   markAsRead: (id) => {
     set((state) => ({
       notifications: state.notifications.map((notification) =>
-        notification.id === id 
-          ? { ...notification, read: true }
-          : notification
+        notification.id === id ? { ...notification, read: true } : notification
       ),
     }));
   },

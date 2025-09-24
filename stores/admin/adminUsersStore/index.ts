@@ -8,6 +8,7 @@ import {
   UPDATE_USER_MUTATION,
   DELETE_USER_MUTATION,
   RESET_PASSWORD_MUTATION,
+  GET_ROLES_QUERY,
 } from "./adminUsersStore.gql";
 
 interface User {
@@ -21,6 +22,14 @@ interface User {
   businessVerified: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  description: string;
+  priority: number;
+  isActive: boolean;
 }
 
 interface CreateUserInput {
@@ -90,6 +99,7 @@ export interface TableConfig {
 interface AdminUsersStore {
   // Data
   users: User[];
+  roles: Role[];
   loading: boolean;
   error: string | null;
   selectedUser: User | null;
@@ -118,10 +128,11 @@ interface AdminUsersStore {
     pagination?: PaginationInput,
     filter?: UserFilterInput
   ) => Promise<void>;
+  loadRoles: () => Promise<void>;
   createUser: (input: CreateUserInput) => Promise<User | null>;
   updateUser: (input: UpdateUserInput) => Promise<User | null>;
   deleteUser: (id: string) => Promise<boolean>;
-  resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
+  resetUserPassword: (id: string) => Promise<boolean>;
 
   // UI state
   setSelectedUser: (user: User | null) => void;
@@ -157,6 +168,7 @@ const makeGraphQLCall = async (query: string, variables: any = {}) => {
 
 export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
   users: [],
+  roles: [],
   loading: false,
   error: null,
   selectedUser: null,
@@ -221,8 +233,10 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
       const total = countData.usersCount || 0;
       const totalPages = Math.ceil(total / limit);
 
+      const users = usersData.usersSearch || [];
+
       set({
-        users: usersData.usersSearch || [],
+        users,
         tableConfig: null, // Let the component auto-generate columns from data
         pagination: {
           total,
@@ -239,6 +253,16 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
         error: error instanceof Error ? error.message : "Failed to load users",
         loading: false,
       });
+    }
+  },
+
+  loadRoles: async () => {
+    try {
+      const data = await makeGraphQLCall(GET_ROLES_QUERY);
+      set({ roles: data.getAllCustomRoles || [] });
+    } catch (error) {
+      // Silently fail if user doesn't have permissions to load roles
+      set({ roles: [] });
     }
   },
 
@@ -273,7 +297,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
         id,
         input: updateData,
       });
-      const updatedUser = data.adminUpdateUser;
+      const updatedUser = data.updateUser;
 
       set((state) => ({
         users: state.users.map((user) =>
@@ -318,7 +342,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
     }
   },
 
-  resetUserPassword: async (id: string, newPassword: string) => {
+  resetUserPassword: async (id: string) => {
     set({ loading: true, error: null });
 
     try {
@@ -328,7 +352,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
     } catch (error) {
       set({
         error:
-          error instanceof Error ? error.message : "Failed to reset password",
+          error instanceof Error ? error.message : "Failed to send reset email",
         loading: false,
       });
       return false;

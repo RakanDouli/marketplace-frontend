@@ -2,7 +2,7 @@
 
 export const GET_USERS_QUERY = `
   query GetUsers {
-    getAllUsersPublic {
+    getUsers {
       id
       email
       name
@@ -58,8 +58,8 @@ export const CREATE_USER_MUTATION = `
 `;
 
 export const UPDATE_USER_MUTATION = `
-  mutation AdminUpdateUser($id: ID!, $input: UpdateUserInput!) {
-    adminUpdateUser(id: $id, input: $input) {
+  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
+    updateUser(id: $id, input: $input) {
       id
       email
       name
@@ -80,7 +80,37 @@ export const DELETE_USER_MUTATION = `
 `;
 
 export const RESET_PASSWORD_MUTATION = `
-  mutation AdminResetUserPassword($userId: ID!) {
-    adminResetUserPassword(userId: $userId)
+  mutation ResetUserPassword($userId: ID!) {
+    resetUserPassword(userId: $userId)
+  }
+`;
+
+export const GET_ROLES_QUERY = `
+  query GetRoles {
+    getAllCustomRoles {
+      id
+      name
+      description
+      priority
+      isActive
+    }
+  }
+`;
+
+export const GET_USER_STATUSES_QUERY = `
+  query GetUserStatuses {
+    getUserStatuses
+  }
+`;
+
+export const GET_USER_ROLES_QUERY = `
+  query GetUserRoles {
+    getUserRoles
+  }
+`;
+
+export const GET_ACCOUNT_TYPES_QUERY = `
+  query GetAccountTypes {
+    getAccountTypes
   }
 `;

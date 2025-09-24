@@ -238,6 +238,31 @@
   }
 }
 
+// Loading Container
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  min-height: 200px;
+}
+
+// Empty State
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+// Actions Container
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   .rolesCRUD {
@@ -306,5 +331,11 @@
   .statusBadge {
     font-size: 0.625rem;
     padding: 0.2rem 0.5rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: stretch;
   }
 }

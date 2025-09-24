@@ -150,7 +150,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
               </p>
             </div>
           </div>
-          <Button variant="ghost" onClick={onClose} icon={<X size={20} />} />
+          <Button variant="primary" onClick={onClose} icon={<X size={20} />} />
         </div>
 
         {/* Progress Indicator */}

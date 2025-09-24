@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Container } from '@/components/slices/Container/Container';
-import { Button } from '@/components/slices/Button/Button';
+import { Button, Loading } from '@/components/slices';
 import { useAdminRolesStore } from '@/stores/admin/adminRolesStore';
 import type { Role, RoleWithPermissions } from '@/stores/admin/adminRolesStore';
-import { DataTable } from '@/components/slices';
+import { Table, TableHead, TableBody, TableRow, TableCell } from '@/components/slices';
 import { useFeaturePermissions } from '@/hooks/usePermissions';
-import { Plus, RefreshCw, AlertCircle, Shield, Users, Eye, Settings } from 'lucide-react';
+import { Plus, RefreshCw, AlertCircle, Shield, Users, Eye, Settings, Trash2 } from 'lucide-react';
 import { RoleForm } from '../../RoleManagement/RoleForm';
 import styles from './RolesCRUD.module.scss';
 
@@ -48,132 +48,40 @@ export const RolesDashboardPanel: React.FC = () => {
     }
   }, [error, clearError]);
 
-  // Action handlers for different action types
-  const handleAction = async (actionKey: string, role: Role) => {
-    switch (actionKey) {
-      case 'edit':
-        setSelectedRole(role);
-        setFormMode('edit');
-        setShowRoleForm(true);
-        break;
-      case 'permissions':
-        const roleWithPermissions = await loadRoleWithPermissions(role.id);
-        if (roleWithPermissions) {
-          setSelectedRoleWithPermissions(roleWithPermissions);
-          setShowPermissionMatrix(true);
-        }
-        break;
-      case 'delete':
-        if (confirm('هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء.')) {
-          await deleteRole(role.id);
-        }
-        break;
-      default:
-        console.warn('Unknown action:', actionKey);
+  // Simple helper functions for display
+  const getPriorityLabel = (priority: number) => {
+    const priorityLabels: Record<number, string> = {
+      0: 'أعلى صلاحية', // SUPER_ADMIN
+      1: 'صلاحية مخصصة',
+      2: 'صلاحية منخفضة'
+    };
+    return priorityLabels[priority] || `أولوية ${priority}`;
+  };
+
+  const getStatusLabel = (isActive: boolean) => {
+    return isActive ? 'نشط' : 'غير نشط';
+  };
+
+  // Simple action handlers
+  const handleEdit = (role: Role) => {
+    setSelectedRole(role);
+    setFormMode('edit');
+    setShowRoleForm(true);
+  };
+
+  const handleViewPermissions = async (role: Role) => {
+    const roleWithPermissions = await loadRoleWithPermissions(role.id);
+    if (roleWithPermissions) {
+      setSelectedRoleWithPermissions(roleWithPermissions);
+      setShowPermissionMatrix(true);
     }
   };
 
-  // Render functions for specific column types
-  const getColumnRender = (key: string) => {
-    switch (key) {
-      case 'priority':
-        return (value: any) => {
-          const priorityLabels: Record<number, string> = {
-            0: 'أعلى صلاحية', // SUPER_ADMIN
-            1: 'صلاحية مخصصة',
-            2: 'صلاحية منخفضة'
-          };
-          return priorityLabels[value] || `أولوية ${value}`;
-        };
-      case 'isActive':
-        return (value: any) => (
-          <span className={`${styles.statusBadge} ${value ? styles.active : styles.inactive}`}>
-            {value ? 'نشط' : 'غير نشط'}
-          </span>
-        );
-      case 'name':
-        return (value: any) => (
-          <div className={styles.roleName}>
-            <Shield size={16} />
-            <span>{value}</span>
-          </div>
-        );
-      default:
-        return undefined;
+  const handleDelete = async (role: Role) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء.')) {
+      await deleteRole(role.id);
     }
   };
-
-  // Auto-generate columns from the first role object
-  const columns = React.useMemo(() => {
-    if (!roles || roles.length === 0) return [];
-
-    return [
-      {
-        key: 'name',
-        label: 'اسم الدور',
-        type: 'text',
-        render: getColumnRender('name')
-      },
-      {
-        key: 'description',
-        label: 'الوصف',
-        type: 'text'
-      },
-      {
-        key: 'priority',
-        label: 'مستوى الأولوية',
-        type: 'text',
-        render: getColumnRender('priority')
-      },
-      {
-        key: 'isActive',
-        label: 'الحالة',
-        type: 'boolean',
-        render: getColumnRender('isActive')
-      }
-    ];
-  }, [roles]);
-
-  // Auto-generate actions based on permissions
-  const actions = React.useMemo(() => {
-    const availableActions = [];
-
-    if (canView) {
-      availableActions.push({
-        key: 'permissions',
-        label: 'عرض الصلاحيات',
-        variant: 'secondary' as const,
-        icon: <Eye size={16} />,
-        onClick: (role: Role) => handleAction('permissions', role),
-        isVisible: () => true
-      });
-    }
-
-    if (canModify) {
-      availableActions.push({
-        key: 'edit',
-        label: 'تعديل',
-        variant: 'secondary' as const,
-        icon: <Settings size={16} />,
-        onClick: (role: Role) => handleAction('edit', role),
-        isVisible: () => true
-      });
-    }
-
-    if (canDelete) {
-      availableActions.push({
-        key: 'delete',
-        label: 'حذف',
-        variant: 'danger' as const,
-        onClick: (role: Role) => handleAction('delete', role),
-        requiresConfirmation: true,
-        confirmationMessage: 'هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء.',
-        isVisible: (role: Role) => role.name !== 'SUPER_ADMIN'
-      });
-    }
-
-    return availableActions;
-  }, [canView, canModify, canDelete]);
 
   // Handle create new role
   const handleCreateRole = () => {
@@ -260,13 +168,82 @@ export const RolesDashboardPanel: React.FC = () => {
         </div>
 
         {/* Roles Table */}
-        <DataTable
-          data={roles}
-          columns={columns}
-          actions={actions}
-          isLoading={loading}
-          emptyMessage="لا توجد أدوار"
-        />
+        {loading ? (
+          <div className={styles.loadingContainer}>
+            <Loading type='svg' />
+          </div>
+        ) : roles.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>لا توجد أدوار</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell isHeader>اسم الدور</TableCell>
+                <TableCell isHeader>الوصف</TableCell>
+                <TableCell isHeader>مستوى الأولوية</TableCell>
+                <TableCell isHeader>الحالة</TableCell>
+                {(canView || canModify || canDelete) && <TableCell isHeader>الإجراءات</TableCell>}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {roles.map(role => (
+                <TableRow key={role.id}>
+                  <TableCell>
+                    <div className={styles.roleName}>
+                      <Shield size={16} />
+                      <span>{role.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{role.description}</TableCell>
+                  <TableCell>{getPriorityLabel(role.priority)}</TableCell>
+                  <TableCell>
+                    <span className={`${styles.statusBadge} ${role.isActive ? styles.active : styles.inactive}`}>
+                      {getStatusLabel(role.isActive)}
+                    </span>
+                  </TableCell>
+                  {(canView || canModify || canDelete) && (
+                    <TableCell>
+                      <div className={styles.actions}>
+                        {canView && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleViewPermissions(role)}
+                            title="عرض الصلاحيات"
+                          >
+                            <Eye size={16} />
+                          </Button>
+                        )}
+                        {canModify && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEdit(role)}
+                            title="تعديل"
+                          >
+                            <Settings size={16} />
+                          </Button>
+                        )}
+                        {canDelete && role.name !== 'SUPER_ADMIN' && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDelete(role)}
+                            title="حذف"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
 
         {/* Role Form Modal */}
         <RoleForm

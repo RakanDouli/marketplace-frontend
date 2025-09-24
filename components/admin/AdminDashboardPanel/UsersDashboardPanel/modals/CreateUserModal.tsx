@@ -3,93 +3,119 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/slices';
 import { Modal } from '@/components/slices';
-import { Eye, EyeOff, User, Mail, Shield, Building } from 'lucide-react';
-import styles from './UserForm.module.scss';
+import { Eye, EyeOff, User, Mail, Shield } from 'lucide-react';
+import styles from './UserModals.module.scss';
+import { GET_USER_STATUSES_QUERY } from '@/stores/admin/adminUsersStore/adminUsersStore.gql';
+import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 
-interface User {
-  id?: string;
+interface Role {
+  id: string;
   name: string;
-  email: string;
-  role: string;
-  accountType: string;
-  status: string;
-  sellerBadge?: string | null;
 }
 
-interface UserFormProps {
+interface CreateUserModalProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit: (userData: any) => Promise<void>;
-  initialData?: User | null;
+  roles?: Role[];
   isLoading?: boolean;
-  mode: 'create' | 'edit';
 }
 
-const USER_ROLES = [
-  { value: 'USER', label: 'مستخدم عادي', labelEn: 'User' },
-  { value: 'EDITOR', label: 'محرر', labelEn: 'Editor' },
-  { value: 'ADS_MANAGER', label: 'مدير الإعلانات', labelEn: 'Ads Manager' },
-  { value: 'ADMIN', label: 'مدير', labelEn: 'Admin' },
-  { value: 'SUPER_ADMIN', label: 'مدير عام', labelEn: 'Super Admin' },
-];
 
-const ACCOUNT_TYPES = [
-  { value: 'individual', label: 'فردي', labelEn: 'Individual' },
-  { value: 'dealer', label: 'تاجر', labelEn: 'Dealer' },
-  { value: 'business', label: 'شركة', labelEn: 'Business' },
-];
-
-const USER_STATUSES = [
-  { value: 'active', label: 'نشط', labelEn: 'Active' },
-  { value: 'pending', label: 'معلق', labelEn: 'Pending' },
-  { value: 'banned', label: 'محظور', labelEn: 'Banned' },
-];
-
-export function UserForm({
+export function CreateUserModal({
   isVisible,
   onClose,
   onSubmit,
-  initialData,
-  isLoading = false,
-  mode
-}: UserFormProps) {
+  roles = [],
+  isLoading = false
+}: CreateUserModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'USER',
-    accountType: 'individual',
-    status: 'active',
-    sellerBadge: ''
+    role: '',
+    status: 'active'
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [userStatuses, setUserStatuses] = useState<Array<{value: string, label: string}>>([]);
+
+  // Helper function for GraphQL calls
+  const makeGraphQLCall = async (query: string, variables: any = {}) => {
+    const { user } = useAdminAuthStore.getState();
+    const token = user?.token;
+
+    const response = await fetch("http://localhost:4000/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`GraphQL error: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    if (result.errors) {
+      throw new Error(result.errors[0].message);
+    }
+
+    return result.data;
+  };
+
+  // Helper function to get Arabic labels for backend status values
+  const getBackendStatusLabel = (status: string) => {
+    const statusLabels: Record<string, string> = {
+      'active': 'نشط',
+      'pending': 'معلق',
+      'banned': 'محظور'
+    };
+    return statusLabels[status] || status;
+  };
+
+  // Fetch user statuses from backend (they come as lowercase: active, pending, banned)
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      try {
+        const data = await makeGraphQLCall(GET_USER_STATUSES_QUERY);
+        const statuses = data.getUserStatuses || [];
+        setUserStatuses(
+          statuses.map((status: string) => ({
+            value: status,  // Store backend value (active, pending, banned)
+            label: getBackendStatusLabel(status)
+          }))
+        );
+      } catch (error) {
+        console.error('Failed to fetch user statuses:', error);
+        // Fallback to default statuses if fetch fails
+        setUserStatuses([
+          { value: 'active', label: getBackendStatusLabel('active') },
+          { value: 'pending', label: getBackendStatusLabel('pending') },
+          { value: 'banned', label: getBackendStatusLabel('banned') },
+        ]);
+      }
+    };
+
+    fetchStatuses();
+  }, []);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.name || '',
-        email: initialData.email || '',
-        password: '',
-        role: initialData.role || 'USER',
-        accountType: initialData.accountType || 'individual',
-        status: initialData.status || 'active',
-        sellerBadge: initialData.sellerBadge || ''
-      });
-    } else {
+    if (isVisible) {
+      // Reset form when modal opens
       setFormData({
         name: '',
         email: '',
         password: '',
-        role: 'USER',
-        accountType: 'individual',
-        status: 'active',
-        sellerBadge: ''
+        role: '',
+        status: 'active'
       });
+      setErrors({});
     }
-    setErrors({});
-  }, [initialData, isVisible]);
+  }, [isVisible]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -104,14 +130,29 @@ export function UserForm({
       newErrors.email = 'البريد الإلكتروني غير صحيح';
     }
 
-    if (mode === 'create' && !formData.password.trim()) {
+    if (!formData.password.trim()) {
       newErrors.password = 'كلمة المرور مطلوبة';
-    } else if (formData.password && formData.password.length < 6) {
+    } else if (formData.password.length < 6) {
       newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    }
+
+    if (!formData.role.trim()) {
+      newErrors.role = 'الدور مطلوب';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Map values to GraphQL formats
+  const mapValuesToGraphQLFormats = (data: any) => {
+    return {
+      ...data,
+      // Role: Send role name as-is (STRING field now, not enum)
+      role: data.role,
+      // Status: Still needs enum key conversion
+      status: data.status?.toUpperCase() || 'ACTIVE'
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,16 +162,9 @@ export function UserForm({
       return;
     }
 
-    const submitData = { ...formData };
-    if (mode === 'edit') {
-      submitData.id = initialData?.id;
-      // Don't send password if it's empty in edit mode
-      if (!submitData.password) {
-        delete submitData.password;
-      }
-    }
-
     try {
+      // Map values to GraphQL formats before sending
+      const submitData = mapValuesToGraphQLFormats(formData);
       await onSubmit(submitData);
       onClose();
     } catch (error) {
@@ -150,7 +184,7 @@ export function UserForm({
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      title={mode === 'create' ? 'إضافة مستخدم جديد' : 'تعديل المستخدم'}
+      title="إضافة مستخدم إداري جديد"
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -191,7 +225,7 @@ export function UserForm({
         {/* Password Field */}
         <div className={styles.field}>
           <label className={styles.label}>
-            كلمة المرور {mode === 'edit' && '(اتركها فارغة إذا لم تريد تغييرها)'}
+            كلمة المرور
           </label>
           <div className={styles.passwordField}>
             <input
@@ -199,7 +233,7 @@ export function UserForm({
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               className={`${styles.input} ${errors.password ? styles.error : ''}`}
-              placeholder={mode === 'create' ? 'أدخل كلمة المرور' : 'كلمة مرور جديدة (اختياري)'}
+              placeholder="أدخل كلمة المرور"
               disabled={isLoading}
             />
             <button
@@ -217,7 +251,7 @@ export function UserForm({
         <div className={styles.field}>
           <label className={styles.label}>
             <Shield size={16} />
-            الدور
+            الدور الإداري
           </label>
           <select
             value={formData.role}
@@ -225,47 +259,19 @@ export function UserForm({
             className={styles.select}
             disabled={isLoading}
           >
-            {USER_ROLES.map(role => (
-              <option key={role.value} value={role.value}>
-                {role.label}
-              </option>
-            ))}
+            <option value="">اختر الدور</option>
+            {roles
+              .filter(role => role.name !== 'USER') // Only exclude USER role (regular users)
+              .map(role => (
+                <option key={role.id} value={role.name}>
+                  {role.name}
+                </option>
+              ))}
           </select>
-        </div>
-
-        {/* Account Type Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            <Building size={16} />
-            نوع الحساب
-          </label>
-          <select
-            value={formData.accountType}
-            onChange={(e) => handleInputChange('accountType', e.target.value)}
-            className={styles.select}
-            disabled={isLoading}
-          >
-            {ACCOUNT_TYPES.map(type => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Seller Badge Field */}
-        <div className={styles.field}>
-          <label className={styles.label}>
-            شارة البائع
-          </label>
-          <input
-            type="text"
-            value={formData.sellerBadge}
-            onChange={(e) => handleInputChange('sellerBadge', e.target.value)}
-            className={styles.input}
-            placeholder="شارة البائع (اختياري)"
-            disabled={isLoading}
-          />
+          {errors.role && <span className={styles.errorText}>{errors.role}</span>}
+          <p className={styles.helpText}>
+            💡 يتم إنشاء حسابات إدارية فقط. المستخدمون العاديون يسجلون من الموقع الرئيسي
+          </p>
         </div>
 
         {/* Status Field */}
@@ -280,7 +286,7 @@ export function UserForm({
             className={styles.select}
             disabled={isLoading}
           >
-            {USER_STATUSES.map(status => (
+            {userStatuses.map(status => (
               <option key={status.value} value={status.value}>
                 {status.label}
               </option>
@@ -303,7 +309,7 @@ export function UserForm({
             variant="primary"
             disabled={isLoading}
           >
-            {isLoading ? 'جاري الحفظ...' : mode === 'create' ? 'إضافة' : 'حفظ التغييرات'}
+            {isLoading ? 'جاري الإنشاء...' : 'إنشاء حساب إداري'}
           </Button>
         </div>
       </form>
@@ -311,4 +317,4 @@ export function UserForm({
   );
 }
 
-export default UserForm;
+export default CreateUserModal;

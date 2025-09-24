@@ -313,3 +313,29 @@
   font-size: 0.875rem;
   margin-right: 0.5rem;
 }
+
+// New simple table styles
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $space-xl;
+  min-height: 200px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $space-xl;
+  color: var(--text-secondary);
+  font-style: italic;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.actions {
+  display: flex;
+  gap: $space-xs;
+  align-items: center;
+  justify-content: flex-start;
+}

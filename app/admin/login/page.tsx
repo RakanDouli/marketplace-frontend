@@ -109,11 +109,11 @@ export default function AdminLogin() {
     try {
       await login(formData.email, formData.password);
       // Success notification
-      addNotification({
-        type: 'success',
-        title: 'تسجيل دخول ناجح',
-        message: 'تم تسجيل الدخول بنجاح! Login successful!'
-      });
+      // addNotification({
+      //   type: 'success',
+      //   title: 'تسجيل دخول ناجح',
+      //   message: 'تم تسجيل الدخول بنجاح! Login successful!'
+      // });
       // Redirect to admin dashboard
       router.push('/admin');
     } catch (loginError) {

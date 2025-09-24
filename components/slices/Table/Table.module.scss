@@ -1,0 +1,111 @@
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--background-primary);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tableHead {
+  background: var(--background-secondary);
+  border-bottom: 2px solid var(--border-light);
+}
+
+.tableBody {
+  background: var(--background-primary);
+}
+
+.tableHeader {
+  padding: 1rem 0.75rem;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+
+  &:first-child {
+    padding-right: 1rem;
+  }
+
+  &:last-child {
+    padding-left: 1rem;
+  }
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: var(--background-secondary);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.05);
+    }
+  }
+}
+
+.tableCell {
+  padding: 1rem 0.75rem;
+  text-align: right;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+
+  &:first-child {
+    padding-right: 1rem;
+  }
+
+  &:last-child {
+    padding-left: 1rem;
+  }
+}
+
+// Empty state
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+// Responsive behavior
+@media screen and (max-width: 768px) {
+  .tableWrapper {
+    border-radius: 0;
+    margin: 0 -1rem;
+  }
+
+  .tableHeader,
+  .tableCell {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .table {
+    font-size: 0.75rem;
+  }
+}
+
+// Loading state
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  min-height: 200px;
+}
