@@ -3,6 +3,7 @@ import { useAdminAuthStore } from "../adminAuthStore";
 import {
   LISTINGS_SEARCH_QUERY,
   LISTINGS_COUNT_QUERY,
+  ADMIN_LISTINGS_PAGINATED_QUERY,
   UPDATE_LISTING_MUTATION,
   MODERATE_LISTING_STATUS_MUTATION,
   DELETE_LISTING_MUTATION,
@@ -204,19 +205,14 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
       // Add sorting - backend expects "sort" field with format like "createdAt:DESC"
       filter.sort = `${sortBy}:${sortOrder}`;
 
-      // Get listings data
-      const listingsData = await makeGraphQLCall(LISTINGS_SEARCH_QUERY, {
+      // Get listings data and count in single call
+      const data = await makeGraphQLCall(ADMIN_LISTINGS_PAGINATED_QUERY, {
         filter,
         limit,
         offset,
       });
 
-      // Get total count
-      const countData = await makeGraphQLCall(LISTINGS_COUNT_QUERY, {
-        filter,
-      });
-
-      const listings: Listing[] = (listingsData.listingsSearch || []).map(
+      const listings: Listing[] = (data.listingsSearch || []).map(
         (item: any) => {
           return {
             id: item.id,
@@ -234,13 +230,13 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
             prices: [
               { currency: "USD", value: (item.priceMinor / 100).toString() },
             ],
-            createdAt: new Date().toISOString(), // Use current date as fallback
-            updatedAt: new Date().toISOString(), // Use current date as fallback
+            createdAt: item.createdAt || new Date().toISOString(), // Use real date from API
+            updatedAt: item.updatedAt || new Date().toISOString(), // Use real date from API
           };
         }
       );
 
-      const total = countData.listingsAggregations?.totalResults || 0;
+      const total = data.listingsAggregations?.totalResults || 0;
       const totalPages = Math.ceil(total / limit);
       const hasNext = page < totalPages;
       const hasPrev = page > 1;

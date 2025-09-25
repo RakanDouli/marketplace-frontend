@@ -7,12 +7,30 @@ export const LISTINGS_SEARCH_QUERY = `
       title
       priceMinor
       status
+      createdAt
+      updatedAt
     }
   }
 `;
 
 export const LISTINGS_COUNT_QUERY = `
   query ListingsCount($filter: ListingFilterInput) {
+    listingsAggregations(filter: $filter) {
+      totalResults
+    }
+  }
+`;
+
+export const ADMIN_LISTINGS_PAGINATED_QUERY = `
+  query AdminListingsPaginated($filter: ListingFilterInput, $limit: Int, $offset: Int) {
+    listingsSearch(filter: $filter, limit: $limit, offset: $offset) {
+      id
+      title
+      priceMinor
+      status
+      createdAt
+      updatedAt
+    }
     listingsAggregations(filter: $filter) {
       totalResults
     }
