@@ -1,0 +1,60 @@
+.warningMessage {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--danger-alpha);
+  border-radius: 8px;
+  border: 1px solid var(--danger);
+}
+
+.warningText {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.listingDetails {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--background);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.listingTitle {
+  margin-bottom: 12px;
+}
+
+.listingMeta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.priceText {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 16px;
+}
+
+.categoryBadge,
+.dateBadge {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 2px 8px;
+  background: var(--surface);
+  border-radius: 4px;
+}
+
+.descriptionText {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}

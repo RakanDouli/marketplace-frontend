@@ -1,0 +1,353 @@
+// Loading States
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.loadingText {
+  color: var(--text-secondary);
+}
+
+// Listing Header - Clean Info Display
+.listingHeader {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--background);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.listingTitle {
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.listingInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+
+  .infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+
+      &.price {
+        font-size: 18px;
+        color: var(--primary);
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+// Bidding Information
+.biddingInfo {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--success-alpha);
+  border-radius: 12px;
+  border: 1px solid var(--success);
+}
+
+.biddingTitle {
+  margin-bottom: 16px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.biddingDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.biddingItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .label {
+    font-size: 12px;
+    color: var(--success);
+    font-weight: 500;
+  }
+
+  .value {
+    font-size: 14px;
+    color: var(--success);
+    font-weight: 600;
+  }
+}
+
+// Images Section
+.imagesSection {
+  margin-bottom: 24px;
+}
+
+.imagesSectionTitle {
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.noImagesContainer {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.noImagesTitle {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+// Description Section
+.descriptionSection {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.descriptionTitle {
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.descriptionText {
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+// Specifications Section
+.specificationsSection {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.specificationsTitle {
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.specsDisplayTitle {
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.specsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.specItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--background);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+
+  .specLabel {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .specValue {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    margin-left: 12px;
+  }
+}
+
+// User Information Section
+.userInfoSection {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.userInfoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.userInfoTitle {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.userBadges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.statusBanned {
+    background: var(--error-alpha);
+    color: var(--error);
+  }
+
+  &.statusActive {
+    background: var(--success-alpha);
+    color: var(--success);
+  }
+
+  &.statusPending {
+    background: var(--warning-alpha);
+    color: var(--warning);
+  }
+
+  &.businessVerifiedBadge {
+    background: var(--primary-alpha);
+    color: var(--primary);
+  }
+}
+
+.userDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.userDetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .value {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+
+    &.userEmail {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+      font-size: 12px;
+      background: var(--background);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-light);
+    }
+
+    &.userWebsite {
+      color: var(--primary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.userActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+  justify-content: flex-start;
+}
+
+.userActionButton {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  min-width: 120px;
+}
+
+// Form Actions
+.formActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .listingInfo,
+  .userDetailsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .specsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .userInfoHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .formActions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}

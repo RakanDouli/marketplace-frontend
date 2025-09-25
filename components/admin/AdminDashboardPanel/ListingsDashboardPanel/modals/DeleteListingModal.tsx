@@ -5,6 +5,7 @@ import { Button, Text, Modal } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { Listing } from '@/types/listing';
 import { AlertTriangle } from 'lucide-react';
+import styles from './DeleteListingModal.module.scss';
 
 interface DeleteListingModalProps {
   listing: Listing;
@@ -18,7 +19,6 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
   onConfirm,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteReason, setDeleteReason] = useState('');
 
   // Handle delete confirmation
   const handleConfirm = async () => {
@@ -32,9 +32,9 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
     }
   };
 
-  // Format price for display
+  // Format price - using English numbers to match user-facing listings
   const formatPrice = (priceMinor: number) => {
-    return new Intl.NumberFormat('ar-SY', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0
@@ -42,37 +42,32 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
   };
 
   return (
-    <Modal isVisible onClose={onClose} title={
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <AlertTriangle color="var(--danger)" size={24} />
-        <Text variant="h2">حذف الإعلان</Text>
-      </div>
-    }>
+    <Modal isVisible onClose={onClose} title="حذف الإعلان">
       {/* Warning Message */}
-      <div style={{ marginBottom: '24px', padding: '16px', background: 'var(--danger-alpha)', borderRadius: '8px', border: '1px solid var(--danger)' }}>
-        <Text variant="paragraph" color="error" style={{ fontWeight: 500, fontSize: '16px' }}>
+      <div className={styles.warningMessage}>
+        <Text variant="paragraph" color="error" className={styles.warningText}>
           هل أنت متأكد من حذف هذا الإعلان؟ هذا الإجراء لا يمكن التراجع عنه.
         </Text>
       </div>
 
       {/* Listing Details */}
-      <div style={{ marginBottom: '24px', padding: '16px', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-        <Text variant="h3" style={{ marginBottom: '12px' }}>{listing.title}</Text>
+      <div className={styles.listingDetails}>
+        <Text variant="h3" className={styles.listingTitle}>{listing.title}</Text>
 
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
-          <Text as="span" style={{ fontWeight: 600, color: 'var(--primary)', fontSize: '16px' }}>
+        <div className={styles.listingMeta}>
+          <Text as="span" className={styles.priceText}>
             {formatPrice(listing.priceMinor)}
           </Text>
-          <Text as="span" color="secondary" style={{ fontSize: '14px', padding: '2px 8px', background: 'var(--surface)', borderRadius: '4px' }}>
+          <Text as="span" color="secondary" className={styles.categoryBadge}>
             سيارات
           </Text>
-          <Text as="span" color="secondary" style={{ fontSize: '14px', padding: '2px 8px', background: 'var(--surface)', borderRadius: '4px' }}>
-            {new Date(listing.createdAt).toLocaleDateString('ar-SY')}
+          <Text as="span" color="secondary" className={styles.dateBadge}>
+            {new Date(listing.createdAt).toLocaleDateString('en-US')}
           </Text>
         </div>
 
         {listing.description && (
-          <Text variant="paragraph" color="secondary" style={{ fontSize: '14px', lineHeight: 1.5 }}>
+          <Text variant="paragraph" color="secondary" className={styles.descriptionText}>
             {listing.description.length > 150
               ? `${listing.description.substring(0, 150)}...`
               : listing.description
@@ -81,21 +76,11 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
         )}
       </div>
 
-      {/* Delete Reason (Optional) */}
-      <Input
-        type="textarea"
-        label="سبب الحذف (اختياري)"
-        value={deleteReason}
-        onChange={(e) => setDeleteReason(e.target.value)}
-        placeholder="اكتب سبب حذف هذا الإعلان للمراجعة المستقبلية..."
-        rows={3}
-      />
-
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '20px', borderTop: '1px solid var(--border)', marginTop: '24px' }}>
+      <div className={styles.formActions}>
         <Button
           onClick={onClose}
-          variant="secondary"
+          variant="outline"
           disabled={isDeleting}
         >
           إلغاء

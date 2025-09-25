@@ -286,7 +286,11 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
       const { listings } = get();
       const updatedListings = listings.map((listing) =>
         listing.id === id
-          ? { ...listing, status: updatedListing.status, updatedAt: updatedListing.updatedAt }
+          ? {
+              ...listing,
+              status: updatedListing.status,
+              updatedAt: updatedListing.updatedAt,
+            }
           : listing
       );
 
@@ -296,7 +300,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
         error: null,
       });
 
-      return updatedListings.find(l => l.id === id) || null;
+      return updatedListings.find((l) => l.id === id) || null;
     } catch (error: any) {
       console.error("Failed to update listing status:", error);
       set({
@@ -355,7 +359,9 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
 
       try {
         specs = listingData.specs ? JSON.parse(listingData.specs) : {};
-        specsDisplay = listingData.specsDisplay ? JSON.parse(listingData.specsDisplay) : {};
+        specsDisplay = listingData.specsDisplay
+          ? JSON.parse(listingData.specsDisplay)
+          : {};
       } catch (error) {
         console.warn("Failed to parse listing specs:", error);
       }
@@ -372,7 +378,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
         imageKeys: listingData.imageKeys || [],
         images: (listingData.imageKeys || []).map((imageUrl: string) => ({
           url: imageUrl, // imageKeys already contain full URLs
-          alt: listingData.title
+          alt: listingData.title,
         })),
         sellerType: listingData.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
         sellerLabel: listingData.sellerLabel || "",
@@ -390,22 +396,24 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
         ],
         createdAt: listingData.createdAt,
         updatedAt: listingData.updatedAt,
-        user: listingData.user ? {
-          id: listingData.user.id,
-          name: listingData.user.name,
-          email: listingData.user.email,
-          role: listingData.user.role,
-          status: listingData.user.status,
-          accountType: listingData.user.accountType,
-          companyName: listingData.user.companyName,
-          sellerBadge: listingData.user.sellerBadge,
-          businessVerified: listingData.user.businessVerified,
-          phone: listingData.user.phone,
-          contactPhone: listingData.user.contactPhone,
-          website: listingData.user.website,
-          createdAt: listingData.user.createdAt,
-          updatedAt: listingData.user.updatedAt,
-        } : undefined,
+        user: listingData.user
+          ? {
+              id: listingData.user.id,
+              name: listingData.user.name,
+              email: listingData.user.email,
+              role: listingData.user.role,
+              status: listingData.user.status,
+              accountType: listingData.user.accountType,
+              companyName: listingData.user.companyName,
+              sellerBadge: listingData.user.sellerBadge,
+              businessVerified: listingData.user.businessVerified,
+              phone: listingData.user.phone,
+              contactPhone: listingData.user.contactPhone,
+              website: listingData.user.website,
+              createdAt: listingData.user.createdAt,
+              updatedAt: listingData.user.updatedAt,
+            }
+          : undefined,
       };
 
       set({

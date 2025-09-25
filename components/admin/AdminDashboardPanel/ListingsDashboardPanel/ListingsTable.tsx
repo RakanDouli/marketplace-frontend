@@ -71,18 +71,18 @@ export const ListingsTable: React.FC = () => {
     return statusLabels[status] || status;
   };
 
-  // Format price
+  // Format price - using English numbers to match user-facing listings
   const formatPrice = (priceMinor: number) => {
-    return new Intl.NumberFormat('ar-SY', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0
     }).format(priceMinor / 100);
   };
 
-  // Format date
+  // Format date - using English dates for consistency
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ar-SY');
+    return new Date(dateString).toLocaleDateString('en-US');
   };
 
   // Define table columns

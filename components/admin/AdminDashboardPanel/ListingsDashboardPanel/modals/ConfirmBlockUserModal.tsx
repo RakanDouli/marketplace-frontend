@@ -3,6 +3,7 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button } from '@/components/slices/Button/Button';
 import { Text } from '@/components/slices/Text/Text';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
+import styles from './ConfirmBlockUserModal.module.scss';
 
 interface ConfirmBlockUserModalProps {
   isVisible: boolean;
@@ -62,31 +63,31 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
       title={isBlocking ? "تأكيد حظر المستخدم" : "تأكيد إلغاء حظر المستخدم"}
       maxWidth="sm"
     >
-      <div style={{ padding: '16px 0' }}>
+      <div className={styles.container}>
         {/* Warning Message */}
-        <div >
-          <Text variant="paragraph" style={{ color: isBlocking ? 'var(--error)' : 'var(--success)' }}>
-            {isBlocking ? "⚠️ تحذير: حظر المستخدم" : " إلغاء حظر المستخدم"}
+        <div className={styles.warningMessage}>
+          <Text variant="paragraph" className={`${styles.warningText} ${!isBlocking ? styles.success : ''}`}>
+            {isBlocking ? " تحذير: حظر المستخدم" : " إلغاء حظر المستخدم"}
           </Text>
         </div>
 
         {/* User Information */}
-        <div >
-          <Text variant="paragraph" style={{ marginBottom: '8px' }}>
+        <div className={styles.userInfo}>
+          <Text variant="paragraph" className={styles.questionText}>
             {isBlocking
               ? "هل أنت متأكد من حظر هذا المستخدم؟"
               : "هل أنت متأكد من إلغاء حظر هذا المستخدم؟"
             }
           </Text>
 
-          <div>
+          <div className={styles.userDetails}>
             <Text variant="small" color="secondary">اسم المستخدم:</Text>
-            <Text variant="paragraph" style={{ fontWeight: '600', marginBottom: '4px' }}>
+            <Text variant="paragraph" className={styles.userName}>
               {user?.name || 'غير محدد'}
             </Text>
 
             <Text variant="small" color="secondary">البريد الإلكتروني:</Text>
-            <Text variant="paragraph" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+            <Text variant="paragraph" className={styles.userEmail}>
               {user?.email || ''}
             </Text>
           </div>
@@ -94,15 +95,11 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
 
         {/* Consequences Warning */}
         {isBlocking ? (
-          <div style={{ marginBottom: '20px' }}>
-            <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
+          <div className={styles.consequences}>
+            <Text variant="small" color="error">
               العواقب:
             </Text>
-            <ul style={{
-              margin: '0',
-              paddingRight: '20px',
-              color: 'var(--text-secondary)'
-            }}>
+            <ul className={styles.consequencesList}>
               <li>سيتم منع المستخدم من تسجيل الدخول</li>
               <li>لن يتمكن من إنشاء إعلانات جديدة</li>
               <li>ستظل إعلاناته الحالية مرئية</li>
@@ -110,11 +107,11 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
             </ul>
           </div>
         ) : (
-          <div >
+          <div className={styles.unblockResult}>
             <Text variant="small" color="secondary">
               النتيجة:
             </Text>
-            <ul>
+            <ul className={styles.resultList}>
               <li>سيتمكن المستخدم من تسجيل الدخول</li>
               <li>يمكنه إنشاء إعلانات جديدة</li>
               <li>سيعود حسابه إلى الحالة النشطة</li>
@@ -123,13 +120,7 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          justifyContent: 'flex-end',
-          paddingTop: '16px',
-          borderTop: '1px solid var(--border)'
-        }}>
+        <div className={styles.actions}>
           <Button
             type="button"
             onClick={onClose}

@@ -136,12 +136,12 @@ export function generateResponsiveImageUrls(
 }
 
 /**
- * Optimizes images for different view modes (grid/list/detail)
- * Can be used for any content: listings, products, profiles, etc.
+ * Optimizes images using exact Cloudflare variant names
+ * Maps to the variants you have configured in Cloudflare Images
  */
 export function optimizeListingImage(
   imageKey: string,
-  viewMode: "grid" | "list" | "detail" | "admin" = "grid"
+  viewMode: "card" | "small" | "large" | "desktop" | "mobile" | "tablet" | "thumbnail" | "public" = "card"
 ): string {
   // Add type safety check
   if (!imageKey || typeof imageKey !== 'string') {
@@ -153,45 +153,50 @@ export function optimizeListingImage(
   // Otherwise, treat it as an image key/UUID for Cloudflare Images
   const imageUrl = imageKey.startsWith("http") ? imageKey : imageKey;
 
-  const options: CloudflareImageOptions = {
-    quality: 85,
-    format: "auto",
-    fit: "cover",
-  };
+  // In development, return original or optimize Unsplash URLs
+  if (IS_DEVELOPMENT) {
+    if (imageUrl.includes('unsplash.com')) {
+      // Map viewMode to appropriate dimensions for Unsplash
+      const sizeMap = {
+        card: { w: 400, h: 300 },
+        small: { w: 300, h: 200 },
+        large: { w: 800, h: 600 },
+        desktop: { w: 1200, h: 900 },
+        mobile: { w: 320, h: 240 },
+        tablet: { w: 768, h: 576 },
+        thumbnail: { w: 20, h: 20 },
+        public: { w: 1366, h: 768 }
+      };
 
-  // Different sizes for different view modes
-  if (viewMode === "grid") {
-    options.width = 400;  // Uses 'card' variant
-    options.height = 300;
-  } else if (viewMode === "list") {
-    options.width = 300;  // Uses 'small' variant
-    options.height = 200;
-  } else if (viewMode === "admin") {
-    options.width = 200;  // Uses 'thumbnail' variant for admin approval
-    options.height = 150;
-    options.quality = 70; // Lower quality for faster loading
-  } else {
-    // Default/detail view
-    options.width = 800;  // Uses 'large' variant
-    options.height = 600;
+      const dimensions = sizeMap[viewMode];
+      const url = new URL(imageUrl);
+      url.searchParams.set('w', dimensions.w.toString());
+      url.searchParams.set('h', dimensions.h.toString());
+      url.searchParams.set('q', '85');
+      url.searchParams.set('fit', 'crop');
+      return url.toString();
+    }
+    return imageUrl;
   }
 
-  console.log(`optimizeListingImage - viewMode: ${viewMode}, size: ${options.width}x${options.height}, quality: ${options.quality}`);
-  console.log(`Input imageUrl: ${imageUrl}`);
-
-  // In development, manually optimize Unsplash URLs
-  if (IS_DEVELOPMENT && imageUrl.includes('unsplash.com')) {
-    const url = new URL(imageUrl);
-    url.searchParams.set('w', options.width?.toString() || '400');
-    url.searchParams.set('h', options.height?.toString() || '300');
-    url.searchParams.set('q', options.quality?.toString() || '85');
-    url.searchParams.set('fit', 'crop');
-    const optimizedUrl = url.toString();
-    console.log(`Development Unsplash optimization: ${optimizedUrl}`);
-    return optimizedUrl;
+  // For production, use Cloudflare Images with direct variant names
+  if (!CLOUDFLARE_DOMAIN || !CLOUDFLARE_IMAGES_HASH) {
+    return imageUrl;
   }
 
-  return optimizeImageUrl(imageUrl, options);
+  // If it's already a properly formed Cloudflare Images URL, return as-is
+  if (imageUrl.includes(`${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/`)) {
+    return imageUrl;
+  }
+
+  // Extract image ID from the URL
+  const imageId = extractImageId(imageUrl);
+  if (!imageId) {
+    return imageUrl; // Can't extract ID, return original
+  }
+
+  // Use the exact variant name from Cloudflare
+  return `https://${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/${imageId}/${viewMode}`;
 }
 
 /**

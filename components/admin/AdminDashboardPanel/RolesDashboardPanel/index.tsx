@@ -280,7 +280,7 @@ export const RolesDashboardPanel: React.FC = () => {
                       <div className={styles.actions}>
                         {canModify && (
                           <Button
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleEdit(role)}
                             title="تعديل"

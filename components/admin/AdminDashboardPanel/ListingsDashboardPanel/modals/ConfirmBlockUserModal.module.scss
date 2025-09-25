@@ -1,0 +1,71 @@
+.container {
+  padding: 16px 0;
+}
+
+.warningMessage {
+  margin-bottom: 16px;
+}
+
+.warningText {
+  color: var(--error);
+
+  &.success {
+    color: var(--success);
+  }
+}
+
+.userInfo {
+  margin-bottom: 16px;
+}
+
+.questionText {
+  margin-bottom: 12px;
+}
+
+.userDetails {
+  margin-top: 8px;
+}
+
+.userName {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.userEmail {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.consequences {
+  margin-bottom: 20px;
+}
+
+.consequencesList {
+  margin: 8px 0 0 16px;
+  padding: 0;
+
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+.unblockResult {
+  margin-bottom: 20px;
+}
+
+.resultList {
+  margin: 8px 0 0 16px;
+  padding: 0;
+
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}

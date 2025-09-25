@@ -73,7 +73,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           alt={title}
           aspectRatio="4 / 3"
           className={styles.image}
-          viewMode={viewMode}
+          viewMode={viewMode === "grid" ? "small" : "card"}
           priority={priority}
           sizes={
             viewMode === "list"

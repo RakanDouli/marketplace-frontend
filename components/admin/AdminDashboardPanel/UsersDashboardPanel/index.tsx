@@ -311,13 +311,13 @@ export const UsersDashboardPanel: React.FC = () => {
                   <TableCell>{getRoleLabel(user.role)}</TableCell>
                   <TableCell>{getStatusLabel(user.status)}</TableCell>
                   <TableCell>{getAccountTypeLabel(user.accountType)}</TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleDateString('ar-SA')}</TableCell>
+                  <TableCell>{new Date(user.createdAt).toLocaleDateString('en-US')}</TableCell>
                   {(canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>
                         {canModify && (
                           <Button
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleEdit(user)}
                             title="تعديل"

@@ -29,7 +29,9 @@ export const UPDATE_LISTING_MUTATION = `
       status
       imageKeys
       updatedAt
-      categoryId
+      category{
+      name
+      }
       sellerType
       city
       province
