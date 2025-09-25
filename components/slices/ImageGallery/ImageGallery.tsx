@@ -11,7 +11,7 @@ export interface ImageGalleryProps {
   alt: string;
   aspectRatio?: string;
   className?: string;
-  viewMode?: "grid" | "list";
+  viewMode?: "grid" | "list" | "admin";
   priority?: boolean;
   sizes?: string;
 }

@@ -195,6 +195,13 @@ export const useAdminAuthStore = create<AdminAuthStore>()(
               console.log(`✅ Using fallback permissions for role ${user.role}:`, { userPermissions, permissions });
             }
 
+            // Check if user has any admin permissions before allowing login
+            const hasAdminPermissions = permissions.length > 0 || Object.keys(userPermissions).length > 0;
+
+            if (!hasAdminPermissions) {
+              throw new Error('ليس لديك صلاحيات إدارية للوصول إلى لوحة الإدارة. Access denied - Admin privileges required.');
+            }
+
             // Use token expiration from backend if available, otherwise fallback to Supabase expiration
             const finalTokenExpiresAt = tokenExpiresAt
               ? new Date(tokenExpiresAt).getTime() // Convert ISO string to timestamp

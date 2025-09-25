@@ -24,49 +24,6 @@ const getFeatureFromPath = (pathname: string): string | null => {
   return null;
 };
 
-// Helper function to get feature navigation based on actual modules
-const getFeatureNavigation = (featureKey: string) => {
-  // Map frontend paths to module keys
-  const pathToModuleKey: Record<string, string> = {
-    'users': 'user-management',
-    'listings': 'listing-management',
-    'roles': 'role-management',
-    'campaigns': 'campaign-management',
-    'analytics': 'analytics',
-    'audit': 'audit-logs'
-  };
-
-  const moduleKey = pathToModuleKey[featureKey];
-  if (!moduleKey) return [];
-
-  // Return basic navigation - can be enhanced with module config later
-  const navigationMap: Record<string, Array<{
-    key: string;
-    label: string;
-    path: string;
-  }>> = {
-    'user-management': [
-      { key: 'users-list', label: 'قائمة المستخدمين', path: '/admin/users' }
-    ],
-    'listing-management': [
-      { key: 'listings-list', label: 'قائمة الإعلانات', path: '/admin/listings' }
-    ],
-    'role-management': [
-      { key: 'roles-list', label: 'إدارة الأدوار', path: '/admin/roles' }
-    ],
-    'campaign-management': [
-      { key: 'campaigns-list', label: 'إدارة الحملات', path: '/admin/campaigns' }
-    ],
-    'analytics': [
-      { key: 'analytics-dashboard', label: 'لوحة التحليلات', path: '/admin/analytics' }
-    ],
-    'audit-logs': [
-      { key: 'audit-list', label: 'سجلات المراجعة', path: '/admin/audit' }
-    ]
-  };
-
-  return navigationMap[moduleKey] || [];
-};
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
@@ -84,6 +41,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     startExpirationWarning,
     dismissExpirationWarning
   } = useAdminAuthStore();
+
 
   const [isExpirationModalVisible, setIsExpirationModalVisible] = useState(false);
 
@@ -183,7 +141,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
         <Loading type='svg' />
         <NotificationToast />
       </div>
@@ -195,31 +153,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return <NotificationToast />;
   }
 
-  // Check if user has admin privileges (not just a regular user)
-  const isAdminUser = user && (
-    user.role === 'SUPER_ADMIN' ||
-    user.role === 'ADMIN' ||
-    user.role === 'EDITOR' ||
-    user.role === 'ADS_MANAGER'
-  );
-
-  // If user is not an admin, show access denied
-  if (!isAdminUser) {
-    return (
-      <Container>
-        <Text variant='h4'>وصول مرفوض</Text>
-        <Text variant='paragraph'>
-          ليس لديك صلاحيات للوصول إلى لوحة الإدارة. هذه المنطقة مخصصة للمديرين فقط.
-        </Text>
-        <Text variant='paragraph'>
-          Access Denied - Admin privileges required
-        </Text>
-        <Button href={'/'}>
-          العودة للصفحة الرئيسية
-        </Button>
-      </Container>
-    );
-  }
+  // Note: No need to check admin permissions here since login already validates admin access
 
   // Render appropriate layout based on page type
   if (isFeaturePage) {

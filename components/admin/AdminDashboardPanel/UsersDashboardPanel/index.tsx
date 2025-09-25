@@ -2,14 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { Container } from '@/components/slices/Container/Container';
-import { Button, Loading } from '@/components/slices';
+import { Button, Loading, Text } from '@/components/slices';
+import { Input } from '@/components/slices/Input/Input';
 import { useAdminUsersStore } from '@/stores/admin';
 import { Table, TableHead, TableBody, TableRow, TableCell, Pagination } from '@/components/slices';
 import { CreateUserModal, EditUserModal, DeleteUserModal } from './modals';
 import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, RefreshCw, Edit, Trash2 } from 'lucide-react';
-import styles from './UsersCRUD.module.scss';
+import styles from '../AdminDashboardPanel.module.scss';
 
 interface User {
   id: string;
@@ -180,14 +181,14 @@ export const UsersDashboardPanel: React.FC = () => {
 
   return (
     <>
-      <div className={styles.usersCRUD}>
+      <div className={styles.dashboardPanel}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>إدارة المستخدمين</h1>
-            <p className={styles.description}>
+            <Text variant="h2" className={styles.title}>إدارة المستخدمين</Text>
+            <Text variant="paragraph" color="secondary" className={styles.description}>
               إدارة وتحكم في جميع مستخدمي النظام
-            </p>
+            </Text>
           </div>
           <div className={styles.headerActions}>
             {canCreate && (
@@ -207,8 +208,11 @@ export const UsersDashboardPanel: React.FC = () => {
         {/* Controls */}
         <div className={styles.searchSection}>
           <div className={styles.searchRow}>
-            <input
-              type="text"
+            <Text variant="small" className={styles.userCount}>
+              النتيحه: {pagination.total}
+            </Text>
+            <Input
+              type="search"
               placeholder="البحث بالاسم أو البريد الإلكتروني..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -223,58 +227,55 @@ export const UsersDashboardPanel: React.FC = () => {
                   loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
                 }
               }}
-              className={styles.searchInput}
             />
-            <div className={styles.userCount}>
-              {pagination.total}
-            </div>
+
           </div>
 
           {/* Filter Controls */}
           <div className={styles.controlsRow}>
-            <div className={styles.filterDropdowns}>
-              <select
-                value={roleFilter}
-                onChange={(e) => {
-                  setRoleFilter(e.target.value);
-                  const newFilters = {
-                    search: searchTerm || undefined,
-                    role: e.target.value || undefined,
-                    status: statusFilter || undefined
-                  };
-                  setFilters(newFilters);
-                  loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
-                }}
-                className={styles.filterSelect}
-              >
-                <option value="">جميع الأدوار</option>
-                {roles.map(role => (
-                  <option key={role.id} value={role.name.toLowerCase()}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
+            <Input
+              type="select"
+              value={roleFilter}
+              onChange={(e) => {
+                setRoleFilter(e.target.value);
+                const newFilters = {
+                  search: searchTerm || undefined,
+                  role: e.target.value || undefined,
+                  status: statusFilter || undefined
+                };
+                setFilters(newFilters);
+                loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
+              }}
+              options={[
+                { value: "", label: "جميع الأدوار" },
+                ...roles.map(role => ({
+                  value: role.name.toLowerCase(),
+                  label: role.name
+                }))
+              ]}
+            />
 
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  const newFilters = {
-                    search: searchTerm || undefined,
-                    role: roleFilter || undefined,
-                    status: e.target.value || undefined
-                  };
-                  setFilters(newFilters);
-                  loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
-                }}
-                className={styles.filterSelect}
-              >
-                <option value="">جميع الحالات</option>
-                <option value="active">نشط</option>
-                <option value="pending">معلق</option>
-                <option value="banned">محظور</option>
-              </select>
-            </div>
+            <Input
+              type="select"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                const newFilters = {
+                  search: searchTerm || undefined,
+                  role: roleFilter || undefined,
+                  status: e.target.value || undefined
+                };
+                setFilters(newFilters);
+                loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
+              }}
+              options={[
+                { value: "", label: "جميع الحالات" },
+                { value: "active", label: "نشط" },
+                { value: "pending", label: "معلق" },
+                { value: "banned", label: "محظور" }
+              ]}
+            />
+
           </div>
         </div>
 
@@ -282,10 +283,12 @@ export const UsersDashboardPanel: React.FC = () => {
         {loading ? (
           <div className={styles.loadingContainer}>
             <Loading type='svg' />
+            <Text variant="paragraph">جاري تحميل المستخدمين...</Text>
           </div>
         ) : users.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>لا يوجد مستخدمون</p>
+            <Text variant="h3">لا يوجد مستخدمون</Text>
+            <Text variant="paragraph" color="secondary">لم يتم العثور على مستخدمين</Text>
           </div>
         ) : (
           <Table>

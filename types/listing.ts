@@ -11,14 +11,18 @@ export interface Listing {
   description?: string;
   priceMinor: number; // Backend stores price in cents (USD)
   prices: Price[]; // Calculated price array for display
+  province?: string;
   city: string;
+  area?: string;
   country: string;
-  status: "ACTIVE" | "SOLD" | "EXPIRED" | "DRAFT";
+  locationLink?: string;
+  status: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "SOLD" | "SOLD_VIA_PLATFORM" | "HIDDEN";
   allowBidding: boolean;
   biddingStartPrice?: number;
   specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
   specsDisplay?: Record<string, any>; // Display specs (Arabic keys and values for frontend display)
   imageKeys?: string[];
+  images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
   sellerLabel?: string;
   sellerBadge?: string;
   sellerType?: "PRIVATE" | "DEALER" | "BUSINESS"; // Updated to match backend
@@ -26,6 +30,27 @@ export interface Listing {
   lng?: number;
   createdAt: string;
   updatedAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    status: "PENDING" | "ACTIVE" | "BANNED";
+    accountType: "INDIVIDUAL" | "DEALER" | "BUSINESS";
+    companyName?: string;
+    sellerBadge: "NONE" | "VERIFIED" | "PREMIUM";
+    businessVerified: boolean;
+    phone?: string;
+    contactPhone?: string;
+    website?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 export interface Category {

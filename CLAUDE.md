@@ -3,17 +3,117 @@
 ## 🚀 **Project Overview**
 Syrian automotive marketplace frontend built with Next.js 14, focusing on performance and Arabic-first UX for Syrian internet conditions.
 
-## ✅ **Latest Session Summary (2025-09-24) - ADMIN VALIDATION SYSTEM & LAYOUT REFACTORING COMPLETE**
+## ✅ **Latest Session Summary (2025-09-25) - USER MANAGEMENT SYSTEM & BLOCK FUNCTIONALITY COMPLETE**
 
-### **🏆 Major Achievement: Complete Admin Validation System & Clean Architecture**
+### **🏆 Major Achievement: Complete User Management System with Professional Block/Unblock Functionality**
 
-We have successfully implemented a comprehensive validation system and refactored the admin layout architecture:
+We have successfully implemented a comprehensive user management system for admin dashboard with professional UX:
 
-- **✅ COMPLETE VALIDATION SYSTEM**: 3-layer validation (Input-level, Form-level, Server-level) with Arabic error messages
-- **✅ INPUT COMPONENT STANDARDIZATION**: All forms now use Input components from slices for consistency
-- **✅ ADMIN LAYOUT REFACTORING**: Eliminated duplication and streamlined architecture
-- **✅ ARABIC-FIRST VALIDATION**: All validation messages in Arabic with real-time feedback
-- **✅ LEGACY CODE CLEANUP**: Removed AdminForm and duplicated layout components
+- **✅ USER DATA INTEGRATION**: Complete user information display in EditListingModal with backend GraphQL integration
+- **✅ PROFESSIONAL BLOCK SYSTEM**: Modal-over-modal confirmation system for blocking users with Arabic messaging
+- **✅ CLEAN ARCHITECTURE**: Separated concerns - EditListingModal handles UI, ConfirmBlockUserModal handles API calls
+- **✅ REAL BACKEND INTEGRATION**: Uses actual UPDATE_USER_MUTATION with proper state updates
+- **✅ COMPREHENSIVE UX**: User info, status badges, consequences warnings, loading states, error handling
+
+---
+
+## 🎯 **USER MANAGEMENT SYSTEM IMPLEMENTATION (2025-09-25)**
+
+### **🏗️ Complete User Management System**
+
+#### **Backend Integration:**
+```typescript
+// adminListingsStore GraphQL Enhancement
+export const UPDATE_USER_MUTATION = `
+  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
+    updateUser(id: $id, input: $input) {
+      id, email, name, role, status, accountType, sellerBadge, businessVerified, updatedAt
+    }
+  }
+`;
+
+// Store Function Implementation
+updateUser: async (input: UpdateUserInput) => {
+  const { id, ...updateData } = input;
+  const data = await makeGraphQLCall(UPDATE_USER_MUTATION, { id, input: updateData });
+  const updatedUser = data.updateUser;
+
+  // Smart state update - updates selectedListing.user if same user
+  if (selectedListing && selectedListing.user?.id === updatedUser.id) {
+    set({ selectedListing: { ...selectedListing, user: updatedUser } });
+  }
+  return updatedUser;
+}
+```
+
+#### **Frontend Components:**
+
+**1. Enhanced EditListingModal:**
+```typescript
+// /components/admin/.../modals/EditListingModal.tsx
+- ✅ User Information Display: Complete user details with status badges
+- ✅ Block/Unblock Buttons: Context-aware based on user.status
+- ✅ Modal State Management: Simple state for opening ConfirmBlockUserModal
+- ✅ Clean Architecture: Only handles UI interactions, delegates API to modal
+```
+
+**2. Professional ConfirmBlockUserModal:**
+```typescript
+// /components/admin/.../modals/ConfirmBlockUserModal.tsx
+- ✅ Self-Contained Logic: Handles all updateUser API calls internally
+- ✅ Professional UX: Warning colors, user info display, consequences explanation
+- ✅ Loading States: "جاري الحظر..." with button disabling
+- ✅ Error Handling: Arabic success/error messages with proper feedback
+- ✅ Modal-over-Modal: Appears over EditListingModal for confirmation
+```
+
+### **🎨 User Experience Features:**
+
+#### **User Information Display:**
+- **Status Badges**: نشط (green) / محظور (red) / في الانتظار (yellow)
+- **Account Details**: Name, email, account type, seller badge, business verification
+- **Contact Information**: Phone, website (if available)
+- **Registration Date**: Arabic date formatting
+
+#### **Block/Unblock System:**
+- **Professional Confirmation**: Modal with user details and consequences
+- **Clear Warnings**: Explains what happens when blocking/unblocking
+- **Loading States**: Visual feedback during API calls
+- **Success Feedback**: Arabic success messages
+- **Error Recovery**: Proper error handling with user-friendly messages
+
+### **🔄 Complete Data Flow:**
+
+```
+1. Admin opens EditListingModal
+   ↓
+2. Backend fetches listing with user data via GET_LISTING_BY_ID_QUERY
+   ↓
+3. Store maps GraphQL response including user: { id, name, email, status, ... }
+   ↓
+4. EditListingModal displays user information with status badges
+   ↓
+5. Admin clicks "حظر المستخدم" → ConfirmBlockUserModal opens
+   ↓
+6. Modal shows user details and consequences
+   ↓
+7. Admin confirms → Modal calls updateUser({ id: userId, status: 'BANNED' })
+   ↓
+8. Backend processes UPDATE_USER_MUTATION
+   ↓
+9. Store updates selectedListing.user.status automatically
+   ↓
+10. UI updates immediately - button changes to "إلغاء الحظر"
+```
+
+### **📊 Implementation Summary:**
+
+| **Component** | **Responsibility** | **Achievement** |
+|---------------|-------------------|-----------------|
+| **Backend GraphQL** | User relationship exposure | ✅ @ResolveField() for user data |
+| **adminListingsStore** | User management API calls | ✅ updateUser() with smart state updates |
+| **EditListingModal** | User info display & UI | ✅ Professional user section with actions |
+| **ConfirmBlockUserModal** | Block confirmation & logic | ✅ Self-contained with professional UX |
 
 ---
 

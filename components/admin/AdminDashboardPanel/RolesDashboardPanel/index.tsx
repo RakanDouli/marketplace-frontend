@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Container } from '@/components/slices/Container/Container';
-import { Button, Loading } from '@/components/slices';
+import { Button, Loading, Text } from '@/components/slices';
+import { Input } from '@/components/slices/Input/Input';
 import { useAdminRolesStore } from '@/stores/admin/adminRolesStore';
 import type { Role } from '@/stores/admin/adminRolesStore';
 import { Table, TableHead, TableBody, TableRow, TableCell } from '@/components/slices';
@@ -10,7 +11,7 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, RefreshCw, Edit, Trash2, Shield, Users, Eye, Settings } from 'lucide-react';
 import { CreateRoleModal, EditRoleModal, DeleteRoleModal } from './modals';
-import styles from './RolesCRUD.module.scss';
+import styles from '../AdminDashboardPanel.module.scss';
 
 export const RolesDashboardPanel: React.FC = () => {
   const {
@@ -146,20 +147,21 @@ export const RolesDashboardPanel: React.FC = () => {
 
   return (
     <>
-      <div className={styles.rolesCRUD}>
+      <div className={styles.dashboardPanel}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>إدارة الأدوار والصلاحيات</h1>
-            <p className={styles.description}>
+            <Text variant="h2" className={styles.title}>إدارة الأدوار والصلاحيات</Text>
+            <Text variant="paragraph" color="secondary" className={styles.description}>
               إنشاء وتحديث أدوار المستخدمين وصلاحياتهم في النظام
-            </p>
+            </Text>
           </div>
           <div className={styles.headerActions}>
             <Button
               onClick={loadRoles}
               variant="secondary"
-              icon={<RefreshCw size={16} className={loading ? styles.spinning : ''} />}
+              icon={<RefreshCw size={16} />}
+              loading={loading}
               disabled={loading}
             >
               تحديث
@@ -179,31 +181,30 @@ export const RolesDashboardPanel: React.FC = () => {
         {/* Search and Controls */}
         <div className={styles.searchSection}>
           <div className={styles.searchRow}>
-            <input
-              type="text"
+            <Text variant="small" className={styles.roleCount}>
+              النتيحه: {roles.length}
+            </Text>
+            <Input
+              type="search"
               placeholder="البحث بالاسم أو الوصف..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
             />
-            <div className={styles.roleCount}>
-              {roles.length}
-            </div>
           </div>
 
           {/* Filter Controls */}
           <div className={styles.controlsRow}>
-            <div className={styles.filterDropdowns}>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={styles.filterSelect}
-              >
-                <option value="">جميع الحالات</option>
-                <option value="active">نشط</option>
-                <option value="inactive">غير نشط</option>
-              </select>
-            </div>
+            <Input
+              type="select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              options={[
+                { value: "", label: "جميع الحالات" },
+                { value: "active", label: "نشط" },
+                { value: "inactive", label: "غير نشط" }
+              ]}
+            />
+
           </div>
         </div>
 
@@ -214,8 +215,8 @@ export const RolesDashboardPanel: React.FC = () => {
               <Shield size={24} />
             </div>
             <div className={styles.infoContent}>
-              <h3>الأدوار النشطة</h3>
-              <p>{roles.filter(role => role.isActive).length} دور</p>
+              <Text variant="h3">الأدوار النشطة</Text>
+              <Text variant="paragraph" color="secondary">{roles.filter(role => role.isActive).length} دور</Text>
             </div>
           </div>
           <div className={styles.infoCard}>
@@ -223,8 +224,8 @@ export const RolesDashboardPanel: React.FC = () => {
               <Settings size={24} />
             </div>
             <div className={styles.infoContent}>
-              <h3>الميزات المتاحة</h3>
-              <p>{features.length} ميزة</p>
+              <Text variant="h3">الميزات المتاحة</Text>
+              <Text variant="paragraph" color="secondary">{features.length} ميزة</Text>
             </div>
           </div>
           <div className={styles.infoCard}>
@@ -232,8 +233,8 @@ export const RolesDashboardPanel: React.FC = () => {
               <Users size={24} />
             </div>
             <div className={styles.infoContent}>
-              <h3>أدوار مخصصة</h3>
-              <p>{roles.filter(role => role.name !== 'SUPER_ADMIN').length} دور</p>
+              <Text variant="h3">أدوار مخصصة</Text>
+              <Text variant="paragraph" color="secondary">{roles.filter(role => role.name !== 'SUPER_ADMIN').length} دور</Text>
             </div>
           </div>
         </div>
@@ -245,7 +246,8 @@ export const RolesDashboardPanel: React.FC = () => {
           </div>
         ) : roles.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>لا توجد أدوار</p>
+            <Text variant="h3">لا توجد أدوار</Text>
+            <Text variant="paragraph" color="secondary">لم يتم العثور على أي أدوار</Text>
           </div>
         ) : (
           <Table>
@@ -263,8 +265,7 @@ export const RolesDashboardPanel: React.FC = () => {
                 <TableRow key={role.id}>
                   <TableCell>
                     <div className={styles.roleName}>
-                      <Shield size={16} />
-                      <span>{role.name}</span>
+                      <Text variant="paragraph">{role.name}</Text>
                     </div>
                   </TableCell>
                   <TableCell>{role.description}</TableCell>

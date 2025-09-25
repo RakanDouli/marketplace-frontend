@@ -1,0 +1,259 @@
+// STANDARDIZED ADMIN DASHBOARD STYLES
+// Generic classes that work for ALL dashboard panels (Users, Roles, Listings, etc.)
+// Layout: Header -> Search/Filters -> Table -> Pagination
+
+.dashboardPanel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-md;
+  border-radius: 0.5rem;
+  background: $bg;
+}
+
+// 1. HEADER SECTION (title + description + actions)
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+// 2. SEARCH & FILTERS SECTION (search input + dropdowns + count)
+.searchSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-sm;
+  border-radius: 0.5rem;
+  border: 1px solid $border;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: $space-sm;
+  flex-wrap: wrap;
+  span {
+    color: $primary;
+    float: right;
+    padding: $space-xs $space-sm;
+    border: 1px solid $border;
+    border-radius: 10px;
+  }
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+// 3. TABLE CONTENT SECTION
+.tableContent {
+  min-height: 400px;
+}
+
+// 4. LOADING & EMPTY STATES (generic)
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: 3rem;
+  text-align: center;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: 3rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+.actions {
+  display: flex;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+// .actionButton {
+//   min-width: 80px;
+//   justify-content: center;
+// }
+
+// .deleteButton {
+//   --button-background-color: var(--color-error);
+//   --button-text-color: white;
+// }
+
+// .deleteButton:hover {
+//   --button-background-color: var(--color-error-dark);
+// }
+
+// 7. STATUS BADGES (generic for all status types)
+.statusBadge {
+  padding: $space-sm;
+  border-radius: 0.25rem;
+  // font-size: 0.75rem;
+  // font-weight: 500;
+  text-align: center;
+  min-width: fit-content;
+  display: inline-block;
+}
+
+// Active/Inactive states (for roles, users, etc.)
+.active {
+  background-color: $success-bg;
+  color: $success;
+}
+
+.inactive {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+
+// Info cards (used in roles panel)
+.infoCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-sm;
+  margin-bottom: $space-sm;
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+.infoCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: $space-sm;
+  border-radius: 0.5rem;
+  border: 1px solid $border;
+}
+
+.infoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.infoContent {
+  flex: 1;
+}
+
+// Status variants for listings
+.status-draft {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-pending_approval,
+.status-pending-approval {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-sold {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
+
+.status-sold_via_platform,
+.status-sold-via-platform {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.status-hidden {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+// No access message - used by all dashboard panels
+.noAccess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: 3rem;
+  text-align: center;
+}
+
+// Action buttons styling - used by all dashboard panels
+.deleteButton {
+  --button-background-color: var(--color-error);
+  --button-text-color: white;
+}
+
+.deleteButton:hover {
+  --button-background-color: var(--color-error-dark);
+}
+
+// Responsive design for all dashboard panels
+@media (max-width: 768px) {
+  .dashboardPanel {
+    padding: $space-sm;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions {
+    justify-content: stretch;
+  }
+
+  .headerActions button {
+    flex: 1;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}

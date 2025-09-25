@@ -141,8 +141,14 @@ export function generateResponsiveImageUrls(
  */
 export function optimizeListingImage(
   imageKey: string,
-  viewMode: "grid" | "list" | "detail" = "grid"
+  viewMode: "grid" | "list" | "detail" | "admin" = "grid"
 ): string {
+  // Add type safety check
+  if (!imageKey || typeof imageKey !== 'string') {
+    console.warn('optimizeListingImage: imageKey is not a valid string:', imageKey);
+    return ''; // Return empty string or a default image URL
+  }
+
   // If it's already a full URL, use it directly
   // Otherwise, treat it as an image key/UUID for Cloudflare Images
   const imageUrl = imageKey.startsWith("http") ? imageKey : imageKey;
@@ -160,10 +166,29 @@ export function optimizeListingImage(
   } else if (viewMode === "list") {
     options.width = 300;  // Uses 'small' variant
     options.height = 200;
+  } else if (viewMode === "admin") {
+    options.width = 200;  // Uses 'thumbnail' variant for admin approval
+    options.height = 150;
+    options.quality = 70; // Lower quality for faster loading
   } else {
     // Default/detail view
     options.width = 800;  // Uses 'large' variant
     options.height = 600;
+  }
+
+  console.log(`optimizeListingImage - viewMode: ${viewMode}, size: ${options.width}x${options.height}, quality: ${options.quality}`);
+  console.log(`Input imageUrl: ${imageUrl}`);
+
+  // In development, manually optimize Unsplash URLs
+  if (IS_DEVELOPMENT && imageUrl.includes('unsplash.com')) {
+    const url = new URL(imageUrl);
+    url.searchParams.set('w', options.width?.toString() || '400');
+    url.searchParams.set('h', options.height?.toString() || '300');
+    url.searchParams.set('q', options.quality?.toString() || '85');
+    url.searchParams.set('fit', 'crop');
+    const optimizedUrl = url.toString();
+    console.log(`Development Unsplash optimization: ${optimizedUrl}`);
+    return optimizedUrl;
   }
 
   return optimizeImageUrl(imageUrl, options);

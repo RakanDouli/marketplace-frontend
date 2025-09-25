@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "../../../hooks/useTranslation";
+import { Input } from "../Input/Input";
 import styles from "./SortControls.module.scss";
 
 export type SortOption =
@@ -18,7 +19,6 @@ export function SortControls({ currentSort, onSortChange }: SortControlsProps) {
   const { t } = useTranslation();
 
   const sortOptions: Array<{ value: SortOption | ""; label: string; disabled?: boolean }> = [
-    { value: "", label: t("search.sortBy"), disabled: true },
     { value: "createdAt_desc", label: t("search.sortByNewest") },
     { value: "createdAt_asc", label: t("search.sortByOldest") },
     { value: "priceMinor_asc", label: t("search.sortByPriceLow") },
@@ -27,7 +27,8 @@ export function SortControls({ currentSort, onSortChange }: SortControlsProps) {
 
   return (
     <div className={styles.sortControls}>
-      <select
+      <Input
+        type="select"
         id="sort-select"
         value={currentSort}
         onChange={(e) => {
@@ -36,14 +37,9 @@ export function SortControls({ currentSort, onSortChange }: SortControlsProps) {
             onSortChange(value as SortOption);
           }
         }}
-        className={styles.select}
-      >
-        {sortOptions.map((option) => (
-          <option key={option.value} value={option.value} disabled={option.disabled}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        options={sortOptions}
+        placeholder={t("search.sortBy")}
+      />
     </div>
   );
 }

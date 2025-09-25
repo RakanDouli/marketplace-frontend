@@ -117,18 +117,95 @@ textarea.input {
   padding: $space-sm $space-md;
 }
 
-// Select specific styles
-select.input {
-  cursor: pointer;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-  background-position: right $space-sm center;
-  background-repeat: no-repeat;
-  background-size: 16px;
-  padding-right: calc(#{$space-md} + 20px);
-  appearance: none;
+// Custom Select Component Styles
+.customSelectWrapper {
+  position: relative;
+  width: 100%;
+}
 
-  &::-ms-expand {
-    display: none;
+.customSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+
+  &:hover:not(:disabled) {
+    background-color: $surface;
+    border-color: $primary;
+  }
+
+  &.open {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+}
+
+.placeholder {
+  color: $text-muted;
+}
+
+.selectArrow {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  transition: transform 0.2s ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.customSelectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.customSelectOption {
+  padding: $space-sm $space-md;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-size: $font-base;
+  color: $text;
+
+  &:hover {
+    background-color: $surface;
+  }
+
+  &.selected {
+    background-color: $primary;
+    color: white;
+  }
+
+  &.disabled {
+    color: $text-muted;
+    cursor: not-allowed;
+    background-color: transparent;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
+
+  &:first-child {
+    border-top-left-radius: calc(#{$radius-md} - 1px);
+    border-top-right-radius: calc(#{$radius-md} - 1px);
+  }
+
+  &:last-child {
+    border-bottom-left-radius: calc(#{$radius-md} - 1px);
+    border-bottom-right-radius: calc(#{$radius-md} - 1px);
   }
 }
 
@@ -161,18 +238,14 @@ select.input {
   margin-top: $space-xs;
 }
 
-// // RTL Support
-// :global([dir="rtl"]) {
-//   select.input {
-//     background-position: left $space-sm center;
-//     padding-right: $space-md;
-//     padding-left: calc(#{$space-md} + 20px);
+
+// select.input {
+//   background-position: right $space-sm center;
+//   padding-left: $space-md;
+//   padding-right: calc(#{$space-md} + 24px);
+
+//   option {
+//     direction: rtl;
+//     text-align: right;
 //   }
 // }
-
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-  select.input {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%9CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-  }
-}

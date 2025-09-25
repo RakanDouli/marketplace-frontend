@@ -1,6 +1,137 @@
 'use client';
-import React, { forwardRef, useState, useId } from "react";
+import React, { forwardRef, useState, useId, useRef, useEffect } from "react";
 import styles from "./Input.module.scss";
+
+interface CustomSelectProps {
+  options: Array<{ value: string; label: string; disabled?: boolean }>;
+  inputClasses: string;
+  onFocus: () => void;
+  onBlur: () => void;
+  onChange: (e: any) => void;
+  generatedId: string;
+  value?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  name?: string;
+  id?: string;
+}
+
+const CustomSelect: React.FC<CustomSelectProps> = ({
+  options,
+  inputClasses,
+  onFocus,
+  onBlur,
+  onChange,
+  generatedId,
+  value = '',
+  placeholder = 'اختر خيار...',
+  disabled = false,
+  name,
+  id
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedValue, setSelectedValue] = useState(value);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        onBlur();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onBlur]);
+
+  const handleToggle = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      onFocus();
+    } else {
+      onBlur();
+    }
+  };
+
+  const handleOptionClick = (optionValue: string) => {
+    if (disabled) return;
+
+    setSelectedValue(optionValue);
+    setIsOpen(false);
+    onBlur();
+
+    // Create synthetic event for onChange
+    const syntheticEvent = {
+      target: {
+        value: optionValue,
+        name: name || id || generatedId
+      }
+    };
+    onChange(syntheticEvent);
+  };
+
+  const selectedOption = options.find(opt => opt.value === selectedValue);
+  const displayValue = selectedOption?.label || placeholder;
+
+  return (
+    <div ref={dropdownRef} className={styles.customSelectWrapper}>
+      {/* Hidden input for form submission */}
+      <input
+        type="hidden"
+        name={name || id || generatedId}
+        value={selectedValue}
+      />
+
+      {/* Custom select trigger */}
+      <div
+        className={`${inputClasses} ${styles.customSelectTrigger} ${isOpen ? styles.open : ''}`}
+        onClick={handleToggle}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleToggle();
+          }
+        }}
+      >
+        <span className={selectedValue ? '' : styles.placeholder}>
+          {displayValue}
+        </span>
+        <div className={`${styles.selectArrow} ${isOpen ? styles.open : ''}`}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Custom dropdown */}
+      {isOpen && (
+        <div className={styles.customSelectDropdown}>
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className={`${styles.customSelectOption} ${
+                option.value === selectedValue ? styles.selected : ''
+              } ${option.disabled ? styles.disabled : ''}`}
+              onClick={() => !option.disabled && handleOptionClick(option.value)}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export interface InputProps
   extends Omit<
@@ -140,29 +271,15 @@ export const Input = forwardRef<
       }
 
       if (type === "select") {
-        const selectProps = props as React.SelectHTMLAttributes<HTMLSelectElement>;
-        return (
-          <select
-            ref={ref as React.RefObject<HTMLSelectElement>}
-            className={inputClasses}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            {...selectProps}
-            onChange={handleChange}
-            id={selectProps.id || selectProps.name || generatedId}
-            name={selectProps.name || selectProps.id || generatedId}
-          >
-            {options.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-              >
-                {option.label}
-              </option>
-            ))}
-          </select>
-        );
+        return <CustomSelect
+          options={options}
+          inputClasses={inputClasses}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          generatedId={generatedId}
+          {...(props as React.SelectHTMLAttributes<HTMLSelectElement>)}
+        />;
       }
 
       const inputProps = props as React.InputHTMLAttributes<HTMLInputElement>;
