@@ -5,6 +5,7 @@
   align-items: center;
   padding: 3rem;
   gap: 1rem;
+  background: $bg;
 }
 
 .loadingText {
@@ -15,14 +16,14 @@
 .listingHeader {
   margin-bottom: 24px;
   padding: 20px;
-  background: var(--background);
+  background: $bg;
   border-radius: 12px;
   border: 1px solid var(--border);
 }
 
 .listingTitle {
   margin-bottom: 16px;
-  color: var(--text-primary);
+  color: $text;
   font-weight: 600;
 }
 
@@ -46,7 +47,7 @@
 
     .value {
       font-size: 14px;
-      color: var(--text-primary);
+      color: $text;
       font-weight: 500;
 
       &.price {
@@ -104,7 +105,7 @@
 
 .imagesSectionTitle {
   margin-bottom: 16px;
-  color: var(--text-primary);
+  color: $text;
   font-weight: 600;
 }
 
@@ -119,7 +120,7 @@
 
 .noImagesTitle {
   margin-bottom: 8px;
-  color: var(--text-primary);
+  color: $text;
 }
 
 // Description Section
@@ -133,27 +134,27 @@
 
 .descriptionTitle {
   margin-bottom: 16px;
-  color: var(--text-primary);
+  color: $text;
   font-weight: 600;
 }
 
 .descriptionText {
   line-height: 1.7;
-  color: var(--text-primary);
+  color: $text;
 }
 
 // Specifications Section
 .specificationsSection {
   margin-bottom: 24px;
   padding: 20px;
-  background: var(--surface);
   border-radius: 12px;
   border: 1px solid var(--border);
+  background: $bg;
 }
 
 .specificationsTitle {
   margin-bottom: 20px;
-  color: var(--text-primary);
+  color: $text;
   font-weight: 600;
 }
 
@@ -176,7 +177,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: var(--background);
+  background: $bg;
   border-radius: 8px;
   border: 1px solid var(--border-light);
 
@@ -190,7 +191,7 @@
 
   .specValue {
     font-size: 13px;
-    color: var(--text-primary);
+    color: $text;
     font-weight: 600;
     text-align: right;
     margin-left: 12px;
@@ -201,9 +202,9 @@
 .userInfoSection {
   margin-bottom: 24px;
   padding: 20px;
-  background: var(--surface);
   border-radius: 12px;
   border: 1px solid var(--border);
+  background: $bg;
 }
 
 .userInfoHeader {
@@ -212,11 +213,11 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid $border;
 }
 
 .userInfoTitle {
-  color: var(--text-primary);
+  color: $text;
   font-weight: 600;
 }
 
@@ -277,11 +278,11 @@
 
   .value {
     font-size: 14px;
-    color: var(--text-primary);
+    color: $text;
     font-weight: 500;
 
     &.userEmail {
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
       font-size: 12px;
       background: var(--background);
       padding: 4px 8px;

@@ -230,8 +230,8 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
             prices: [
               { currency: "USD", value: (item.priceMinor / 100).toString() },
             ],
-            createdAt: item.createdAt || new Date().toISOString(), // Use real date from API
-            updatedAt: item.updatedAt || new Date().toISOString(), // Use real date from API
+            createdAt: new Date().toISOString(), // Use current date as fallback
+            updatedAt: new Date().toISOString(), // Use current date as fallback
           };
         }
       );

@@ -128,11 +128,11 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
   };
 
   return (
-    <Modal isVisible onClose={onClose} title="تعديل الإعلان" maxWidth="lg">
+    <Modal isVisible onClose={onClose} title="تعديل العرض" maxWidth="lg">
       {loadingDetails ? (
         <div className={styles.loadingContainer}>
           <Loading />
-          <Text variant="paragraph" className={styles.loadingText}>جاري تحميل تفاصيل الإعلان...</Text>
+          <Text variant="paragraph" className={styles.loadingText}>جاري تحميل تفاصيل العرض...</Text>
         </div>
       ) : detailedListing && (
         <>

@@ -4,13 +4,12 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: $z-nav;
   background: $bg;
   border-bottom: 1px solid $border;
   box-shadow: $shadow-sm;
   backdrop-filter: blur(8px);
   height: $header-height;
-  z-index: $z-nav;
   display: flex;
   align-items: center;
   @media screen and (max-width: $breakpoint-md) {

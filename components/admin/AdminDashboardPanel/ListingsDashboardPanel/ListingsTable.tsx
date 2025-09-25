@@ -33,7 +33,7 @@ export const ListingsTable: React.FC = () => {
     if (error) {
       addNotification({
         type: 'error',
-        title: 'خطأ في إدارة الإعلانات',
+        title: 'خطأ في إدارة العروض',
         message: error,
         duration: 5000
       });
@@ -46,7 +46,7 @@ export const ListingsTable: React.FC = () => {
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <h2 style={{ color: 'var(--color-error)' }}>وصول مرفوض</h2>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          ليس لديك صلاحية لعرض إدارة الإعلانات
+          ليس لديك صلاحية لعرض إدارة العروض
         </p>
       </div>
     );
@@ -142,7 +142,7 @@ export const ListingsTable: React.FC = () => {
       key: 'search',
       label: 'البحث',
       type: 'text',
-      placeholder: 'البحث في الإعلانات...'
+      placeholder: 'البحث في العروض...'
     },
     {
       key: 'status',
@@ -207,8 +207,8 @@ export const ListingsTable: React.FC = () => {
       data={listings}
       loading={loading}
       error={error}
-      title="إدارة الإعلانات"
-      description="إدارة ومراجعة جميع إعلانات المنصة"
+      title="إدارة العروض"
+      description="إدارة ومراجعة جميع عروض المنصة"
       columns={columns}
       actions={actions}
       filters={filters}
@@ -219,8 +219,8 @@ export const ListingsTable: React.FC = () => {
       canModify={canModify}
       canDelete={canDelete}
       emptyIcon={<Eye size={48} />}
-      emptyTitle="لا توجد إعلانات"
-      emptyDescription="لم يتم العثور على أي إعلانات"
+      emptyTitle="لا توجد عروض"
+      emptyDescription="لم يتم العثور على أي عروض"
     />
   );
 };

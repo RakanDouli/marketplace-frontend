@@ -8,7 +8,7 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.75);
   z-index: $z-modal;
   backdrop-filter: blur(8px);
@@ -26,9 +26,10 @@
   border-radius: $radius-xl;
   padding: $space-xl $space-lg $space-lg;
   width: 100%;
+  top: $header-height;
   max-width: 100%;
   position: relative;
-  max-height: calc(100vh - #{$space-md * 2});
+  max-height: calc(100vh - $header-height-mobile);
   overflow-y: auto;
   animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 

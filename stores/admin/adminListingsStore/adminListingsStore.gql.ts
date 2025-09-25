@@ -28,8 +28,6 @@ export const ADMIN_LISTINGS_PAGINATED_QUERY = `
       title
       priceMinor
       status
-      createdAt
-      updatedAt
     }
     listingsAggregations(filter: $filter) {
       totalResults

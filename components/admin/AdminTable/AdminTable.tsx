@@ -189,27 +189,42 @@ export const AdminTable: React.FC<AdminTableProps> = ({
           <Text variant="paragraph" color="secondary">{emptyDescription}</Text>
         </div>
       ) : (
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map(column => (
-                <TableCell key={column.key} isHeader>
-                  {column.label}
-                </TableCell>
-              ))}
-              {actions.length > 0 && <TableCell isHeader>الإجراءات</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={item.id || index}>
-                {columns.map(column => (
-                  <TableCell key={column.key}>
-                    {renderCell(column, item)}
-                  </TableCell>
+        <div className={styles.tableContainer}>
+          {/* Scrollable content area */}
+          <div className={styles.tableScrollable}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {columns.map(column => (
+                    <TableCell key={column.key} isHeader>
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.map((item, index) => (
+                  <TableRow key={item.id || index}>
+                    {columns.map(column => (
+                      <TableCell key={column.key}>
+                        {renderCell(column, item)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-                {actions.length > 0 && (
-                  <TableCell>
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Fixed actions column */}
+          {actions.length > 0 && (
+            <div className={styles.actionsColumn}>
+              <div className={styles.actionsHeader}>
+                <Text variant="small" className={styles.actionsHeaderText}>الإجراءات</Text>
+              </div>
+              <div className={styles.actionsBody}>
+                {data.map((item, index) => (
+                  <div key={item.id || index} className={styles.actionsRow}>
                     <div className={styles.actions}>
                       {actions.map(action => {
                         if (action.show && !action.show(item)) return null;
@@ -226,12 +241,12 @@ export const AdminTable: React.FC<AdminTableProps> = ({
                         );
                       })}
                     </div>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Pagination */}

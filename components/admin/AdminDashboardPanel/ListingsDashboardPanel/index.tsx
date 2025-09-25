@@ -51,7 +51,7 @@ export const ListingsDashboardPanel: React.FC = () => {
     if (error) {
       addNotification({
         type: 'error',
-        title: 'خطأ في إدارة الإعلانات',
+        title: 'خطأ في إدارة العروض',
         message: error,
         duration: 5000
       });
@@ -65,7 +65,7 @@ export const ListingsDashboardPanel: React.FC = () => {
         <div className={styles.noAccess}>
           <Text variant="h2" color="error">وصول مرفوض</Text>
           <Text variant="paragraph" color="secondary">
-            ليس لديك صلاحية لعرض إدارة الإعلانات
+            ليس لديك صلاحية لعرض إدارة العروض
           </Text>
         </div>
       </Container>
@@ -200,9 +200,9 @@ export const ListingsDashboardPanel: React.FC = () => {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <Text variant="h2" className={styles.title}>إدارة الإعلانات</Text>
+            <Text variant="h2" className={styles.title}>إدارة العروض</Text>
             <Text variant="paragraph" color="secondary" className={styles.description}>
-              إدارة ومراجعة جميع إعلانات المنصة
+              إدارة ومراجعة جميع عروض المنصة
             </Text>
           </div>
           <div className={styles.headerActions}>
@@ -225,7 +225,7 @@ export const ListingsDashboardPanel: React.FC = () => {
             </Text>
             <Input
               type="search"
-              placeholder="البحث في الإعلانات..."
+              placeholder="البحث في العروض..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -252,13 +252,13 @@ export const ListingsDashboardPanel: React.FC = () => {
         {loading ? (
           <div className={styles.loadingContainer}>
             <Loading />
-            <Text variant="paragraph">جاري تحميل الإعلانات...</Text>
+            <Text variant="paragraph">جاري تحميل العروض...</Text>
           </div>
         ) : listings.length === 0 ? (
           <div className={styles.emptyState}>
             <Eye size={48} className={styles.emptyIcon} />
-            <Text variant="h3">لا توجد إعلانات</Text>
-            <Text variant="paragraph" color="secondary">لم يتم العثور على أي إعلانات</Text>
+            <Text variant="h3">لا توجد عروض</Text>
+            <Text variant="paragraph" color="secondary">لم يتم العثور على أي عروض</Text>
           </div>
         ) : (
           <Table>

@@ -101,8 +101,8 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
             </Text>
             <ul className={styles.consequencesList}>
               <li>سيتم منع المستخدم من تسجيل الدخول</li>
-              <li>لن يتمكن من إنشاء إعلانات جديدة</li>
-              <li>ستظل إعلاناته الحالية مرئية</li>
+              <li>لن يتمكن من إنشاء عروض جديدة</li>
+              <li>ستظل عروضه الحالية مرئية</li>
               <li>يمكن إلغاء الحظر لاحقاً</li>
             </ul>
           </div>
@@ -113,7 +113,7 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
             </Text>
             <ul className={styles.resultList}>
               <li>سيتمكن المستخدم من تسجيل الدخول</li>
-              <li>يمكنه إنشاء إعلانات جديدة</li>
+              <li>يمكنه إنشاء عروض جديدة</li>
               <li>سيعود حسابه إلى الحالة النشطة</li>
             </ul>
           </div>
