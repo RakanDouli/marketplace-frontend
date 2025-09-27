@@ -103,12 +103,21 @@ export const useAdminRolesStore = create<AdminRolesState>((set, get) => ({
   error: null,
 
   // Load all roles
-  loadRoles: async () => {
+  loadRoles: async (forceRefresh = false) => {
+    const { roles } = get();
+
+    // Only load if empty or forcing refresh
+    if (!forceRefresh && roles.length > 0) {
+      console.log("🚀 Admin roles loaded from store - no API call needed");
+      return;
+    }
+
+    console.log("🔄 Admin roles store empty - fetching data");
     set({ loading: true, error: null });
     try {
       const data = await makeGraphQLCall(GET_ALL_ROLES_QUERY);
-      const roles = data.getAllCustomRoles || [];
-      set({ roles, loading: false });
+      const rolesData = data.getAllCustomRoles || [];
+      set({ roles: rolesData, loading: false });
     } catch (error) {
       console.error('Failed to load roles:', error);
       set({
@@ -119,12 +128,21 @@ export const useAdminRolesStore = create<AdminRolesState>((set, get) => ({
   },
 
   // Load all features
-  loadFeatures: async () => {
+  loadFeatures: async (forceRefresh = false) => {
+    const { features } = get();
+
+    // Only load if empty or forcing refresh
+    if (!forceRefresh && features.length > 0) {
+      console.log("🚀 Admin features loaded from store - no API call needed");
+      return;
+    }
+
+    console.log("🔄 Admin features store empty - fetching data");
     set({ loading: true, error: null });
     try {
       const data = await makeGraphQLCall(GET_ALL_FEATURES_QUERY);
-      const features = data.getAllFeatures || [];
-      set({ features, loading: false });
+      const featuresData = data.getAllFeatures || [];
+      set({ features: featuresData, loading: false });
     } catch (error) {
       console.error('Failed to load features:', error);
       set({

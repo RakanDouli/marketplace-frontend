@@ -16,7 +16,9 @@
     height: calc(100vh - 60px);
   }
 }
-
+.categorySelector {
+  margin-bottom: 20px;
+}
 .mainContent {
   flex: 1;
   min-width: 0;

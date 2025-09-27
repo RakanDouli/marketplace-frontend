@@ -25,6 +25,7 @@ export const ListingsDashboardPanel: React.FC = () => {
     pagination,
     filters,
     loadListings,
+    loadListingsWithCache,
     updateListingStatus,
     deleteListing,
     setFilters,
@@ -43,8 +44,8 @@ export const ListingsDashboardPanel: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
 
   useEffect(() => {
-    loadListings();
-  }, []);
+    loadListingsWithCache();
+  }, [loadListingsWithCache]);
 
   // Handle error notifications
   useEffect(() => {
@@ -80,7 +81,7 @@ export const ListingsDashboardPanel: React.FC = () => {
         status: statusFilter || undefined,
         categoryId: categoryFilter || undefined,
       });
-      loadListings(1); // Reset to page 1 when filters change
+      loadListingsWithCache(1, true); // Force refresh when filters change
     }, 300); // Debounce search
 
     return () => clearTimeout(delayedSearch);
@@ -88,7 +89,7 @@ export const ListingsDashboardPanel: React.FC = () => {
 
   // Handle refresh
   const handleRefresh = () => {
-    loadListings();
+    loadListingsWithCache(1, true); // Force refresh
   };
 
   // Handle edit listing status
@@ -326,7 +327,7 @@ export const ListingsDashboardPanel: React.FC = () => {
             <Pagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}
-              onPageChange={(page) => { loadListings(page); }}
+              onPageChange={(page) => { loadListingsWithCache(page, true); }}
             />
             <Text variant="small" color="secondary">
               عرض {listings.length} من {pagination.total} إعلان

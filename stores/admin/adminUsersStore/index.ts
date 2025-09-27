@@ -122,6 +122,10 @@ interface AdminUsersStore {
   sortBy: string;
   sortOrder: "ASC" | "DESC";
 
+  // Caching
+  lastFetched: number | null;
+  cacheTimeout: number; // in milliseconds
+
   // CRUD operations
   loadUsers: (page?: number) => Promise<void>;
   loadUsersPaginated: (
@@ -139,6 +143,11 @@ interface AdminUsersStore {
   setFilters: (filters: UserFilterInput) => void;
   setSorting: (sortBy: string, sortOrder: "ASC" | "DESC") => void;
   clearError: () => void;
+
+  // Cache management
+  isCacheValid: () => boolean;
+  loadUsersWithCache: (page?: number, forceRefresh?: boolean) => Promise<void>;
+  invalidateCache: () => void;
 }
 
 // GraphQL queries imported from separate file
@@ -190,6 +199,10 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
   filters: {},
   sortBy: "createdAt",
   sortOrder: "DESC",
+
+  // Cache state
+  lastFetched: null,
+  cacheTimeout: 5 * 60 * 1000, // 5 minutes
 
   loadUsers: async (page = 1) => {
     const state = get();
@@ -247,6 +260,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
           hasPrev: page > 1,
         },
         loading: false,
+        lastFetched: Date.now(), // Cache timestamp
       });
     } catch (error) {
       set({
@@ -276,6 +290,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
       set((state) => ({
         users: [...state.users, newUser],
         loading: false,
+        lastFetched: Date.now(), // Update cache timestamp since we added data
       }));
 
       return newUser;
@@ -308,6 +323,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
             ? updatedUser
             : state.selectedUser,
         loading: false,
+        lastFetched: Date.now(), // Update cache timestamp since we modified data
       }));
 
       return updatedUser;
@@ -330,6 +346,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
         users: state.users.filter((user) => user.id !== id),
         selectedUser: state.selectedUser?.id === id ? null : state.selectedUser,
         loading: false,
+        lastFetched: Date.now(), // Update cache timestamp since we modified data
       }));
 
       return true;
@@ -364,4 +381,36 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
   setSorting: (sortBy: string, sortOrder: "ASC" | "DESC") =>
     set({ sortBy, sortOrder }),
   clearError: () => set({ error: null }),
+
+  // Cache management methods
+  isCacheValid: () => {
+    const { lastFetched, cacheTimeout } = get();
+    if (!lastFetched) return false;
+    return Date.now() - lastFetched < cacheTimeout;
+  },
+
+  invalidateCache: () => {
+    set({ lastFetched: null });
+  },
+
+  loadUsersWithCache: async (page = 1, forceRefresh = false) => {
+    const state = get();
+
+    // If cache is valid and not forcing refresh, return early
+    if (!forceRefresh && state.isCacheValid() && state.users.length > 0) {
+      console.log("🚀 Admin users loaded from cache - no API call needed");
+      return;
+    }
+
+    console.log("🔄 Admin users cache invalid - fetching fresh data");
+    await state.loadUsersPaginated(
+      {
+        page,
+        limit: state.pagination.limit,
+        sortBy: state.sortBy,
+        sortOrder: state.sortOrder,
+      },
+      state.filters
+    );
+  },
 }));

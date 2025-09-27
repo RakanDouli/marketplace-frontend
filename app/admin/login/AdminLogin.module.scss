@@ -15,6 +15,19 @@
   gap: $space-md;
 }
 
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.credentialSelector {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-bottom: $space-md;
+}
+
 .selectorLabel {
   display: block;
   font-size: $font-sm;
@@ -24,7 +37,7 @@
 
 .select {
   width: 100%;
-
+  padding: $space-sm $space-md;
   border: 1px solid $border;
   border-radius: $radius-base;
   background: $bg;
@@ -85,5 +98,46 @@
 
   &::placeholder {
     color: $text-muted;
+  }
+}
+
+.submitButton {
+  width: 100%;
+  padding: $space-md;
+  background: $primary;
+  color: white;
+  border: none;
+  border-radius: $radius-base;
+  font-size: $font-base;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.9);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.backLink {
+  margin-top: $space-md;
+  text-align: center;
+}
+
+.backButton {
+  color: $text-muted;
+  text-decoration: none;
+  font-size: $font-sm;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary;
+    text-decoration: underline;
   }
 }

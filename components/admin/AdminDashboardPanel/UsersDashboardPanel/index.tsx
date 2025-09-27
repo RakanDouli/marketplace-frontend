@@ -39,6 +39,7 @@ export const UsersDashboardPanel: React.FC = () => {
     tableConfig,
     loadUsers,
     loadUsersPaginated,
+    loadUsersWithCache,
     loadRoles,
     createUser,
     updateUser,
@@ -62,9 +63,9 @@ export const UsersDashboardPanel: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
-    loadUsers();
+    loadUsersWithCache();
     loadRoles();
-  }, [loadUsers, loadRoles]);
+  }, [loadUsersWithCache, loadRoles]);
 
   useEffect(() => {
     if (error) {
@@ -224,7 +225,7 @@ export const UsersDashboardPanel: React.FC = () => {
                     status: statusFilter || undefined
                   };
                   setFilters(newFilters);
-                  loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
+                  loadUsersWithCache(1, true); // Force refresh when filters change
                 }
               }}
             />
@@ -244,7 +245,7 @@ export const UsersDashboardPanel: React.FC = () => {
                   status: statusFilter || undefined
                 };
                 setFilters(newFilters);
-                loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
+                loadUsersWithCache(1, true); // Force refresh when filters change
               }}
               options={[
                 { value: "", label: "جميع الأدوار" },
@@ -266,7 +267,7 @@ export const UsersDashboardPanel: React.FC = () => {
                   status: e.target.value || undefined
                 };
                 setFilters(newFilters);
-                loadUsersPaginated({ page: 1, limit: pagination.limit, sortBy, sortOrder }, newFilters);
+                loadUsersWithCache(1, true); // Force refresh when filters change
               }}
               options={[
                 { value: "", label: "جميع الحالات" },
@@ -348,7 +349,7 @@ export const UsersDashboardPanel: React.FC = () => {
         <Pagination
           currentPage={pagination.page}
           totalPages={pagination.totalPages}
-          onPageChange={(page) => loadUsers(page)}
+          onPageChange={(page) => loadUsersWithCache(page, true)}
         />
 
         {/* Create User Modal */}

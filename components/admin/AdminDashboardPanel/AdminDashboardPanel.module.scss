@@ -43,10 +43,10 @@
 .searchRow {
   display: flex;
   align-items: center;
-  justify-content: end;
+  justify-content: flex-end;
   gap: $space-sm;
   flex-wrap: wrap;
-  span {
+  > span {
     color: $primary;
     float: right;
     padding: $space-xs $space-sm;
@@ -97,6 +97,9 @@
   display: flex;
   gap: $space-sm;
   flex-wrap: wrap;
+  button {
+    padding: 0 !important;
+  }
 }
 
 // .actionButton {
@@ -134,7 +137,6 @@
   background-color: #f3f4f6;
   color: #6b7280;
 }
-
 
 // Info cards (used in roles panel)
 .infoCards {
@@ -226,6 +228,246 @@
 }
 
 // Responsive design for all dashboard panels
+// BRANDS-SPECIFIC STYLES
+// Category selector
+.categorySelector {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-right: auto;
+}
+
+.selectorLabel {
+  font-weight: $weight-medium;
+  color: $text;
+  white-space: nowrap;
+}
+
+.itemCount {
+  color: $primary;
+  padding: $space-xs $space-sm;
+  border: 1px solid $border;
+  border-radius: 10px;
+}
+
+// Brand name styling
+.brandName {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+}
+
+// Source badges for brands/models
+.sourceBadge {
+  padding: $space-xs $space-sm;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  min-width: fit-content;
+  display: inline-block;
+}
+
+.source-manual {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.source-sync {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+// Modal styles for nested modals (used in EditBrandModal)
+.section {
+  margin-bottom: $space-lg;
+  padding-bottom: $space-lg;
+  border-bottom: 1px solid $border;
+}
+
+.section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-md;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: $text;
+}
+
+.nestedModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100; // Higher than main modal
+}
+
+.nestedModalContent {
+  background: $bg;
+  border-radius: 0.75rem;
+  padding: $space-lg;
+  width: 90vw;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: $shadow-2xl;
+}
+
+.nestedModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-md;
+  padding-bottom: $space-sm;
+  border-bottom: 1px solid $border;
+}
+
+// Sync modal specific styles
+.syncModal {
+  text-align: center;
+  padding: $space-md 0;
+}
+
+.syncIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $space-md;
+}
+
+.syncContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  text-align: right;
+}
+
+.title {
+  margin: 0 0 $space-sm 0;
+}
+
+.description {
+  margin: 0;
+  color: $text-muted;
+}
+
+.processInfo,
+.importantNotes,
+.configInfo,
+.warningSection {
+  text-align: right;
+  padding: $space-sm;
+  border-radius: 0.5rem;
+  border: 1px solid $border;
+}
+
+.processTitle,
+.configTitle {
+  font-weight: $weight-medium;
+  margin-bottom: $space-sm;
+}
+
+.processList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.processItem,
+.noteItem {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  text-align: right;
+}
+
+.configDetails {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.configItem {
+  display: flex;
+  justify-content: space-between;
+  padding: $space-xs;
+  border-radius: 0.25rem;
+  background: $bg-subtle;
+}
+
+.warningText {
+  margin: 0;
+}
+
+// Delete modal styles
+.deleteModal {
+  text-align: center;
+  padding: $space-md 0;
+}
+
+.warningIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $space-md;
+}
+
+.deleteContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  text-align: right;
+}
+
+.brandInfo {
+  padding: $space-sm;
+  border-radius: 0.5rem;
+  background: $bg-subtle;
+  border: 1px solid $border;
+}
+
+.warningSection {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.consequencesSection,
+.alternativeSection {
+  text-align: right;
+}
+
+.consequencesTitle,
+.alternativeTitle {
+  font-weight: $weight-medium;
+  margin-bottom: $space-xs;
+}
+
+.consequencesList,
+.alternativesList {
+  list-style: disc;
+  list-style-position: inside;
+  padding-right: $space-sm;
+  margin: 0;
+}
+
+.consequencesList li,
+.alternativesList li {
+  margin-bottom: $space-xs;
+  color: $text-muted;
+}
+
 @media (max-width: 768px) {
   .dashboardPanel {
     padding: $space-sm;
@@ -255,5 +497,26 @@
   .actions button {
     width: 100%;
     justify-content: center;
+  }
+
+  .categorySelector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-xs;
+  }
+
+  .selectorLabel {
+    text-align: center;
+  }
+
+  .nestedModalContent {
+    width: 95vw;
+    padding: $space-md;
+  }
+
+  .configItem {
+    flex-direction: column;
+    gap: $space-xs;
+    text-align: center;
   }
 }

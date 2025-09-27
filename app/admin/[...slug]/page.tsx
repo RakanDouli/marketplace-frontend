@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAdminAuthStore } from '@/stores/admin';
+import AdminAuthGuard from '@/components/admin/AdminAuthGuard';
 import { AttributesDashboardPanel } from '@/components/admin/AdminDashboardPanel/AttributesDashboardPanel';
 import { UsersDashboardPanel } from '@/components/admin/AdminDashboardPanel/UsersDashboardPanel';
 import { ListingsDashboardPanel } from '@/components/admin/AdminDashboardPanel/ListingsDashboardPanel';
 import { RolesDashboardPanel } from '@/components/admin/AdminDashboardPanel/RolesDashboardPanel';
+import { BrandsDashboardPanel } from '@/components/admin/AdminDashboardPanel/BrandsDashboardPanel';
 import { Button, Text, Container } from '@/components/slices';
 import { ArrowLeft } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -29,90 +31,90 @@ const AdminPageContent = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Dynamic Feature Registry - Now uses backend feature names
-const ADMIN_FEATURES = {
-  // User Management
-  users: {
-    component: UsersDashboardPanel,
-    title: 'إدارة المستخدمين',
-    backendFeature: 'users', // matches backend feature name
-    requiredAction: 'view' as const // requires at least view permission
-  },
+// const ADMIN_FEATURES = {
+//   // User Management
+//   users: {
+//     component: UsersDashboardPanel,
+//     title: 'إدارة المستخدمين',
+//     backendFeature: 'users', // matches backend feature name
+//     requiredAction: 'view' as const // requires at least view permission
+//   },
 
-  // Category & Attribute Management
-  categories: {
-    component: AttributesDashboardPanel,
-    title: 'إدارة التصنيفات',
-    backendFeature: 'categories',
-    requiredAction: 'view' as const
-  },
+//   // Category & Attribute Management
+//   categories: {
+//     component: AttributesDashboardPanel,
+//     title: 'إدارة التصنيفات',
+//     backendFeature: 'categories',
+//     requiredAction: 'view' as const
+//   },
 
-  attributes: {
-    component: AttributesDashboardPanel,
-    title: 'إدارة الخصائص',
-    backendFeature: 'attributes',
-    requiredAction: 'view' as const
-  },
+//   attributes: {
+//     component: AttributesDashboardPanel,
+//     title: 'إدارة الخصائص',
+//     backendFeature: 'attributes',
+//     requiredAction: 'view' as const
+//   },
 
-  // Listing Management
-  listings: {
-    component: ListingsDashboardPanel,
-    title: 'إدارة الإعلانات',
-    backendFeature: 'listings',
-    requiredAction: 'view' as const
-  },
+//   // Listing Management
+//   listings: {
+//     component: ListingsDashboardPanel,
+//     title: 'إدارة الإعلانات',
+//     backendFeature: 'listings',
+//     requiredAction: 'view' as const
+//   },
 
-  // Advertising System (for ADS_MANAGER role)
-  'ad-packages': {
-    component: AttributesDashboardPanel, // TODO: Replace with AdPackagesCRUD
-    title: 'حزم الإعلانات',
-    backendFeature: 'ad_packages',
-    requiredAction: 'view' as const
-  },
+//   // Advertising System (for ADS_MANAGER role)
+//   'ad-packages': {
+//     component: AttributesDashboardPanel, // TODO: Replace with AdPackagesCRUD
+//     title: 'حزم الإعلانات',
+//     backendFeature: 'ad_packages',
+//     requiredAction: 'view' as const
+//   },
 
-  'ad-clients': {
-    component: AttributesDashboardPanel, // TODO: Replace with AdClientsCRUD
-    title: 'عملاء الإعلانات',
-    backendFeature: 'ad_clients',
-    requiredAction: 'view' as const
-  },
+//   'ad-clients': {
+//     component: AttributesDashboardPanel, // TODO: Replace with AdClientsCRUD
+//     title: 'عملاء الإعلانات',
+//     backendFeature: 'ad_clients',
+//     requiredAction: 'view' as const
+//   },
 
-  'ad-campaigns': {
-    component: AttributesDashboardPanel, // TODO: Replace with AdCampaignsCRUD
-    title: 'حملات الإعلانات',
-    backendFeature: 'ad_campaigns',
-    requiredAction: 'view' as const
-  },
+//   'ad-campaigns': {
+//     component: AttributesDashboardPanel, // TODO: Replace with AdCampaignsCRUD
+//     title: 'حملات الإعلانات',
+//     backendFeature: 'ad_campaigns',
+//     requiredAction: 'view' as const
+//   },
 
-  'ad-reports': {
-    component: AttributesDashboardPanel, // TODO: Replace with AdReportsCRUD
-    title: 'تقارير الإعلانات',
-    backendFeature: 'ad_reports',
-    requiredAction: 'view' as const
-  },
+//   'ad-reports': {
+//     component: AttributesDashboardPanel, // TODO: Replace with AdReportsCRUD
+//     title: 'تقارير الإعلانات',
+//     backendFeature: 'ad_reports',
+//     requiredAction: 'view' as const
+//   },
 
-  // System Administration
-  roles: {
-    component: RolesDashboardPanel,
-    title: 'إدارة الأدوار',
-    backendFeature: 'roles',
-    requiredAction: 'view' as const
-  },
+//   // System Administration
+//   roles: {
+//     component: RolesDashboardPanel,
+//     title: 'إدارة الأدوار',
+//     backendFeature: 'roles',
+//     requiredAction: 'view' as const
+//   },
 
-  analytics: {
-    component: UsersDashboardPanel, // TODO: Replace with AnalyticsCRUD
-    title: 'التحليلات',
-    backendFeature: 'analytics',
-    requiredAction: 'view' as const
-  },
+//   analytics: {
+//     component: UsersDashboardPanel, // TODO: Replace with AnalyticsCRUD
+//     title: 'التحليلات',
+//     backendFeature: 'analytics',
+//     requiredAction: 'view' as const
+//   },
 
-  'audit-logs': {
-    component: UsersDashboardPanel, // TODO: Replace with AuditLogsCRUD
-    title: 'سجلات المراجعة',
-    backendFeature: 'audit_logs',
-    requiredAction: 'view' as const
-  },
+//   'audit-logs': {
+//     component: UsersDashboardPanel, // TODO: Replace with AuditLogsCRUD
+//     title: 'سجلات المراجعة',
+//     backendFeature: 'audit_logs',
+//     requiredAction: 'view' as const
+//   },
 
-} as const;
+// } as const;
 
 interface AdminPageProps {
   params: {
@@ -120,47 +122,20 @@ interface AdminPageProps {
   };
 }
 
-export default function AdminPage({ params }: AdminPageProps) {
-  const { isAuthenticated, refreshAuth, isLoading, user } = useAdminAuthStore();
+function AdminPageInner({ params }: AdminPageProps) {
+  const { user } = useAdminAuthStore();
   const permissions = usePermissions();
   const slug = params.slug || [];
   const featureName = slug[0];
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      refreshAuth();
-    }
-  }, [isAuthenticated, refreshAuth]);
 
   // Dynamic permission check using backend feature permissions
   const canAccess = useMemo(() => {
     if (!user || !featureName) return false;
 
-    const feature = ADMIN_FEATURES[featureName as keyof typeof ADMIN_FEATURES];
-    if (!feature) return false; // Unknown feature
-
-    // Check permission using backend feature system
-    return permissions.canAccess(feature.backendFeature, feature.requiredAction);
+    // Check permission directly using feature name from URL
+    // Your backend will determine if this feature exists and if user has access
+    return permissions.canView(featureName);
   }, [user, featureName, permissions]);
-
-  // Redirect to login if not authenticated
-  if (!isLoading && !isAuthenticated) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/admin/login';
-    }
-    return null;
-  }
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <Container>
-        <div className="min-h-screen flex items-center justify-center">
-          <div>جاري تحميل صفحة الإدارة...</div>
-        </div>
-      </Container>
-    );
-  }
 
   // Redirect to main dashboard if no slug
   if (slug.length === 0) {
@@ -182,12 +157,29 @@ export default function AdminPage({ params }: AdminPageProps) {
     );
   }
 
-  // Dynamic route rendering using registry
-  const feature = ADMIN_FEATURES[featureName as keyof typeof ADMIN_FEATURES];
+  // Dynamic component mapping
+  const getComponentForFeature = (featureName: string) => {
+    switch (featureName) {
+      case 'users':
+        return UsersDashboardPanel;
+      case 'roles':
+        return RolesDashboardPanel;
+      case 'listings':
+        return ListingsDashboardPanel;
+      case 'brands':
+        return BrandsDashboardPanel;
+      case 'categories':
+      case 'attributes':
+        return AttributesDashboardPanel;
+      default:
+        return null;
+    }
+  };
 
-  if (feature) {
+  const FeatureComponent = getComponentForFeature(featureName);
+
+  if (FeatureComponent) {
     // Feature exists - render it with content wrapper
-    const FeatureComponent = feature.component;
     return (
       <AdminPageContent>
         <FeatureComponent />
@@ -204,4 +196,12 @@ export default function AdminPage({ params }: AdminPageProps) {
       </AdminPageContent>
     );
   }
+}
+
+export default function AdminPage({ params }: AdminPageProps) {
+  return (
+    <AdminAuthGuard>
+      <AdminPageInner params={params} />
+    </AdminAuthGuard>
+  );
 }

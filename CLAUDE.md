@@ -3,17 +3,209 @@
 ## 🚀 **Project Overview**
 Syrian automotive marketplace frontend built with Next.js 14, focusing on performance and Arabic-first UX for Syrian internet conditions.
 
-## ✅ **Latest Session Summary (2025-09-25) - USER MANAGEMENT SYSTEM & BLOCK FUNCTIONALITY COMPLETE**
+## ✅ **Latest Session Summary (2025-09-27) - ADMIN AUTHENTICATION ARCHITECTURE REFACTORING COMPLETE**
 
-### **🏆 Major Achievement: Complete User Management System with Professional Block/Unblock Functionality**
+### **🏆 Major Achievement: Centralized Admin Authentication with Dynamic Token Management**
 
-We have successfully implemented a comprehensive user management system for admin dashboard with professional UX:
+We have successfully refactored the admin authentication system for better maintainability and performance:
 
-- **✅ USER DATA INTEGRATION**: Complete user information display in EditListingModal with backend GraphQL integration
-- **✅ PROFESSIONAL BLOCK SYSTEM**: Modal-over-modal confirmation system for blocking users with Arabic messaging
-- **✅ CLEAN ARCHITECTURE**: Separated concerns - EditListingModal handles UI, ConfirmBlockUserModal handles API calls
-- **✅ REAL BACKEND INTEGRATION**: Uses actual UPDATE_USER_MUTATION with proper state updates
-- **✅ COMPREHENSIVE UX**: User info, status badges, consequences warnings, loading states, error handling
+- **✅ LOGIN PAGE STYLING FIX**: Completed missing CSS classes causing positioning issues with error messages
+- **✅ AUTHENTICATION ARCHITECTURE REFACTOR**: Moved from scattered auth logic to centralized AdminAuthGuard component
+- **✅ DYNAMIC TOKEN MANAGEMENT**: Token expiration monitoring now handled in reusable component instead of layout
+- **✅ CLEAN SEPARATION OF CONCERNS**: Layout focused on UI structure, AdminAuthGuard handles all auth logic
+- **✅ PERFORMANCE OPTIMIZATION**: Eliminated redundant authentication checks across multiple components
+
+---
+
+## 🎯 **ADMIN AUTHENTICATION REFACTORING IMPLEMENTATION (2025-09-27)**
+
+### **🏗️ Login Page Styling Fix**
+
+#### **Problem Identified:**
+The admin login page had incomplete CSS styling causing error messages and form elements to appear in wrong positions:
+
+#### **Solution Implemented:**
+```scss
+// /app/admin/login/AdminLogin.module.scss - Added missing classes
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.credentialSelector {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-bottom: $space-md;
+}
+
+.submitButton {
+  width: 100%;
+  padding: $space-md;
+  background: $primary;
+  color: white;
+  border: none;
+  border-radius: $radius-base;
+  font-size: $font-base;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.9); // Fixed: Works with CSS variables
+    transform: translateY(-1px);
+  }
+}
+
+.backLink {
+  margin-top: $space-md;
+  text-align: center;
+}
+
+.backButton {
+  color: $text-muted;
+  text-decoration: none;
+  font-size: $font-sm;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary;
+    text-decoration: underline;
+  }
+}
+```
+
+### **🔧 Authentication Architecture Refactoring**
+
+#### **Before (Redundant & Scattered):**
+- **Layout**: 200+ lines with authentication logic, token monitoring, loading states
+- **Each Page**: Duplicate authentication checks and loading states
+- **Multiple Effects**: Same authentication logic repeated across components
+
+#### **After (Clean & Centralized):**
+- **Layout**: 62 lines, focused only on UI structure (header/navigation)
+- **AdminAuthGuard**: 96 lines, reusable authentication component
+- **Pages**: Clean and focused on their specific functionality
+
+#### **New Component: AdminAuthGuard**
+```typescript
+// /components/admin/AdminAuthGuard.tsx
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAdminAuthStore } from '@/stores/admin';
+import { TokenExpirationModal } from '@/components/admin/TokenExpirationModal';
+import { Loading } from '@/components';
+
+interface AdminAuthGuardProps {
+  children: React.ReactNode;
+}
+
+export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
+  // Authentication check
+  // Token expiration monitoring
+  // Session extension handling
+  // Loading states
+  // Redirect logic
+
+  return (
+    <>
+      {children}
+      {/* Token Expiration Modal */}
+      {isAuthenticated && user && user.tokenExpiresAt && (
+        <TokenExpirationModal
+          isVisible={isExpirationModalVisible}
+          expiresAt={user.tokenExpiresAt}
+          onExtendSession={handleExtendSession}
+          onLogout={handleLogout}
+          warningThreshold={25}
+        />
+      )}
+    </>
+  );
+}
+```
+
+#### **Updated Layout (Simplified):**
+```typescript
+// /app/admin/layout.tsx - Now only 62 lines
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/admin/login';
+  const isFeaturePage = getFeatureFromPath(pathname) !== null;
+
+  if (isLoginPage) {
+    return (
+      <>
+        <NotificationToast />
+        {children}
+      </>
+    );
+  }
+
+  if (isFeaturePage) {
+    return (
+      <>
+        <AdminHeader />
+        <NotificationToast />
+        <main>{children}</main>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <NotificationToast />
+        {children}
+      </>
+    );
+  }
+}
+```
+
+#### **Updated Pages (Clean):**
+```typescript
+// /app/admin/page.tsx - Now only 12 lines
+export default function AdminMainPage() {
+  return (
+    <AdminAuthGuard>
+      <AdminDashboard />
+    </AdminAuthGuard>
+  );
+}
+
+// /app/admin/[...slug]/page.tsx - Simplified
+export default function AdminPage({ params }: AdminPageProps) {
+  return (
+    <AdminAuthGuard>
+      <AdminPageInner params={params} />
+    </AdminAuthGuard>
+  );
+}
+```
+
+### **📊 Refactoring Benefits:**
+
+#### **🎯 Single Responsibility:**
+- **AdminAuthGuard** → All authentication concerns (login, logout, token expiration)
+- **Layout** → Only UI structure (header, navigation)
+- **Pages** → Only business logic
+
+#### **🔄 Dynamic & Reusable:**
+- Any page wrapped with `<AdminAuthGuard>` gets automatic token management
+- No need to duplicate token expiration logic
+- Consistent behavior across all admin pages
+
+#### **⚡ Performance:**
+- Token monitoring runs once per page load
+- No redundant intervals across multiple components
+- Clean component unmounting clears intervals properly
+
+#### **🛠️ Maintainable:**
+- All token expiration updates happen in one place
+- Easy to modify warning thresholds or behavior
+- Clear separation of concerns
 
 ---
 

@@ -2,7 +2,7 @@
   width: 100%;
   overflow-x: auto;
   border-radius: 8px;
-  border: 1px solid var(--border-light);
+  border: 1px solid $border;
   background: var(--background-primary);
 }
 
@@ -14,7 +14,7 @@
 
 .tableHead {
   background: var(--background-secondary);
-  border-bottom: 2px solid var(--border-light);
+  border-bottom: 2px solid $border;
 }
 
 .tableBody {
@@ -25,8 +25,8 @@
   padding: 1rem 0.75rem;
   text-align: right;
   font-weight: 600;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-light);
+  color: $text;
+  border-bottom: 1px solid $border;
   white-space: nowrap;
 
   &:first-child {
@@ -39,7 +39,7 @@
 }
 
 .tableRow {
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid $border;
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -60,18 +60,18 @@
 }
 
 .tableCell {
-  padding: 1rem 0.75rem;
+  padding: $space-sm $space-md;
   text-align: right;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-light);
+  color: $text;
+  border-bottom: 1px solid $border;
   vertical-align: middle;
 
   &:first-child {
-    padding-right: 1rem;
+    // padding-right: 1rem;
   }
 
   &:last-child {
-    padding-left: 1rem;
+    // padding-left: 1rem;
   }
 }
 

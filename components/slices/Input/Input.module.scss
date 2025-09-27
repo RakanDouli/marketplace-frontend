@@ -121,6 +121,7 @@ textarea.input {
 .customSelectWrapper {
   position: relative;
   width: 100%;
+  min-width: 150px;
 }
 
 .customSelectTrigger {
@@ -237,7 +238,6 @@ textarea.input {
   color: $text-muted;
   margin-top: $space-xs;
 }
-
 
 // select.input {
 //   background-position: right $space-sm center;

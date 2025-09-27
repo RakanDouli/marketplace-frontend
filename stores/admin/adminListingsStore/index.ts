@@ -80,6 +80,10 @@ interface AdminListingsStore {
   sortBy: string;
   sortOrder: "ASC" | "DESC";
 
+  // Caching
+  lastFetched: number | null;
+  cacheTimeout: number; // in milliseconds
+
   // CRUD operations
   loadListings: (page?: number) => Promise<void>;
   loadListingsPaginated: (
@@ -98,6 +102,11 @@ interface AdminListingsStore {
   setFilters: (filters: ListingFilterInput) => void;
   setSorting: (sortBy: string, sortOrder: "ASC" | "DESC") => void;
   clearError: () => void;
+
+  // Cache management
+  isCacheValid: () => boolean;
+  loadListingsWithCache: (page?: number, forceRefresh?: boolean) => Promise<void>;
+  invalidateCache: () => void;
 }
 
 // Helper function for API calls
@@ -143,6 +152,10 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
   filters: {},
   sortBy: "createdAt",
   sortOrder: "DESC",
+
+  // Cache state
+  lastFetched: null,
+  cacheTimeout: 5 * 60 * 1000, // 5 minutes
 
   loadListings: async (page = 1) => {
     const state = get();
@@ -256,6 +269,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
         sortOrder,
         loading: false,
         error: null,
+        lastFetched: Date.now(), // Cache timestamp
       });
     } catch (error: any) {
       console.error("Failed to load listings:", error);
@@ -294,6 +308,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
         listings: updatedListings,
         loading: false,
         error: null,
+        lastFetched: Date.now(), // Update cache timestamp since we modified data
       });
 
       return updatedListings.find((l) => l.id === id) || null;
@@ -325,6 +340,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
           ...get().pagination,
           total: get().pagination.total - 1,
         },
+        lastFetched: Date.now(), // Update cache timestamp since we modified data
       });
 
       return true;
@@ -484,5 +500,37 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
+  },
+
+  // Cache management methods
+  isCacheValid: () => {
+    const { lastFetched, cacheTimeout } = get();
+    if (!lastFetched) return false;
+    return Date.now() - lastFetched < cacheTimeout;
+  },
+
+  invalidateCache: () => {
+    set({ lastFetched: null });
+  },
+
+  loadListingsWithCache: async (page = 1, forceRefresh = false) => {
+    const state = get();
+
+    // If cache is valid and not forcing refresh, return early
+    if (!forceRefresh && state.isCacheValid() && state.listings.length > 0) {
+      console.log("🚀 Admin listings loaded from cache - no API call needed");
+      return;
+    }
+
+    console.log("🔄 Admin listings cache invalid - fetching fresh data");
+    await state.loadListingsPaginated(
+      {
+        page,
+        limit: state.pagination.limit,
+        sortBy: state.sortBy,
+        sortOrder: state.sortOrder,
+      },
+      state.filters
+    );
   },
 }));
