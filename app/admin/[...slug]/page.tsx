@@ -15,7 +15,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 // Admin Page Content - simplified without wrapper
 const AdminPageContent = ({ children }: { children: React.ReactNode }) => (
   <Container>
-    <div style={{ padding: '1rem 0' }}>
+    <div style={{ padding: '1rem 0', display: "flex", justifyContent: "flex-end" }}>
       <Button
         variant='link'
         href='/admin'
