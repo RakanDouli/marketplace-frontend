@@ -2,7 +2,12 @@
 interface CacheEntry {
   data: any;
   timestamp: number;
+  ttl: number; // Custom TTL per entry in milliseconds
   promise?: Promise<any>;
+}
+
+export interface CacheOptions {
+  ttl?: number; // Time to live in milliseconds
 }
 
 class GraphQLCache {
@@ -18,12 +23,12 @@ class GraphQLCache {
     const normalizedVariables = this.normalizeVariables(variables);
     const keyData = { query: normalizedQuery, variables: normalizedVariables };
 
-    // Log cache key creation for debugging
-    if (variables?.filter?.viewType) {
-      console.log(
-        `🔑 GraphQL Cache: Creating cache key with viewType: ${variables.filter.viewType}`
-      );
-    }
+    // // Log cache key creation for debugging
+    // if (variables?.filter?.viewType) {
+    //   console.log(
+    //     `🔑 GraphQL Cache: Creating cache key with viewType: ${variables.filter.viewType}`
+    //   );
+    // }
 
     return JSON.stringify(keyData);
   }
@@ -57,36 +62,38 @@ class GraphQLCache {
   }
 
   private isExpired(entry: CacheEntry): boolean {
-    return Date.now() - entry.timestamp > this.defaultTTL;
+    const ttl = entry.ttl || this.defaultTTL;
+    return Date.now() - entry.timestamp > ttl;
   }
 
-  async request(query: string, variables: any = {}): Promise<any> {
+  async request(query: string, variables: any = {}, options?: CacheOptions): Promise<any> {
     const key = this.createKey(query, variables);
+    const ttl = options?.ttl || this.defaultTTL;
 
-    console.log(
-      `🔍 GraphQL Cache: Checking cache for key: ${key.substring(0, 100)}...`
-    );
+    // console.log(
+    //   `🔍 GraphQL Cache: Checking cache for key: ${key.substring(0, 100)}...`
+    // );
 
     // Check if we have a valid cached response
     const cached = this.cache.get(key);
     if (cached && !this.isExpired(cached)) {
-      console.log(`✅ GraphQL Cache: Cache HIT for ${key.substring(0, 50)}...`);
+      // console.log(`✅ GraphQL Cache: Cache HIT for ${key.substring(0, 50)}...`);
       return cached.data;
     }
 
     // Check if there's already a pending request for this exact query
     const pending = this.pendingRequests.get(key);
     if (pending) {
-      console.log(
-        `⏳ GraphQL Cache: Request DEDUP for ${key.substring(0, 50)}...`
-      );
+      // console.log(
+      //   `⏳ GraphQL Cache: Request DEDUP for ${key.substring(0, 50)}...`
+      // );
       return pending;
     }
 
-    // Make the actual request
-    console.log(
-      `🚀 GraphQL Cache: Making new request for ${key.substring(0, 50)}...`
-    );
+    // // Make the actual request
+    // console.log(
+    //   `🚀 GraphQL Cache: Making new request for ${key.substring(0, 50)}...`
+    // );
     const requestPromise = this.makeRequest(query, variables);
 
     // Store the pending promise to deduplicate concurrent requests
@@ -95,22 +102,23 @@ class GraphQLCache {
     try {
       const data = await requestPromise;
 
-      // Cache the successful response
-      const cacheEntry = {
+      // Cache the successful response with custom TTL
+      const cacheEntry: CacheEntry = {
         data,
         timestamp: Date.now(),
+        ttl, // Store custom TTL with this entry
       };
       this.cache.set(key, cacheEntry);
 
-      console.log(
-        `✅ GraphQL Cache: Cached response for ${key.substring(0, 50)}...`
-      );
+      // console.log(
+      //   `✅ GraphQL Cache: Cached response for ${key.substring(0, 50)}...`
+      // );
       return data;
     } catch (error) {
-      console.error(
-        `❌ GraphQL Cache: Request failed for ${key.substring(0, 50)}...`,
-        error
-      );
+      // console.error(
+      //   `❌ GraphQL Cache: Request failed for ${key.substring(0, 50)}...`,
+      //   error
+      // );
       throw error;
     } finally {
       // Remove from pending requests
@@ -174,12 +182,12 @@ class GraphQLCache {
 
     keysToDelete.forEach((key) => {
       this.cache.delete(key);
-      console.log(
-        `🗑️ GraphQL Cache: Invalidated cache for pattern "${pattern}": ${key.substring(
-          0,
-          50
-        )}...`
-      );
+      // console.log(
+      //   `🗑️ GraphQL Cache: Invalidated cache for pattern "${pattern}": ${key.substring(
+      //     0,
+      //     50
+      //   )}...`
+      // );
     });
   }
 
@@ -199,26 +207,27 @@ export const graphqlCache = new GraphQLCache();
 if (typeof window !== "undefined") {
   setInterval(() => {
     graphqlCache.cleanup();
-    console.log("🧹 GraphQL Cache: Cleanup completed", graphqlCache.getStats());
+    // console.log("🧹 GraphQL Cache: Cleanup completed", graphqlCache.getStats());
   }, 5 * 60 * 1000);
 }
 
 // Wrapper function for easy use
 export async function cachedGraphQLRequest(
   query: string,
-  variables?: any
+  variables?: any,
+  options?: CacheOptions
 ): Promise<any> {
-  return graphqlCache.request(query, variables);
+  return graphqlCache.request(query, variables, options);
 }
 
 // Clear cache function for development/debugging
 export function clearGraphQLCache(): void {
   graphqlCache.clear();
-  console.log("🧹 GraphQL Cache: Manually cleared all cache");
+  // console.log("🧹 GraphQL Cache: Manually cleared all cache");
 }
 
 // Invalidate cache by pattern for filter/pagination changes
 export function invalidateGraphQLCache(pattern: string): void {
   graphqlCache.invalidateByPattern(pattern);
-  console.log(`🗑️ GraphQL Cache: Invalidated cache for pattern: ${pattern}`);
+  // console.log(`🗑️ GraphQL Cache: Invalidated cache for pattern: ${pattern}`);
 }
