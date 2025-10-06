@@ -9,6 +9,7 @@ import {
   DELETE_USER_MUTATION,
   RESET_PASSWORD_MUTATION,
   GET_ROLES_QUERY,
+  GET_USER_BY_ID_QUERY,
 } from "./adminUsersStore.gql";
 
 interface User {
@@ -20,8 +21,8 @@ interface User {
   accountType: string;
   sellerBadge: string | null;
   businessVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Role {
@@ -132,6 +133,7 @@ interface AdminUsersStore {
     pagination?: PaginationInput,
     filter?: UserFilterInput
   ) => Promise<void>;
+  getUserById: (id: string) => Promise<User | null>;
   loadRoles: () => Promise<void>;
   createUser: (input: CreateUserInput) => Promise<User | null>;
   updateUser: (input: UpdateUserInput) => Promise<User | null>;
@@ -277,6 +279,16 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
     } catch (error) {
       // Silently fail if user doesn't have permissions to load roles
       set({ roles: [] });
+    }
+  },
+
+  getUserById: async (id: string) => {
+    try {
+      const data = await makeGraphQLCall(GET_USER_BY_ID_QUERY, { id });
+      return data.userById || null;
+    } catch (error) {
+      console.error('Failed to fetch user by ID:', error);
+      return null;
     }
   },
 

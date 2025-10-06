@@ -10,6 +10,7 @@ import { CreateUserModal, EditUserModal, DeleteUserModal } from './modals';
 import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, RefreshCw, Edit, Trash2 } from 'lucide-react';
+import { invalidateGraphQLCache } from '@/utils/graphql-cache';
 import styles from '../AdminDashboardPanel.module.scss';
 
 interface User {
@@ -21,8 +22,8 @@ interface User {
   accountType: string;
   sellerBadge: string | null;
   businessVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const UsersDashboardPanel: React.FC = () => {
@@ -63,6 +64,9 @@ export const UsersDashboardPanel: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
+    // Invalidate users cache on mount to ensure fresh data
+    invalidateGraphQLCache('usersSearch');
+    invalidateGraphQLCache('usersCount');
     loadUsersWithCache();
     loadRoles();
   }, [loadUsersWithCache, loadRoles]);
@@ -300,7 +304,6 @@ export const UsersDashboardPanel: React.FC = () => {
                 <TableCell isHeader>الدور</TableCell>
                 <TableCell isHeader>الحالة</TableCell>
                 <TableCell isHeader>نوع الحساب</TableCell>
-                <TableCell isHeader>تاريخ الإنشاء</TableCell>
                 {(canModify || canDelete) && <TableCell isHeader>الإجراءات</TableCell>}
               </TableRow>
             </TableHead>
@@ -312,7 +315,6 @@ export const UsersDashboardPanel: React.FC = () => {
                   <TableCell>{getRoleLabel(user.role)}</TableCell>
                   <TableCell>{getStatusLabel(user.status)}</TableCell>
                   <TableCell>{getAccountTypeLabel(user.accountType)}</TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleDateString('en-US')}</TableCell>
                   {(canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>

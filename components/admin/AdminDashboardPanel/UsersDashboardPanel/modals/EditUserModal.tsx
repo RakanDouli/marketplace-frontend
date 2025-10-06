@@ -8,6 +8,7 @@ import { User, Mail, Shield, Building, Key } from 'lucide-react';
 import styles from './UserModals.module.scss';
 import { GET_USER_STATUSES_QUERY } from '@/stores/admin/adminUsersStore/adminUsersStore.gql';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
+import { useAdminUsersStore } from '@/stores/admin/adminUsersStore';
 import {
   validateUserFormEdit,
   hasValidationErrors,
@@ -24,6 +25,8 @@ interface User {
   accountType: string;
   status: string;
   sellerBadge?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface EditUserModalProps {
@@ -78,6 +81,9 @@ export function EditUserModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [userStatuses, setUserStatuses] = useState<Array<{ value: string, label: string }>>([]);
+  const [fullUserData, setFullUserData] = useState<User | null>(null);
+
+  const { getUserById } = useAdminUsersStore();
 
   // Helper function for GraphQL calls
   const makeGraphQLCall = async (query: string, variables: any = {}) => {
@@ -142,18 +148,36 @@ export function EditUserModal({
   }, []);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.name || '',
-        email: initialData.email || '',
-        role: initialData.role || 'USER',
-        accountType: initialData.accountType || 'individual',
-        status: initialData.status || 'active',
-        sellerBadge: initialData.sellerBadge || ''
-      });
-    }
-    setErrors({});
-  }, [initialData, isVisible]);
+    const fetchUserData = async () => {
+      if (initialData?.id && isVisible) {
+        // Fetch full user data with timestamps
+        const userData = await getUserById(initialData.id);
+        if (userData) {
+          setFullUserData(userData);
+          setFormData({
+            name: userData.name || '',
+            email: userData.email || '',
+            role: userData.role || 'USER',
+            accountType: userData.accountType || 'individual',
+            status: userData.status || 'active',
+            sellerBadge: userData.sellerBadge || ''
+          });
+        }
+      } else if (initialData) {
+        setFormData({
+          name: initialData.name || '',
+          email: initialData.email || '',
+          role: initialData.role || 'USER',
+          accountType: initialData.accountType || 'individual',
+          status: initialData.status || 'active',
+          sellerBadge: initialData.sellerBadge || ''
+        });
+      }
+      setErrors({});
+    };
+
+    fetchUserData();
+  }, [initialData, isVisible, getUserById]);
 
   const validateForm = () => {
     // Use our new validation system for edit mode
@@ -336,6 +360,37 @@ export function EditUserModal({
           required
           options={userStatuses}
         />
+
+        {/* Timestamps - Read Only */}
+        {fullUserData?.createdAt && (
+          <div className={styles.field}>
+            <label className={styles.label}>تاريخ الإنشاء</label>
+            <div className={styles.readOnlyField}>
+              {new Date(fullUserData.createdAt).toLocaleString('ar-EG', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          </div>
+        )}
+
+        {fullUserData?.updatedAt && (
+          <div className={styles.field}>
+            <label className={styles.label}>آخر تحديث</label>
+            <div className={styles.readOnlyField}>
+              {new Date(fullUserData.updatedAt).toLocaleString('ar-EG', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Form Actions */}
         <div className={styles.actions}>

@@ -11,8 +11,6 @@ export const GET_USERS_QUERY = `
       accountType
       sellerBadge
       businessVerified
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -28,8 +26,6 @@ export const USERS_SEARCH_QUERY = `
       accountType
       sellerBadge
       businessVerified
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -51,8 +47,6 @@ export const CREATE_USER_MUTATION = `
       accountType
       sellerBadge
       businessVerified
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -68,7 +62,6 @@ export const UPDATE_USER_MUTATION = `
       accountType
       sellerBadge
       businessVerified
-      updatedAt
     }
   }
 `;
@@ -112,5 +105,22 @@ export const GET_USER_ROLES_QUERY = `
 export const GET_ACCOUNT_TYPES_QUERY = `
   query GetAccountTypes {
     getAccountTypes
+  }
+`;
+
+export const GET_USER_BY_ID_QUERY = `
+  query GetUserById($id: ID!) {
+    userById(id: $id) {
+      id
+      email
+      name
+      role
+      status
+      accountType
+      sellerBadge
+      businessVerified
+      createdAt
+      updatedAt
+    }
   }
 `;
