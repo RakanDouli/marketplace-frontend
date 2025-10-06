@@ -21,7 +21,7 @@
   border: 1px solid $border;
   background: $bg;
   color: $text;
-  border-radius: $radius-sm;
+
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 40px;
@@ -64,7 +64,6 @@
   .pageButton {
     min-width: 36px;
     padding: $space-xs;
-    font-size: $font-xs;
   }
 
   .pageNumbers {

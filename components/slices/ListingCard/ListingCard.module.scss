@@ -129,7 +129,7 @@
   color: $text-light;
   padding: 0 $space-sm;
   border-radius: $radius-md;
-  font-size: $font-xs;
+
   backdrop-filter: blur(4px);
 }
 
@@ -211,7 +211,7 @@
   .specTextGrid {
     color: $text;
     margin: 0;
-    font-size: $font-xs;
+
     line-height: $line-tight;
   }
 }

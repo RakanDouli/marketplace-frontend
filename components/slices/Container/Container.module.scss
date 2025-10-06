@@ -13,7 +13,7 @@
   position: relative;
   width: 100%;
   padding: $space-md 0;
-  border-radius: $radius-sm;
+
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -53,7 +53,6 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1;
-  border-radius: $radius-sm;
 }
 
 .content {

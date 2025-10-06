@@ -7,7 +7,7 @@
   flex-direction: column;
   gap: $space-md;
   padding: $space-md;
-  border-radius: 0.5rem;
+  border-radius: $radius-sm;
   background: $bg;
 }
 
@@ -36,7 +36,7 @@
   flex-direction: column;
   gap: $space-md;
   padding: $space-sm;
-  border-radius: 0.5rem;
+  border-radius: $radius-sm;
   border: 1px solid $border;
 }
 
@@ -51,7 +51,7 @@
     float: right;
     padding: $space-xs $space-sm;
     border: 1px solid $border;
-    border-radius: 10px;
+    border-radius: $radius-sm;
   }
 }
 
@@ -120,7 +120,7 @@
 // 7. STATUS BADGES (generic for all status types)
 .statusBadge {
   padding: $space-sm;
-  border-radius: 0.25rem;
+  border-radius: $radius-sm;
   // font-size: 0.75rem;
   // font-weight: 500;
   text-align: center;
@@ -155,7 +155,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: $space-sm;
-  border-radius: 0.5rem;
+  border-radius: $radius-sm;
   border: 1px solid $border;
 }
 
@@ -165,7 +165,7 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.5rem;
+  border-radius: $radius-sm;
   background: var(--color-primary-subtle);
   color: var(--color-primary);
 }
@@ -248,7 +248,7 @@
   color: $primary;
   padding: $space-xs $space-sm;
   border: 1px solid $border;
-  border-radius: 10px;
+  border-radius: $radius-sm;
 }
 
 // Brand name styling
@@ -261,7 +261,7 @@
 // Source badges for brands/models
 .sourceBadge {
   padding: $space-xs $space-sm;
-  border-radius: 0.25rem;
+  border-radius: $radius-sm;
   font-size: 0.75rem;
   font-weight: 500;
   text-align: center;
@@ -319,7 +319,7 @@
 
 .nestedModalContent {
   background: $bg;
-  border-radius: 0.75rem;
+  border-radius: $radius-sm;
   padding: $space-lg;
   width: 90vw;
   max-width: 500px;
@@ -371,7 +371,7 @@
 .warningSection {
   text-align: right;
   padding: $space-sm;
-  border-radius: 0.5rem;
+  border-radius: $radius-sm;
   border: 1px solid $border;
 }
 
@@ -405,8 +405,8 @@
   display: flex;
   justify-content: space-between;
   padding: $space-xs;
-  border-radius: 0.25rem;
-  background: $bg-subtle;
+  border-radius: $radius-sm;
+  background: $bg;
 }
 
 .warningText {
@@ -434,8 +434,8 @@
 
 .brandInfo {
   padding: $space-sm;
-  border-radius: 0.5rem;
-  background: $bg-subtle;
+  border-radius: $radius-sm;
+  background: $bg;
   border: 1px solid $border;
 }
 

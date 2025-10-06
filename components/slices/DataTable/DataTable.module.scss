@@ -46,7 +46,7 @@
   gap: $space-sm;
   padding: $space-sm $space-md;
   background: $bg;
-  border-radius: $radius-sm;
+
   border: 1px solid $primary-border;
 }
 
@@ -141,7 +141,7 @@
 .checkbox {
   width: 16px;
   height: 16px;
-  border-radius: $radius-sm;
+
   border: 1px solid $border;
   cursor: pointer;
   accent-color: $primary;
@@ -166,8 +166,7 @@
   display: inline-flex;
   align-items: center;
   padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
-  font-size: $font-xs;
+
   font-weight: $weight-medium;
   white-space: nowrap;
 
@@ -272,7 +271,6 @@
   .th,
   .td {
     padding: $space-sm;
-    font-size: $font-xs;
 
     &:first-child {
       padding-right: $space-sm;

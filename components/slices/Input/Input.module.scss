@@ -170,7 +170,6 @@ textarea.input {
   z-index: 1000;
   max-height: 200px;
   overflow-y: auto;
-  margin-top: 4px;
 }
 
 .customSelectOption {
@@ -249,3 +248,103 @@ textarea.input {
 //     text-align: right;
 //   }
 // }
+
+// Switch component styles
+.switchContainer {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover .switchTrack {
+    box-shadow: 0 0 0 2px rgba($primary, 0.2);
+  }
+
+  &:active .switchTrack {
+    transform: scale(0.98);
+  }
+}
+
+.switchInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.switchTrack {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.2, 0.0, 0.3, 1);
+  cursor: pointer;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba($primary, 0.3);
+  }
+}
+
+.switchTrackOff {
+  background-color: rgba($border, 0.8);
+  border: 2px solid $border;
+
+  &:hover {
+    background-color: rgba($border, 1);
+    border-color: rgba($primary, 0.3);
+  }
+}
+
+.switchTrackOn {
+  background-color: $primary;
+  border: 2px solid $primary;
+
+  &:hover {
+    background-color: rgba($primary, 0.9);
+    border-color: $primary;
+  }
+}
+
+.switchThumb {
+  position: absolute;
+  top: 1px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.2, 0.0, 0.3, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.switchThumbOff {
+  left: 1px;
+  transform: translateX(0);
+}
+
+.switchThumbOn {
+  left: 1px;
+  transform: translateX(24px);
+}
+
+// Disabled state
+.switchContainer:has(.switchInput:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+
+  .switchTrack {
+    cursor: not-allowed;
+
+    &:hover {
+      box-shadow: none;
+      transform: none;
+    }
+  }
+}
+
+// Focus states for accessibility
+.switchContainer:focus-within .switchTrack {
+  box-shadow: 0 0 0 3px rgba($primary, 0.3);
+}

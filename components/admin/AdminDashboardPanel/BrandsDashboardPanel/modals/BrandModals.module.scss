@@ -50,7 +50,7 @@
   text-align: center;
   background: var(--background-secondary);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: $radius-sm;
 }
 
 // Table styles for models
@@ -66,7 +66,7 @@
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 500;
-  border-radius: 12px;
+  border-radius: $radius-sm;
   text-align: center;
 
   &.source-manual {
@@ -88,7 +88,7 @@
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 500;
-  border-radius: 12px;
+  border-radius: $radius-sm;
   text-align: center;
 
   &.active {
@@ -143,7 +143,7 @@
 .userInfo {
   background: var(--background-secondary);
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
   text-align: right;
@@ -170,7 +170,7 @@
 .warningBox {
   background: rgba(var(--error-color-rgb), 0.1);
   border: 1px solid var(--error-color);
-  border-radius: 6px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
   display: flex;
@@ -250,7 +250,7 @@
 .processInfo {
   background: var(--background-secondary);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
 }
@@ -282,7 +282,7 @@
 .configInfo {
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 8px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
 }
@@ -307,7 +307,7 @@
 .warningSection {
   background: rgba(var(--error-color-rgb), 0.1);
   border: 1px solid var(--error-color);
-  border-radius: 8px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
 }
@@ -321,7 +321,7 @@
 .importantNotes {
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid #f59e0b;
-  border-radius: 8px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
 }
@@ -361,7 +361,7 @@
 .brandInfo {
   background: var(--background-secondary);
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
   text-align: right;
@@ -388,7 +388,7 @@
 .alternativeSection {
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.2);
-  border-radius: 8px;
+  border-radius: $radius-sm;
   padding: 1rem;
   margin: 1rem 0;
   width: 100%;

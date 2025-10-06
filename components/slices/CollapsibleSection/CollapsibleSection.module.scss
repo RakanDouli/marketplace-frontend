@@ -1,6 +1,6 @@
 .collapsibleSection {
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  border-radius: $radius-sm;
   background-color: var(--color-background);
   margin-bottom: 1rem;
   overflow: hidden;
@@ -166,8 +166,7 @@
   padding: 0 0.5rem;
   background-color: var(--color-primary);
   color: var(--color-primary-text);
-  border-radius: 0.75rem;
-  font-size: 0.75rem;
+  border-radius: $radius-sm;
   font-weight: 600;
   line-height: 1;
   flex-shrink: 0;
@@ -272,5 +271,5 @@
 .header:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
-  border-radius: 0.25rem;
+  border-radius: $radius-sm;
 }

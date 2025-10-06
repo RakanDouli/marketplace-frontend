@@ -81,7 +81,7 @@
   font-weight: $weight-medium;
   color: $primary;
   padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
+
   transition:
     color,
     background-color,
@@ -112,7 +112,7 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: $radius-sm;
+
   color: $text-muted;
   transition:
     color,

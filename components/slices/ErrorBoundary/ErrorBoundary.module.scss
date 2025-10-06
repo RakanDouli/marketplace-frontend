@@ -91,7 +91,7 @@
 .errorSummary {
   cursor: pointer;
   padding: $space-sm;
-  border-radius: $radius-sm;
+
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -115,7 +115,7 @@
   padding: $space-sm;
   background-color: $error;
   border: 1px solid $error;
-  border-radius: $radius-sm;
+
   color: $error;
   word-break: break-word;
 }
@@ -125,10 +125,10 @@
   padding: $space-sm;
   background-color: $surface;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+
   overflow-x: auto;
   max-height: 200px;
-  font-size: $font-xs;
+
   line-height: $line-snug;
   white-space: pre-wrap;
   word-break: break-word;

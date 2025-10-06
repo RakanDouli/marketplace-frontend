@@ -1,4 +1,4 @@
-@import '/styles/variables.scss';
+@import "/styles/variables.scss";
 
 // Modal Base Styles
 .modal {
@@ -98,7 +98,6 @@
   }
 
   span:last-child {
-    font-size: $font-xs;
     color: var(--text-muted);
     text-align: center;
   }
@@ -152,7 +151,8 @@
   }
 }
 
-.input, .textarea {
+.input,
+.textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border);
@@ -187,7 +187,7 @@
 
 .helpText {
   color: var(--text-muted);
-  font-size: $font-xs;
+
   margin-top: $space-xs;
   display: block;
 }
@@ -234,7 +234,7 @@
   display: flex;
   align-items: center;
   gap: $space-xs;
-  font-size: $font-xs;
+
   color: var(--text-muted);
 
   svg {
@@ -286,7 +286,7 @@
   p {
     margin: 0;
     color: var(--text-muted);
-    font-size: $font-xs;
+
     line-height: $line-snug;
   }
 }
@@ -302,7 +302,6 @@
   }
 
   label {
-    font-size: $font-xs;
     color: var(--text-muted);
     cursor: pointer;
     margin-bottom: 0;
@@ -322,10 +321,10 @@
   gap: $space-xs;
   padding: $space-xs $space-sm;
   border: 1px solid var(--border);
-  border-radius: $radius-sm;
+
   background: var(--bg);
   color: var(--text-muted);
-  font-size: $font-xs;
+
   cursor: pointer;
   transition: all 0.2s;
 
@@ -419,7 +418,6 @@
     color: var(--error);
 
     li {
-      font-size: $font-xs;
       line-height: $line-normal;
       margin-bottom: $space-xs;
 
@@ -483,7 +481,6 @@
     span:first-child {
       width: 24px;
       height: 24px;
-      font-size: $font-xs;
     }
 
     span:last-child {

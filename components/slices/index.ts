@@ -28,3 +28,7 @@ export type { CollapsibleSectionProps } from "./CollapsibleSection";
 export { Pagination } from "./Pagination/Pagination";
 export type { PaginationProps } from "./Pagination/Pagination";
 export { Table, TableHead, TableBody, TableRow, TableCell } from "./Table";
+export { Collapsible } from "./Collapsible";
+export { SortableList, SortableItem } from "./SortableList";
+export type { SortableItemData } from "./SortableList";
+export { InlineEdit } from "./InlineEdit";

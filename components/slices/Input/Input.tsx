@@ -33,6 +33,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const [selectedValue, setSelectedValue] = useState(value);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Sync internal state with external value prop
+  useEffect(() => {
+    setSelectedValue(value);
+  }, [value]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -152,6 +157,7 @@ export interface InputProps
     | "textarea"
     | "boolean"
     | "select"
+    | "switch"
     | "date"
     | "file";
   /** Input label */
@@ -253,6 +259,57 @@ export const Input = forwardRef<
         );
       }
 
+      if (type === "switch") {
+        const switchProps = props as React.InputHTMLAttributes<HTMLInputElement>;
+        const isChecked = Boolean(switchProps.checked) || switchProps.value === 'true' || Boolean(switchProps.value);
+
+        const handleSwitchClick = (e: React.MouseEvent) => {
+          if (switchProps.disabled) return;
+
+          // Prevent event bubbling to parent elements (important for sortable lists)
+          e.preventDefault();
+          e.stopPropagation();
+
+          const syntheticEvent = {
+            target: {
+              checked: !isChecked,
+              value: !isChecked,
+              name: switchProps.name || switchProps.id || generatedId,
+              type: 'checkbox'
+            } as unknown as HTMLInputElement,
+            preventDefault: () => {
+              // No-op for synthetic event
+            },
+            stopPropagation: () => {
+              // No-op for synthetic event
+            }
+          } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+          handleChange(syntheticEvent);
+        };
+
+        return (
+          <div className={styles.switchContainer} onClick={handleSwitchClick}>
+            <input
+              ref={ref as React.RefObject<HTMLInputElement>}
+              type="checkbox"
+              className={styles.switchInput}
+              checked={isChecked}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onChange={() => {}} // Prevent default checkbox behavior
+              id={switchProps.id || switchProps.name || generatedId}
+              name={switchProps.name || switchProps.id || generatedId}
+              disabled={switchProps.disabled}
+              tabIndex={-1} // Remove from tab order since container handles click
+            />
+            <div className={`${styles.switchTrack} ${isChecked ? styles.switchTrackOn : styles.switchTrackOff}`}>
+              <div className={`${styles.switchThumb} ${isChecked ? styles.switchThumbOn : styles.switchThumbOff}`} />
+            </div>
+          </div>
+        );
+      }
+
       if (type === "textarea") {
         const textareaProps = props as React.TextareaHTMLAttributes<HTMLTextAreaElement>;
         return (
@@ -271,14 +328,19 @@ export const Input = forwardRef<
       }
 
       if (type === "select") {
+        const selectProps = props as React.SelectHTMLAttributes<HTMLSelectElement>;
+
         return <CustomSelect
           options={options}
           inputClasses={inputClasses}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           onChange={handleChange}
           generatedId={generatedId}
-          {...(props as React.SelectHTMLAttributes<HTMLSelectElement>)}
+          value={typeof selectProps.value === 'string' ? selectProps.value : undefined}
+          disabled={selectProps.disabled}
+          name={selectProps.name}
+          id={selectProps.id}
+          onFocus={() => handleFocus()}
+          onBlur={() => handleBlur()}
         />;
       }
 
@@ -299,7 +361,7 @@ export const Input = forwardRef<
     };
 
     return (
-      <div className={styles.inputGroup}>
+      <div className={`${styles.inputGroup} ${className}`.trim()}>
         {label && (
           <label
             className={styles.label}
