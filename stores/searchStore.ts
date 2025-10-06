@@ -91,7 +91,6 @@ const initialFilters: SearchFilters = {
   limit: 20,
 };
 
-
 const initialState: SearchState = {
   appliedFilters: initialFilters,
   draftFilters: initialFilters,
@@ -175,7 +174,7 @@ export const useSearchStore = create<SearchStore>()(
     clearAllFilters: () => {
       set({
         appliedFilters: initialFilters,
-        draftFilters: initialFilters
+        draftFilters: initialFilters,
       });
     },
 
@@ -270,7 +269,10 @@ export const useSearchStore = create<SearchStore>()(
     // Check if search draft has changes
     hasSearchDraftChanges: () => {
       const { appliedFilters, draftFilters } = get();
-      return (appliedFilters.search || "").trim() !== (draftFilters.search || "").trim();
+      return (
+        (appliedFilters.search || "").trim() !==
+        (draftFilters.search || "").trim()
+      );
     },
 
     // === BACKEND CONVERSION ===
@@ -284,10 +286,21 @@ export const useSearchStore = create<SearchStore>()(
         backendFilters.categoryId = appliedFilters.categoryId;
       }
 
-      // Handle location filter: province (frontend) maps to location (backend specs)
-      if (appliedFilters.province) {
-        if (!backendFilters.specs) backendFilters.specs = {};
-        backendFilters.specs.location = appliedFilters.province;
+      // Handle location filter: province and city as top-level filters (new location JSONB structure)
+      // Extract from specs.location if present, otherwise use top-level province
+      const provinceValue = appliedFilters.specs?.location || appliedFilters.province;
+      if (provinceValue) {
+        backendFilters.province = provinceValue;
+      }
+      if (appliedFilters.city) {
+        backendFilters.city = appliedFilters.city;
+      }
+
+      // Handle seller type as top-level filter
+      // Extract from specs.sellerType if present, otherwise use top-level sellerType
+      const sellerTypeValue = appliedFilters.specs?.sellerType || appliedFilters.sellerType;
+      if (sellerTypeValue) {
+        backendFilters.sellerType = sellerTypeValue;
       }
 
       // Handle brandId and modelId (legacy top-level filters now moved to specs)
@@ -300,12 +313,18 @@ export const useSearchStore = create<SearchStore>()(
         backendFilters.specs.modelId = appliedFilters.modelId;
       }
 
-      // Convert specs to backend format
-      if (appliedFilters.specs && Object.keys(appliedFilters.specs).length > 0) {
+      // Convert specs to backend format (exclude location since it's sent as top-level province)
+      if (
+        appliedFilters.specs &&
+        Object.keys(appliedFilters.specs).length > 0
+      ) {
         const specs: Record<string, any> = { ...backendFilters.specs };
 
         Object.entries(appliedFilters.specs).forEach(([key, value]) => {
-          specs[key] = value;
+          // Skip location and sellerType - they're already handled as top-level filters
+          if (key !== 'location' && key !== 'sellerType') {
+            specs[key] = value;
+          }
         });
 
         if (Object.keys(specs).length > 0) {
@@ -313,6 +332,7 @@ export const useSearchStore = create<SearchStore>()(
         }
       }
 
+      // console.log("🔍 getBackendFilters returning:", backendFilters);
       return backendFilters;
     },
 
@@ -336,13 +356,21 @@ export const useSearchStore = create<SearchStore>()(
         storeFilters.priceCurrency = appliedFilters.priceCurrency;
       }
 
-      // Location filters
-      if (appliedFilters.province) {
-        if (!storeFilters.specs) storeFilters.specs = {};
-        storeFilters.specs.location = appliedFilters.province;
+      // Location filters (top-level for new JSONB structure)
+      // Extract from specs.location if present, otherwise use top-level province
+      const provinceValue = appliedFilters.specs?.location || appliedFilters.province;
+      if (provinceValue) {
+        storeFilters.province = provinceValue;
       }
       if (appliedFilters.city) {
         storeFilters.city = appliedFilters.city;
+      }
+
+      // Seller type (top-level filter)
+      // Extract from specs.sellerType if present, otherwise use top-level sellerType
+      const sellerTypeValue = appliedFilters.specs?.sellerType || appliedFilters.sellerType;
+      if (sellerTypeValue) {
+        storeFilters.sellerType = sellerTypeValue;
       }
 
       // Brand/Model
@@ -355,27 +383,23 @@ export const useSearchStore = create<SearchStore>()(
         storeFilters.specs.modelId = appliedFilters.modelId;
       }
 
-      // Search
-      if (appliedFilters.search) {
-        storeFilters.search = appliedFilters.search;
-      }
-
-      // Seller type
-      if (appliedFilters.sellerType) {
-        storeFilters.sellerType = appliedFilters.sellerType;
-      }
-
       // Sort
       if (appliedFilters.sort) {
         storeFilters.sort = appliedFilters.sort;
       }
 
-      // Convert specs
-      if (appliedFilters.specs && Object.keys(appliedFilters.specs).length > 0) {
+      // Convert specs (exclude location since it's sent as top-level province)
+      if (
+        appliedFilters.specs &&
+        Object.keys(appliedFilters.specs).length > 0
+      ) {
         const specs: Record<string, any> = { ...storeFilters.specs };
 
         Object.entries(appliedFilters.specs).forEach(([key, value]) => {
-          specs[key] = value;
+          // Skip location and sellerType - they're already handled as top-level filters
+          if (key !== 'location' && key !== 'sellerType') {
+            specs[key] = value;
+          }
         });
 
         if (Object.keys(specs).length > 0) {
@@ -383,6 +407,7 @@ export const useSearchStore = create<SearchStore>()(
         }
       }
 
+      // console.log("🔍 getStoreFilters returning:", storeFilters);
       return storeFilters;
     },
 
@@ -392,7 +417,8 @@ export const useSearchStore = create<SearchStore>()(
       const params = new URLSearchParams();
 
       if (appliedFilters.search) params.set("search", appliedFilters.search);
-      if (appliedFilters.province) params.set("location", appliedFilters.province);
+      if (appliedFilters.province)
+        params.set("location", appliedFilters.province);
       if (appliedFilters.city) params.set("city", appliedFilters.city);
       if (appliedFilters.priceMinMinor)
         params.set("minPrice", (appliedFilters.priceMinMinor / 100).toString());
@@ -425,18 +451,19 @@ export const useSearchStore = create<SearchStore>()(
         newFilters.province = searchParams.get("location")!;
       if (searchParams.get("province"))
         newFilters.province = searchParams.get("province")!;
-      if (searchParams.get("city"))
-        newFilters.city = searchParams.get("city")!;
+      if (searchParams.get("city")) newFilters.city = searchParams.get("city")!;
       if (searchParams.get("minPrice"))
-        newFilters.priceMinMinor = parseFloat(searchParams.get("minPrice")!) * 100;
+        newFilters.priceMinMinor =
+          parseFloat(searchParams.get("minPrice")!) * 100;
       if (searchParams.get("maxPrice"))
-        newFilters.priceMaxMinor = parseFloat(searchParams.get("maxPrice")!) * 100;
+        newFilters.priceMaxMinor =
+          parseFloat(searchParams.get("maxPrice")!) * 100;
       if (searchParams.get("page"))
         newFilters.page = parseInt(searchParams.get("page")!);
 
       set({
         appliedFilters: newFilters,
-        draftFilters: { ...newFilters }
+        draftFilters: { ...newFilters },
       });
     },
 
@@ -456,7 +483,7 @@ export const useSearchStore = create<SearchStore>()(
     resetToDefaults: () => {
       set({
         appliedFilters: initialFilters,
-        draftFilters: initialFilters
+        draftFilters: initialFilters,
       });
     },
   }))

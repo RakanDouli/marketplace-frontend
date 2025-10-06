@@ -67,11 +67,11 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   // Fetch listings when component mounts or category changes
   useEffect(() => {
     const fetchInitialListings = async () => {
-      console.log("🔍 ListingArea useEffect: Attempting to fetch listings", {
-        categorySlug,
-        viewType,
-        hasFunction: !!fetchListingsByCategory,
-      });
+      // console.log("🔍 ListingArea useEffect: Attempting to fetch listings", {
+      //   categorySlug,
+      //   viewType,
+      //   hasFunction: !!fetchListingsByCategory,
+      // });
 
       if (!categorySlug) {
         console.log("❌ No categorySlug available");
@@ -140,10 +140,10 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
           currentViewType === "grid"
             ? attribute.showInGrid === true
             : currentViewType === "list"
-            ? attribute.showInList === true
-            : currentViewType === "detail"
-            ? attribute.showInDetail === true
-            : true; // Default to show if view type not recognized
+              ? attribute.showInList === true
+              : currentViewType === "detail"
+                ? attribute.showInDetail === true
+                : true; // Default to show if view type not recognized
 
         if (shouldShow) {
           filteredSpecs[specKey] = specValue;
@@ -175,17 +175,17 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     const displayCurrency = listing.prices?.[0]?.currency || "USD";
 
     // Log specs for debugging view-specific filtering
-    if (Object.keys(allSpecs).length > 0) {
-      console.log(`📋 ListingArea: Frontend view filtering for ${viewType}:`, {
-        listingId: listing.id,
-        viewType,
-        originalSpecsCount: Object.keys(allSpecs).length,
-        filteredSpecsCount: Object.keys(viewFilteredSpecs).length,
-        originalSpecs: Object.keys(allSpecs),
-        filteredSpecs: Object.keys(viewFilteredSpecs),
-        attributesAvailable: attributes?.length || 0,
-      });
-    }
+    // if (Object.keys(allSpecs).length > 0) {
+    //   console.log(`📋 ListingArea: Frontend view filtering for ${viewType}:`, {
+    //     listingId: listing.id,
+    //     viewType,
+    //     originalSpecsCount: Object.keys(allSpecs).length,
+    //     filteredSpecsCount: Object.keys(viewFilteredSpecs).length,
+    //     originalSpecs: Object.keys(allSpecs),
+    //     filteredSpecs: Object.keys(viewFilteredSpecs),
+    //     attributesAvailable: attributes?.length || 0,
+    //   });
+    // }
 
     return {
       id: listing.id,
@@ -197,8 +197,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
         listing.sellerType === "PRIVATE"
           ? "private"
           : listing.sellerType === "DEALER"
-          ? "dealer"
-          : "business",
+            ? "dealer"
+            : "business",
       specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags
       images: listing.imageKeys || [],
       isLiked: false, // TODO: Get from user favorites
@@ -274,18 +274,16 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
 
           <div className={styles.viewToggle}>
             <button
-              className={`${styles.viewButton} ${
-                viewMode === "grid" ? styles.active : ""
-              }`}
+              className={`${styles.viewButton} ${viewMode === "grid" ? styles.active : ""
+                }`}
               onClick={() => handleViewModeChange("grid")}
               aria-label="Grid view"
             >
               <Grid3X3 size={20} />
             </button>
             <button
-              className={`${styles.viewButton} ${
-                viewMode === "list" ? styles.active : ""
-              }`}
+              className={`${styles.viewButton} ${viewMode === "list" ? styles.active : ""
+                }`}
               onClick={() => handleViewModeChange("list")}
               aria-label="List view"
             >
@@ -369,9 +367,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                 pages.push(
                   <button
                     key={1}
-                    className={`${styles.pageButton} ${
-                      currentPage === 1 ? styles.active : ""
-                    }`}
+                    className={`${styles.pageButton} ${currentPage === 1 ? styles.active : ""
+                      }`}
                     onClick={() => handlePageChange(1)}
                   >
                     1
@@ -391,9 +388,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                 pages.push(
                   <button
                     key={i}
-                    className={`${styles.pageButton} ${
-                      currentPage === i ? styles.active : ""
-                    }`}
+                    className={`${styles.pageButton} ${currentPage === i ? styles.active : ""
+                      }`}
                     onClick={() => handlePageChange(i)}
                   >
                     {i}
@@ -413,9 +409,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                 pages.push(
                   <button
                     key={totalPages}
-                    className={`${styles.pageButton} ${
-                      currentPage === totalPages ? styles.active : ""
-                    }`}
+                    className={`${styles.pageButton} ${currentPage === totalPages ? styles.active : ""
+                      }`}
                     onClick={() => handlePageChange(totalPages)}
                   >
                     {totalPages}

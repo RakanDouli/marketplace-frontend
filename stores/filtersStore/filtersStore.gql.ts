@@ -12,7 +12,9 @@ export const GET_CATEGORY_ATTRIBUTES_QUERY = `
       validation
       sortOrder
       group
+      groupOrder
       isActive
+      isGlobal
       showInGrid
       showInList
       showInDetail
@@ -50,6 +52,10 @@ export const GET_LISTING_AGGREGATIONS_QUERY = `
   query GetListingAggregations($filter: ListingFilterInput) {
     listingsAggregations(filter: $filter) {
       totalResults
+      provinces {
+        value
+        count
+      }
       attributes {
         field
         totalCount

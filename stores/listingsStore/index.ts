@@ -210,9 +210,14 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       }
 
       // Location filters
+      if (finalFilters.province) {
+        graphqlFilter.province = finalFilters.province;
+      }
       if (finalFilters.city) {
         graphqlFilter.city = finalFilters.city;
       }
+
+      // Seller type filter
       if (finalFilters.sellerType) {
         graphqlFilter.sellerType = finalFilters.sellerType;
       }

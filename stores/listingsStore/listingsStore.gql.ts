@@ -11,8 +11,10 @@ export const LISTINGS_GRID_QUERY = `
       imageKeys
       categoryId
       sellerType
-      city
-      province
+      location {
+        province
+        city
+      }
       specs
       specsDisplay
       prices {
@@ -38,8 +40,10 @@ export const LISTINGS_LIST_QUERY = `
       createdAt
       categoryId
       sellerType
-      city
-      province
+      location {
+        province
+        city
+      }
       specs
       specsDisplay
       prices {
@@ -66,8 +70,16 @@ export const LISTINGS_DETAIL_QUERY = `
       createdAt
       categoryId
       sellerType
-      city
-      province
+      location {
+        province
+        city
+        area
+        link
+        coordinates {
+          lat
+          lng
+        }
+      }
       specs
       specsDisplay
       prices {
@@ -94,8 +106,16 @@ export const LISTINGS_SEARCH_QUERY = `
       createdAt
       categoryId
       sellerType
-      city
-      province
+      location {
+        province
+        city
+        area
+        link
+        coordinates {
+          lat
+          lng
+        }
+      }
       specs
       specsDisplay
       prices {

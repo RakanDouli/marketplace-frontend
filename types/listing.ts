@@ -5,17 +5,29 @@ export interface Price {
   currency: string;
 }
 
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface Location {
+  province?: string;
+  city?: string;
+  area?: string;
+  link?: string;
+  coordinates?: Coordinates;
+}
+
 export interface Listing {
   id: string;
   title: string;
   description?: string;
   priceMinor: number; // Backend stores price in cents (USD)
   prices: Price[]; // Calculated price array for display
+  location?: Location; // Location JSONB object (new structure)
+  // Legacy fields for backward compatibility (deprecated)
   province?: string;
-  city: string;
-  area?: string;
-  country: string;
-  locationLink?: string;
+  city?: string;
   status: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "SOLD" | "SOLD_VIA_PLATFORM" | "HIDDEN";
   allowBidding: boolean;
   biddingStartPrice?: number;
@@ -26,8 +38,6 @@ export interface Listing {
   sellerLabel?: string;
   sellerBadge?: string;
   sellerType?: "PRIVATE" | "DEALER" | "BUSINESS"; // Updated to match backend
-  lat?: number;
-  lng?: number;
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -95,8 +105,9 @@ export interface Attribute {
     | "DATE_RANGE"
     | "BOOLEAN";
   validation: "REQUIRED" | "OPTIONAL";
-  sortOrder: number;
-  group: string | null;
+  sortOrder: number; // Order within group (or standalone position)
+  group: string | null; // Group name (null = standalone)
+  groupOrder: number; // Order of the group itself in the filter list
   isActive: boolean;
   maxSelections?: number | null; // Maximum selections for multi-selector types
   // Display Control Flags for View-Specific Filtering

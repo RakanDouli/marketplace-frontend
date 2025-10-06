@@ -43,7 +43,8 @@ export const useFilterActions = (categorySlug: string | null) => {
       isArray: Array.isArray(value),
     });
 
-    // Set the spec filter in store - store values directly, not wrapped in objects
+    // All SELECTOR attributes go to specs
+    // NOTE: Location will be extracted from specs and sent as top-level province in Filter.tsx submission
     setSpecFilter(attributeKey, value);
 
     // Apply filters with store coordination

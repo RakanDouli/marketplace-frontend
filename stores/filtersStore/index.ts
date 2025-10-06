@@ -101,11 +101,11 @@ async function getListingAggregations(
   attributes: Record<string, Record<string, number>>;
   rawAggregations?: any; // Keep raw data for brandId/modelId
 }> {
-  console.log(
-    "🎯 Getting backend aggregations for:",
-    categorySlug,
-    additionalFilter
-  );
+  // console.log(
+  //   "🎯 Getting backend aggregations for:",
+  //   categorySlug,
+  //   additionalFilter
+  // );
 
   const query = GET_LISTING_AGGREGATIONS_QUERY;
 
@@ -137,11 +137,9 @@ async function getListingAggregations(
   (aggregations.attributes || []).forEach((attr: any) => {
     attributes[attr.field] = {};
     (attr.options || []).forEach((option: any) => {
-      // For brandId/modelId, use key field; for others, use value field
-      const lookupKey =
-        attr.field === "brandId" || attr.field === "modelId"
-          ? option.key || option.value
-          : option.value;
+      // Always use option.key for consistency (English keys like "damascus", "dealer", etc.)
+      // This matches with backendOption.key used in line 251
+      const lookupKey = option.key || option.value;
       attributes[attr.field][lookupKey] = option.count;
     });
   });
@@ -157,7 +155,21 @@ async function getListingAggregations(
     }
   });
 
-  console.log("🚀 Using optimized backend aggregations with direct field queries");
+  // Add provinces aggregation as "location" attribute
+  // Provinces come from JSONB location column, not from attributes table
+  if (aggregations.provinces && aggregations.provinces.length > 0) {
+    attributes["location"] = {};
+    aggregations.provinces.forEach((province: any) => {
+      attributes["location"][province.value] = province.count;
+    });
+    console.log("🌍 Province aggregations added:", attributes["location"]);
+  } else {
+    console.warn("⚠️ No provinces in aggregations:", aggregations.provinces);
+  }
+
+  // console.log(
+  //   "🚀 Using optimized backend aggregations with direct field queries"
+  // );
 
   // Return unified attributes structure
   return {
@@ -191,6 +203,15 @@ async function getAllFilterData(categorySlug: string) {
 
   const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
 
+  console.log('🔍 DEBUG: Raw attributes from backend:', rawAttributes.map(a => ({
+    key: a.key,
+    name: a.name,
+    type: a.type,
+    showInFilter: a.showInFilter,
+    group: a.group,
+    groupOrder: a.groupOrder
+  })));
+
   // All specs (including brandId, modelId) are handled through dynamic attributes with counts from aggregations
 
   // Get aggregations from backend (excludes zero counts)
@@ -221,18 +242,13 @@ async function getAllFilterData(categorySlug: string) {
         }
       } else {
         // Regular attributes - use existing options with counts from aggregation
+        // Use backendOption.key (English key like "damascus") to match aggregation keys
         processedOptions = (attr.options || []).map((backendOption) => ({
           ...backendOption, // Include all required fields from AttributeOption
           count:
-            aggregations.attributes?.[attr.key]?.[backendOption.value] || 0, // Add count from backend aggregation, fallback to 0
+            aggregations.attributes?.[attr.key]?.[backendOption.key] || 0, // Add count from backend aggregation, fallback to 0
         }));
       }
-
-      // console.log(`🔍 Processing attribute: ${attr.key}`, {
-      //   optionsCount: processedOptions.length,
-      //   hasAggregationData: !!aggregations.attributes?.[attr.key],
-      //   sampleOptions: processedOptions.slice(0, 2),
-      // });
 
       return {
         ...attr,
@@ -303,10 +319,11 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             }
           } else {
             // Regular attributes - use existing options with fresh counts
+            // Use backendOption.key (English key like "damascus") to match aggregation keys
             processedOptions = (attr.options || []).map((backendOption) => ({
               ...backendOption,
               count:
-                aggregations.attributes?.[attr.key]?.[backendOption.value] || 0,
+                aggregations.attributes?.[attr.key]?.[backendOption.key] || 0,
             }));
           }
 
@@ -343,6 +360,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         validation: attr.validation,
         sortOrder: attr.sortOrder,
         group: attr.group,
+        groupOrder: attr.groupOrder, // ← Added groupOrder
         isActive: attr.isActive,
         showInGrid: attr.showInGrid,
         showInList: attr.showInList,
@@ -360,7 +378,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         },
       };
 
-      console.log("🏛️ All filters handled through unified attributes array");
+      // console.log("🏛️ All filters handled through unified attributes array");
       set({
         attributes: filterData.attributes,
         totalResults: filterData.totalResults || 0, // Store totalResults from getAllFilterData
@@ -453,11 +471,12 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             }
           } else {
             // Regular attributes - use existing options with counts from cascading aggregation
+            // Use backendOption.key (English key like "damascus") to match aggregation keys
             processedOptions = (attr.options || []).map((backendOption) => ({
               ...backendOption, // Include all required fields from AttributeOption
               count:
                 cascadingAggregations.attributes?.[attr.key]?.[
-                  backendOption.value
+                  backendOption.key
                 ] || 0,
             }));
           }
@@ -549,9 +568,9 @@ export const useFiltersError = () => useFiltersStore((state) => state.error);
 // Helper selectors for common attributes (extracted from unified attributes array)
 export const useLocationAttribute = () =>
   useFiltersStore((state) =>
-    state.attributes.find(attr => attr.key === 'location')
+    state.attributes.find((attr) => attr.key === "location")
   );
 export const useSellerTypeAttribute = () =>
   useFiltersStore((state) =>
-    state.attributes.find(attr => attr.key === 'sellerType')
+    state.attributes.find((attr) => attr.key === "sellerType")
   );

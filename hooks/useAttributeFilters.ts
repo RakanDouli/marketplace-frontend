@@ -8,15 +8,21 @@ export const useAttributeFilters = () => {
   const { appliedFilters } = useSearchStore();
   const { attributes } = useFiltersStore();
 
-  // Get filtered attributes for rendering
+  // Get filtered attributes for rendering - use backend order (groupOrder already sorted by backend)
   const getFilterableAttributes = () => {
-    return attributes.filter(
-      (attr) =>
-        attr.type === "SELECTOR" ||
-        attr.type === "MULTI_SELECTOR" ||
-        attr.type === "RANGE" ||
-        attr.type === "CURRENCY"
-    );
+    const filtered = attributes
+      .filter(
+        (attr) =>
+          attr.showInFilter && // Only show attributes marked for filters
+          (attr.type === "SELECTOR" ||
+            attr.type === "MULTI_SELECTOR" ||
+            attr.type === "RANGE" ||
+            attr.type === "CURRENCY" ||
+            attr.type === "TEXT") // Include TEXT type for search fields (uppercase from backend)
+      );
+
+    return filtered;
+    // No sorting - backend already returns attributes in correct order
   };
 
   // Check if an option is selected for single selector
