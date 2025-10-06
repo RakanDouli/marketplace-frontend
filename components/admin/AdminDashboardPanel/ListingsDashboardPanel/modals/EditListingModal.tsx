@@ -36,21 +36,21 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
   // Fetch detailed listing data from backend
-  useEffect(() => {
-    const fetchListingDetails = async () => {
-      setLoadingDetails(true);
-      try {
-        const fullListing = await getListingById(listing.id);
-        setDetailedListing(fullListing);
-      } catch (error) {
-        console.error('Failed to fetch listing details:', error);
-        // Fallback to basic listing data if API fails
-        setDetailedListing(listing);
-      } finally {
-        setLoadingDetails(false);
-      }
-    };
+  const fetchListingDetails = async () => {
+    setLoadingDetails(true);
+    try {
+      const fullListing = await getListingById(listing.id);
+      setDetailedListing(fullListing);
+    } catch (error) {
+      console.error('Failed to fetch listing details:', error);
+      // Fallback to basic listing data if API fails
+      setDetailedListing(listing);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
+  useEffect(() => {
     fetchListingDetails();
   }, [listing.id, getListingById]);
 
@@ -396,6 +396,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
         onClose={() => setBlockModalVisible(false)}
         user={selectedUser}
         isBlocking={blockAction === 'block'}
+        onSuccess={fetchListingDetails}
       />
     </Modal>
   );

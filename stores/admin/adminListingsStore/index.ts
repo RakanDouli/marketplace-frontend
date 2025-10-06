@@ -395,12 +395,12 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
         sellerType: listingData.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
         sellerLabel: listingData.sellerLabel || "",
         sellerBadge: listingData.sellerBadge || "",
-        province: listingData.province || "",
-        city: listingData.city || "",
-        area: listingData.area || "",
-        locationLink: listingData.locationLink || "",
-        lat: listingData.lat || null,
-        lng: listingData.lng || null,
+        province: listingData.location?.province || "",
+        city: listingData.location?.city || "",
+        area: listingData.location?.area || "",
+        locationLink: listingData.location?.link || "",
+        lat: listingData.location?.coordinates?.lat || null,
+        lng: listingData.location?.coordinates?.lng || null,
         biddingStartPrice: listingData.biddingStartPrice || null,
         country: "Syria", // Default for Syrian marketplace
         prices: listingData.prices || [

@@ -3,6 +3,7 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button } from '@/components/slices/Button/Button';
 import { Text } from '@/components/slices/Text/Text';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
+import { useNotificationStore } from '@/stores';
 import styles from './ConfirmBlockUserModal.module.scss';
 
 interface ConfirmBlockUserModalProps {
@@ -15,6 +16,7 @@ interface ConfirmBlockUserModalProps {
     status: string;
   } | null;
   isBlocking: boolean; // true for block, false for unblock
+  onSuccess?: () => void; // Callback after successful block/unblock
 }
 
 export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
@@ -22,9 +24,11 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
   onClose,
   user,
   isBlocking,
+  onSuccess,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { updateUser } = useAdminListingsStore();
+  const { addNotification } = useNotificationStore();
 
   const handleConfirm = async () => {
     if (!user) return;
@@ -38,20 +42,37 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
         const message = isBlocking
           ? 'تم حظر المستخدم بنجاح'
           : 'تم إلغاء حظر المستخدم بنجاح';
-        alert(message);
+
+        addNotification({
+          type: 'success',
+          message,
+          duration: 5000,
+        });
+
         onClose();
+        onSuccess?.(); // Call the success callback to refresh the listing
       } else {
         const errorMessage = isBlocking
           ? 'فشل في حظر المستخدم'
           : 'فشل في إلغاء حظر المستخدم';
-        alert(errorMessage);
+
+        addNotification({
+          type: 'error',
+          message: errorMessage,
+          duration: 5000,
+        });
       }
     } catch (error) {
       console.error('Error updating user status:', error);
       const errorMessage = isBlocking
         ? 'فشل في حظر المستخدم'
         : 'فشل في إلغاء حظر المستخدم';
-      alert(errorMessage);
+
+      addNotification({
+        type: 'error',
+        message: errorMessage,
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }

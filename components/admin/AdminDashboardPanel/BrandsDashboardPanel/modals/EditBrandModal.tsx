@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Input, Text, Loading } from '@/components/slices';
+import { Modal, Button, Input, Text, Loading, InlineEdit } from '@/components/slices';
 import { Table, TableHead, TableBody, TableRow, TableCell } from '@/components/slices';
 import { useBrandsStore } from '@/stores/admin/adminBrandsStore';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -96,9 +96,7 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
 
   // Inline editing state for models
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
-  const [editingModelData, setEditingModelData] = useState<{ name: string, status: string }>({ name: '', status: 'active' });
   const [addingNewModel, setAddingNewModel] = useState(false);
-  const [newModelData, setNewModelData] = useState<{ name: string, status: string }>({ name: '', status: 'active' });
   const [modelValidationErrors, setModelValidationErrors] = useState<Record<string, string>>({});
 
   // Delete model modal state
@@ -146,49 +144,26 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
   };
 
   // Handle inline model editing
-  const startEditingModel = (model: Model) => {
-    setEditingModelId(model.id);
-    setEditingModelData({
-      name: model.name,
-      status: model.status
-    });
-    setModelValidationErrors({});
-  };
-
-  const cancelEditingModel = () => {
-    setEditingModelId(null);
-    setEditingModelData({ name: '', status: 'active' });
-    setModelValidationErrors({});
-  };
-
-  const saveModelEdit = () => {
-    console.log('saveModelEdit 1');
-    if (!editingModelId) return;
-    console.log('saveModelEdit 2');
-    // Basic validation
-    if (!editingModelData.name.trim()) {
-      setModelValidationErrors({ name: 'اسم الموديل مطلوب' });
-      return;
-    }
-    console.log('saveModelEdit 3');
+  const handleModelNameSave = (modelId: string, newName: string) => {
     // Update local state only - no API call
     const updatedModels = localModels.map(model =>
-      model.id === editingModelId
+      model.id === modelId
         ? {
           ...model,
-          name: editingModelData.name,
-          status: editingModelData.status as 'active' | 'archived',
-          isActive: editingModelData.status === 'active',
+          name: newName,
           isModified: true // Flag to identify modified models when saving
         }
         : model
     );
-    console.log('saveModelEdit 4');
-    // Update local models state
     setLocalModels(updatedModels);
-
     setEditingModelId(null);
-    setModelValidationErrors({});
+  };
+
+  const validateModelName = (name: string) => {
+    if (!name.trim()) {
+      return 'اسم الموديل مطلوب';
+    }
+    return null;
   };
 
   // Brand alias management
@@ -212,36 +187,28 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
   // Handle adding new model
   const startAddingNewModel = () => {
     setAddingNewModel(true);
-    setNewModelData({ name: '', status: 'active' });
     setModelValidationErrors({});
   };
 
   const cancelAddingNewModel = () => {
     setAddingNewModel(false);
-    setNewModelData({ name: '', status: 'active' });
     setModelValidationErrors({});
   };
 
-  const saveNewModel = () => {
-    console.log('Adding new model with data:', newModelData);
+  const saveNewModel = (modelName: string) => {
+    console.log('Adding new model with name:', modelName);
     if (!initialData) return;
-
-    // Basic validation
-    if (!newModelData.name.trim()) {
-      setModelValidationErrors({ name: 'اسم الموديل مطلوب' });
-      return;
-    }
 
     // Create temporary model with local ID
     const tempModel = {
       id: `temp_${Date.now()}`, // Temporary ID
       brandId: initialData.id,
-      name: newModelData.name,
-      slug: newModelData.name.toLowerCase().replace(/\s+/g, '-'),
-      externalId: newModelData.name.toLowerCase().replace(/\s+/g, '-'),
+      name: modelName,
+      slug: modelName.toLowerCase().replace(/\s+/g, '-'),
+      externalId: modelName.toLowerCase().replace(/\s+/g, '-'),
       source: 'manual' as const,
-      status: newModelData.status as 'active' | 'archived',
-      isActive: newModelData.status === 'active',
+      status: 'active' as const,
+      isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isNew: true // Flag to identify new models when saving
@@ -251,9 +218,7 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
 
     // Add to local state only - no API call
     setLocalModels([...localModels, tempModel]);
-
     setAddingNewModel(false);
-    setNewModelData({ name: '', status: 'active' });
     setModelValidationErrors({});
   };
 
@@ -392,9 +357,7 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
 
     // Reset inline editing states
     setEditingModelId(null);
-    setEditingModelData({ name: '', status: 'active' });
     setAddingNewModel(false);
-    setNewModelData({ name: '', status: 'active' });
     setModelValidationErrors({});
 
     // Reset local models to store models
@@ -493,13 +456,15 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
                 {addingNewModel && (
                   <TableRow>
                     <TableCell>
-                      <Input
-                        type="text"
-                        value={newModelData.name}
-                        onChange={(e) => setNewModelData({ ...newModelData, name: e.target.value })}
-                        error={modelValidationErrors.name}
+                      <InlineEdit
+                        value=""
+                        mode="create"
+                        onSave={saveNewModel}
+                        onCancel={cancelAddingNewModel}
                         placeholder="اسم الموديل الجديد"
-                        disabled={isLoading}
+                        validate={validateModelName}
+                        required
+                        tableMode
                       />
                     </TableCell>
                     <TableCell>
@@ -508,37 +473,12 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="select"
-                        value={newModelData.status}
-                        onChange={(e) => setNewModelData({ ...newModelData, status: e.target.value })}
-                        options={[
-                          { value: 'active', label: 'نشط' },
-                          { value: 'archived', label: 'مؤرشف' }
-                        ]}
-                        disabled={isLoading}
-                      />
+                      <span className={`${styles.statusBadge} ${styles.active}`}>
+                        نشط
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <div className={styles.actions}>
-                        <Button
-                          onClick={saveNewModel}
-                          variant="primary"
-                          size="sm"
-                          icon={<Check size={16} />}
-                          title="حفظ"
-                          loading={isLoading}
-                          disabled={isLoading}
-                        />
-                        <Button
-                          onClick={cancelAddingNewModel}
-                          variant="secondary"
-                          size="sm"
-                          icon={<X size={16} />}
-                          title="إلغاء"
-                          disabled={isLoading}
-                        />
-                      </div>
+                      {/* Actions are handled by InlineEdit component */}
                     </TableCell>
                   </TableRow>
                 )}
@@ -546,18 +486,24 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
                 {localModels.map(model => (
                   <TableRow key={model.id}>
                     <TableCell>
-                      {editingModelId === model.id ? (
-                        <Input
-                          type="text"
-                          value={editingModelData.name}
-                          onChange={(e) => setEditingModelData({ ...editingModelData, name: e.target.value })}
-                          error={modelValidationErrors.name}
-                          placeholder="اسم الموديل"
-                          disabled={isLoading}
-                        />
-                      ) : (
-                        model.name
-                      )}
+                      <InlineEdit
+                        value={model.name}
+                        mode={editingModelId === model.id ? 'edit' : 'view'}
+                        onSave={(newName) => handleModelNameSave(model.id, newName)}
+                        onCancel={() => setEditingModelId(null)}
+                        onModeChange={(mode) => {
+                          if (mode === 'edit') {
+                            setEditingModelId(model.id);
+                          } else {
+                            setEditingModelId(null);
+                          }
+                        }}
+                        placeholder="اسم الموديل"
+                        validate={validateModelName}
+                        required
+                        tableMode
+                        canEdit={editingModelId === null || editingModelId === model.id}
+                      />
                     </TableCell>
                     <TableCell>
                       <span className={`${styles.sourceBadge} ${styles[`source-${model.source}`]}`}>
@@ -565,64 +511,21 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
                       </span>
                     </TableCell>
                     <TableCell>
-                      {editingModelId === model.id ? (
-                        <Input
-                          type="select"
-                          value={editingModelData.status}
-                          onChange={(e) => setEditingModelData({ ...editingModelData, status: e.target.value })}
-                          options={[
-                            { value: 'active', label: 'نشط' },
-                            { value: 'archived', label: 'مؤرشف' }
-                          ]}
-                          disabled={isLoading}
-                        />
-                      ) : (
-                        <span className={`${styles.statusBadge} ${model.status === 'active' ? styles.active : styles.inactive}`}>
-                          {model.status === 'active' ? 'نشط' : 'مؤرشف'}
-                        </span>
-                      )}
+                      <span className={`${styles.statusBadge} ${model.status === 'active' ? styles.active : styles.inactive}`}>
+                        {model.status === 'active' ? 'نشط' : 'مؤرشف'}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <div className={styles.actions}>
-                        {editingModelId === model.id ? (
-                          <>
-                            <Button
-                              onClick={saveModelEdit}
-                              variant="primary"
-                              size="sm"
-                              icon={<Check size={16} />}
-                              title="حفظ"
-                              loading={isLoading}
-                              disabled={isLoading}
-                            />
-                            <Button
-                              onClick={cancelEditingModel}
-                              variant="secondary"
-                              size="sm"
-                              icon={<X size={16} />}
-                              title="إلغاء"
-                              disabled={isLoading}
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              onClick={() => startEditingModel(model)}
-                              variant="outline"
-                              size="sm"
-                              icon={<Edit size={16} />}
-                              title="تعديل"
-                              disabled={editingModelId !== null || addingNewModel}
-                            />
-                            <Button
-                              onClick={() => handleDeleteModel(model)}
-                              variant="danger"
-                              size="sm"
-                              icon={<Trash2 size={16} />}
-                              title="حذف"
-                              disabled={editingModelId !== null || addingNewModel}
-                            />
-                          </>
+                        {editingModelId !== model.id && (
+                          <Button
+                            onClick={() => handleDeleteModel(model)}
+                            variant="danger"
+                            size="sm"
+                            icon={<Trash2 size={16} />}
+                            title="حذف"
+                            disabled={editingModelId !== null || addingNewModel}
+                          />
                         )}
                       </div>
                     </TableCell>

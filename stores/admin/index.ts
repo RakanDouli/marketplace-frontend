@@ -13,3 +13,6 @@ export { useAdminRolesStore } from "./adminRolesStore";
 
 // Features management (shared across dashboard and roles)
 export { useAdminFeaturesStore } from "./adminFeaturesStore";
+
+// Attributes and categories management
+export { useAttributesStore } from "./adminAttributesStore";

@@ -45,12 +45,20 @@ export const UPDATE_LISTING_MUTATION = `
       status
       imageKeys
       updatedAt
-      category{
-      name
+      category {
+        name
       }
       sellerType
-      city
-      province
+      location {
+        province
+        city
+        area
+        link
+        coordinates {
+          lat
+          lng
+        }
+      }
       specs
       specsDisplay
       prices {
@@ -62,7 +70,7 @@ export const UPDATE_LISTING_MUTATION = `
 `;
 
 export const MODERATE_LISTING_STATUS_MUTATION = `
-  mutation ModerateListingStatus($id: ID!, $status: ListingStatus!) {
+  mutation ModerateListingStatus($id: String!, $status: ListingStatus!) {
     moderateListingStatus(id: $id, status: $status) {
       id
       status
@@ -100,12 +108,16 @@ export const GET_LISTING_BY_ID_QUERY = `
       sellerBadge
       allowBidding
       biddingStartPrice
-      province
-      city
-      area
-      locationLink
-      lat
-      lng
+      location {
+        province
+        city
+        area
+        link
+        coordinates {
+          lat
+          lng
+        }
+      }
       specs
       specsDisplay
       prices {

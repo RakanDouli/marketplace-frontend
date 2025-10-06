@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useAdminAuthStore } from '@/stores/admin';
+import { useMemo } from "react";
+import { useAdminAuthStore } from "@/stores/admin";
 
 // Types for backend permission structure
 interface FeaturePermissions {
@@ -59,53 +59,61 @@ export function usePermissions(): PermissionCheck {
     const featurePermissions = user?.featurePermissions || {};
 
     // Debug logging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[usePermissions] User:', user?.role, 'Permissions:', userPermissions);
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log('[usePermissions] User:', user?.role, 'Permissions:', userPermissions);
+    // }
 
     // Helper functions for permission checking
     const hasFeatureInternal = (feature: string): boolean => {
       if (!user || !isAuthenticated) return false;
       // Super admin has everything
-      if (userPermissions.includes('*')) return true;
+      if (userPermissions.includes("*")) return true;
       // Check feature permissions object
       return feature in featurePermissions;
     };
 
     const canViewInternal = (feature: string): boolean => {
       if (!user || !isAuthenticated) return false;
-      if (userPermissions.includes('*')) return true;
+      if (userPermissions.includes("*")) return true;
       return featurePermissions[feature]?.view === true;
     };
 
     const canCreateInternal = (feature: string): boolean => {
       if (!user || !isAuthenticated) return false;
-      if (userPermissions.includes('*')) return true;
+      if (userPermissions.includes("*")) return true;
       return featurePermissions[feature]?.create === true;
     };
 
     const canModifyInternal = (feature: string): boolean => {
       if (!user || !isAuthenticated) return false;
-      if (userPermissions.includes('*')) return true;
+      if (userPermissions.includes("*")) return true;
       return featurePermissions[feature]?.modify === true;
     };
 
     const canDeleteInternal = (feature: string): boolean => {
       if (!user || !isAuthenticated) return false;
-      if (userPermissions.includes('*')) return true;
+      if (userPermissions.includes("*")) return true;
       return featurePermissions[feature]?.delete === true;
     };
 
-    const canAccessInternal = (feature: string, action?: keyof FeaturePermissions): boolean => {
+    const canAccessInternal = (
+      feature: string,
+      action?: keyof FeaturePermissions
+    ): boolean => {
       if (!user || !isAuthenticated) return false;
-      if (userPermissions.includes('*')) return true;
+      if (userPermissions.includes("*")) return true;
 
       const featurePerms = featurePermissions[feature];
       if (!featurePerms) return false;
 
       // If no specific action, check if feature has any permission
       if (!action) {
-        return Boolean(featurePerms.view || featurePerms.create || featurePerms.modify || featurePerms.delete);
+        return Boolean(
+          featurePerms.view ||
+            featurePerms.create ||
+            featurePerms.modify ||
+            featurePerms.delete
+        );
       }
 
       return featurePerms[action] === true;
@@ -121,14 +129,14 @@ export function usePermissions(): PermissionCheck {
 
       hasAnyFeature: (features: string[]) => {
         if (!user) return false;
-        if (user.permissions?.includes('*')) return features.length > 0;
-        return features.some(feature => hasFeatureInternal(feature));
+        if (user.permissions?.includes("*")) return features.length > 0;
+        return features.some((feature) => hasFeatureInternal(feature));
       },
 
       hasAllFeatures: (features: string[]) => {
         if (!user) return false;
-        if (user.permissions?.includes('*')) return true;
-        return features.every(feature => hasFeatureInternal(feature));
+        if (user.permissions?.includes("*")) return true;
+        return features.every((feature) => hasFeatureInternal(feature));
       },
 
       // Role-based fallback (deprecated - use feature-based permissions instead)
@@ -139,23 +147,23 @@ export function usePermissions(): PermissionCheck {
       },
 
       isSuperAdmin: () => {
-        return user?.permissions?.includes('*') || false;
+        return user?.permissions?.includes("*") || false;
       },
 
       // UI helpers
       getAccessibleFeatures: (features: string[]) => {
         if (!user) return [];
-        if (user.permissions?.includes('*')) return features;
-        return features.filter(feature => hasFeatureInternal(feature));
+        if (user.permissions?.includes("*")) return features;
+        return features.filter((feature) => hasFeatureInternal(feature));
       },
 
       getFeaturePermissions: (feature: string): FeaturePermissions => {
         if (!user || !featurePermissions) return {};
-        if (user.permissions?.includes('*')) {
+        if (user.permissions?.includes("*")) {
           return { view: true, create: true, modify: true, delete: true };
         }
         return (featurePermissions as UserPermissions)[feature] || {};
-      }
+      },
     };
 
     return permissionCheck;
@@ -173,7 +181,7 @@ export function checkFeatureAccess(
   requiredFeatures: string[],
   requiredAction?: keyof FeaturePermissions
 ): boolean {
-  return requiredFeatures.some(feature =>
+  return requiredFeatures.some((feature) =>
     permissions.canAccess(feature, requiredAction)
   );
 }
