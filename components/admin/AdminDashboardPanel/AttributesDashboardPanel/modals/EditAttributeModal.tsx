@@ -465,7 +465,7 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
           <Button
             type="button"
             onClick={handleClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

@@ -72,7 +72,7 @@ export const DeleteRoleModal: React.FC<DeleteRoleModalProps> = ({
         <div className={styles.deleteActions}>
           <Button
             onClick={onClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

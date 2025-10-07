@@ -399,7 +399,7 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
           <Button
             type="button"
             onClick={handleClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

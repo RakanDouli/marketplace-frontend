@@ -111,7 +111,7 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
         <div className={styles.deleteActions}>
           <Button
             onClick={onClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

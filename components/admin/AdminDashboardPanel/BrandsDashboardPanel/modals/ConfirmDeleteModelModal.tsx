@@ -113,7 +113,7 @@ export const ConfirmDeleteModelModal: React.FC<ConfirmDeleteModelModalProps> = (
         <div className={styles.deleteActions}>
           <Button
             onClick={onClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

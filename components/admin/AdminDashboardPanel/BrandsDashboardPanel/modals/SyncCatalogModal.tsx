@@ -138,7 +138,7 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
         <div className={styles.formActions}>
           <Button
             onClick={onClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

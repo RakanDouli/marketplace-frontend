@@ -131,7 +131,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
           <Button
             type="button"
             onClick={handleClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

@@ -48,7 +48,7 @@ export function CreateUserModal({
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [userStatuses, setUserStatuses] = useState<Array<{value: string, label: string}>>([]);
+  const [userStatuses, setUserStatuses] = useState<Array<{ value: string, label: string }>>([]);
 
   // Helper function for GraphQL calls
   const makeGraphQLCall = async (query: string, variables: any = {}) => {
@@ -274,7 +274,7 @@ export function CreateUserModal({
           <Button
             type="button"
             onClick={onClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

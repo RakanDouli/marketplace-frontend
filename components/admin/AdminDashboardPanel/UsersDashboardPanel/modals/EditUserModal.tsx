@@ -397,7 +397,7 @@ export function EditUserModal({
           <Button
             type="button"
             onClick={onClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء

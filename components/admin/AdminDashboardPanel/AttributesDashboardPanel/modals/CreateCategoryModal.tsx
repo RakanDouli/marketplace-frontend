@@ -185,7 +185,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
           <Button
             type="button"
             onClick={handleClose}
-            variant="secondary"
+            variant="outline"
             disabled={isLoading}
           >
             إلغاء
