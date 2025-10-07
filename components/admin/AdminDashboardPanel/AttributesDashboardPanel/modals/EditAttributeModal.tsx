@@ -190,12 +190,21 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
     }
 
     // Validate individual options
+    const seenKeys = new Set<string>();
     activeOptions.forEach((option, i) => {
       if (!option.value.trim()) {
         errors[`option_${i}_value`] = `قيمة الخيار ${i + 1} مطلوبة`;
       }
       if (!option.key.trim()) {
         errors[`option_${i}_key`] = `مفتاح الخيار ${i + 1} مطلوب`;
+      } else {
+        // Check for duplicate keys
+        const normalizedKey = option.key.trim().toLowerCase();
+        if (seenKeys.has(normalizedKey)) {
+          errors[`option_${i}_key`] = `مفتاح الخيار مكرر: "${option.key}"`;
+        } else {
+          seenKeys.add(normalizedKey);
+        }
       }
     });
 
@@ -416,7 +425,6 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
                   disabled={isLoading}
                   className={styles.removeOptionButton}
                 >
-                  {option.isNew ? 'حذف' : 'إزالة'}
                 </Button>
               </div>
             ))}

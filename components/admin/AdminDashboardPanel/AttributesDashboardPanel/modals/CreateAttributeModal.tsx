@@ -145,6 +145,8 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
 
     // Validate individual options
     if (options.length > 0) {
+      const seenKeys = new Set<string>();
+
       for (let i = 0; i < options.length; i++) {
         const option = options[i];
         if (!option.value.trim()) {
@@ -152,6 +154,14 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
         }
         if (!option.key.trim()) {
           errors[`option_${i}_key`] = `مفتاح الخيار ${i + 1} مطلوب`;
+        } else {
+          // Check for duplicate keys
+          const normalizedKey = option.key.trim().toLowerCase();
+          if (seenKeys.has(normalizedKey)) {
+            errors[`option_${i}_key`] = `مفتاح الخيار مكرر: "${option.key}"`;
+          } else {
+            seenKeys.add(normalizedKey);
+          }
         }
       }
     }
@@ -162,6 +172,11 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent double submission while loading
+    if (isLoading) {
+      return;
+    }
 
     // Validate form
     const newValidationErrors = validateForm();
@@ -180,6 +195,19 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
         sortOrder: formData.sortOrder || 0,
         options: options.length > 0 ? options : undefined
       };
+
+      // Debug: Log options being sent
+      if (options.length > 0) {
+        console.log('📤 Options being sent:', options);
+        console.log('📤 Option keys:', options.map(o => o.key));
+
+        // Check for duplicates
+        const keys = options.map(o => o.key.toLowerCase());
+        const uniqueKeys = new Set(keys);
+        if (keys.length !== uniqueKeys.size) {
+          console.error('❌ DUPLICATE KEYS DETECTED:', keys);
+        }
+      }
 
       await onSubmit(attributeInput);
 
@@ -348,13 +376,12 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
                 <Button
                   type="button"
                   onClick={() => removeOption(index)}
-                  variant="outline"
+                  variant="danger"
                   size="sm"
                   icon={<Trash2 size={16} />}
                   disabled={isLoading}
                   className={styles.removeOptionButton}
-                >
-                  حذف
+                >ss
                 </Button>
               </div>
             ))}

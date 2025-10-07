@@ -87,7 +87,7 @@
 }
 
 .modalClose {
-  padding: $space-xs !important;
+  // padding: $space-xs !important;
   position: absolute;
   top: $space-md;
   right: $space-md;
@@ -101,7 +101,9 @@
   border: 1px solid $border;
   color: $text-muted;
   transition: all 0.2s ease;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &:hover {
     background-color: $surface;
     color: $text;

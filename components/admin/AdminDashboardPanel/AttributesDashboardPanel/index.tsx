@@ -585,7 +585,9 @@ export const AttributesDashboardPanel: React.FC = () => {
       loadAttributes(selectedCategory.slug);
       console.log('Attribute created successfully:', newAttribute);
     } catch (error) {
-      console.error('Failed to create attribute:', error);
+      console.error('Failed to create attribute:',
+
+      );
       // Error is handled by the store
     } finally {
       setIsCreatingAttribute(false);
@@ -828,10 +830,7 @@ export const AttributesDashboardPanel: React.FC = () => {
         <div className={styles.attributesSection}>
           {loading ? (
             <div className={styles.loadingState}>
-              <Text variant="h3" color="secondary">جاري التحميل...</Text>
-              <Text variant="paragraph" >
-                جاري تحميل خصائص التصنيف
-              </Text>
+              <Loading type={'svg'} />
             </div>
           ) : error ? (
             <div className={styles.errorState}>

@@ -245,7 +245,7 @@ export const useAttributesStore = create<AttributesStore>((set, get) => ({
 
     // Check cache first
     if (state.categoriesCache && isCacheValid(state.categoriesCache.timestamp)) {
-      set({ categories: state.categoriesCache.data });
+      set({ categories: state.categoriesCache.data, loading: false, error: null });
       return;
     }
 
@@ -264,7 +264,8 @@ export const useAttributesStore = create<AttributesStore>((set, get) => ({
       console.error('Load categories error:', error);
       set({
         loading: false,
-        error: error instanceof Error ? error.message : 'خطأ في تحميل التصنيفات'
+        error: error instanceof Error ? error.message : 'خطأ في تحميل التصنيفات',
+        categoriesCache: null // Clear cache so retry will fetch fresh data
       });
     }
   },
@@ -365,7 +366,7 @@ export const useAttributesStore = create<AttributesStore>((set, get) => ({
     if (state.attributesCache.has(cacheKey)) {
       const cached = state.attributesCache.get(cacheKey)!;
       if (isCacheValid(cached.timestamp)) {
-        set({ attributes: cached.data });
+        set({ attributes: cached.data, loading: false, error: null });
         return;
       }
     }
@@ -387,9 +388,15 @@ export const useAttributesStore = create<AttributesStore>((set, get) => ({
       });
     } catch (error) {
       console.error('Load attributes error:', error);
+
+      // Clear cache for this category so retry will fetch fresh data
+      const newCache = new Map(state.attributesCache);
+      newCache.delete(cacheKey);
+
       set({
         loading: false,
-        error: error instanceof Error ? error.message : 'خطأ في تحميل الخصائص'
+        error: error instanceof Error ? error.message : 'خطأ في تحميل الخصائص',
+        attributesCache: newCache
       });
     }
   },

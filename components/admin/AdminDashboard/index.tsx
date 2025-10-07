@@ -4,7 +4,7 @@ import React, { useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuthStore, useAdminFeaturesStore } from '@/stores/admin';
 import { usePermissions } from '@/hooks/usePermissions';
-import { Container, Button } from '@/components/slices';
+import { Container, Button, Loading } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
 import AdminHeader from '../AdminHeader';
 import {
@@ -119,9 +119,7 @@ export function AdminDashboard() {
               <div className={styles.modulesGrid}>
                 {loading ? (
                   <div className={styles.loadingState}>
-                    <Text variant="paragraph" color="secondary">
-                      جاري تحميل الميزات...
-                    </Text>
+                    <Loading type='svg' />
                   </div>
                 ) : error ? (
                   <div className={styles.errorState}>
