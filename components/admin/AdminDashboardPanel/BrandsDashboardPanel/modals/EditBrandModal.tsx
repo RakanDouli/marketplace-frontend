@@ -518,14 +518,24 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
                     <TableCell>
                       <div className={styles.actions}>
                         {editingModelId !== model.id && (
-                          <Button
-                            onClick={() => handleDeleteModel(model)}
-                            variant="danger"
-                            size="sm"
-                            icon={<Trash2 size={16} />}
-                            title="حذف"
-                            disabled={editingModelId !== null || addingNewModel}
-                          />
+                          <>
+                            <Button
+                              onClick={() => setEditingModelId(model.id)}
+                              variant="outline"
+                              size="sm"
+                              icon={<Edit size={16} />}
+                              title="تعديل"
+                              disabled={editingModelId !== null || addingNewModel}
+                            />
+                            <Button
+                              onClick={() => handleDeleteModel(model)}
+                              variant="danger"
+                              size="sm"
+                              icon={<Trash2 size={16} />}
+                              title="حذف"
+                              disabled={editingModelId !== null || addingNewModel}
+                            />
+                          </>
                         )}
                       </div>
                     </TableCell>

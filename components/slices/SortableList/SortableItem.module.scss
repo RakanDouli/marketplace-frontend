@@ -1,0 +1,378 @@
+@import "@/styles/variables";
+
+.sortableItem {
+  border-radius: $radius-base;
+  // padding: $space-sm;
+  // margin-bottom: $space-sm;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    border-color: $primary;
+    box-shadow: $shadow-sm;
+  }
+
+  &.dragging {
+    opacity: 0.6;
+    transform: rotate(2deg);
+    box-shadow: $shadow-lg;
+    border-color: $primary;
+    z-index: 1000;
+  }
+
+  &.readOnly {
+    background: $bg;
+    border-color: $border;
+
+    .dragHandle {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // Drop indicator - primary blinking line
+  &::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $primary !important;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+    // border-radius: 2px;
+  }
+
+  &.dragOver::before {
+    opacity: 1 !important;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1 !important;
+      background: $primary !important;
+    }
+    51%,
+    100% {
+      opacity: 0.5 !important;
+      background: $secondary !important;
+    }
+  }
+}
+
+.itemContent {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-md $space-sm;
+  background: $bg;
+  // overflow: hidden;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: $text-muted;
+  cursor: grab;
+
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $text-secondary;
+    background: $bg;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex: 1;
+}
+
+.groupToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: $text-muted;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $text-secondary;
+    background: $bg;
+  }
+}
+
+.itemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  font-weight: $weight-medium;
+  color: $text;
+  font-size: $font-base;
+  display: flex;
+  gap: $space-md;
+  .groupItem & {
+    font-weight: $weight-semibold;
+    color: $primary;
+  }
+}
+
+.groupMeta,
+.attributeMeta {
+  font-size: $font-sm;
+  color: $text-muted;
+}
+
+.readOnlyBadge {
+  display: inline-block;
+  background: $warning-bg;
+  color: $warning;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  button {
+    margin: 0;
+  }
+}
+
+// Filter Toggle Switch
+.filterToggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  label {
+    width: 100%;
+    @media (min-width: $breakpoint-md) {
+      min-width: 100px;
+    }
+  }
+}
+
+// .deleteButton {
+//   color: $error !important;
+
+//   &:hover {
+//     background: $error !important;
+//     color: $error !important;
+//   }
+// }
+
+// Group management buttons
+.groupDropdown {
+  position: relative;
+  display: inline-block;
+}
+
+// Move/Sort button
+.moveDropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.moveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: $text-muted;
+  cursor: pointer;
+  border-radius: $radius-sm;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $primary;
+    background: $bg;
+  }
+}
+
+.moveButtonActive {
+  background: $primary;
+  color: $text-inverse;
+
+  &:hover {
+    background: $primary;
+    color: $text-inverse;
+  }
+}
+
+.dropdownMenu,
+.moveDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: $z-dropdown;
+  min-width: 140px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  box-shadow: $shadow-lg;
+  padding: $space-xs;
+  margin-top: $space-xs;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: $space-sm;
+  text-align: right;
+  background: none;
+  border: none;
+  border-radius: $radius-sm;
+  color: $text;
+  font-size: $font-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $primary;
+    color: $bg;
+  }
+
+  &:not(:last-child) {
+    margin-bottom: $space-xs;
+  }
+}
+
+// Move dropdown specific styles
+.dropdownLabel {
+  font-size: $font-xs;
+  color: $text-muted;
+  padding: $space-xs $space-sm;
+  font-weight: $weight-medium;
+  border-bottom: 1px solid $border;
+  margin-bottom: $space-xs;
+}
+
+.dropdownSeparator {
+  height: 1px;
+  background: $border;
+  margin: $space-xs 0;
+}
+
+// Group-specific styles
+.groupItem {
+  background: $surface;
+  border: 1px solid $primary;
+  border-radius: $radius-lg;
+  // overflow: hidden;
+  &:hover {
+    border: 1px solid $text;
+  }
+
+  // .itemContent {
+  //   // background: $bg;
+  //   padding: 0 $space-sm;
+  //   // padding: $space-md;
+  // }
+
+  .itemName {
+    font-size: $font-lg;
+    font-weight: $weight-bold;
+    color: $primary;
+  }
+
+  .groupMeta {
+    color: $primary;
+    font-weight: $weight-medium;
+  }
+}
+
+// Attribute-specific styles
+.attributeItem {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  // overflow: hidden;
+  // .itemContent {
+  //   // background: $surface;
+  //   overflow: hidden;
+  //   padding: $space-sm;
+  // }
+
+  .itemName {
+    color: $text;
+  }
+}
+
+// Child items (nested attributes in groups)
+.childItems {
+  // background: $bg;
+  padding: $space-md;
+  border-radius: 0 0 $radius-lg $radius-lg;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  // Add visual connection line
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: $space-lg;
+    right: $space-lg;
+    // height: 2px;
+    background: $primary;
+  }
+
+  .sortableItem {
+    // margin-left: $space-md;
+    position: relative;
+
+    // Add indentation line
+    &::before {
+      content: "";
+      position: absolute;
+      left: $space-md;
+      top: 0;
+      bottom: 0;
+      // width: 2px;
+      background: $border;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    // .itemContent {
+    //   overflow: hidden;
+    //   border-radius: $radius-base;
+    // }
+  }
+}

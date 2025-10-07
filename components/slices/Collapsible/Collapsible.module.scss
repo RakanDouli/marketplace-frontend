@@ -1,0 +1,122 @@
+@import "@/styles/variables";
+
+.collapsible {
+  width: 100%;
+}
+
+.trigger {
+  width: 100%;
+  padding: $space-md;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+
+  &:hover {
+    background: $bg;
+  }
+
+  &:focus {
+    outline: none;
+    background: $bg;
+  }
+}
+
+.triggerContent {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex: 1;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  color: $text-secondary;
+}
+
+.title {
+  font-weight: $weight-medium;
+  color: $text;
+  font-size: $font-base;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  transition: transform 0.2s ease;
+
+  &.open {
+    transform: rotate(0deg);
+  }
+}
+
+.content {
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &.closed {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  &.open {
+    max-height: 2000px; // Large enough for most content
+    opacity: 1;
+  }
+}
+
+.contentInner {
+  padding: 0 $space-md $space-md $space-md;
+}
+
+// Variants
+.default {
+  .trigger {
+    border-bottom: 1px solid $border;
+  }
+}
+
+.bordered {
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  margin-bottom: $space-sm;
+
+  .trigger {
+    border-bottom: 1px solid $border;
+    border-radius: $radius-base $radius-base 0 0;
+
+    &:last-child {
+      border-radius: $radius-base;
+    }
+  }
+
+  .content.open {
+    border-top: none;
+  }
+}
+
+.card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  margin-bottom: $space-md;
+
+  .trigger {
+    border-radius: $radius-lg $radius-lg 0 0;
+
+    &:last-child {
+      border-radius: $radius-lg;
+    }
+  }
+
+  .contentInner {
+    padding: $space-lg;
+  }
+}

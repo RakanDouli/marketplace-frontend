@@ -1,10 +1,10 @@
-// AdminDashboard component styles using theme variables
+@import '../../../styles/variables.scss';
+
 .adminLayout {
   min-height: 100vh;
   background: $bg;
   display: flex;
   flex-direction: column;
-  background-color: $bg;
 }
 
 .layoutContainer {
@@ -12,12 +12,13 @@
   flex: 1;
   min-height: 0;
 
-  @media screen and (min-width: 1024px) {
-    height: calc(100vh - 60px);
+  @media screen and (min-width: $breakpoint-lg) {
+    height: calc(100vh - $header-height);
   }
 }
+
 .categorySelector {
-  margin-bottom: 20px;
+  margin-bottom: $space-lg;
 }
 .mainContent {
   flex: 1;
@@ -105,8 +106,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: $space-xxl;
+  height: $space-xxl;
   background: $bg;
   border-radius: $radius-md;
   color: $primary;
@@ -119,13 +120,6 @@
   flex-direction: column;
   gap: $space-xs;
 }
-
-// .moduleArrow {
-//   font-size: $font-xl;
-//   font-weight: $weight-bold;
-//   color: $text-secondary;
-//   transition: all 0.3s ease;
-// }
 
 .quickActions {
   background: $bg;

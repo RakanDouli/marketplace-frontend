@@ -9,7 +9,7 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { useBrandsStore } from '@/stores/admin/adminBrandsStore';
 import { RefreshCw, Edit, Trash2, Plus, Zap, Car, Package } from 'lucide-react';
 import { CreateBrandModal, EditBrandModal, DeleteBrandModal, SyncCatalogModal } from './modals';
-import styles from '../AdminDashboardPanel.module.scss';
+import styles from '../SharedDashboardPanel.module.scss';
 import TextSection from '@/components/slices/TextSection/TextSection';
 
 interface Category {
@@ -103,18 +103,18 @@ export const BrandsDashboardPanel: React.FC = () => {
     }
   }, [error, addNotification, clearError]);
 
-  if (!canView) {
-    return (
-      <div className={styles.dashboardPanel}>
-        <div className={styles.noAccess}>
-          <Text variant="h2" color="error">وصول مرفوض</Text>
-          <Text variant="paragraph" color="secondary">
-            ليس لديك صلاحية لعرض إدارة العلامات التجارية
-          </Text>
-        </div>
-      </div>
-    );
-  }
+  // if (!canView) {
+  //   return (
+  //     <div className={styles.dashboardPanel}>
+  //       <div className={styles.noAccess}>
+  //         <Text variant="h2" color="error">وصول مرفوض</Text>
+  //         <Text variant="paragraph" color="secondary">
+  //           ليس لديك صلاحية لعرض إدارة العلامات التجارية
+  //         </Text>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // Handle category selection
   const handleCategoryChange = (categoryId: string) => {
@@ -366,7 +366,7 @@ export const BrandsDashboardPanel: React.FC = () => {
               </div>
               <div className={styles.infoContent}>
                 <Text variant="h3">العلامات التجارية</Text>
-                <Text variant="paragraph" color="secondary">{brands.length} علامة</Text>
+                <Text variant="paragraph" color="secondary">{pagination.total} علامة</Text>
               </div>
             </div>
             <div className={styles.infoCard}>

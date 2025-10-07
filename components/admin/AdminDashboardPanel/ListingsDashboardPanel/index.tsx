@@ -11,7 +11,7 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
 import { RefreshCw, Edit, Trash2, Eye } from 'lucide-react';
 import { Listing } from '@/types/listing';
-import styles from '../AdminDashboardPanel.module.scss';
+import styles from '../SharedDashboardPanel.module.scss';
 
 export const ListingsDashboardPanel: React.FC = () => {
   const { canView, canModify, canDelete } = useFeaturePermissions('listings');
@@ -60,18 +60,18 @@ export const ListingsDashboardPanel: React.FC = () => {
     }
   }, [error, addNotification, clearError]);
 
-  if (!canView) {
-    return (
-      <Container>
-        <div className={styles.noAccess}>
-          <Text variant="h2" color="error">وصول مرفوض</Text>
-          <Text variant="paragraph" color="secondary">
-            ليس لديك صلاحية لعرض إدارة العروض
-          </Text>
-        </div>
-      </Container>
-    );
-  }
+  // if (!canView) {
+  //   return (
+  //     <Container>
+  //       <div className={styles.noAccess}>
+  //         <Text variant="h2" color="error">وصول مرفوض</Text>
+  //         <Text variant="paragraph" color="secondary">
+  //           ليس لديك صلاحية لعرض إدارة العروض
+  //         </Text>
+  //       </div>
+  //     </Container>
+  //   );
+  // }
 
   // Handle search and filter changes
   useEffect(() => {

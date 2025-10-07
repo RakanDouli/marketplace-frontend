@@ -1,12 +1,11 @@
-// Shared User Modals Styles
+@import '../../../../../styles/variables.scss';
+
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem 0;
+  gap: $space-lg;
+  padding: $space-md 0;
 }
-
-// Removed .field, .label, .input, .select styles - now handled by Input component from slices
 
 .passwordField,
 .passwordContainer {
@@ -17,102 +16,90 @@
 
 .passwordToggle {
   position: absolute;
-  left: 12px;
+  left: $space-sm;
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: $text-muted;
   cursor: pointer;
-  padding: 4px;
+  padding: $space-xs;
   border-radius: $radius-sm;
   transition: color 0.2s;
 
   &:hover {
-    color: var(--text-primary);
+    color: $text;
   }
 
   &:focus {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid $primary;
     outline-offset: 2px;
   }
 }
 
-// Removed .errorText - now handled by Input component from slices
-
 .readOnlyField {
-  padding: 0.75rem;
-  background: var(--background-secondary);
-  border: 1px solid var(--border-light);
+  padding: $space-sm;
+  background: $surface;
+  border: 1px solid $border;
   border-radius: $radius-sm;
-  color: var(--text-primary);
-  font-size: 1rem;
-  direction: rtl;
-  text-align: right;
-  font-weight: 500;
+  color: $text;
+  font-weight: $weight-medium;
 }
 
 .helpText {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-  line-height: 1.4;
-  direction: rtl;
-  text-align: right;
+  color: $text-muted;
+  margin-top: $space-xs;
+  line-height: $line-normal;
 }
 
 .passwordResetSection {
-  background: var(--background-secondary);
-  border: 1px solid var(--border-light);
+  background: $surface;
+  border: 1px solid $border;
   border-radius: $radius-sm;
-  padding: 1rem;
+  padding: $space-md;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $space-md;
 
   .helpText {
     margin: 0;
-    color: var(--text-primary);
+    color: $text;
   }
 
   button {
     align-self: flex-start;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-sm;
   }
 }
 
 .securityNote {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: $text-muted;
   margin: 0;
-  padding: 0.5rem;
-  background: rgba(var(--primary-color-rgb), 0.1);
+  padding: $space-sm;
+  background: $info-bg;
   border-radius: $radius-sm;
-  border-left: 3px solid var(--primary-color);
-  direction: rtl;
-  text-align: right;
+  border-left: 3px solid $info;
 }
 
 .actions {
   display: flex;
-  gap: 1rem;
+  gap: $space-md;
   justify-content: flex-end;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-light);
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
 }
 
-// Delete Modal Specific Styles
 .deleteModalContent {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  padding: 1rem 0;
+  gap: $space-lg;
+  padding: $space-md 0;
 }
 
 .warningIcon {
-  color: var(--error-color);
+  color: $error;
   display: flex;
   justify-content: center;
 }
@@ -120,110 +107,84 @@
 .deleteMessage {
   text-align: center;
   width: 100%;
-
-  h3 {
-    color: var(--text-primary);
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-  }
 }
 
 .userInfo {
-  background: var(--background-secondary);
-  border: 1px solid var(--border-light);
+  background: $surface;
+  border: 1px solid $border;
   border-radius: $radius-sm;
-  padding: 1rem;
-  margin: 1rem 0;
+  padding: $space-md;
+  margin: $space-md 0;
   text-align: right;
 }
 
 .userDetail {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  direction: rtl;
+  gap: $space-sm;
+  margin-bottom: $space-sm;
 
   &:last-child {
     margin-bottom: 0;
   }
 
   span {
-    color: var(--text-primary);
-    font-size: 0.875rem;
+    color: $text;
   }
 }
 
 .warningBox {
-  background: rgba(var(--error-color-rgb), 0.1);
-  border: 1px solid var(--error-color);
+  background: $error-bg;
+  border: 1px solid $error-border;
   border-radius: $radius-sm;
-  padding: 1rem;
-  margin: 1rem 0;
+  padding: $space-md;
+  margin: $space-md 0;
   display: flex;
-  gap: 0.75rem;
+  gap: $space-sm;
   align-items: flex-start;
-  direction: rtl;
 
   svg {
-    color: var(--error-color);
+    color: $error;
     flex-shrink: 0;
     margin-top: 2px;
   }
 
   p {
-    margin: 0 0 0.5rem 0;
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    line-height: 1.4;
+    margin: 0 0 $space-sm 0;
+    color: $text;
+    line-height: $line-normal;
 
     &:last-child {
       margin-bottom: 0;
     }
 
     strong {
-      color: var(--error-color);
+      color: $error;
     }
   }
 }
 
 .deleteActions {
   display: flex;
-  gap: 1rem;
+  gap: $space-md;
   justify-content: center;
   width: 100%;
 }
 
-// Responsive Design
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-md) {
   .form {
-    gap: 1rem;
+    gap: $space-md;
   }
 
   .actions,
   .deleteActions {
     flex-direction: column-reverse;
-    gap: 0.5rem;
+    gap: $space-sm;
   }
 
   .passwordResetSection {
     button {
       align-self: stretch;
     }
-  }
-}
-
-// RTL Support
-[dir="rtl"] {
-  .passwordToggle {
-    left: auto;
-    right: 12px;
-  }
-
-  // Removed .input, .select RTL styles - handled by Input component
-
-  .actions,
-  .deleteActions {
-    justify-content: flex-start;
   }
 }

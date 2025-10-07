@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container } from '@/components/slices/Container/Container';
 import { Button, Loading, Text } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useAdminUsersStore } from '@/stores/admin';
@@ -11,7 +10,7 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, RefreshCw, Edit, Trash2 } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
-import styles from '../AdminDashboardPanel.module.scss';
+import styles from '../SharedDashboardPanel.module.scss';
 
 interface User {
   id: string;

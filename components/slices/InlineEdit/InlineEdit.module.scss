@@ -1,0 +1,242 @@
+@import "@/styles/variables";
+
+.inlineEdit {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  width: 100%;
+}
+
+// View mode styles - matches Brand modal text display
+.viewMode {
+  .valueDisplay {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    cursor: pointer;
+    padding: $space-xs $space-sm;
+    border-radius: $radius-sm;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-height: 32px;
+
+    &:hover {
+      background: var(--background-secondary);
+
+      .editButton {
+        opacity: 1;
+      }
+    }
+
+    .value {
+      flex: 1;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .editButton {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      color: var(--text-secondary);
+    }
+  }
+
+  .emptyState {
+    .emptyText {
+      color: var(--text-secondary);
+      font-style: italic;
+      cursor: pointer;
+      padding: $space-xs $space-sm;
+      border-radius: $radius-sm;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+
+      &:hover {
+        background: var(--background-secondary);
+        color: var(--text-primary);
+      }
+    }
+
+    .createButton {
+      width: auto;
+    }
+  }
+}
+
+// Edit and Create mode styles - matches Brand modal input styling
+.editMode,
+.createMode {
+  .inputGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+
+    .input {
+      flex: 1;
+
+      // Ensure input matches table styling
+      input {
+        font-size: 0.875rem;
+        line-height: 1.4;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: $radius-sm;
+        background: var(--background-primary);
+        color: var(--text-primary);
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        &::placeholder {
+          color: var(--text-secondary);
+        }
+      }
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-top: 2px; // Align with input top
+
+      // Match Brand modal button styling
+      button {
+        padding: 0.375rem;
+        min-width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: $radius-sm;
+        font-size: 0.875rem;
+
+        &[data-variant="primary"] {
+          background: var(--primary-color);
+          border: 1px solid var(--primary-color);
+          color: white;
+
+          &:hover:not(:disabled) {
+            filter: brightness(0.9);
+          }
+        }
+
+        &[data-variant="secondary"] {
+          background: var(--background-secondary);
+          border: 1px solid var(--border-light);
+          color: var(--text-secondary);
+
+          &:hover:not(:disabled) {
+            background: var(--background-tertiary);
+            color: var(--text-primary);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Create mode specific styles - enhanced to match Brand modal "adding new" row style
+.createMode {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+
+  // When used in table context
+  &.tableMode {
+    .inputGroup {
+      .input input {
+        background: var(--background-primary);
+        border: 1px solid var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+      }
+    }
+  }
+}
+
+// Group specific styles for attributes (non-table context)
+.groupInlineEdit {
+  margin-bottom: $space-md;
+  padding: $space-md;
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--background-secondary) 100%);
+  border: 2px solid var(--primary-color);
+  border-radius: $radius-lg;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &.createMode {
+    .inputGroup {
+      .input input {
+        background: var(--background-primary);
+        border: 1px solid var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.15);
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Table context specific styles
+.tableMode {
+  min-height: auto;
+
+  .valueDisplay {
+    padding: 0;
+    min-height: auto;
+
+    &:hover {
+      background: transparent;
+
+      .editButton {
+        opacity: 1;
+        color: $primary; // Make it more visible in table mode
+      }
+    }
+
+    .value {
+      line-height: 1.5;
+    }
+
+    .editButton {
+      opacity: 0;
+      transition: opacity 0.2s ease, color 0.2s ease;
+
+      &:hover {
+        color: $primary;
+        opacity: 1 !important;
+      }
+    }
+  }
+
+  .emptyState .emptyText {
+    padding: 0;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: $breakpoint-sm) {
+  .inlineEdit {
+    .inputGroup {
+      flex-direction: column;
+      align-items: stretch;
+
+      .actions {
+        align-self: flex-end;
+        margin-top: $space-sm;
+
+        button {
+          min-width: 44px;
+          height: 44px;
+        }
+      }
+    }
+  }
+}

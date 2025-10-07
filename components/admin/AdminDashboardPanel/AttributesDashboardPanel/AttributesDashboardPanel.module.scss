@@ -1,0 +1,218 @@
+@import '../../../../styles/variables.scss';
+
+.continer {
+  background: $bg;
+  border-radius: $radius-lg;
+  padding: $space-lg;
+  box-shadow: $shadow-sm;
+  border: 1px solid $border;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $space-lg;
+  gap: $space-md;
+}
+
+.headerMain {
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  gap: $space-sm;
+}
+
+.categorySection {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  padding: $space-lg;
+  margin-bottom: $space-lg;
+}
+
+.categorySelector {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  margin-bottom: $space-sm;
+}
+
+// Category select styling handled by Input component
+.categorySelect {
+  max-width: 300px;
+}
+
+.categoryInfo {
+  padding-top: $space-sm;
+  border-top: 1px solid $border;
+}
+
+.controlsSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.searchContainer {
+  flex: 1;
+  max-width: 400px;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.actionButtons {
+  display: flex;
+  gap: $space-sm;
+}
+
+.attributesSection {
+  margin-bottom: $space-xl;
+  position: relative;
+}
+
+.attributesList {
+  width: 100%;
+  margin-top: $space-md;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $bg;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-dropdown;
+  border-radius: $radius-lg;
+}
+
+.attributeItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  margin-bottom: $space-sm;
+  background: $surface;
+
+  &:hover {
+    border-color: $primary;
+  }
+}
+
+.attributeInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.attributeName {
+  font-weight: $weight-medium;
+  color: $text;
+}
+
+.globalBadge {
+  background: $info-bg;
+  color: $info;
+  padding: $space-xs;
+  border-radius: $radius-sm;
+}
+
+.attributeActions {
+  display: flex;
+  gap: $space-xs;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $space-xl;
+  background: $surface;
+  border: 2px dashed $border;
+  border-radius: $radius-lg;
+}
+
+.emptyStateButton {
+  margin-top: $space-lg;
+}
+
+.helpSection {
+  padding: $space-md;
+  background: $bg;
+  border: 1px solid $info;
+  border-radius: $radius-base;
+  margin-top: $space-lg;
+}
+
+// Mobile message for drag and drop
+.mobileMessage {
+  display: block;
+  text-align: center;
+  padding: $space-xl;
+  background: $bg;
+  border: 2px dashed $border;
+  border-radius: $radius-lg;
+  margin-bottom: $space-lg;
+
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+// Desktop only drag and drop
+.desktopOnly {
+  display: none;
+
+  @media (min-width: $breakpoint-md) {
+    display: block;
+  }
+}
+
+// Loading and error states
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xl;
+  color: $text-muted;
+}
+
+.errorState {
+  padding: $space-lg;
+  background: $error-bg;
+  border: 1px solid $error;
+  border-radius: $radius-base;
+  color: $error;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+// Inline group creation styles
+.inlineGroupCreate {
+  margin-bottom: $space-md;
+  padding: $space-md;
+  background: $bg;
+  border: 2px solid $primary;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+}
+
+.groupInlineEdit {
+  &.createMode {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}

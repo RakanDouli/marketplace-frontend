@@ -1,0 +1,205 @@
+// @import "@/styles/variables";
+
+// .controlledList {
+//   width: 100%;
+//   background: $surface;
+//   border: 1px dashed $text-muted;
+//   border-radius: $radius-base;
+//   padding: $space-md;
+//   min-height: 200px;
+//   overflow: visible;
+//   position: relative;
+// }
+
+// .listItem {
+//   border: 1px dashed $primary;
+//   border-radius: $radius-base;
+//   padding: $space-sm;
+//   margin-bottom: $space-sm;
+//   position: relative;
+//   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+//   transform: translateY(0);
+//   z-index: $z-dropdown;
+//   overflow: visible;
+
+//   &:hover {
+//     border-color: $primary;
+//     box-shadow: $shadow-sm;
+//   }
+
+//   &.groupChild {
+//     margin-left: $space-lg;
+//     margin-right: $space-lg;
+//     border-style: solid;
+//     border-color: $border;
+//     background: $bg-light;
+//   }
+
+//   &.moving {
+//     z-index: $z-popover;
+//     box-shadow: $shadow-lg;
+//     border-color: $primary;
+//     background: $primary-border;
+//   }
+
+//   &.movingUp {
+//     animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+//   }
+
+//   &.movingDown {
+//     animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+//   }
+// }
+
+// @keyframes slideUp {
+//   0% {
+//     transform: translateY(0);
+//   }
+//   50% {
+//     transform: translateY(-10px);
+//     box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+//   }
+//   100% {
+//     transform: translateY(0);
+//   }
+// }
+
+// @keyframes slideDown {
+//   0% {
+//     transform: translateY(0);
+//   }
+//   50% {
+//     transform: translateY(10px);
+//     box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+//   }
+//   100% {
+//     transform: translateY(0);
+//   }
+// }
+
+// .groupContainer {
+//   margin-bottom: 16px;
+//   overflow: visible;
+//   position: relative;
+// }
+
+// .groupHeader {
+//   display: flex;
+//   align-items: center;
+//   gap: 8px;
+// }
+
+// .expandButton {
+//   min-width: 32px;
+//   height: 32px;
+//   padding: 4px;
+//   flex-shrink: 0;
+// }
+
+// .groupChildren {
+//   margin-top: 8px;
+//   padding-left: 16px;
+//   border-left: 2px solid #ddd;
+//   overflow: visible;
+//   position: relative;
+// }
+
+// .emptyGroup {
+//   margin-top: 8px;
+//   padding: 12px 16px;
+//   margin-left: 48px;
+//   background: #f8f9fa;
+//   border: 1px dashed #ccc;
+//   border-radius: 6px;
+//   text-align: center;
+// }
+
+// .emptyText {
+//   color: #666;
+//   font-style: italic;
+//   font-size: 14px;
+// }
+
+// .itemContent {
+//   display: flex;
+//   align-items: center;
+//   gap: 12px;
+//   min-height: 40px;
+// }
+
+// .itemIcon {
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   width: 24px;
+//   height: 24px;
+//   color: #666;
+//   flex-shrink: 0;
+// }
+
+// .itemInfo {
+//   flex: 1;
+//   display: flex;
+//   align-items: center;
+//   gap: 12px;
+//   min-width: 0;
+// }
+
+// .itemName {
+//   font-weight: 500;
+//   color: #333;
+//   font-size: 14px;
+// }
+
+// .globalBadge {
+//   background: #d1ecf1;
+//   color: #0c5460;
+//   padding: 2px 6px;
+//   border-radius: 4px;
+//   font-size: 11px;
+//   white-space: nowrap;
+// }
+
+// .groupBadge {
+//   background: #e2e3e5;
+//   color: #383d41;
+//   padding: 2px 6px;
+//   border-radius: 4px;
+//   font-size: 11px;
+//   white-space: nowrap;
+// }
+
+// .itemActions {
+//   display: flex;
+//   gap: 4px;
+// }
+
+// .controlMenuOverlay {
+//   position: absolute;
+//   top: 100%;
+//   left: 0;
+//   right: 0;
+//   z-index: $z-modal !important;
+//   margin-top: $space-sm;
+//   background: $surface !important;
+//   border-radius: $radius-base;
+//   box-shadow: $shadow-lg;
+//   border: 1px solid $border;
+// }
+
+// // Mobile responsiveness
+// @media (max-width: 768px) {
+//   .controlledList {
+//     padding: 12px;
+//   }
+
+//   .listItem.groupChild {
+//     margin-left: 16px;
+//     margin-right: 16px;
+//   }
+
+//   .controlMenuOverlay {
+//     left: -12px;
+//     right: -12px;
+//   }
+// }

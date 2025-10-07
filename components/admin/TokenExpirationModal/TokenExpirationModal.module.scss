@@ -1,34 +1,18 @@
-// Token Expiration Modal Styles
+@import '../../../styles/variables.scss';
+
 .tokenModal {
-  z-index: 10000; // Ensure it appears above everything
+  z-index: $z-modal;
 }
 
 .modalContent {
   text-align: center;
-  padding: 2rem;
+  padding: $space-lg;
   max-width: 400px;
   margin: 0 auto;
-
-  // Urgency-based styling
-  &.warning {
-    --urgency-color: #f59e0b;
-    --urgency-bg: rgba(245, 158, 11, 0.1);
-  }
-
-  &.danger {
-    --urgency-color: #ef4444;
-    --urgency-bg: rgba(239, 68, 68, 0.1);
-  }
-
-  &.critical {
-    --urgency-color: #dc2626;
-    --urgency-bg: rgba(220, 38, 38, 0.15);
-    animation: pulse 1s infinite;
-  }
 }
 
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: $space-lg;
 }
 
 .icon {
@@ -38,118 +22,49 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  margin: 0 auto 1rem;
-  transition: all 0.3s ease;
-
-  &.warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-  }
-
-  &.danger {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-  }
-
-  &.critical {
-    background: rgba(220, 38, 38, 0.15);
-    color: #dc2626;
-    animation: iconPulse 1s infinite;
-  }
-}
-
-.title {
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.subtitle {
-  margin: 0;
+  margin: 0 auto $space-md;
+  background: $warning-bg;
+  color: $warning;
 }
 
 .timerContainer {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  border-radius: $radius-sm;
-  transition: all 0.3s ease;
-
-  &.warning {
-    background: rgba(245, 158, 11, 0.1);
-    border: 2px solid rgba(245, 158, 11, 0.3);
-  }
-
-  &.danger {
-    background: rgba(239, 68, 68, 0.1);
-    border: 2px solid rgba(239, 68, 68, 0.3);
-  }
-
-  &.critical {
-    background: rgba(220, 38, 38, 0.15);
-    border: 2px solid rgba(220, 38, 38, 0.4);
-    animation: containerPulse 1s infinite;
-  }
+  margin: $space-lg 0;
+  padding: $space-md;
+  border-radius: $radius-md;
+  background: $warning-bg;
+  border: 2px solid $warning;
 }
 
 .timerDisplay {
-  margin-bottom: 0.5rem;
+  margin-bottom: $space-xs;
 }
 
 .timerText {
-  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
-  font-weight: 700;
-  font-size: 2.5rem;
-  line-height: 1;
-  color: var(--urgency-color);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.timerLabel {
-  color: var(--text-secondary);
-  font-weight: 500;
+  font-family: $font-mono;
+  font-weight: $weight-bold;
+  font-size: $font-4xl;
+  line-height: $line-none;
+  color: $warning;
 }
 
 .message {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: var(--background-secondary);
-  border-radius: $radius-sm;
-}
-
-.messageText {
-  margin: 0;
-  line-height: 1.5;
+  margin: $space-md 0;
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin: 2rem 0 1rem;
+  gap: $space-sm;
+  margin: $space-lg 0 $space-md;
 }
 
 .extendButton {
-  background: var(--primary-color);
-
-  &:hover:not(:disabled) {
-    background: var(--primary-color-hover);
-    transform: translateY(-1px);
-  }
-
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-  }
-}
-
-.logoutButton {
-  background: var(--background-secondary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-light);
-
-  &:hover {
-    background: var(--error-color);
-    color: white;
-    border-color: var(--error-color);
   }
 }
 
@@ -160,70 +75,16 @@
 .progressContainer {
   position: relative;
   height: 4px;
-  background: var(--background-secondary);
+  background: $surface;
   border-radius: $radius-sm;
   overflow: hidden;
-  margin-top: 1rem;
+  margin-top: $space-md;
 }
 
 .progressBar {
   height: 100%;
+  background: $warning;
   border-radius: $radius-sm;
-  transition: all 0.3s ease;
-
-  &.warning {
-    background: linear-gradient(90deg, #f59e0b, #fbbf24);
-  }
-
-  &.danger {
-    background: linear-gradient(90deg, #ef4444, #f87171);
-  }
-
-  &.critical {
-    background: linear-gradient(90deg, #dc2626, #ef4444);
-    animation: progressPulse 1s infinite;
-  }
-}
-
-// Animations
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.9;
-  }
-}
-
-@keyframes iconPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes containerPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
-  }
-}
-
-@keyframes progressPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 
 @keyframes spin {
@@ -235,23 +96,16 @@
   }
 }
 
-// Responsive Design
-@media (max-width: 480px) {
+@media (max-width: $breakpoint-sm) {
   .modalContent {
-    padding: 1.5rem;
+    padding: $space-md;
   }
 
   .timerText {
-    font-size: 2rem;
+    font-size: $font-3xl;
   }
 
   .actions {
-    gap: 0.5rem;
-  }
-
-  .extendButton,
-  .logoutButton {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    gap: $space-xs;
   }
 }

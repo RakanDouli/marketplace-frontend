@@ -1,0 +1,36 @@
+@import "@/styles/variables";
+
+.sortableList {
+  width: 100%;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  padding: $space-md;
+  min-height: 200px;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.dragOverlay {
+  opacity: 0.95;
+  transform: rotate(2deg);
+  box-shadow: $shadow-xl;
+  border: 3px solid $primary !important;
+  border-radius: $radius-lg !important;
+  z-index: 1000;
+  background: $surface !important;
+
+  // Enhanced styling for the drag preview
+  // .itemContent {
+  //   background: linear-gradient(45deg, $bg, $surface) !important;
+  // }
+
+  .itemName {
+    font-weight: $weight-bold !important;
+    color: $primary !important;
+  }
+}

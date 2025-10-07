@@ -1,17 +1,18 @@
+@import "../../../styles/variables.scss";
+
 // STANDARDIZED ADMIN DASHBOARD STYLES
-// Generic classes that work for ALL dashboard panels (Users, Roles, Listings, etc.)
-// Layout: Header -> Search/Filters -> Table -> Pagination
+// Generic classes that work for ALL dashboard panels
 
 .dashboardPanel {
   display: flex;
   flex-direction: column;
   gap: $space-md;
   padding: $space-md;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   background: $bg;
 }
 
-// 1. HEADER SECTION (title + description + actions)
+// Header Section
 .header {
   display: flex;
   justify-content: space-between;
@@ -26,17 +27,17 @@
 
 .headerActions {
   display: flex;
-  gap: 0.75rem;
+  gap: $space-sm;
   flex-wrap: wrap;
 }
 
-// 2. SEARCH & FILTERS SECTION (search input + dropdowns + count)
+// Search & Filters Section
 .searchSection {
   display: flex;
   flex-direction: column;
   gap: $space-md;
   padding: $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   border: 1px solid $border;
 }
 
@@ -46,12 +47,13 @@
   justify-content: flex-end;
   gap: $space-sm;
   flex-wrap: wrap;
+
   > span {
     color: $primary;
     float: right;
     padding: $space-xs $space-sm;
     border: 1px solid $border;
-    border-radius: $radius-sm;
+    border-radius: $radius-base;
   }
 }
 
@@ -62,34 +64,26 @@
   flex-wrap: wrap;
 }
 
-// 3. TABLE CONTENT SECTION
+// Table Content
 .tableContent {
   min-height: 400px;
 }
 
-// 4. LOADING & EMPTY STATES (generic)
-.loadingContainer {
+// Loading & Empty States
+.loadingContainer,
+.emptyState,
+.noAccess {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: $space-sm;
-  padding: 3rem;
-  text-align: center;
-}
-
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $space-sm;
-  padding: 3rem;
+  padding: $space-xl;
   text-align: center;
 }
 
 .emptyIcon {
-  color: var(--color-text-secondary);
+  color: $text-muted;
   opacity: 0.5;
 }
 
@@ -97,54 +91,68 @@
   display: flex;
   gap: $space-sm;
   flex-wrap: wrap;
+
   button {
     padding: $space-sm !important;
     margin: 0 !important;
   }
 }
 
-// .actionButton {
-//   min-width: 80px;
-//   justify-content: center;
-// }
-
-// .deleteButton {
-//   --button-background-color: var(--color-error);
-//   --button-text-color: white;
-// }
-
-// .deleteButton:hover {
-//   --button-background-color: var(--color-error-dark);
-// }
-
-// 7. STATUS BADGES (generic for all status types)
+// Status Badges
 .statusBadge {
-  padding: $space-sm;
-  border-radius: $radius-sm;
-  // font-size: 0.75rem;
-  // font-weight: 500;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-base;
   text-align: center;
   min-width: fit-content;
   display: inline-block;
 }
 
-// Active/Inactive states (for roles, users, etc.)
 .active {
   background-color: $success-bg;
   color: $success;
 }
 
 .inactive {
-  background-color: #f3f4f6;
-  color: #6b7280;
+  background-color: $surface;
+  color: $text-muted;
 }
 
-// Info cards (used in roles panel)
+// Status variants for listings
+.status-draft {
+  background-color: $warning-bg;
+  color: $warning;
+}
+
+.status-pending_approval,
+.status-pending-approval {
+  background-color: $info-bg;
+  color: $info;
+}
+
+.status-active {
+  background-color: $success-bg;
+  color: $success;
+}
+
+.status-sold,
+.status-sold_via_platform,
+.status-sold-via-platform {
+  background-color: $success-bg;
+  color: $success;
+}
+
+.status-hidden {
+  background-color: $surface;
+  color: $text-muted;
+}
+
+// Info Cards
 .infoCards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: $space-sm;
   margin-bottom: $space-sm;
+
   @media (max-width: $breakpoint-md) {
     display: none;
   }
@@ -153,9 +161,9 @@
 .infoCard {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: $space-sm;
   padding: $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   border: 1px solid $border;
 }
 
@@ -163,74 +171,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: $radius-sm;
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  width: $space-xl;
+  height: $space-xl;
+  border-radius: $radius-base;
+  background: $bg;
+  color: $primary;
 }
 
 .infoContent {
   flex: 1;
 }
 
-// Status variants for listings
-.status-draft {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.status-pending_approval,
-.status-pending-approval {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-.status-active {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status-sold {
-  background-color: #f3e8ff;
-  color: #7c3aed;
-}
-
-.status-sold_via_platform,
-.status-sold-via-platform {
-  background-color: #ecfdf5;
-  color: #059669;
-}
-
-.status-hidden {
-  background-color: #f3f4f6;
-  color: #6b7280;
-}
-
-// No access message - used by all dashboard panels
-.noAccess {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $space-sm;
-  padding: 3rem;
-  text-align: center;
-}
-
-// Action buttons styling - used by all dashboard panels
-.deleteButton {
-  --button-background-color: var(--color-error);
-  --button-text-color: white;
-}
-
-.deleteButton:hover {
-  --button-background-color: var(--color-error-dark);
-}
-
-// Responsive design for all dashboard panels
-// BRANDS-SPECIFIC STYLES
-// Category selector
+// Category Selector
 .categorySelector {
   display: flex;
   align-items: center;
@@ -248,48 +200,46 @@
   color: $primary;
   padding: $space-xs $space-sm;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
 }
 
-// Brand name styling
+// Brand Name
 .brandName {
   display: flex;
   align-items: center;
   gap: $space-xs;
 }
 
-// Source badges for brands/models
+// Source Badges
 .sourceBadge {
   padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
-  font-size: 0.75rem;
-  font-weight: 500;
+  border-radius: $radius-base;
   text-align: center;
   min-width: fit-content;
   display: inline-block;
 }
 
 .source-manual {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: $info-bg;
+  color: $info;
 }
 
 .source-sync {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: $success-bg;
+  color: $success;
 }
 
-// Modal styles for nested modals (used in EditBrandModal)
+// Modal Sections
 .section {
   margin-bottom: $space-lg;
   padding-bottom: $space-lg;
   border-bottom: 1px solid $border;
-}
 
-.section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
 }
 
 .sectionHeader {
@@ -304,6 +254,7 @@
   color: $text;
 }
 
+// Nested Modal
 .nestedModal {
   position: fixed;
   top: 0;
@@ -314,12 +265,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100; // Higher than main modal
+  z-index: $z-modal + 100;
 }
 
 .nestedModalContent {
   background: $bg;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   padding: $space-lg;
   width: 90vw;
   max-width: 500px;
@@ -337,19 +288,21 @@
   border-bottom: 1px solid $border;
 }
 
-// Sync modal specific styles
+// Sync Modal
 .syncModal {
   text-align: center;
   padding: $space-md 0;
 }
 
-.syncIcon {
+.syncIcon,
+.warningIcon {
   display: flex;
   justify-content: center;
   margin-bottom: $space-md;
 }
 
-.syncContent {
+.syncContent,
+.deleteContent {
   display: flex;
   flex-direction: column;
   gap: $space-md;
@@ -371,12 +324,14 @@
 .warningSection {
   text-align: right;
   padding: $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   border: 1px solid $border;
 }
 
 .processTitle,
-.configTitle {
+.configTitle,
+.consequencesTitle,
+.alternativeTitle {
   font-weight: $weight-medium;
   margin-bottom: $space-sm;
 }
@@ -405,7 +360,7 @@
   display: flex;
   justify-content: space-between;
   padding: $space-xs;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   background: $bg;
 }
 
@@ -413,46 +368,27 @@
   margin: 0;
 }
 
-// Delete modal styles
+// Delete Modal
 .deleteModal {
   text-align: center;
   padding: $space-md 0;
 }
 
-.warningIcon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: $space-md;
-}
-
-.deleteContent {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-  text-align: right;
-}
-
 .brandInfo {
   padding: $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-base;
   background: $bg;
   border: 1px solid $border;
 }
 
 .warningSection {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: $error-bg;
+  border-color: $error;
 }
 
 .consequencesSection,
 .alternativeSection {
   text-align: right;
-}
-
-.consequencesTitle,
-.alternativeTitle {
-  font-weight: $weight-medium;
-  margin-bottom: $space-xs;
 }
 
 .consequencesList,
@@ -461,15 +397,19 @@
   list-style-position: inside;
   padding-right: $space-sm;
   margin: 0;
+
+  li {
+    margin-bottom: $space-xs;
+    color: $text-muted;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
-.consequencesList li,
-.alternativesList li {
-  margin-bottom: $space-xs;
-  color: $text-muted;
-}
-
-@media (max-width: 768px) {
+// Responsive
+@media (max-width: $breakpoint-md) {
   .dashboardPanel {
     padding: $space-sm;
   }
@@ -481,23 +421,19 @@
 
   .headerActions {
     justify-content: stretch;
-  }
 
-  .headerActions button {
-    flex: 1;
-  }
-
-  .filters {
-    grid-template-columns: 1fr;
+    button {
+      flex: 1;
+    }
   }
 
   .actions {
     flex-direction: column;
-  }
 
-  .actions button {
-    width: 100%;
-    justify-content: center;
+    button {
+      width: 100%;
+      justify-content: center;
+    }
   }
 
   .categorySelector {

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container } from '@/components/slices/Container/Container';
 import { Button, Loading, Text } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useAdminRolesStore } from '@/stores/admin/adminRolesStore';
@@ -11,7 +10,7 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, RefreshCw, Edit, Trash2, Shield, Users, Eye, Settings } from 'lucide-react';
 import { CreateRoleModal, EditRoleModal, DeleteRoleModal } from './modals';
-import styles from '../AdminDashboardPanel.module.scss';
+import styles from '../SharedDashboardPanel.module.scss';
 
 export const RolesDashboardPanel: React.FC = () => {
   const {

@@ -1,0 +1,234 @@
+@import '../../../../../styles/variables.scss';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-md 0;
+}
+
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-top: $space-sm;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  cursor: pointer;
+  color: $text;
+
+  input[type="checkbox"] {
+    width: $space-md;
+    height: $space-md;
+    accent-color: $primary;
+    cursor: pointer;
+  }
+
+  span {
+    user-select: none;
+  }
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-sm;
+  margin-top: $space-lg;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+// Options section styles
+.optionsSection {
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  padding: $space-md;
+  background-color: $surface;
+  margin-top: $space-md;
+}
+
+.optionsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-md;
+}
+
+.optionRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: $space-sm;
+  align-items: end;
+  padding: $space-sm 0;
+  border-bottom: 1px solid $border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.removeOptionButton {
+  margin-bottom: $space-xs; // Align with input fields
+}
+
+.emptyOptions {
+  text-align: center;
+  color: $text-muted;
+  font-style: italic;
+  padding: $space-lg;
+  background-color: $bg;
+  border: 2px dashed $border;
+  border-radius: $radius-base;
+}
+
+.deletedOptionsSection {
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+.deletedOptionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm;
+  background-color: $error-bg;
+  border: 1px solid $error-border;
+  border-radius: $radius-base;
+  margin-bottom: $space-xs;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.deletedOptionText {
+  color: $text-muted;
+  text-decoration: line-through;
+  font-style: italic;
+}
+
+.error {
+  color: $error;
+  margin-bottom: $space-sm;
+  padding: $space-sm;
+  background-color: $error-bg;
+  border: 1px solid $error-border;
+  border-radius: $radius-base;
+}
+
+.readOnlyNotice {
+  background-color: $warning-bg;
+  border: 1px solid $warning-border;
+  color: $warning;
+  padding: $space-md;
+  border-radius: $radius-base;
+  margin-bottom: $space-md;
+  text-align: center;
+}
+
+// Delete modal styles
+.deleteModalContent {
+  padding: $space-md 0;
+}
+
+.deleteWarning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: $space-lg;
+}
+
+.warningIcon {
+  color: $error;
+  margin-bottom: $space-md;
+}
+
+.warningTitle {
+  color: $error;
+  margin: 0;
+}
+
+.attributeInfo {
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+  padding: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.cannotDeleteNotice {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  background-color: $warning-bg;
+  border: 1px solid $warning-border;
+  color: $warning;
+  padding: $space-md;
+  border-radius: $radius-base;
+  margin-bottom: $space-lg;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.deleteConsequences {
+  background-color: $error-bg;
+  border: 1px solid $error-border;
+  border-radius: $radius-base;
+  padding: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.consequencesTitle {
+  color: $error;
+  margin: 0 0 $space-sm 0;
+}
+
+.consequencesList {
+  margin: 0;
+  padding-right: $space-md;
+  color: $text;
+
+  li {
+    margin-bottom: $space-xs;
+    line-height: $line-normal;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .formActions {
+    flex-direction: column-reverse;
+    gap: $space-sm;
+  }
+
+  .optionRow {
+    grid-template-columns: 1fr;
+    gap: $space-sm;
+  }
+
+  .removeOptionButton {
+    margin-bottom: 0;
+    justify-self: end;
+  }
+
+  .deletedOptionRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-sm;
+  }
+}

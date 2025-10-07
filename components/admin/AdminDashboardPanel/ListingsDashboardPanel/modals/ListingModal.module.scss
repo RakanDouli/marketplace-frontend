@@ -1,4 +1,4 @@
-// ListingModal.module.scss - Styles for listing modals
+@import '../../../../../styles/variables.scss';
 
 .modalOverlay {
   position: fixed;
@@ -10,21 +10,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: $z-modal;
   backdrop-filter: blur(2px);
 }
 
 .modal {
-  background: var(--surface);
+  background: $surface;
   border-radius: $radius-sm;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: $shadow-xl;
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid $border;
 }
 
 .deleteModal {
@@ -35,215 +33,183 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border);
-
-  h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+  padding: $space-lg $space-xl;
+  border-bottom: 1px solid $border;
 
   .headerWithIcon {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-sm;
 
     .warningIcon {
-      color: var(--danger);
+      color: $error;
     }
   }
 
   .closeButton {
-    color: var(--text-secondary);
-    padding: 4px;
+    color: $text-muted;
+    padding: $space-xs;
 
     &:hover {
-      color: var(--text-primary);
-      background: var(--hover);
+      color: $text;
+      background: $surface;
     }
   }
 }
 
 .modalContent {
-  padding: 24px;
+  padding: $space-xl;
 }
 
 .listingInfo {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--background);
+  margin-bottom: $space-xl;
+  padding: $space-md;
+  background: $bg;
   border-radius: $radius-sm;
-  border: 1px solid var(--border);
-
-  h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+  border: 1px solid $border;
 
   .currentStatus {
     margin: 0;
-    font-size: 14px;
-    color: var(--text-secondary);
+    color: $text-muted;
 
     .statusLabel {
-      font-weight: 500;
-      color: var(--text-primary);
+      font-weight: $weight-medium;
+      color: $text;
     }
   }
 }
 
 .warningSection {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--danger-alpha);
+  margin-bottom: $space-xl;
+  padding: $space-md;
+  background: $error-bg;
   border-radius: $radius-sm;
-  border: 1px solid var(--danger);
+  border: 1px solid $error;
 
   .warningText {
     margin: 0;
-    color: var(--danger);
-    font-weight: 500;
-    font-size: 16px;
+    color: $error;
+    font-weight: $weight-medium;
   }
 }
 
 .listingDetails {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--background);
+  margin-bottom: $space-xl;
+  padding: $space-md;
+  background: $bg;
   border-radius: $radius-sm;
-  border: 1px solid var(--border);
-
-  .listingTitle {
-    margin: 0 0 12px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+  border: 1px solid $border;
 
   .listingMeta {
     display: flex;
-    gap: 16px;
-    margin-bottom: 12px;
+    gap: $space-md;
+    margin-bottom: $space-sm;
     flex-wrap: wrap;
 
     .price {
-      font-weight: 600;
-      color: var(--primary);
-      font-size: 16px;
+      font-weight: $weight-semibold;
+      color: $primary;
     }
 
     .category,
     .date {
-      font-size: 14px;
-      color: var(--text-secondary);
-      padding: 2px 8px;
-      background: var(--surface);
+      color: $text-muted;
+      padding: $space-xs $space-sm;
+      background: $surface;
       border-radius: $radius-sm;
     }
   }
 
   .description {
     margin: 0;
-    color: var(--text-secondary);
-    font-size: 14px;
-    line-height: 1.5;
+    color: $text-muted;
+    line-height: $line-relaxed;
   }
 }
 
 .form {
   .field {
-    margin-bottom: 20px;
+    margin-bottom: $space-lg;
 
     .label {
       display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: var(--text-primary);
-      font-size: 14px;
+      margin-bottom: $space-xs;
+      font-weight: $weight-medium;
+      color: $text;
     }
 
     .select {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
+      padding: $space-sm;
+      border: 1px solid $border;
       border-radius: $radius-sm;
-      font-size: 14px;
-      background: var(--background);
-      color: var(--text-primary);
+      background: $bg;
+      color: $text;
       transition: border-color 0.2s ease;
 
       &:focus {
         outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px var(--primary-alpha);
+        border-color: $primary;
+        box-shadow: 0 0 0 2px rgba($primary, 0.1);
       }
 
       &.selectError {
-        border-color: var(--danger);
-        box-shadow: 0 0 0 2px var(--danger-alpha);
+        border-color: $error;
+        box-shadow: 0 0 0 2px $error-bg;
       }
     }
 
     .textarea {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
+      padding: $space-sm;
+      border: 1px solid $border;
       border-radius: $radius-sm;
-      font-size: 14px;
-      background: var(--background);
-      color: var(--text-primary);
+      background: $bg;
+      color: $text;
       resize: vertical;
       min-height: 80px;
       transition: border-color 0.2s ease;
 
       &:focus {
         outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 2px var(--primary-alpha);
+        border-color: $primary;
+        box-shadow: 0 0 0 2px rgba($primary, 0.1);
       }
 
       &::placeholder {
-        color: var(--text-tertiary);
+        color: $text-muted;
       }
     }
 
     .errorMessage {
       display: block;
-
-      color: var(--danger);
-      font-size: 12px;
-      font-weight: 500;
+      color: $error;
+      font-weight: $weight-medium;
     }
   }
 }
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: $space-sm;
   justify-content: flex-end;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-  margin-top: 24px;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+  margin-top: $space-xl;
 }
 
-// Responsive styles
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-md) {
   .modal {
     width: 95%;
-    margin: 20px;
+    margin: $space-lg;
   }
 
   .modalContent {
-    padding: 20px;
+    padding: $space-lg;
   }
 
   .actions {
     flex-direction: column-reverse;
-    gap: 8px;
+    gap: $space-sm;
   }
 }

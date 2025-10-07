@@ -1,60 +1,58 @@
+@import '../../../../../styles/variables.scss';
+
 .warningMessage {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--danger-alpha);
+  margin-bottom: $space-xl;
+  padding: $space-md;
+  background: $error-bg;
   border-radius: $radius-sm;
-  border: 1px solid var(--danger);
+  border: 1px solid $error;
 }
 
 .warningText {
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: $weight-medium;
 }
 
 .listingDetails {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--background);
+  margin-bottom: $space-xl;
+  padding: $space-md;
+  background: $bg;
   border-radius: $radius-sm;
-  border: 1px solid var(--border);
+  border: 1px solid $border;
 }
 
 .listingTitle {
-  margin-bottom: 12px;
+  margin-bottom: $space-sm;
 }
 
 .listingMeta {
   display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: $space-md;
+  margin-bottom: $space-sm;
   flex-wrap: wrap;
 }
 
 .priceText {
-  font-weight: 600;
-  color: var(--primary);
-  font-size: 16px;
+  font-weight: $weight-semibold;
+  color: $primary;
 }
 
 .categoryBadge,
 .dateBadge {
-  color: var(--text-secondary);
-  font-size: 14px;
-  padding: 2px 8px;
-  background: var(--surface);
+  color: $text-muted;
+  padding: $space-xs $space-sm;
+  background: $surface;
   border-radius: $radius-sm;
 }
 
 .descriptionText {
-  font-size: 14px;
-  line-height: 1.5;
+  line-height: $line-relaxed;
 }
 
 .formActions {
   display: flex;
-  gap: 12px;
+  gap: $space-sm;
   justify-content: flex-end;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-  margin-top: 24px;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+  margin-top: $space-xl;
 }
