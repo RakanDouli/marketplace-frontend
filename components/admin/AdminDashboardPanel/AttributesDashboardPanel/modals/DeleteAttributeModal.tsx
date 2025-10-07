@@ -39,60 +39,59 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      title="تأكيد حذف الخاصية"
+      title="حذف الخاصية"
       maxWidth="md"
     >
       <div className={styles.deleteModalContent}>
-        <div className={styles.deleteWarning}>
-          <AlertTriangle size={48} className={styles.warningIcon} />
-          <Text variant="h3" className={styles.warningTitle}>
-            هل أنت متأكد من حذف هذه الخاصية؟
-          </Text>
+        <div className={styles.warningIcon}>
+          <AlertTriangle size={48} color="var(--error)" />
         </div>
 
-        <div className={styles.attributeInfo}>
-          <Text variant="paragraph">
-            <strong>اسم الخاصية:</strong> {attribute.name}
-          </Text>
-          <Text variant="paragraph">
-            <strong>المفتاح:</strong> {attribute.key}
-          </Text>
-          <Text variant="paragraph">
-            <strong>النوع:</strong> {attribute.type}
-          </Text>
-          {attribute.group && (
-            <Text variant="paragraph">
-              <strong>المجموعة:</strong> {attribute.group}
-            </Text>
-          )}
+        <Text variant="h3" align="center">
+          هل أنت متأكد من حذف هذه الخاصية؟
+        </Text>
+
+        <div className={styles.userInfo}>
+          <Text variant="paragraph" weight="medium">الخاصية المحددة للحذف:</Text>
+          <div className={styles.userDetail}>
+            <Text variant="small"><strong>اسم الخاصية:</strong> {attribute.name}</Text>
+            <Text variant="small"><strong>المفتاح:</strong> {attribute.key}</Text>
+            <Text variant="small"><strong>النوع:</strong> {attribute.type}</Text>
+            {attribute.group && (
+              <Text variant="small"><strong>المجموعة:</strong> {attribute.group}</Text>
+            )}
+          </div>
         </div>
 
         {!canDelete ? (
-          <div className={styles.cannotDeleteNotice}>
+          <div className={styles.warningBox}>
             <AlertTriangle size={20} />
-            <Text variant="paragraph">
-              لا يمكن حذف هذه الخاصية لأنها من الخصائص الأساسية في النظام.
-            </Text>
+            <div>
+              <Text variant="small" weight="bold" color="error">لا يمكن الحذف:</Text>
+              <Text variant="small" color="secondary">
+                هذه الخاصية من الخصائص الأساسية في النظام ولا يمكن حذفها.
+              </Text>
+            </div>
           </div>
         ) : (
-          <div className={styles.deleteConsequences}>
-            <Text variant="h4" className={styles.consequencesTitle}>
-              عواقب الحذف:
-            </Text>
-            <ul className={styles.consequencesList}>
-              <li>ستفقد جميع البيانات المرتبطة بهذه الخاصية في جميع الإعلانات</li>
-              <li>لن تظهر هذه الخاصية في الفلاتر أو نتائج البحث</li>
-              <li>لا يمكن التراجع عن هذا الإجراء</li>
-              {attribute.options.length > 0 && (
-                <li>سيتم حذف جميع الخيارات المرتبطة ({attribute.options.length} خيار)</li>
-              )}
-            </ul>
+          <div className={styles.warningBox}>
+            <AlertTriangle size={20} />
+            <div>
+              <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
+              <ul>
+                <li>ستفقد جميع البيانات المرتبطة بهذه الخاصية في جميع الإعلانات</li>
+                <li>لن تظهر هذه الخاصية في الفلاتر أو نتائج البحث</li>
+                <li>لا يمكن التراجع عن هذا الإجراء</li>
+                {attribute.options.length > 0 && (
+                  <li>سيتم حذف جميع الخيارات المرتبطة ({attribute.options.length} خيار)</li>
+                )}
+              </ul>
+            </div>
           </div>
         )}
 
-        <div className={styles.formActions}>
+        <div className={styles.deleteActions}>
           <Button
-            type="button"
             onClick={onClose}
             variant="secondary"
             disabled={isLoading}
@@ -101,13 +100,11 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
           </Button>
           {canDelete && (
             <Button
-              type="button"
               onClick={handleConfirm}
               variant="danger"
-              loading={isLoading}
               disabled={isLoading}
             >
-              {isLoading ? 'جاري الحذف...' : 'نعم، احذف الخاصية'}
+              {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
             </Button>
           )}
         </div>

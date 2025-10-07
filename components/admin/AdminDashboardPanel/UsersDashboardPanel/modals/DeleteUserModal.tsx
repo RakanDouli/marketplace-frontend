@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/slices';
-import { Modal } from '@/components/slices';
-import { Trash2, AlertTriangle, User } from 'lucide-react';
+import { Button, Modal, Text } from '@/components/slices';
+import { AlertTriangle } from 'lucide-react';
 import styles from './UserModals.module.scss';
 
 interface User {
@@ -41,38 +40,34 @@ export function DeleteUserModal({
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      title="تأكيد حذف المستخدم"
-      maxWidth="sm"
+      title="حذف المستخدم"
+      maxWidth="md"
     >
       <div className={styles.deleteModalContent}>
         <div className={styles.warningIcon}>
-          <AlertTriangle size={48} />
+          <AlertTriangle size={48} color="var(--error)" />
         </div>
 
-        <div className={styles.deleteMessage}>
-          <h3>هل أنت متأكد من حذف هذا المستخدم؟</h3>
+        <Text variant="h3" align="center">
+          هل أنت متأكد من حذف هذا المستخدم؟
+        </Text>
 
-          {user && (
-            <div className={styles.userInfo}>
-              <div className={styles.userDetail}>
-                <User size={16} />
-                <span><strong>الاسم:</strong> {user.name}</span>
-              </div>
-              <div className={styles.userDetail}>
-                <span><strong>البريد الإلكتروني:</strong> {user.email}</span>
-              </div>
-              <div className={styles.userDetail}>
-                <span><strong>الدور:</strong> {user.role}</span>
-              </div>
+        {user && (
+          <div className={styles.userInfo}>
+            <Text variant="paragraph" weight="medium">المستخدم المحدد للحذف:</Text>
+            <div className={styles.userDetail}>
+              <Text variant="small"><strong>الاسم:</strong> {user.name}</Text>
+              <Text variant="small"><strong>البريد الإلكتروني:</strong> {user.email}</Text>
+              <Text variant="small"><strong>الدور:</strong> {user.role}</Text>
             </div>
-          )}
+          </div>
+        )}
 
-          <div className={styles.warningBox}>
-            <AlertTriangle size={16} />
-            <div>
-              <p><strong>تحذير:</strong> لا يمكن التراجع عن هذا الإجراء</p>
-              <p>سيتم حذف جميع بيانات المستخدم نهائياً من النظام</p>
-            </div>
+        <div className={styles.warningBox}>
+          <AlertTriangle size={20} />
+          <div>
+            <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
+            <Text variant="small" color="secondary">لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع بيانات المستخدم نهائياً من النظام.</Text>
           </div>
         </div>
 
@@ -89,7 +84,6 @@ export function DeleteUserModal({
             variant="danger"
             disabled={isLoading}
           >
-            <Trash2 size={16} />
             {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
           </Button>
         </div>

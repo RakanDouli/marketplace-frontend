@@ -1,17 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/slices/Button/Button';
+import { Button, Modal } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import type { Feature, FeaturePermissions } from '@/stores/admin/adminRolesStore';
 import {
   validateRoleForm,
   hasValidationErrors,
   createFieldValidator,
-  type RoleFormData,
   type ValidationErrors
 } from '@/lib/admin/validation/roleValidation';
-import { X, Shield, Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import styles from './RoleModal.module.scss';
 
 interface CreateRoleModalProps {
@@ -121,28 +120,19 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
     }, 0);
   };
 
-  if (!isVisible) return null;
-
   return (
-    <div className={styles.modal}>
-      <div className={styles.modalContent}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <Shield size={24} />
-            <div>
-              <h2>إضافة دور جديد</h2>
-              <p>
-                {currentStep === 'basic'
-                  ? 'أدخل المعلومات الأساسية للدور'
-                  : 'حدد الصلاحيات المطلوبة للدور'
-                }
-              </p>
-            </div>
-          </div>
-          <Button variant="primary" onClick={onClose} icon={<X size={20} />} />
-        </div>
-
+    <Modal
+      isVisible={isVisible}
+      onClose={onClose}
+      title="إضافة دور جديد"
+      description={
+        currentStep === 'basic'
+          ? 'أدخل المعلومات الأساسية للدور'
+          : 'حدد الصلاحيات المطلوبة للدور'
+      }
+      maxWidth="xl"
+    >
+      <div className={styles.wizardContent}>
         {/* Progress Indicator */}
         <div className={styles.progress}>
           <div className={`${styles.step} ${currentStep === 'basic' ? styles.active : styles.completed}`}>
@@ -316,7 +306,6 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   );
 };
-

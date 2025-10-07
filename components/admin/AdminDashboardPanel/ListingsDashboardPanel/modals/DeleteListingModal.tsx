@@ -42,57 +42,56 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
   };
 
   return (
-    <Modal isVisible onClose={onClose} title="حذف الإعلان">
-      {/* Warning Message */}
-      <div className={styles.warningMessage}>
-        <Text variant="paragraph" color="error" className={styles.warningText}>
-          هل أنت متأكد من حذف هذا الإعلان؟ هذا الإجراء لا يمكن التراجع عنه.
-        </Text>
-      </div>
-
-      {/* Listing Details */}
-      <div className={styles.listingDetails}>
-        <Text variant="h3" className={styles.listingTitle}>{listing.title}</Text>
-
-        <div className={styles.listingMeta}>
-          <Text as="span" className={styles.priceText}>
-            {formatPrice(listing.priceMinor)}
-          </Text>
-          <Text as="span" color="secondary" className={styles.categoryBadge}>
-            سيارات
-          </Text>
-          <Text as="span" color="secondary" className={styles.dateBadge}>
-            {new Date(listing.createdAt).toLocaleDateString('en-US')}
-          </Text>
+    <Modal isVisible onClose={onClose} title="حذف الإعلان" maxWidth="md">
+      <div className={styles.deleteModalContent}>
+        <div className={styles.warningIcon}>
+          <AlertTriangle size={48} color="var(--error)" />
         </div>
 
-        {listing.description && (
-          <Text variant="paragraph" color="secondary" className={styles.descriptionText}>
-            {listing.description.length > 150
-              ? `${listing.description.substring(0, 150)}...`
-              : listing.description
-            }
-          </Text>
-        )}
-      </div>
+        <Text variant="h3" align="center">
+          هل أنت متأكد من حذف هذا الإعلان؟
+        </Text>
 
-      {/* Actions */}
-      <div className={styles.formActions}>
-        <Button
-          onClick={onClose}
-          variant="outline"
-          disabled={isDeleting}
-        >
-          إلغاء
-        </Button>
-        <Button
-          onClick={handleConfirm}
-          variant="danger"
-          disabled={isDeleting}
-          loading={isDeleting}
-        >
-          {isDeleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
-        </Button>
+        <div className={styles.userInfo}>
+          <Text variant="paragraph" weight="medium">الإعلان المحدد للحذف:</Text>
+          <div className={styles.userDetail}>
+            <Text variant="small"><strong>العنوان:</strong> {listing.title}</Text>
+            <Text variant="small"><strong>السعر:</strong> {formatPrice(listing.priceMinor)}</Text>
+            <Text variant="small"><strong>التاريخ:</strong> {new Date(listing.createdAt).toLocaleDateString('ar-SY')}</Text>
+            {listing.description && (
+              <Text variant="small">
+                <strong>الوصف:</strong> {listing.description.length > 100 ? `${listing.description.substring(0, 100)}...` : listing.description}
+              </Text>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.warningBox}>
+          <AlertTriangle size={20} />
+          <div>
+            <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
+            <Text variant="small" color="secondary">
+              لا يمكن التراجع عن هذا الإجراء. سيتم حذف الإعلان وجميع بياناته نهائياً من النظام.
+            </Text>
+          </div>
+        </div>
+
+        <div className={styles.deleteActions}>
+          <Button
+            onClick={onClose}
+            variant="secondary"
+            disabled={isDeleting}
+          >
+            إلغاء
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            variant="danger"
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
+          </Button>
+        </div>
       </div>
     </Modal>
   );

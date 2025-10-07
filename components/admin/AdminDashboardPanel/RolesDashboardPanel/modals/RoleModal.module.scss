@@ -1,56 +1,10 @@
 @import '../../../../../styles/variables.scss';
 
-// Modal Base
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+// Wizard content wrapper
+.wizardContent {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: $z-modal;
-  padding: $space-md;
-}
-
-.modalContent {
-  background: $bg;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-xl;
-  width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: 1px solid $border;
-}
-
-// Header
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-lg;
-  border-bottom: 1px solid $border;
-  background: $surface;
-  border-radius: $radius-lg $radius-lg 0 0;
-}
-
-.headerContent {
-  display: flex;
-  align-items: center;
-  gap: $space-md;
-  flex: 1;
-
-  svg {
-    color: $primary;
-    flex-shrink: 0;
-  }
-}
-
-.dangerIcon {
-  color: $error !important;
+  flex-direction: column;
+  gap: $space-lg;
 }
 
 // Progress Indicator
@@ -317,11 +271,22 @@
 
 // Delete Modal
 .deleteContent {
-  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-md 0;
+}
+
+.warningIcon {
+  color: $error;
+  display: flex;
+  justify-content: center;
 }
 
 .roleInfo {
-  margin-bottom: $space-lg;
+  width: 100%;
+  text-align: right;
 }
 
 .roleDetails {
@@ -329,6 +294,10 @@
   padding: $space-md;
   border-radius: $radius-md;
   border: 1px solid $border;
+  margin-top: $space-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
 }
 
 .warningBox {
@@ -338,7 +307,8 @@
   background: $error-bg;
   border: 1px solid $error;
   border-radius: $radius-md;
-  margin-bottom: $space-lg;
+  width: 100%;
+  text-align: right;
 
   svg {
     color: $error;
@@ -347,9 +317,9 @@
   }
 
   ul {
-    margin: 0;
+    margin: $space-xs 0 0 0;
     padding-right: $space-md;
-    color: $error;
+    color: $text;
 
     li {
       line-height: $line-normal;
@@ -364,7 +334,7 @@
 
 .deleteActions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   gap: $space-md;
 }
 
@@ -380,16 +350,6 @@
 
 // Responsive
 @media (max-width: $breakpoint-md) {
-  .modal {
-    padding: $space-sm;
-  }
-
-  .modalContent {
-    max-width: 100%;
-    max-height: 95vh;
-  }
-
-  .header,
   .stepContent {
     padding: $space-md;
   }

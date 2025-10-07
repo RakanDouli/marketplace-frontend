@@ -72,86 +72,43 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      title="تأكيد حذف العلامة التجارية"
-      maxWidth="sm"
+      title="حذف العلامة التجارية"
+      maxWidth="md"
     >
-      <div className={styles.deleteModal}>
-        {/* Warning Icon */}
+      <div className={styles.deleteModalContent}>
         <div className={styles.warningIcon}>
           <AlertTriangle size={48} color="var(--error)" />
         </div>
 
-        {/* Content */}
-        <div className={styles.deleteContent}>
-          <Text variant="h3" className={styles.title}>
-            هل أنت متأكد من حذف هذه العلامة التجارية؟
-          </Text>
+        <Text variant="h3" align="center">
+          هل أنت متأكد من حذف هذه العلامة التجارية؟
+        </Text>
 
-          <div className={styles.brandInfo}>
-            <Text variant="paragraph">
-              <strong>اسم العلامة:</strong> {brand.name}
-            </Text>
-            <Text variant="paragraph">
-              <strong>المصدر:</strong> {brand.source?.toLowerCase() === 'manual' ? 'يدوي' : 'مزامنة'}
-            </Text>
+        <div className={styles.userInfo}>
+          <Text variant="paragraph" weight="medium">العلامة التجارية المحددة للحذف:</Text>
+          <div className={styles.userDetail}>
+            <Text variant="small"><strong>اسم العلامة:</strong> {brand.name}</Text>
+            <Text variant="small"><strong>المصدر:</strong> {brand.source?.toLowerCase() === 'manual' ? 'يدوي' : 'مزامنة'}</Text>
             {hasModels && (
-              <Text variant="paragraph">
-                <strong>عدد الموديلات:</strong> {brand.modelsCount}
-              </Text>
+              <Text variant="small"><strong>عدد الموديلات:</strong> {brand.modelsCount}</Text>
             )}
           </div>
+        </div>
 
-          {/* Warnings */}
-          <div className={styles.warningSection}>
-            <Text variant="small" color="error" className={styles.warningText}>
-              ⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه
-            </Text>
-
-            {hasModels && (
-              <Text variant="small" color="error" className={styles.warningText}>
-                ⚠️ سيتم حذف جميع الموديلات ({brand.modelsCount}) المرتبطة بهذه العلامة التجارية
-              </Text>
-            )}
-
-            {isFromSync && (
-              <Text variant="small" color="warning" className={styles.warningText}>
-                💡 ملاحظة: هذه العلامة التجارية مزامنة من API خارجي، قد تعود عند المزامنة التالية
-              </Text>
-            )}
-
-            <Text variant="small" color="error" className={styles.warningText}>
-              ⚠️ سيتم حذف جميع الإعلانات المرتبطة بهذه العلامة التجارية أيضاً
-            </Text>
-          </div>
-
-          {/* Consequences */}
-          <div className={styles.consequencesSection}>
-            <Text variant="small" className={styles.consequencesTitle}>
-              النتائج المترتبة على الحذف:
-            </Text>
-            <ul className={styles.consequencesList}>
-              <li>حذف العلامة التجارية نهائياً</li>
-              {hasModels && <li>حذف جميع الموديلات ({brand.modelsCount}) المرتبطة</li>}
-              <li>حذف جميع الإعلانات التي تستخدم هذه العلامة</li>
-              <li>فقدان إحصائيات هذه العلامة التجارية</li>
-              <li>عدم إمكانية استرداد البيانات المحذوفة</li>
-            </ul>
-          </div>
-
-          {/* Alternative actions */}
-          <div className={styles.alternativeSection}>
-            <Text variant="small" color="secondary" className={styles.alternativeTitle}>
-              بديل آمن: بدلاً من الحذف، يمكنك:
-            </Text>
-            <ul className={styles.alternativesList}>
-              <li>تغيير حالة العلامة إلى "مؤرشف" لإخفائها دون حذفها</li>
-              <li>تعطيل العلامة مؤقتاً حتى تقرر لاحقاً</li>
+        <div className={styles.warningBox}>
+          <AlertTriangle size={20} />
+          <div>
+            <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
+            <ul>
+              <li>لا يمكن التراجع عن هذا الإجراء</li>
+              {hasModels && <li>سيتم حذف جميع الموديلات ({brand.modelsCount}) المرتبطة بهذه العلامة</li>}
+              <li>سيتم حذف جميع الإعلانات المرتبطة بهذه العلامة</li>
+              {isFromSync && <li>قد تعود العلامة عند المزامنة التالية (مزامنة من API خارجي)</li>}
             </ul>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className={styles.formActions}>
+        <div className={styles.deleteActions}>
           <Button
             onClick={onClose}
             variant="secondary"
@@ -162,10 +119,9 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
           <Button
             onClick={handleConfirm}
             variant="danger"
-            loading={isLoading}
             disabled={isLoading}
           >
-            {isLoading ? 'جاري الحذف...' : 'نعم، احذف العلامة التجارية'}
+            {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
           </Button>
         </div>
       </div>

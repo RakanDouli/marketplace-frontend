@@ -1,17 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/slices/Button/Button';
+import { Button, Modal } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import type { Role, Feature, FeaturePermissions, RoleWithPermissions } from '@/stores/admin/adminRolesStore';
 import {
   validateRoleForm,
   hasValidationErrors,
   createFieldValidator,
-  type RoleFormData,
   type ValidationErrors
 } from '@/lib/admin/validation/roleValidation';
-import { X, Shield, Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import styles from './RoleModal.module.scss';
 
 interface EditRoleModalProps {
@@ -144,28 +143,19 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
     }, 0);
   };
 
-  if (!isVisible || !initialData) return null;
-
   return (
-    <div className={styles.modal}>
-      <div className={styles.modalContent}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <Shield size={24} />
-            <div>
-              <h2>تعديل الدور: {initialData.name}</h2>
-              <p>
-                {currentStep === 'basic'
-                  ? 'تحديث المعلومات الأساسية للدور'
-                  : 'تعديل الصلاحيات المطلوبة للدور'
-                }
-              </p>
-            </div>
-          </div>
-          <Button variant="primary" onClick={onClose} icon={<X size={20} />} />
-        </div>
-
+    <Modal
+      isVisible={isVisible && !!initialData}
+      onClose={onClose}
+      title={`تعديل الدور: ${initialData?.name || ''}`}
+      description={
+        currentStep === 'basic'
+          ? 'تحديث المعلومات الأساسية للدور'
+          : 'تعديل الصلاحيات المطلوبة للدور'
+      }
+      maxWidth="xl"
+    >
+      <div className={styles.wizardContent}>
         {/* Progress Indicator */}
         <div className={styles.progress}>
           <div className={`${styles.step} ${currentStep === 'basic' ? styles.active : styles.completed}`}>
@@ -338,7 +328,6 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   );
 };
-
