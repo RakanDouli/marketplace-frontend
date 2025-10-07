@@ -1,71 +1,106 @@
-.container {
-  padding: 16px 0;
-}
+@import '../../../../../styles/variables.scss';
 
-.warningMessage {
-  margin-bottom: 16px;
-}
-
-.warningText {
-  color: var(--error);
-
-  &.success {
-    color: var(--success);
-  }
+// Modal Content
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-md 0;
 }
 
 .userInfo {
-  margin-bottom: 16px;
+  width: 100%;
+  text-align: right;
 }
 
-.questionText {
-  margin-bottom: 12px;
+.userDetail {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  margin-top: $space-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
 }
 
-.userDetails {
-  margin-top: 8px;
-}
+.warningBox {
+  background: $error-bg;
+  border: 1px solid $error-border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  display: flex;
+  gap: $space-md;
+  align-items: flex-start;
+  width: 100%;
+  text-align: right;
 
-.userName {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: $space-xs;
+  }
 
-.userEmail {
-  font-family: monospace;
-  font-size: 12px;
-}
+  ul {
+    margin: $space-xs 0 0 0;
+    padding-right: $space-md;
+    color: $text;
 
-.consequences {
-  margin-bottom: 20px;
-}
+    li {
+      line-height: $line-normal;
+      margin-bottom: $space-xs;
 
-.consequencesList {
-  margin: 8px 0 0 16px;
-  padding: 0;
-
-  li {
-    margin-bottom: 4px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 }
 
-.unblockResult {
-  margin-bottom: 20px;
-}
+.infoBox {
+  background: $info-bg;
+  border: 1px solid $info-border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  display: flex;
+  gap: $space-md;
+  align-items: flex-start;
+  width: 100%;
+  text-align: right;
 
-.resultList {
-  margin: 8px 0 0 16px;
-  padding: 0;
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: $space-xs;
+  }
 
-  li {
-    margin-bottom: 4px;
+  ul {
+    margin: $space-xs 0 0 0;
+    padding-right: $space-md;
+    color: $text;
+
+    li {
+      line-height: $line-normal;
+      margin-bottom: $space-xs;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 }
 
 .actions {
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
+  gap: $space-md;
+  justify-content: center;
+  width: 100%;
+}
+
+@media (max-width: $breakpoint-sm) {
+  .actions {
+    flex-direction: column-reverse;
+    gap: $space-sm;
+  }
 }

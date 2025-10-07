@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '@/components/slices/Modal/Modal';
-import { Button } from '@/components/slices/Button/Button';
-import { Text } from '@/components/slices/Text/Text';
+import { Modal, Button, Text } from '@/components/slices';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
 import { useNotificationStore } from '@/stores';
 import styles from './ConfirmBlockUserModal.module.scss';
@@ -81,69 +79,52 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
     <Modal
       isVisible={isVisible}
       onClose={onClose}
-      title={isBlocking ? "تأكيد حظر المستخدم" : "تأكيد إلغاء حظر المستخدم"}
-      maxWidth="sm"
+      title={isBlocking ? "حظر المستخدم" : "إلغاء حظر المستخدم"}
+      maxWidth="md"
     >
-      <div className={styles.container}>
-        {/* Warning Message */}
-        <div className={styles.warningMessage}>
-          <Text variant="paragraph" className={`${styles.warningText} ${!isBlocking ? styles.success : ''}`}>
-            {isBlocking ? " تحذير: حظر المستخدم" : " إلغاء حظر المستخدم"}
-          </Text>
-        </div>
+      <div className={styles.modalContent}>
+        <Text variant="h3" align="center">
+          {isBlocking
+            ? "هل أنت متأكد من حظر هذا المستخدم؟"
+            : "هل أنت متأكد من إلغاء حظر هذا المستخدم؟"
+          }
+        </Text>
 
-        {/* User Information */}
         <div className={styles.userInfo}>
-          <Text variant="paragraph" className={styles.questionText}>
-            {isBlocking
-              ? "هل أنت متأكد من حظر هذا المستخدم؟"
-              : "هل أنت متأكد من إلغاء حظر هذا المستخدم؟"
-            }
-          </Text>
-
-          <div className={styles.userDetails}>
-            <Text variant="small" color="secondary">اسم المستخدم:</Text>
-            <Text variant="paragraph" className={styles.userName}>
-              {user?.name || 'غير محدد'}
-            </Text>
-
-            <Text variant="small" color="secondary">البريد الإلكتروني:</Text>
-            <Text variant="paragraph" className={styles.userEmail}>
-              {user?.email || ''}
-            </Text>
+          <Text variant="paragraph" weight="medium">المستخدم المحدد:</Text>
+          <div className={styles.userDetail}>
+            <Text variant="small"><strong>الاسم:</strong> {user?.name || 'غير محدد'}</Text>
+            <Text variant="small"><strong>البريد الإلكتروني:</strong> {user?.email || ''}</Text>
+            <Text variant="small"><strong>الحالة الحالية:</strong> {user?.status === 'BANNED' ? 'محظور' : 'نشط'}</Text>
           </div>
         </div>
 
-        {/* Consequences Warning */}
-        {isBlocking ? (
-          <div className={styles.consequences}>
-            <Text variant="small" color="error">
-              العواقب:
+        <div className={isBlocking ? styles.warningBox : styles.infoBox}>
+          <div>
+            <Text variant="small" weight="bold" color={isBlocking ? "error" : "secondary"}>
+              {isBlocking ? "تحذير مهم:" : "النتيجة:"}
             </Text>
-            <ul className={styles.consequencesList}>
-              <li>سيتم منع المستخدم من تسجيل الدخول</li>
-              <li>لن يتمكن من إنشاء عروض جديدة</li>
-              <li>ستظل عروضه الحالية مرئية</li>
-              <li>يمكن إلغاء الحظر لاحقاً</li>
+            <ul>
+              {isBlocking ? (
+                <>
+                  <li>سيتم منع المستخدم من تسجيل الدخول</li>
+                  <li>لن يتمكن من إنشاء عروض جديدة</li>
+                  <li>ستظل عروضه الحالية مرئية</li>
+                  <li>يمكن إلغاء الحظر لاحقاً</li>
+                </>
+              ) : (
+                <>
+                  <li>سيتمكن المستخدم من تسجيل الدخول</li>
+                  <li>يمكنه إنشاء عروض جديدة</li>
+                  <li>سيعود حسابه إلى الحالة النشطة</li>
+                </>
+              )}
             </ul>
           </div>
-        ) : (
-          <div className={styles.unblockResult}>
-            <Text variant="small" color="secondary">
-              النتيجة:
-            </Text>
-            <ul className={styles.resultList}>
-              <li>سيتمكن المستخدم من تسجيل الدخول</li>
-              <li>يمكنه إنشاء عروض جديدة</li>
-              <li>سيعود حسابه إلى الحالة النشطة</li>
-            </ul>
-          </div>
-        )}
+        </div>
 
-        {/* Action Buttons */}
         <div className={styles.actions}>
           <Button
-            type="button"
             onClick={onClose}
             variant="secondary"
             disabled={isLoading}
@@ -151,9 +132,8 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
             إلغاء
           </Button>
           <Button
-            type="button"
             onClick={handleConfirm}
-            variant={isBlocking ? "danger" : "success"}
+            variant={isBlocking ? "danger" : "primary"}
             disabled={isLoading}
           >
             {isLoading
