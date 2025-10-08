@@ -6,7 +6,8 @@ import { Input } from '@/components/slices/Input/Input';
 import { Modal } from '@/components/slices';
 import { Eye, EyeOff, User, Mail, Shield } from 'lucide-react';
 import styles from './UserModals.module.scss';
-import { GET_USER_STATUSES_QUERY } from '@/stores/admin/adminUsersStore/adminUsersStore.gql';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { USER_STATUS_LABELS } from '@/constants/metadata-labels';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import {
   validateUserFormCreate,
@@ -37,6 +38,9 @@ export function CreateUserModal({
   roles = [],
   isLoading = false
 }: CreateUserModalProps) {
+  // Use centralized metadata store
+  const { userStatuses, fetchUserMetadata } = useMetadataStore();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,69 +52,19 @@ export function CreateUserModal({
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [userStatuses, setUserStatuses] = useState<Array<{ value: string, label: string }>>([]);
 
-  // Helper function for GraphQL calls
-  const makeGraphQLCall = async (query: string, variables: any = {}) => {
-    const { user } = useAdminAuthStore.getState();
-    const token = user?.token;
-
-    const response = await fetch("http://localhost:4000/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`GraphQL error: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    if (result.errors) {
-      throw new Error(result.errors[0].message);
-    }
-
-    return result.data;
-  };
-
-  // Helper function to get Arabic labels for backend status values
-  const getBackendStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      'active': 'نشط',
-      'pending': 'معلق',
-      'banned': 'محظور'
-    };
-    return statusLabels[status] || status;
-  };
-
-  // Fetch user statuses from backend (they come as lowercase: active, pending, banned)
+  // Fetch user statuses from centralized metadata store
   useEffect(() => {
-    const fetchStatuses = async () => {
-      try {
-        const data = await makeGraphQLCall(GET_USER_STATUSES_QUERY);
-        const statuses = data.getUserStatuses || [];
-        setUserStatuses(
-          statuses.map((status: string) => ({
-            value: status,  // Store backend value (active, pending, banned)
-            label: getBackendStatusLabel(status)
-          }))
-        );
-      } catch (error) {
-        console.error('Failed to fetch user statuses:', error);
-        // Fallback to default statuses if fetch fails
-        setUserStatuses([
-          { value: 'active', label: getBackendStatusLabel('active') },
-          { value: 'pending', label: getBackendStatusLabel('pending') },
-          { value: 'banned', label: getBackendStatusLabel('banned') },
-        ]);
-      }
-    };
+    if (isVisible && userStatuses.length === 0) {
+      fetchUserMetadata();
+    }
+  }, [isVisible, userStatuses.length, fetchUserMetadata]);
 
-    fetchStatuses();
-  }, []);
+  // Map backend enum values to dropdown options with Arabic labels
+  const statusOptions = userStatuses.map(status => ({
+    value: status,
+    label: USER_STATUS_LABELS[status] || status
+  }));
 
   useEffect(() => {
     if (isVisible) {
@@ -266,7 +220,7 @@ export function CreateUserModal({
           validate={createUserFieldValidator('status', 'create')}
           error={validationErrors.status}
           required
-          options={userStatuses}
+          options={statusOptions}
         />
 
         {/* Form Actions */}

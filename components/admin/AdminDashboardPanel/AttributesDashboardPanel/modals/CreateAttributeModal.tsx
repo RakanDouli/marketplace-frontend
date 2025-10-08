@@ -5,6 +5,8 @@ import { Modal, Button, Input, Text } from '@/components/slices';
 import { Trash2, Plus } from 'lucide-react';
 import type { CreateAttributeInput } from '@/stores/admin/adminAttributesStore';
 import styles from './CategoryModals.module.scss';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { mapToOptions, ATTRIBUTE_TYPE_LABELS, ATTRIBUTE_VALIDATION_LABELS, ATTRIBUTE_STORAGE_TYPE_LABELS } from '@/constants/metadata-labels';
 
 interface CreateAttributeModalProps {
   isVisible: boolean;
@@ -20,22 +22,6 @@ export interface AttributeOptionData {
   sortOrder: number;
 }
 
-const ATTRIBUTE_TYPES = [
-  { value: 'TEXT', label: 'نص' },
-  { value: 'TEXTAREA', label: 'نص طويل' },
-  { value: 'SELECTOR', label: 'اختيار واحد' },
-  { value: 'MULTI_SELECTOR', label: 'اختيار متعدد' },
-  { value: 'RANGE', label: 'مدى رقمي' },
-  { value: 'CURRENCY', label: 'عملة' },
-  { value: 'BOOLEAN', label: 'نعم/لا' },
-  { value: 'DATE', label: 'تاريخ' }
-];
-
-const VALIDATION_TYPES = [
-  { value: 'REQUIRED', label: 'مطلوب' },
-  { value: 'OPTIONAL', label: 'اختياري' }
-];
-
 export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
   isVisible,
   onClose,
@@ -43,6 +29,20 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
   categoryId,
   isLoading = false
 }) => {
+  // Fetch metadata from store
+  const {
+    attributeTypes,
+    attributeValidations,
+    attributeStorageTypes,
+    fetchAttributeMetadata,
+  } = useMetadataStore();
+
+  // Fetch metadata on mount
+  useEffect(() => {
+    if (isVisible && attributeTypes.length === 0) {
+      fetchAttributeMetadata();
+    }
+  }, [isVisible, attributeTypes.length, fetchAttributeMetadata]);
   const [formData, setFormData] = useState<CreateAttributeInput>({
     categoryId: categoryId,
     key: '',
@@ -279,7 +279,7 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
           type="select"
           value={formData.type}
           onChange={(e) => handleInputChange('type', e.target.value)}
-          options={ATTRIBUTE_TYPES}
+          options={mapToOptions(attributeTypes, ATTRIBUTE_TYPE_LABELS)}
           error={validationErrors.type}
           disabled={isLoading}
         />
@@ -290,7 +290,7 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
           type="select"
           value={formData.validation || 'optional'}
           onChange={(e) => handleInputChange('validation', e.target.value)}
-          options={VALIDATION_TYPES}
+          options={mapToOptions(attributeValidations, ATTRIBUTE_VALIDATION_LABELS)}
           disabled={isLoading}
         />
 

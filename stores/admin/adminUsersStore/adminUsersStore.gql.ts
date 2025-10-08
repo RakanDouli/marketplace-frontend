@@ -90,23 +90,10 @@ export const GET_ROLES_QUERY = `
   }
 `;
 
-export const GET_USER_STATUSES_QUERY = `
-  query GetUserStatuses {
-    getUserStatuses
-  }
-`;
-
-export const GET_USER_ROLES_QUERY = `
-  query GetUserRoles {
-    getUserRoles
-  }
-`;
-
-export const GET_ACCOUNT_TYPES_QUERY = `
-  query GetAccountTypes {
-    getAccountTypes
-  }
-`;
+// ❌ REMOVED DUPLICATE QUERIES - Now use useMetadataStore() instead:
+// - GET_USER_STATUSES_QUERY → useMetadataStore().userStatuses
+// - GET_USER_ROLES_QUERY → useMetadataStore().userRoles
+// - GET_ACCOUNT_TYPES_QUERY → useMetadataStore().accountTypes
 
 export const GET_USER_BY_ID_QUERY = `
   query GetUserById($id: ID!) {

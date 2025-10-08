@@ -5,6 +5,8 @@ import { Modal, Button, Input, Text } from '@/components/slices';
 import { Trash2, Plus } from 'lucide-react';
 import type { UpdateAttributeInput, Attribute, AttributeOption } from '@/stores/admin/adminAttributesStore';
 import styles from './CategoryModals.module.scss';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { mapToOptions, ATTRIBUTE_TYPE_LABELS, ATTRIBUTE_VALIDATION_LABELS } from '@/constants/metadata-labels';
 
 interface EditAttributeModalProps {
   isVisible: boolean;
@@ -23,22 +25,6 @@ interface EditableAttributeOptionData {
   isDeleted?: boolean;
 }
 
-const ATTRIBUTE_TYPES = [
-  { value: 'TEXT', label: 'نص' },
-  { value: 'TEXTAREA', label: 'نص طويل' },
-  { value: 'SELECTOR', label: 'اختيار واحد' },
-  { value: 'MULTI_SELECTOR', label: 'اختيار متعدد' },
-  { value: 'RANGE', label: 'مدى رقمي' },
-  { value: 'CURRENCY', label: 'عملة' },
-  { value: 'BOOLEAN', label: 'نعم/لا' },
-  { value: 'DATE', label: 'تاريخ' }
-];
-
-const VALIDATION_TYPES = [
-  { value: 'REQUIRED', label: 'مطلوب' },
-  { value: 'OPTIONAL', label: 'اختياري' }
-];
-
 export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
   isVisible,
   onClose,
@@ -46,6 +32,19 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
   attribute,
   isLoading = false
 }) => {
+  // Fetch metadata from store
+  const {
+    attributeTypes,
+    attributeValidations,
+    fetchAttributeMetadata,
+  } = useMetadataStore();
+
+  // Fetch metadata on mount
+  useEffect(() => {
+    if (isVisible && attributeTypes.length === 0) {
+      fetchAttributeMetadata();
+    }
+  }, [isVisible, attributeTypes.length, fetchAttributeMetadata]);
   const [formData, setFormData] = useState<UpdateAttributeInput>({
     key: '',
     name: '',
@@ -324,7 +323,7 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
         <Input
           label="نوع الخاصية"
           type="text"
-          value={ATTRIBUTE_TYPES.find(t => t.value === formData.type)?.label || formData.type}
+          value={ATTRIBUTE_TYPE_LABELS[formData.type] || formData.type}
           disabled={true}
           helpText="لا يمكن تعديل النوع بعد الإنشاء"
         />
@@ -333,7 +332,7 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
         <Input
           label="نوع التحقق"
           type="text"
-          value={VALIDATION_TYPES.find(v => v.value === formData.validation)?.label || formData.validation}
+          value={ATTRIBUTE_VALIDATION_LABELS[formData.validation || ''] || formData.validation}
           disabled={true}
           helpText="لا يمكن تعديل التحقق بعد الإنشاء"
         />
