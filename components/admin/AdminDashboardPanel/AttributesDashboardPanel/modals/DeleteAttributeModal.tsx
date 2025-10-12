@@ -33,8 +33,6 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
 
   if (!attribute) return null;
 
-  const canDelete = attribute.canBeDeleted && !attribute.isSystemCore;
-
   return (
     <Modal
       isVisible={isVisible}
@@ -63,32 +61,20 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
           </div>
         </div>
 
-        {!canDelete ? (
-          <div className={styles.warningBox}>
-            <AlertTriangle size={20} />
-            <div>
-              <Text variant="small" weight="bold" color="error">لا يمكن الحذف:</Text>
-              <Text variant="small" color="secondary">
-                هذه الخاصية من الخصائص الأساسية في النظام ولا يمكن حذفها.
-              </Text>
-            </div>
+        <div className={styles.warningBox}>
+          <AlertTriangle size={20} />
+          <div>
+            <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
+            <ul>
+              <li>ستفقد جميع البيانات المرتبطة بهذه الخاصية في جميع الإعلانات</li>
+              <li>لن تظهر هذه الخاصية في الفلاتر أو نتائج البحث</li>
+              <li>لا يمكن التراجع عن هذا الإجراء</li>
+              {attribute.options.length > 0 && (
+                <li>سيتم حذف جميع الخيارات المرتبطة ({attribute.options.length} خيار)</li>
+              )}
+            </ul>
           </div>
-        ) : (
-          <div className={styles.warningBox}>
-            <AlertTriangle size={20} />
-            <div>
-              <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
-              <ul>
-                <li>ستفقد جميع البيانات المرتبطة بهذه الخاصية في جميع الإعلانات</li>
-                <li>لن تظهر هذه الخاصية في الفلاتر أو نتائج البحث</li>
-                <li>لا يمكن التراجع عن هذا الإجراء</li>
-                {attribute.options.length > 0 && (
-                  <li>سيتم حذف جميع الخيارات المرتبطة ({attribute.options.length} خيار)</li>
-                )}
-              </ul>
-            </div>
-          </div>
-        )}
+        </div>
 
         <div className={styles.deleteActions}>
           <Button
@@ -98,15 +84,13 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
           >
             إلغاء
           </Button>
-          {canDelete && (
-            <Button
-              onClick={handleConfirm}
-              variant="danger"
-              disabled={isLoading}
-            >
-              {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
-            </Button>
-          )}
+          <Button
+            onClick={handleConfirm}
+            variant="danger"
+            disabled={isLoading}
+          >
+            {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
+          </Button>
         </div>
       </div>
     </Modal>

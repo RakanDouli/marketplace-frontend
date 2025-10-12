@@ -5,9 +5,10 @@ import { Container, Text, Button, Input, SortableList, SortableItemData, InlineE
 import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useAttributesStore } from '@/stores/admin';
 import type { CreateCategoryInput, CreateAttributeInput, UpdateAttributeInput } from '@/stores/admin/adminAttributesStore';
-import { Plus, Settings, Tag, Globe } from 'lucide-react';
+import { Plus, Settings, Tag, Globe, Pencil, Trash2 } from 'lucide-react';
 import styles from './AttributesDashboardPanel.module.scss';
 import { CreateCategoryModal, CreateCategoryData } from './modals/CreateCategoryModal';
+import { DeleteCategoryModal } from './modals/DeleteCategoryModal';
 import { CreateAttributeModal } from './modals/CreateAttributeModal';
 import { EditAttributeModal } from './modals/EditAttributeModal';
 import { DeleteAttributeModal } from './modals/DeleteAttributeModal';
@@ -24,6 +25,8 @@ export const AttributesDashboardPanel: React.FC = () => {
     loadCategories,
     loadAttributes,
     createCategory,
+    updateCategory,
+    deleteCategory,
     createAttribute,
     updateAttribute,
     deleteAttribute,
@@ -53,6 +56,12 @@ export const AttributesDashboardPanel: React.FC = () => {
   // Inline group management state
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [creatingNewGroup, setCreatingNewGroup] = useState(false);
+
+  // Category management state
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [isDeleteCategoryModalVisible, setIsDeleteCategoryModalVisible] = useState(false);
+  const [selectedCategoryForDelete, setSelectedCategoryForDelete] = useState<{ id: string; name: string; nameAr?: string } | null>(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   // Initialize categories on mount
   useEffect(() => {
@@ -546,7 +555,7 @@ export const AttributesDashboardPanel: React.FC = () => {
         nameAr: categoryData.nameAr,
         slug: categoryData.slug,
         isActive: categoryData.isActive,
-        biddingEnabled: categoryData.biddingEnabled
+        // biddingEnabled: categoryData.biddingEnabled
       };
 
       const newCategory = await createCategory(input);
@@ -765,6 +774,87 @@ export const AttributesDashboardPanel: React.FC = () => {
     handleAttributesChange(filteredAttributes);
   };
 
+  // Category inline edit handler
+  const handleEditCategoryName = async (categoryId: string, newName: string) => {
+    console.log('Editing category:', categoryId, 'to:', newName);
+
+    try {
+      await updateCategory(categoryId, { name: newName, nameAr: newName });
+      setEditingCategoryId(null);
+
+      // Reload categories to reflect changes
+      await loadCategories();
+
+      console.log('Category name updated successfully');
+    } catch (error) {
+      console.error('Failed to update category name:', error);
+      // Error is handled by store
+    }
+  };
+
+  // Category delete handler - opens modal
+  const handleDeleteCategoryClick = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    if (!category) return;
+
+    setSelectedCategoryForDelete({
+      id: category.id,
+      name: category.name,
+      nameAr: category.nameAr
+    });
+    setIsDeleteCategoryModalVisible(true);
+  };
+
+  // Actual delete operation
+  const handleDeleteCategoryConfirm = async () => {
+    if (!selectedCategoryForDelete) return;
+
+    try {
+      setIsDeletingCategory(true);
+      await deleteCategory(selectedCategoryForDelete.id);
+
+      // If the deleted category was selected, select the first available category
+      if (selectedCategoryId === selectedCategoryForDelete.id) {
+        const remainingCategories = categories.filter(cat => cat.id !== selectedCategoryForDelete.id);
+        if (remainingCategories.length > 0) {
+          setSelectedCategoryId(remainingCategories[0].id);
+        } else {
+          setSelectedCategoryId('');
+        }
+      }
+
+      // Close modal and reload categories
+      setIsDeleteCategoryModalVisible(false);
+      setSelectedCategoryForDelete(null);
+      await loadCategories();
+
+      console.log('Category deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      // Error is handled by store
+    } finally {
+      setIsDeletingCategory(false);
+    }
+  };
+
+  // Category name validation
+  const validateCategoryName = (name: string) => {
+    if (!name.trim()) {
+      return 'اسم التصنيف مطلوب';
+    }
+    if (name.length < 2) {
+      return 'اسم التصنيف يجب أن يكون أكثر من حرف واحد';
+    }
+    // Check if category name already exists
+    const existingCategory = categories.find(
+      cat => cat.name.toLowerCase() === name.toLowerCase() && cat.id !== editingCategoryId
+    );
+    if (existingCategory) {
+      return 'اسم التصنيف موجود بالفعل';
+    }
+    return null;
+  };
+
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
 
   return (
@@ -803,21 +893,60 @@ export const AttributesDashboardPanel: React.FC = () => {
         {/* Category Selection */}
         <div className={styles.categorySection}>
           <div className={styles.categorySelector}>
-            <Input
-              type="select"
-              label="اختر التصنيف:"
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
-              options={categories.map(category => ({
-                value: category.id,
-                label: category.name
-              }))}
-              placeholder="اختر تصنيف..."
-              className={styles.categorySelect}
-            />
+            {editingCategoryId === selectedCategoryId ? (
+              // Inline edit mode for category name
+              <div className={styles.categoryInlineEdit}>
+                <Text variant="small" color="secondary">تعديل اسم التصنيف:</Text>
+                <InlineEdit
+                  value={selectedCategory?.name || ''}
+                  mode="edit"
+                  onSave={(newName) => handleEditCategoryName(selectedCategoryId, newName)}
+                  onCancel={() => setEditingCategoryId(null)}
+                  placeholder="اسم التصنيف..."
+                  required
+                  validate={validateCategoryName}
+                  className={styles.categoryNameEdit}
+                />
+              </div>
+            ) : (
+              <>
+                <Input
+                  type="select"
+                  label="اختر التصنيف:"
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                  options={categories.map(category => ({
+                    value: category.id,
+                    label: category.name
+                  }))}
+                  placeholder="اختر تصنيف..."
+                  className={styles.categorySelect}
+                />
+                {selectedCategory && canModify && (
+                  <div className={styles.categoryActions}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingCategoryId(selectedCategoryId)}
+                      disabled={isDeletingCategory}
+                      icon={<Pencil size={16} />}
+                    >
+                    </Button>
+                    {canDelete && (
+                      <Button
+                        variant="danger"
+                        onClick={() => handleDeleteCategoryClick(selectedCategoryId)}
+                        disabled={isDeletingCategory}
+                        icon={<Trash2 size={16} />}
+                      >
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          {selectedCategory && (
+          {selectedCategory && !editingCategoryId && (
             <div className={styles.categoryInfo}>
               <Text variant="paragraph" color="secondary">
                 إدارة خصائص تصنيف: <strong>{selectedCategory.name}</strong>
@@ -1002,6 +1131,18 @@ export const AttributesDashboardPanel: React.FC = () => {
         onClose={() => setIsCreateCategoryModalVisible(false)}
         onSubmit={handleCreateCategorySubmit}
         isLoading={isCreatingCategory}
+      />
+
+      {/* Delete Category Modal */}
+      <DeleteCategoryModal
+        isVisible={isDeleteCategoryModalVisible}
+        onClose={() => {
+          setIsDeleteCategoryModalVisible(false);
+          setSelectedCategoryForDelete(null);
+        }}
+        onConfirm={handleDeleteCategoryConfirm}
+        category={selectedCategoryForDelete}
+        isLoading={isDeletingCategory}
       />
 
       {/* Create Attribute Modal */}

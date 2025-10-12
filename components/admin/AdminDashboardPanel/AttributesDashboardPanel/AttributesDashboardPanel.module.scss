@@ -1,4 +1,4 @@
-@import '../../../../styles/variables.scss';
+@import "../../../../styles/variables.scss";
 
 .continer {
   background: $bg;
@@ -35,14 +35,43 @@
 
 .categorySelector {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: $space-md;
-  margin-bottom: $space-sm;
+  margin-bottom: $space-md;
+  flex-wrap: wrap;
 }
 
 // Category select styling handled by Input component
 .categorySelect {
-  max-width: 300px;
+  flex: 1;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.categoryActions {
+  display: flex;
+  gap: $space-sm;
+  align-items: flex-end;
+  padding-bottom: 4px; // Align with input field bottom
+
+  button {
+    margin: 0;
+  }
+}
+
+.categoryInlineEdit {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  background: rgba(var(--color-primary-rgb), 0.05);
+  padding: $space-md;
+  border-radius: $radius-base;
+  border: 2px dashed var(--color-primary);
+}
+
+.categoryNameEdit {
+  width: 100%;
 }
 
 .categoryInfo {

@@ -16,7 +16,7 @@ export interface CreateCategoryData {
   nameAr?: string;
   slug: string;
   isActive?: boolean;
-  biddingEnabled?: boolean;
+  // biddingEnabled removed - this is per-listing, not per-category
 }
 
 export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
@@ -29,8 +29,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
     name: '',
     nameAr: '',
     slug: '',
-    isActive: true,
-    biddingEnabled: false
+    isActive: true
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -99,8 +98,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         name: '',
         nameAr: '',
         slug: '',
-        isActive: true,
-        biddingEnabled: false
+        isActive: true
       });
       setValidationErrors({});
     } catch (error) {
@@ -113,8 +111,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
       name: '',
       nameAr: '',
       slug: '',
-      isActive: true,
-      biddingEnabled: false
+      isActive: true
     });
     setValidationErrors({});
     onClose();
@@ -171,14 +168,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
           disabled={isLoading}
         />
 
-        {/* Bidding Enabled */}
-        <Input
-          type="boolean"
-          label="تفعيل المزايدة"
-          checked={formData.biddingEnabled || false}
-          onChange={(e) => handleInputChange('biddingEnabled', (e.target as HTMLInputElement).checked)}
-          disabled={isLoading}
-        />
+        {/* Bidding Enabled - REMOVED: This is per-listing, not per-category */}
 
         {/* Form Actions */}
         <div className={styles.formActions}>

@@ -16,3 +16,6 @@ export { useAdminFeaturesStore } from "./adminFeaturesStore";
 
 // Attributes and categories management
 export { useAttributesStore } from "./adminAttributesStore";
+
+// Subscriptions management
+export { useAdminSubscriptionsStore } from "./adminSubscriptionsStore";

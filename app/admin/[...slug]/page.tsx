@@ -8,6 +8,7 @@ import { UsersDashboardPanel } from '@/components/admin/AdminDashboardPanel/User
 import { ListingsDashboardPanel } from '@/components/admin/AdminDashboardPanel/ListingsDashboardPanel';
 import { RolesDashboardPanel } from '@/components/admin/AdminDashboardPanel/RolesDashboardPanel';
 import { BrandsDashboardPanel } from '@/components/admin/AdminDashboardPanel/BrandsDashboardPanel';
+import { SubscriptionsDashboardPanel } from '@/components/admin/AdminDashboardPanel/SubscriptionsDashboardPanel';
 import { Button, Text, Container } from '@/components/slices';
 import { ArrowLeft } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -126,16 +127,29 @@ function AdminPageInner({ params }: AdminPageProps) {
   const { user } = useAdminAuthStore();
   const permissions = usePermissions();
   const slug = params.slug || [];
-  const featureName = slug[0];
+  const urlSlug = slug[0];
+
+  // Convert URL slug back to backend feature name (e.g., 'user-subscriptions' -> 'user_subscriptions')
+  const featureName = urlSlug?.replace(/-/g, '_');
 
   // Dynamic permission check using backend feature permissions
   const canAccess = useMemo(() => {
     if (!user || !featureName) return false;
 
-    // Check permission directly using feature name from URL
+    // Debug logging
+    console.log('🔍 Permission Check:', {
+      urlSlug,
+      featureName,
+      userRole: user.role,
+      userPermissions: user.permissions,
+      featurePermissions: user.featurePermissions,
+      canView: permissions.canView(featureName)
+    });
+
+    // Check permission directly using feature name (converted from URL)
     // Your backend will determine if this feature exists and if user has access
     return permissions.canView(featureName);
-  }, [user, featureName, permissions]);
+  }, [user, featureName, permissions, urlSlug]);
 
   // Redirect to main dashboard if no slug
   if (slug.length === 0) {
@@ -171,6 +185,10 @@ function AdminPageInner({ params }: AdminPageProps) {
       case 'categories':
       case 'attributes':
         return AttributesDashboardPanel;
+      case 'subscriptions':
+      case 'user-subscriptions':
+      case 'user_subscriptions':
+        return SubscriptionsDashboardPanel;
       default:
         return null;
     }
