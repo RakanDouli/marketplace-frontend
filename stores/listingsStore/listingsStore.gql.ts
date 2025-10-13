@@ -130,6 +130,50 @@ export const LISTINGS_SEARCH_QUERY = `
 `;
 
 
+// Single listing query - For detail page
+export const LISTING_BY_ID_QUERY = `
+  query ListingById($id: ID!) {
+    listing(id: $id) {
+      id
+      title
+      description
+      priceMinor
+      status
+      imageKeys
+      createdAt
+      categoryId
+      category {
+        id
+        name
+        slug
+      }
+      sellerType
+      location {
+        province
+        city
+        area
+        link
+        coordinates {
+          lat
+          lng
+        }
+      }
+      specs
+      specsDisplay
+      prices {
+        value
+        currency
+      }
+      user {
+        id
+        name
+        phone
+        accountType
+      }
+    }
+  }
+`;
+
 // Query selector based on view type for optimal payload
 export const getQueryByViewType = (viewType: 'grid' | 'list' | 'detail'): string => {
   switch (viewType) {

@@ -10,7 +10,6 @@
   font: inherit;
   cursor: pointer;
   outline: none;
-  // width: fit-content;
   // Layout
   display: inline-flex;
   align-items: center;
@@ -19,23 +18,12 @@
   border-radius: $radius-md;
   justify-content: center;
   padding: $space-sm;
-  margin: $space-md $space-sm;
+  margin: 0;
   position: relative;
   overflow: hidden;
   min-width: 40px;
   text-decoration: none;
   transition: all 0.3s ease-out;
-
-  // &:first-of-type {
-  //   margin: $space-md 0 $space-md $space-md;
-  // }
-
-  @media screen and (max-width: 768px) {
-    &:first-of-type {
-      margin: $space-sm $space-xs;
-    }
-    margin: $space-sm $space-xs;
-  }
 
   // Variant styles
   &--primary {
@@ -257,5 +245,14 @@
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+// Optional margin - only applied when margin prop is true
+.withMargin {
+  margin: $space-md $space-sm;
+
+  @media screen and (max-width: 768px) {
+    margin: $space-sm $space-xs;
   }
 }

@@ -2,6 +2,8 @@
 export { default as Container } from "./Container/Container";
 export { default as Button } from "./Button/Button";
 export { default as ThemeToggle } from "./Button/ThemeToggle";
+export { ShareButton } from "./Button/ShareButton";
+export { FavoriteButton } from "./Button/FavoriteButton";
 export { default as NotificationToast } from "./NotificationToast/NotificationToast";
 export { default as Text } from "./Text/Text";
 export type { TextProps, TextVariant, TextColor } from "./Text/Text";

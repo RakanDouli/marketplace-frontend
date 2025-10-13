@@ -1,4 +1,6 @@
 export { Button, default } from "./Button";
 export { ThemeToggle } from "./ThemeToggle";
-export { SubmitButton } from "../Button/SubmitButton";
-export type { SubmitButtonProps } from "../Button/SubmitButton";
+export { SubmitButton } from "./SubmitButton";
+export type { SubmitButtonProps } from "./SubmitButton";
+export { ShareButton } from "./ShareButton";
+export { FavoriteButton } from "./FavoriteButton";

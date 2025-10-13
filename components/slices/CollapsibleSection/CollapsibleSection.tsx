@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft } from 'lucide-react';
 import styles from './CollapsibleSection.module.scss';
 
 export interface CollapsibleSectionProps {
@@ -76,7 +76,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             {isExpanded ? (
               <ChevronDown size={20} />
             ) : (
-              <ChevronRight size={20} />
+              <ChevronLeft size={20} />
             )}
           </div>
 

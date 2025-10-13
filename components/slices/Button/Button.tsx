@@ -14,6 +14,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
   arrow?: boolean | string;
   href?: string;
+  margin?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -27,6 +28,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       arrow,
       href,
+      margin = false,
       className = "",
       onMouseEnter,
       ...props
@@ -95,7 +97,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           href={href}
           className={`${styles.btn} ${children ? styles.btnPadding : ""} ${
             styles[`btn--${variant}`]
-          } ${className} ${loading ? styles.loading : ""}`}
+          } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
         >
           {buttonContent}
         </Link>
@@ -109,7 +111,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={isDisabled}
         className={`${styles.btn} ${children ? styles.btnPadding : ""} ${
           styles[`btn--${variant}`]
-        } ${className} ${loading ? styles.loading : ""}`}
+        } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
         onMouseEnter={handleMouseEnter}
         aria-label={
           loading ? "Loading..." : children ? String(children) : "Button"

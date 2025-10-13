@@ -8,6 +8,9 @@
 *::after {
   box-sizing: border-box;
 }
+.leaflet-control-attribution {
+  display: none !important;
+}
 
 * {
   margin: 0;

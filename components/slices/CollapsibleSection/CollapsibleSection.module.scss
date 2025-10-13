@@ -1,4 +1,4 @@
-@import '../../../styles/variables.scss';
+@import "../../../styles/variables.scss";
 
 .collapsibleSection {
   border: 1px solid $border;
@@ -19,7 +19,7 @@
   justify-content: space-between;
   padding: $space-md;
   cursor: pointer;
-  background-color: $surface;
+  background-color: $bg;
   border-bottom: 1px solid $border;
   user-select: none;
 

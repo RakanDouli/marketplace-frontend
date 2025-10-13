@@ -1,0 +1,21 @@
+@import "../../../styles/variables";
+
+// Inline variant - for use in sidebars/headers
+.inline {
+  padding: $space-sm;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  min-width: 40px;
+  &:hover:not(:disabled) {
+    background: $bg;
+    border-color: $error;
+    color: $error;
+  }
+
+  &.favorited {
+    color: $error;
+    border-color: $error;
+    background: $bg;
+  }
+}

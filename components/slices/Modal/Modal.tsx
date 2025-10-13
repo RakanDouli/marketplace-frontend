@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '../';
 import styles from './Modal.module.scss';
@@ -62,8 +63,8 @@ export const Modal: React.FC<ModalProps> = ({
     }
   };
 
-  return (
-    <div 
+  const modalContent = (
+    <div
       className={styles.modalBg}
       onClick={handleBackgroundClick}
       role="dialog"
@@ -71,10 +72,10 @@ export const Modal: React.FC<ModalProps> = ({
       aria-labelledby={title ? "modal-title" : undefined}
       aria-describedby={description ? "modal-description" : undefined}
     >
-      <div 
+      <div
         className={`
-          ${styles.modal} 
-          ${styles[maxWidth]} 
+          ${styles.modal}
+          ${styles[maxWidth]}
           ${className}
         `.trim()}
       >
@@ -107,6 +108,11 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  // Render modal at document body level using portal
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : null;
 };
 
 export default Modal;

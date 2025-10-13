@@ -1,0 +1,251 @@
+@import "../../../styles/variables.scss";
+
+.listingDetail {
+  margin: 0 auto;
+  padding: $space-md $space-lg;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-sm;
+  }
+}
+
+// Breadcrumbs Container
+.breadcrumbsContainer {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  margin-bottom: $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+}
+
+.backButton {
+  flex-shrink: 0;
+}
+
+// Breadcrumbs
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  flex: 1;
+
+  a {
+    color: $primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// Loading and Error States
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: $space-md;
+}
+
+// Main Layout
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: $space-lg;
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Main Content
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+// Action Buttons (Share & Favorite)
+.actionButtons {
+  display: flex;
+  gap: $space-sm;
+  justify-content: space-between;
+  // justify-content: flex-end;
+}
+
+// Key Specs Chips
+// .keySpecs {
+//   display: flex;
+//   flex-wrap: wrap;
+//   gap: $space-sm;
+// }
+
+// .chip {
+//   display: inline-block;
+//   padding: $space-xs $space-sm;
+//   background: $bg;
+//   border: 1px solid $border;
+//   border-radius: $radius-md;
+//   font-size: $font-sm;
+//   color: $text;
+// }
+
+// Sections
+.section {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-sm;
+  }
+}
+
+.sectionTitle {
+  margin: 0 0 $space-sm 0;
+}
+
+// Grouped Specifications
+.specGroup {
+  margin-bottom: $space-sm;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.specsList {
+  display: grid;
+  gap: $space-xs;
+}
+
+.specRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: $space-xs 0;
+  border-bottom: 1px solid $border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+    gap: $space-xs;
+  }
+}
+
+.specLabel {
+  color: $text-muted;
+}
+
+.specValue {
+  color: $text;
+  text-align: left;
+
+  @media (max-width: $breakpoint-md) {
+    text-align: right;
+  }
+}
+
+// Location
+.location {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  color: $text;
+
+  svg {
+    color: $text-muted;
+    flex-shrink: 0;
+  }
+}
+
+// Sidebar
+.sidebar {
+  @media (min-width: $breakpoint-lg) {
+    position: sticky;
+    top: calc($space-lg + 60px);
+    align-self: start;
+  }
+}
+
+.sellerCard {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-sm;
+  }
+}
+
+// Price Box
+.priceBox {
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+}
+
+.price {
+  color: $primary !important;
+  margin: 0;
+}
+
+// Buttons
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// Seller Info
+.sellerInfo {
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .label {
+    color: $text-muted;
+  }
+
+  .value {
+    color: $text;
+    text-align: left;
+  }
+}

@@ -1,0 +1,66 @@
+@import "../../styles/variables.scss";
+
+.shareOptions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-md;
+  padding: $space-md 0;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shareOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md;
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  color: $text;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $bg;
+    border-color: $primary;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .iconWrapper {
+      color: $primary;
+      transform: scale(1.1);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  span {
+    font-size: $font-sm;
+    font-weight: $weight-medium;
+    text-align: center;
+  }
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  color: $text-muted;
+  transition: all 0.2s ease;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.checkIcon {
+  color: $success;
+}

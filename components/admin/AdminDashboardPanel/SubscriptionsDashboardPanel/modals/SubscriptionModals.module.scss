@@ -11,13 +11,8 @@
   display: flex;
   flex-direction: column;
   gap: $space-md;
-
-  h4 {
-    color: $text;
-    margin: 0;
-    padding-bottom: $space-sm;
-    border-bottom: 1px solid $border;
-  }
+  padding-bottom: $space-sm;
+  border-bottom: 1px solid $border;
 }
 
 .formGrid {
@@ -55,11 +50,6 @@
     height: 18px;
     cursor: pointer;
     accent-color: $primary;
-  }
-
-  p {
-    margin: 0;
-    user-select: none;
   }
 }
 
@@ -100,14 +90,6 @@
   display: flex;
   flex-direction: column;
   gap: $space-xs;
-
-  p {
-    margin: 0;
-  }
-
-  strong {
-    color: $text;
-  }
 }
 
 .warningBox {
@@ -127,10 +109,6 @@
     display: flex;
     flex-direction: column;
     gap: $space-xs;
-
-    p {
-      margin: 0;
-    }
   }
 }
 

@@ -32,7 +32,7 @@ export interface Listing {
   allowBidding: boolean;
   biddingStartPrice?: number;
   specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
-  specsDisplay?: Record<string, any>; // Display specs (Arabic keys and values for frontend display)
+  specsDisplay?: Record<string, { label: string; value: string }>; // Display specs (English keys with Arabic label/value)
   imageKeys?: string[];
   images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
   sellerLabel?: string;

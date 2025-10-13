@@ -216,12 +216,16 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
                   <>
                     <Text variant="paragraph" className={styles.specsDisplayTitle}>المواصفات (للعرض)</Text>
                     <div className={styles.specsGrid}>
-                      {Object.entries(detailedListing.specsDisplay).map(([key, value]) => (
-                        <div key={key} className={styles.specItem}>
-                          <span className={styles.specLabel}>{key}</span>
-                          <span className={styles.specValue}>{String(value)}</span>
-                        </div>
-                      ))}
+                      {Object.entries(detailedListing.specsDisplay).map(([key, value]) => {
+                        const displayLabel = typeof value === 'object' ? value.label : key;
+                        const displayValue = typeof value === 'object' ? value.value : value;
+                        return (
+                          <div key={key} className={styles.specItem}>
+                            <span className={styles.specLabel}>{displayLabel}</span>
+                            <span className={styles.specValue}>{String(displayValue)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </>
                 )}

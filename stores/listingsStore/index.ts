@@ -4,6 +4,7 @@ import { cachedGraphQLRequest, invalidateGraphQLCache } from "../../utils/graphq
 import { useFiltersStore } from "../filtersStore";
 import {
   getQueryByViewType,
+  LISTING_BY_ID_QUERY,
 } from "./listingsStore.gql";
 
 interface ListingsActions {
@@ -31,6 +32,7 @@ interface ListingsActions {
     filters?: Partial<ListingsState["filters"]>,
     viewType?: "grid" | "list" | "detail"
   ) => Promise<void>;
+  fetchListingById: (id: string) => Promise<void>;
 }
 
 type ListingsStore = ListingsState & ListingsActions;
@@ -381,6 +383,102 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       { ...filterOverrides, categoryId: categorySlug },
       viewType
     );
+  },
+
+  fetchListingById: async (id: string) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await cachedGraphQLRequest(
+        LISTING_BY_ID_QUERY,
+        { id },
+        { ttl: 5 * 60 * 1000 } // Cache for 5 minutes
+      );
+
+      if (!data.listing) {
+        throw new Error("Listing not found");
+      }
+
+      const item = data.listing;
+
+      // Parse specs JSON string from backend
+      let specs = {};
+      try {
+        specs = item.specs ? JSON.parse(item.specs) : {};
+      } catch (error) {
+        console.warn("Failed to parse specs JSON:", item.specs, error);
+        specs = {};
+      }
+
+      // Parse specsDisplay JSON string from backend
+      let specsDisplay = {};
+      try {
+        specsDisplay = item.specsDisplay ? JSON.parse(item.specsDisplay) : {};
+      } catch (error) {
+        console.warn("Failed to parse specsDisplay JSON:", item.specsDisplay, error);
+        specsDisplay = {};
+      }
+
+      const city = (specs as any).location || item.location?.city || "";
+
+      const listing: Listing = {
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        priceMinor: item.priceMinor,
+        prices: item.prices || [
+          { currency: "USD", value: (item.priceMinor / 100).toString() },
+        ],
+        city,
+        status: item.status as any,
+        allowBidding: false,
+        specs,
+        specsDisplay,
+        imageKeys: item.imageKeys || [],
+        sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
+        createdAt: item.createdAt,
+        updatedAt: item.createdAt,
+        location: item.location,
+        category: item.category ? {
+          id: item.category.id,
+          name: item.category.name,
+          slug: item.category.slug,
+        } : undefined,
+        user: item.user ? {
+          id: item.user.id,
+          name: item.user.name,
+          email: '',
+          role: '',
+          status: 'ACTIVE' as const,
+          accountType: item.user.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
+          companyName: undefined,
+          sellerBadge: 'NONE' as const,
+          businessVerified: false,
+          phone: item.user.phone,
+          createdAt: item.createdAt,
+          updatedAt: item.createdAt,
+        } : undefined,
+      };
+
+      console.log("📋 ListingsStore: Fetched listing by ID", {
+        id: listing.id,
+        title: listing.title,
+        seller: listing.user?.name,
+      });
+
+      set({
+        currentListing: listing,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: any) {
+      console.error("Failed to fetch listing by ID:", error);
+      set({
+        isLoading: false,
+        error: error.message || "Failed to load listing",
+        currentListing: null,
+      });
+    }
   },
 }));
 

@@ -1,5 +1,11 @@
 @import "../../../styles/variables";
 
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .card {
   background-color: $bg;
   border: 1px solid $border;
@@ -89,38 +95,16 @@
   overflow: hidden;
   background-color: $bg;
 }
-
-.likeButton {
-  position: absolute;
-  top: $space-sm;
-  left: $space-sm;
-  background-color: $surface;
-  border: none;
-  border-radius: $radius-full;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: $text-muted;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-  &:hover {
-    background-color: $bg;
-    transform: scale(1.1);
-  }
-
-  &.liked {
-    color: var(--warning);
-    background-color: $bg;
+.favorite {
+  button {
+    position: absolute;
+    z-index: 1;
+    top: $space-sm;
+    left: $space-sm;
+    padding: $space-xs;
+    min-width: 0;
   }
 }
-
 .imageCount {
   position: absolute;
   bottom: $space-sm;
@@ -135,10 +119,24 @@
 
 .content {
   overflow: hidden;
+
+  .titleRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $space-sm;
+    margin-bottom: $space-xs;
+  }
+
+  .shareButtonWrapper {
+    flex-shrink: 0;
+  }
+
   .title {
     font-weight: $weight-semibold;
     color: $text;
     margin: 0;
+    flex: 1;
     line-height: $line-tight;
 
     text-overflow: ellipsis;
