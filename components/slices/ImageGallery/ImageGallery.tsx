@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Image } from "../Image/Image";
+import { Skeleton } from "../Skeleton";
 import { optimizeListingImage } from "../../../utils/cloudflare-images";
 import styles from "./ImageGallery.module.scss";
 
@@ -14,6 +15,7 @@ export interface ImageGalleryProps {
   viewMode?: "card" | "small" | "large" | "desktop" | "mobile" | "tablet" | "thumbnail" | "public";
   priority?: boolean;
   sizes?: string;
+  skeleton?: boolean;
 }
 
 export const ImageGallery: React.FC<ImageGalleryProps> = ({
@@ -24,8 +26,21 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   viewMode = "grid",
   priority = false,
   sizes,
+  skeleton = false,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (skeleton) {
+    return (
+      <div className={`${styles.gallery} ${className}`}>
+        <Skeleton
+          width="100%"
+          aspectRatio={aspectRatio}
+          variant="rectangular"
+        />
+      </div>
+    );
+  }
 
   if (!images || images.length === 0) {
     return (

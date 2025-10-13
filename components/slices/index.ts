@@ -11,6 +11,8 @@ export { default as Image } from "./Image/Image";
 export type { ImageProps } from "./Image/Image";
 export { default as ImageGallery } from "./ImageGallery/ImageGallery";
 export type { ImageGalleryProps } from "./ImageGallery/ImageGallery";
+export { default as Skeleton } from "./Skeleton/Skeleton";
+export type { SkeletonProps } from "./Skeleton/Skeleton";
 export { default as Spacer } from "./Spacer/Spacer";
 export type { SpacerProps } from "./Spacer/Spacer";
 export type { InputProps } from "./Input/Input";

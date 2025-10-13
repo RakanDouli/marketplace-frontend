@@ -4,7 +4,7 @@
 .pagination {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   gap: $space-sm;
   margin-top: $space-xl;
   padding: $space-md 0;
@@ -12,8 +12,8 @@
 
 .pageNumbers {
   display: flex;
-  gap: $space-xs;
-  align-items: center;
+  gap: $space-sm;
+  align-items: stretch;
 }
 
 .pageButton {

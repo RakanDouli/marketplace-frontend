@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Grid3X3, List } from "lucide-react";
-import { ListingCard, Button, Text } from "../slices";
+import { ListingCard, Text, Pagination } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
 import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
@@ -67,12 +67,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   // Fetch listings when component mounts or category changes
   useEffect(() => {
     const fetchInitialListings = async () => {
-      // console.log("🔍 ListingArea useEffect: Attempting to fetch listings", {
-      //   categorySlug,
-      //   viewType,
-      //   hasFunction: !!fetchListingsByCategory,
-      // });
-
       if (!categorySlug) {
         console.log("❌ No categorySlug available");
         return;
@@ -173,19 +167,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       : ((listing.priceMinor || 0) / 100).toString();
 
     const displayCurrency = listing.prices?.[0]?.currency || "USD";
-
-    // Log specs for debugging view-specific filtering
-    // if (Object.keys(allSpecs).length > 0) {
-    //   console.log(`📋 ListingArea: Frontend view filtering for ${viewType}:`, {
-    //     listingId: listing.id,
-    //     viewType,
-    //     originalSpecsCount: Object.keys(allSpecs).length,
-    //     filteredSpecsCount: Object.keys(viewFilteredSpecs).length,
-    //     originalSpecs: Object.keys(allSpecs),
-    //     filteredSpecs: Object.keys(viewFilteredSpecs),
-    //     attributesAvailable: attributes?.length || 0,
-    //   });
-    // }
 
     return {
       id: listing.id,
@@ -333,103 +314,15 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       )}
 
       {/* Pagination */}
-      {!loading && listingData.length > 0 && totalPages > 1 && (
-        <div className={styles.pagination}>
-          <Button
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={() => handlePageChange(currentPage - 1)}
-          >
-            {t("pagination.previous")}
-          </Button>
-
-          <div className={styles.pageNumbers}>
-            {(() => {
-              const maxVisiblePages = 5;
-              let startPage = Math.max(
-                1,
-                currentPage - Math.floor(maxVisiblePages / 2)
-              );
-              let endPage = Math.min(
-                totalPages,
-                startPage + maxVisiblePages - 1
-              );
-
-              // Adjust start if we're near the end
-              if (endPage - startPage < maxVisiblePages - 1) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-              }
-
-              const pages = [];
-
-              // Show first page and ellipsis if needed
-              if (startPage > 1) {
-                pages.push(
-                  <button
-                    key={1}
-                    className={`${styles.pageButton} ${currentPage === 1 ? styles.active : ""
-                      }`}
-                    onClick={() => handlePageChange(1)}
-                  >
-                    1
-                  </button>
-                );
-                if (startPage > 2) {
-                  pages.push(
-                    <span key="ellipsis1" className={styles.ellipsis}>
-                      ...
-                    </span>
-                  );
-                }
-              }
-
-              // Show visible page range
-              for (let i = startPage; i <= endPage; i++) {
-                pages.push(
-                  <button
-                    key={i}
-                    className={`${styles.pageButton} ${currentPage === i ? styles.active : ""
-                      }`}
-                    onClick={() => handlePageChange(i)}
-                  >
-                    {i}
-                  </button>
-                );
-              }
-
-              // Show ellipsis and last page if needed
-              if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                  pages.push(
-                    <span key="ellipsis2" className={styles.ellipsis}>
-                      ...
-                    </span>
-                  );
-                }
-                pages.push(
-                  <button
-                    key={totalPages}
-                    className={`${styles.pageButton} ${currentPage === totalPages ? styles.active : ""
-                      }`}
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    {totalPages}
-                  </button>
-                );
-              }
-
-              return pages;
-            })()}
-          </div>
-
-          <Button
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={() => handlePageChange(currentPage + 1)}
-          >
-            {t("pagination.next")}
-          </Button>
-        </div>
+      {!loading && listingData.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          previousLabel={t("pagination.previous")}
+          nextLabel={t("pagination.next")}
+          className={styles.pagination}
+        />
       )}
     </div>
   );

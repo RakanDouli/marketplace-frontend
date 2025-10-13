@@ -63,6 +63,14 @@
   justify-content: center;
   min-height: 50vh;
   gap: $space-md;
+  text-align: center;
+  padding: $space-xl;
+}
+
+.errorActions {
+  display: flex;
+  gap: $space-md;
+  margin-top: $space-md;
 }
 
 // Main Layout

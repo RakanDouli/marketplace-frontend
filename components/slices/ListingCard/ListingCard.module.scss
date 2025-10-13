@@ -29,9 +29,10 @@
 
     .content {
       flex: 1;
-      padding: $space-md;
+      padding: $space-md $space-md $space-sm $space-md;
       display: flex;
       flex-direction: column;
+      gap: $shadow-sm;
     }
 
     .specs {
@@ -66,7 +67,7 @@
 
     .content {
       flex: 1;
-      padding: $space-lg;
+      padding: $space-md $space-lg;
       display: flex;
       flex-direction: column;
       gap: $space-sm;
@@ -194,23 +195,22 @@
   }
 }
 
-// Grid View Specs - Minimal, compact layout
-.specsGrid {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-  margin-top: $space-sm;
+// Grid View Specs - Compact single line with | separator (like AutoScout24)
+.specsCompact {
+  // margin-top: $space-sm;
 }
 
-.specGrid {
-  display: flex;
-  align-items: center;
+.specsCompactText {
+  line-height: $line-tight;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.7;
 
-  .specTextGrid {
-    color: $text;
-    margin: 0;
-
-    line-height: $line-tight;
+  @media (max-width: $breakpoint-sm) {
+    -webkit-line-clamp: 1;
   }
 }
 
@@ -219,7 +219,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: $space-sm;
-  margin-top: $space-sm;
+  // margin-top: $space-sm;
 }
 
 .specList {
@@ -235,6 +235,16 @@
   button {
     flex: 1;
   }
+}
+
+// Seller Section - At the end with border-top
+.sellerSection {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-top: $space-sm;
+  padding-top: $space-xs;
+  border-top: 1px solid $border;
 }
 
 // RTL Support

@@ -163,27 +163,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     });
   }, [groupedSpecs]);
 
-  // Generate Google Maps embed URL
-  const mapUrl = useMemo(() => {
-    if (!currentListing?.location) return null;
-
-    const { coordinates, city, province, area } = currentListing.location;
-
-    // If we have coordinates, use them
-    if (coordinates?.lat && coordinates?.lng) {
-      return `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${coordinates.lat},${coordinates.lng}&zoom=12`;
-    }
-
-    // Otherwise, use text-based location
-    const locationParts = [area, city, province].filter(Boolean);
-    if (locationParts.length > 0) {
-      const query = encodeURIComponent(locationParts.join(', ') + ', Syria');
-      return `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${query}&zoom=10`;
-    }
-
-    return null;
-  }, [currentListing?.location]);
-
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -193,21 +172,46 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   }
 
   if (error) {
+    console.error('Error loading listing:', error);
     return (
-      <div className={styles.errorContainer}>
-        <Text variant="h3" color="error">حدث خطأ</Text>
-        <Text variant="paragraph">{error}</Text>
-        <Button onClick={() => router.back()}>العودة</Button>
-      </div>
+      <Container>
+        <div className={styles.errorContainer}>
+          <Text variant="h1">هذه الصفحة غير موجودة</Text>
+          <Text variant="paragraph" color="secondary">
+            عذراً، لم نتمكن من العثور على الإعلان الذي تبحث عنه. قد يكون قد تم حذفه أو أن الرابط غير صحيح.
+          </Text>
+          <div className={styles.errorActions}>
+            <Button onClick={() => router.back()} variant="secondary">
+              العودة للصفحة السابقة
+            </Button>
+            <Button onClick={() => router.push('/')} variant="primary">
+              العودة للرئيسية
+            </Button>
+          </div>
+        </div>
+      </Container>
     );
   }
 
   if (!currentListing) {
+    console.warn('Listing not found for ID:', listingId);
     return (
-      <div className={styles.errorContainer}>
-        <Text variant="h3">الإعلان غير موجود</Text>
-        <Button onClick={() => router.back()}>العودة</Button>
-      </div>
+      <Container>
+        <div className={styles.errorContainer}>
+          <Text variant="h1">هذه الصفحة غير موجودة</Text>
+          <Text variant="paragraph" color="secondary">
+            عذراً، لم نتمكن من العثور على الإعلان الذي تبحث عنه. قد يكون قد تم حذفه أو أن الرابط غير صحيح.
+          </Text>
+          <div className={styles.errorActions}>
+            <Button onClick={() => router.back()} variant="secondary">
+              العودة للصفحة السابقة
+            </Button>
+            <Button onClick={() => router.push('/')} variant="primary">
+              العودة للرئيسية
+            </Button>
+          </div>
+        </div>
+      </Container>
     );
   }
 

@@ -71,9 +71,10 @@
   transform: translateX(-50%);
   background: $bg-dark;
   color: $text-light;
-  padding: $space-xs;
+  padding: $space-xs $space-sm;
   border-radius: $radius-md;
-  z-index: 2;
+  z-index: 1;
+  font-size: $font-xs;
   svg {
     width: 20px;
     height: 20px;

@@ -22,6 +22,7 @@ export interface ListingCardProps {
   viewMode?: "grid" | "list";
   className?: string;
   priority?: boolean; // For LCP optimization
+  isLoading?: boolean; // Skeleton loading state
 }
 
 export const ListingCard: React.FC<ListingCardProps> = ({
@@ -40,6 +41,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   viewMode = "grid",
   className = "",
   priority = false,
+  isLoading = false,
 }) => {
   const handleCardClick = () => {
     onClick?.(id);
@@ -66,24 +68,28 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           <ImageGallery
             images={images || []}
             alt={title}
-            aspectRatio="4 / 3"
+            aspectRatio="3 / 2"
             className={styles.image}
             viewMode={viewMode === "grid" ? "small" : "card"}
             priority={priority}
+            skeleton={isLoading}
             sizes={
               viewMode === "list"
                 ? "(max-width: 768px) 100vw, 300px"
-                : "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             }
           />
 
           {/* Favorite Button */}
-          <div className={styles.favorite}>
-            <FavoriteButton
-              listingId={id}
-              initialFavorited={isLiked}
-              onToggle={onLike}
-            /></div>
+          {!isLoading && (
+            <div className={styles.favorite}>
+              <FavoriteButton
+                listingId={id}
+                initialFavorited={isLiked}
+                onToggle={onLike}
+              />
+            </div>
+          )}
         </div>
 
         {/* Content Section */}
@@ -91,40 +97,42 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           {/* Title with Share Button (only in list view) */}
           {viewMode === 'list' ? (
             <div className={styles.titleRow}>
-              <Text variant="h4" className={styles.title}>
+              <Text variant="h4" className={styles.title} skeleton={isLoading}>
                 {title}
               </Text>
-              <div
-                className={styles.shareButtonWrapper}
-                onClick={(e) => e.preventDefault()}
-              >
-                <ShareButton
-                  metadata={{
-                    title: title,
-                    description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
-                    url: typeof window !== 'undefined' ? `${window.location.origin}/listing/${id}` : '',
-                    image: images?.[0],
-                    siteName: 'السوق السوري للسيارات',
-                    type: 'product',
-                    price: price,
-                    currency: currency,
-                  }}
-                  variant="outline"
-                />
-              </div>
+              {!isLoading && (
+                <div
+                  className={styles.shareButtonWrapper}
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <ShareButton
+                    metadata={{
+                      title: title,
+                      description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
+                      url: typeof window !== 'undefined' ? `${window.location.origin}/listing/${id}` : '',
+                      image: images?.[0],
+                      siteName: 'السوق السوري للسيارات',
+                      type: 'product',
+                      price: price,
+                      currency: currency,
+                    }}
+                    variant="outline"
+                  />
+                </div>
+              )}
             </div>
           ) : (
-            <Text variant="h4" className={styles.title}>
+            <Text variant="h4" className={styles.title} skeleton={isLoading}>
               {title}
             </Text>
           )}
 
           {/* Price */}
           <div className={styles.price}>
-            <Text variant="h4" className={styles.priceValue}>
+            <Text variant="h4" className={styles.priceValue} skeleton={isLoading} skeletonWidth="60%">
               {price}
             </Text>
-            <Text variant="xs" className={styles.currency}>
+            <Text variant="xs" className={styles.currency} skeleton={isLoading} skeletonWidth="20%">
               {currency}
             </Text>
           </div>
@@ -132,63 +140,63 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           {/* Location - Always show */}
           {location && (
             <div className={styles.spec}>
-              <MapPin size={16} className={styles.specIcon} />
-              <Text variant="xs" className={styles.specText}>
+              {!isLoading && <MapPin size={16} className={styles.specIcon} />}
+              <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="50%">
                 {location}
               </Text>
             </div>
           )}
 
-          {/* Seller Type - Always show */}
-          <div className={styles.spec}>
-            <User size={16} className={styles.specIcon} />
-            <Text variant="xs" className={styles.specText}>
-              {sellerTypeLabels[sellerType]}
-            </Text>
-          </div>
-
-          {/* Grid View Specs - Minimal layout */}
+          {/* Grid View Specs - Compact single line with | separator (like AutoScout24) */}
           {viewMode === "grid" && specs && Object.keys(specs).length > 0 && (
-            <div className={styles.specsGrid}>
-              {Object.entries(specs).map(([key, value]) => {
-                if (!value) return null;
-                const displayLabel = typeof value === 'object' ? value.label : key;
-                const displayValue = typeof value === 'object' ? value.value : value;
-                if (!displayValue || displayValue === "") return null;
-
-                return (
-                  <div key={key} className={styles.specGrid}>
-                    <Text variant="xs" className={styles.specTextGrid}>
-                      {displayLabel}: {displayValue}
-                    </Text>
-                  </div>
-                );
-              })}
+            <div className={styles.specsCompact}>
+              <Text variant="xs" className={styles.specsCompactText} skeleton={isLoading} skeletonWidth="80%">
+                {Object.entries(specs)
+                  .filter(([key]) => key !== 'sellerType' && key !== 'seller_type')
+                  .map(([, value]) => {
+                    if (!value) return null;
+                    const displayValue = typeof value === 'object' ? value.value : value;
+                    if (!displayValue || displayValue === "") return null;
+                    return displayValue;
+                  })
+                  .filter(Boolean)
+                  .join(' | ')}
+              </Text>
             </div>
           )}
 
           {/* List View Specs - Detailed layout */}
           {viewMode === "list" && specs && Object.keys(specs).length > 0 && (
             <div className={styles.specsList}>
-              {Object.entries(specs).map(([key, value]) => {
-                if (!value) return null;
-                const displayLabel = typeof value === 'object' ? value.label : key;
-                const displayValue = typeof value === 'object' ? value.value : value;
-                if (!displayValue || displayValue === "") return null;
+              {Object.entries(specs)
+                .filter(([key]) => key !== 'sellerType' && key !== 'seller_type')
+                .map(([key, value]) => {
+                  if (!value) return null;
+                  const displayLabel = typeof value === 'object' ? value.label : key;
+                  const displayValue = typeof value === 'object' ? value.value : value;
+                  if (!displayValue || displayValue === "") return null;
 
-                return (
-                  <div key={key} className={styles.specList}>
-                    <Text variant="xs" className={styles.specLabel}>
-                      {displayLabel}:
-                    </Text>
-                    <Text variant="xs" className={styles.specText}>
-                      {displayValue}
-                    </Text>
-                  </div>
-                );
-              })}
+                  return (
+                    <div key={key} className={styles.specList}>
+                      <Text variant="xs" className={styles.specLabel}>
+                        {displayLabel}:
+                      </Text>
+                      <Text variant="xs" className={styles.specText}>
+                        {displayValue}
+                      </Text>
+                    </div>
+                  );
+                })}
             </div>
           )}
+
+          {/* Seller Type - At the end with border-top */}
+          <div className={styles.sellerSection}>
+            {!isLoading && <User size={16} className={styles.specIcon} />}
+            <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="40%">
+              {sellerTypeLabels[sellerType]}
+            </Text>
+          </div>
         </div>
       </div>
     </Link>
