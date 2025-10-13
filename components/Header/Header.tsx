@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { ThemeToggle, Spacer } from "@/components/slices";
+import { UserMenu } from "@/components/UserMenu";
 import styles from "./Header.module.scss";
 import { Container } from "../slices";
 
@@ -40,9 +41,8 @@ export const Header: React.FC = () => {
       <Spacer />
 
       <header
-        className={`${styles.header} ${
-          isVisible ? styles.visible : styles.hidden
-        }`}
+        className={`${styles.header} ${isVisible ? styles.visible : styles.hidden
+          }`}
       >
         <Container padding={false}>
           <div className={styles.container}>
@@ -56,6 +56,7 @@ export const Header: React.FC = () => {
 
             {/* Desktop Actions */}
             <div className={styles.actions}>
+              <UserMenu />
               <ThemeToggle />
             </div>
           </div>

@@ -4,6 +4,8 @@ import {
   GET_USER_STATUSES_QUERY,
   GET_USER_ROLES_QUERY,
   GET_ACCOUNT_TYPES_QUERY,
+  GET_SELLER_TYPES_QUERY,
+  GET_LISTING_STATUSES_QUERY,
   GET_BILLING_CYCLES_QUERY,
   GET_SUBSCRIPTION_STATUSES_QUERY,
   GET_SUBSCRIPTION_ACCOUNT_TYPES_QUERY,
@@ -19,6 +21,10 @@ interface MetadataState {
   userStatuses: string[];
   userRoles: string[];
   accountTypes: string[];
+
+  // Listing metadata
+  sellerTypes: string[];
+  listingStatuses: string[];
 
   // Subscription metadata
   billingCycles: string[];
@@ -37,6 +43,7 @@ interface MetadataState {
   // Actions
   fetchAllMetadata: () => Promise<void>;
   fetchUserMetadata: () => Promise<void>;
+  fetchListingMetadata: () => Promise<void>;
   fetchSubscriptionMetadata: () => Promise<void>;
   fetchAttributeMetadata: () => Promise<void>;
 }
@@ -48,6 +55,8 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   userStatuses: [],
   userRoles: [],
   accountTypes: [],
+  sellerTypes: [],
+  listingStatuses: [],
   billingCycles: [],
   subscriptionStatuses: [],
   subscriptionAccountTypes: [],
@@ -62,6 +71,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
     const store = useMetadataStore.getState();
     await Promise.all([
       store.fetchUserMetadata(),
+      store.fetchListingMetadata(),
       store.fetchSubscriptionMetadata(),
       store.fetchAttributeMetadata(),
     ]);
@@ -85,6 +95,26 @@ export const useMetadataStore = create<MetadataState>((set) => ({
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch user metadata:", error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  // Fetch listing-related metadata
+  fetchListingMetadata: async () => {
+    set({ loading: true, error: null });
+    try {
+      const [sellerTypesData, listingStatusesData] = await Promise.all([
+        cachedGraphQLRequest(GET_SELLER_TYPES_QUERY),
+        cachedGraphQLRequest(GET_LISTING_STATUSES_QUERY),
+      ]);
+
+      set({
+        sellerTypes: (sellerTypesData as any).getSellerTypes || [],
+        listingStatuses: (listingStatusesData as any).getListingStatuses || [],
+        loading: false,
+      });
+    } catch (error: any) {
+      console.error("❌ Failed to fetch listing metadata:", error);
       set({ error: error.message, loading: false });
     }
   },

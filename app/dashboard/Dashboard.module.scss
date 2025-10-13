@@ -1,0 +1,107 @@
+@import "../../styles/variables";
+
+.dashboardContainer {
+  padding: $space-md 0;
+  position: relative;
+}
+
+// Mobile menu button (like filter button)
+.menuButton {
+  position: relative;
+  display: none;
+  margin-bottom: $space-md;
+  padding: $space-md;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+
+  &:hover {
+    background: $surface;
+  }
+
+  @media (max-width: $breakpoint-lg) {
+    display: flex;
+  }
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: $space-lg;
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Aside - Desktop: sticky sidebar
+.aside {
+  @media (min-width: $breakpoint-lg) {
+    position: relative;
+    top: $space-md;
+    height: fit-content;
+  }
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm;
+  border-radius: $radius-md;
+  text-decoration: none;
+  color: $text;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $surface;
+  }
+
+  &.active {
+    background: $primary;
+    color: $text-inverse;
+  }
+}
+
+.initials {
+  font-size: $font-xl;
+  font-weight: $weight-bold;
+  color: white;
+  user-select: none;
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md;
+  border-radius: $radius-md;
+  background: none;
+  border: none;
+  color: $error;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+
+  &:hover {
+    background: rgba($error, 0.1);
+  }
+}
+
+// Content area
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}

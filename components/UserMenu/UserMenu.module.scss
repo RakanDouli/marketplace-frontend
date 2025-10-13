@@ -1,0 +1,130 @@
+@import "../../styles/variables";
+
+.userMenu {
+  position: relative;
+}
+
+.loginButton {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-sm $space-md;
+  background: $primary;
+  color: $text-inverse;
+  border: none;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: $font-base;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-xs;
+  background: none;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $surface;
+  }
+}
+
+.avatar,
+.avatarImage,
+.avatarInitials {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  overflow: hidden;
+
+  .avatar {
+    object-fit: cover;
+    border-radius: $radius-sm;
+  }
+}
+
+.avatarInitials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-sm;
+  font-weight: 600;
+  color: $text;
+  // Background color is set dynamically via inline style
+}
+
+.userName {
+  font-size: $font-sm;
+  color: $text;
+
+  @media (max-width: $breakpoint-sm) {
+    display: none;
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + $space-xs);
+  right: 0;
+  min-width: 220px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdownHeader {
+  padding: $space-md;
+  border-bottom: 1px solid $border;
+  background: $surface;
+}
+
+.userEmail {
+  color: $text-muted;
+  word-break: break-all;
+}
+
+.dropdownMenu {
+  padding: $space-xs;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  width: 100%;
+  padding: $space-sm $space-md;
+  background: none;
+  border: none;
+  border-radius: $radius-sm;
+  text-align: right;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: $text;
+  font-size: $font-base;
+
+  &:hover {
+    background: $surface;
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: $text-muted;
+  }
+}

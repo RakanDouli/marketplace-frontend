@@ -335,60 +335,15 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
         </Button>
       )}
 
-      <Aside isOpen={isOpen} className={`${styles.filterAside} ${className}`}>
-        {/* Filter Header */}
-        <div className={styles.header}>
-          <div className={styles.headertop}>
-            <div className={styles.headerContent}>
-              <Text variant="small" className={styles.title}>
-                التصنيفات
-              </Text>
-              <FilterIcon size={20} />
-            </div>
-            {totalResults !== undefined && (
-              <Text variant="paragraph" className={styles.resultsCount}>
-                {listingsLoading ? (
-                  <Loading />
-                ) : (
-                  `${totalResults} ${t("search.totalResults")}`
-                )}
-              </Text>
-            )}
-            <div className={styles.headerActions}>
-              {/* Reset button */}
-              <button
-                className={styles.resetButton}
-                onClick={handleClearAll}
-                aria-label={t("search.clear")}
-                title={t("search.clear")}
-              >
-                <RotateCcw size={18} />
-              </button>
-
-              {/* Close button for mobile */}
-              <button
-                className={styles.closeButton}
-                onClick={() => setIsOpen(false)}
-                aria-label="Close filters"
-              >
-                <X size={20} />
-              </button>
-            </div>
+      <Aside isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        {filtersLoading && (
+          <div className={styles.loading}>
+            <Loading type="svg" />
+            <Text variant="small">{t("common.loading")}</Text>
           </div>
-          <div className={styles.appliedFilters}>
-            <AppliedFilters />
-          </div>
-        </div>
-        {/* Filter Content */}
-        <div className={styles.filterContent}>
-          {filtersLoading && (
-            <div className={styles.loading}>
-              <Loading type="svg" />
-              <Text variant="small">{t("common.loading")}</Text>
-            </div>
-          )}
-          {!filtersLoading && (
-            <>
+        )}
+        {!filtersLoading && (
+          <>
               {/* Brand and Model are now handled through dynamic attributes below */}
 
               {/* Location and SellerType are now handled through dynamic attributes below */}
@@ -703,10 +658,9 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                     })}
                   </>
                 );
-              })()}
-            </>
-          )}
-        </div>
+            })()}
+          </>
+        )}
       </Aside>
     </>
   );

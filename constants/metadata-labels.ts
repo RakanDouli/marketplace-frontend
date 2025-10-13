@@ -1,19 +1,20 @@
 /**
- * Metadata Label Mappings
+ * Metadata Label Mappings - Arabic Translations Only
  *
- * Maps backend enum values (English, lowercase) to frontend display labels (Arabic)
+ * This file contains ONLY Arabic translations for backend enum values.
+ * Backend provides enum values via GraphQL metadata queries (metadataStore).
  *
- * Single source of truth: Backend provides enum values via metadata queries
- * Frontend provides Arabic labels for UI display
+ * Single source of truth:
+ * - Backend: Enum values (via metadata.resolver.ts)
+ * - Frontend: Arabic labels (this file)
  *
  * Usage:
  * ```ts
- * import { ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
+ * import { ACCOUNT_TYPE_LABELS, mapToOptions } from '@/constants/metadata-labels';
+ * import { useMetadataStore } from '@/stores/metadataStore';
  *
- * const options = accountTypes.map(value => ({
- *   value,
- *   label: ACCOUNT_TYPE_LABELS[value] || value
- * }));
+ * const { accountTypes } = useMetadataStore();
+ * const options = mapToOptions(accountTypes, ACCOUNT_TYPE_LABELS);
  * ```
  */
 
@@ -21,22 +22,64 @@
 
 export const USER_STATUS_LABELS: Record<string, string> = {
   active: "نشط",
-  inactive: "غير نشط",
-  suspended: "موقوف",
+  pending: "معلق",
   banned: "محظور",
+  // Uppercase variants (for backward compatibility)
+  ACTIVE: "نشط",
+  PENDING: "معلق",
+  BANNED: "محظور",
 };
 
 export const USER_ROLE_LABELS: Record<string, string> = {
   user: "مستخدم",
+  editor: "محرر",
   admin: "مدير",
   super_admin: "مدير عام",
-  moderator: "مشرف",
+  ads_manager: "مدير إعلانات",
+  // Uppercase variants (for backward compatibility)
+  USER: "مستخدم",
+  EDITOR: "محرر",
+  ADMIN: "مدير",
+  SUPER_ADMIN: "مدير عام",
+  ADS_MANAGER: "مدير إعلانات",
 };
 
 export const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  individual: "Individual - فردي",
-  dealer: "Dealer - معرض سيارات",
-  business: "Business - شركة",
+  individual: "فردي",
+  dealer: "تاجر",
+  business: "شركة",
+  // Uppercase variants (for backward compatibility)
+  INDIVIDUAL: "فردي",
+  DEALER: "تاجر",
+  BUSINESS: "شركة",
+};
+
+// ===== LISTING METADATA LABELS =====
+
+export const SELLER_TYPE_LABELS: Record<string, string> = {
+  private: "المالك",
+  dealer: "تاجر",
+  business: "شركه",
+  // Uppercase variants (for backward compatibility)
+  PRIVATE: "المالك",
+  DEALER: "تاجر",
+  BUSINESS: "شركه",
+};
+
+export const LISTING_STATUS_LABELS: Record<string, string> = {
+  draft: "مسودة",
+  pending_approval: "في الانتظار",
+  active: "نشط",
+  sold: "تم البيع",
+  sold_via_platform: "تم البيع عبر المنصة",
+  hidden: "مخفي",
+  // Uppercase variants (for backward compatibility)
+  DRAFT: "مسودة",
+  PENDING_APPROVAL: "في الانتظار",
+  ACTIVE: "نشط",
+  SOLD: "تم البيع",
+  SOLD_VIA_PLATFORM: "تم البيع عبر المنصة",
+  HIDDEN: "مخفي",
 };
 
 // ===== SUBSCRIPTION METADATA LABELS =====
@@ -45,19 +88,27 @@ export const BILLING_CYCLE_LABELS: Record<string, string> = {
   free: "مجاني",
   monthly: "شهري",
   yearly: "سنوي",
+  // Uppercase variants
+  FREE: "مجاني",
+  MONTHLY: "شهري",
+  YEARLY: "سنوي",
 };
 
 export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   active: "نشطة",
   inactive: "غير نشطة",
-  deprecated: "متوقفة (قديمة)",
+  deprecated: "متوقفة",
+  // Uppercase variants
+  ACTIVE: "نشطة",
+  INACTIVE: "غير نشطة",
+  DEPRECATED: "متوقفة",
 };
 
 export const SUBSCRIPTION_ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  individual: "Individual - للأفراد فقط",
-  dealer: "Dealer - للتجار فقط",
-  business: "Business - للشركات فقط",
-  all: "جميع الأنواع (Individual, Dealer, Business)",
+  individual: "للأفراد",
+  dealer: "للتجار",
+  business: "للشركات",
+  all: "جميع الأنواع",
 };
 
 // ===== ATTRIBUTE METADATA LABELS =====
@@ -80,9 +131,9 @@ export const ATTRIBUTE_VALIDATION_LABELS: Record<string, string> = {
 };
 
 export const ATTRIBUTE_STORAGE_TYPE_LABELS: Record<string, string> = {
-  column: "عمود مستقل (Column)",
-  specs: "مواصفات (Specs JSONB)",
-  location: "موقع (Location JSONB)",
+  column: "عمود مستقل",
+  specs: "مواصفات (JSONB)",
+  location: "موقع (JSONB)",
 };
 
 // ===== HELPER FUNCTIONS =====
@@ -96,12 +147,12 @@ export function mapToOptions(
 ): Array<{ value: string; label: string }> {
   return values.map((value) => ({
     value,
-    label: labelMap[value] || value, // Fallback to value if no label found
+    label: labelMap[value] || value,
   }));
 }
 
 /**
- * Get label for a single value
+ * Get Arabic label for a single enum value
  */
 export function getLabel(
   value: string,

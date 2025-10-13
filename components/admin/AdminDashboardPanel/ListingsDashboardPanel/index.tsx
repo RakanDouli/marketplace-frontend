@@ -9,6 +9,8 @@ import { EditListingModal, DeleteListingModal } from './modals';
 import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { RefreshCw, Edit, Trash2, Eye } from 'lucide-react';
 import { Listing } from '@/types/listing';
 import styles from '../SharedDashboardPanel.module.scss';
@@ -162,24 +164,15 @@ export const ListingsDashboardPanel: React.FC = () => {
     }
   };
 
-  // Status labels in Arabic
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      'DRAFT': 'مسودة',
-      'PENDING_APPROVAL': 'في انتظار الموافقة',
-      'ACTIVE': 'نشط',
-      'SOLD': 'مباع',
-      'SOLD_VIA_PLATFORM': 'مباع عبر المنصة',
-      'HIDDEN': 'مخفي',
-      'draft': 'مسودة',
-      'pending_approval': 'في انتظار الموافقة',
-      'active': 'نشط',
-      'sold': 'مباع',
-      'sold_via_platform': 'مباع عبر المنصة',
-      'hidden': 'مخفي'
-    };
-    return statusLabels[status] || status;
-  };
+  // Fetch listing metadata on mount
+  const { listingStatuses } = useMetadataStore();
+
+  useEffect(() => {
+    const metadataStore = useMetadataStore.getState();
+    if (listingStatuses.length === 0) {
+      metadataStore.fetchListingMetadata();
+    }
+  }, [listingStatuses.length]);
 
   // Format price - using English numbers to match user-facing listings
   const formatPrice = (priceMinor: number) => {
@@ -239,11 +232,7 @@ export const ListingsDashboardPanel: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               options={[
                 { value: '', label: 'جميع الحالات' },
-                { value: 'PENDING_APPROVAL', label: 'في انتظار الموافقة' },
-                { value: 'ACTIVE', label: 'نشط' },
-                { value: 'DRAFT', label: 'مسودة' },
-                { value: 'HIDDEN', label: 'مخفي' },
-                { value: 'SOLD', label: 'مباع' },
+                ...mapToOptions(listingStatuses, LISTING_STATUS_LABELS)
               ]}
             />
           </div>
@@ -286,7 +275,7 @@ export const ListingsDashboardPanel: React.FC = () => {
                   <TableCell>سيارات</TableCell>
                   <TableCell>
                     <span className={`${styles.statusBadge} ${styles[`status-${listing.status.toLowerCase()}`]}`}>
-                      {getStatusLabel(listing.status)}
+                      {getLabel(listing.status, LISTING_STATUS_LABELS)}
                     </span>
                   </TableCell>
                   <TableCell>غير محدد</TableCell>

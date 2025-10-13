@@ -7,7 +7,7 @@ import { Modal } from '@/components/slices';
 import { User, Mail, Shield, Building, Key } from 'lucide-react';
 import styles from './UserModals.module.scss';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { USER_STATUS_LABELS } from '@/constants/metadata-labels';
+import { USER_STATUS_LABELS, USER_ROLE_LABELS, ACCOUNT_TYPE_LABELS, getLabel } from '@/constants/metadata-labels';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import { useAdminUsersStore } from '@/stores/admin/adminUsersStore';
 import {
@@ -40,27 +40,9 @@ interface EditUserModalProps {
 }
 
 
-// Helper function to get Arabic labels for role values
-const getRoleLabel = (role: string) => {
-  const roleLabels: Record<string, string> = {
-    'USER': 'مستخدم عادي',
-    'EDITOR': 'محرر',
-    'ADS_MANAGER': 'مدير الإعلانات',
-    'ADMIN': 'مدير',
-    'SUPER_ADMIN': 'مدير عام'
-  };
-  return roleLabels[role] || role;
-};
-
-// Helper function to get Arabic labels for account type values
-const getAccountTypeLabel = (accountType: string) => {
-  const accountTypeLabels: Record<string, string> = {
-    'individual': 'فردي',
-    'dealer': 'تاجر',
-    'business': 'شركة'
-  };
-  return accountTypeLabels[accountType] || accountType;
-};
+// Helper functions now use imported labels from metadata-labels.ts
+const getRoleLabel = (role: string) => getLabel(role, USER_ROLE_LABELS);
+const getAccountTypeLabel = (accountType: string) => getLabel(accountType, ACCOUNT_TYPE_LABELS);
 
 export function EditUserModal({
   isVisible,

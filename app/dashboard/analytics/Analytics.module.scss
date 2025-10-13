@@ -1,0 +1,115 @@
+@import "../../../styles/variables";
+
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xl;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: $space-md;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: $space-lg;
+}
+
+.statCard {
+  display: flex;
+  gap: $space-md;
+  padding: $space-lg;
+  background: $surface;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-md;
+  background: rgba($primary, 0.1);
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.statValue {
+  margin: 0;
+}
+
+.statChange {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+
+  &.positive {
+    color: $success;
+  }
+
+  &.negative {
+    color: $error;
+  }
+}
+
+.chartsSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: $space-lg;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-lg;
+  background: $surface;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+}
+
+.chartPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  padding: $space-xxl;
+  background: $bg;
+  border-radius: $radius-md;
+  border: 1px dashed $border;
+  min-height: 300px;
+}
+
+.chartIcon {
+  color: $text-muted;
+  opacity: 0.5;
+}
+
+.upgradeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-xl;
+  background: linear-gradient(135deg, rgba($primary, 0.1), rgba($primary, 0.05));
+  border-radius: $radius-md;
+  border: 1px solid $primary;
+  text-align: center;
+}

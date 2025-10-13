@@ -7,6 +7,8 @@ import { ImageGallery } from '@/components/slices/ImageGallery/ImageGallery';
 import { Listing } from '@/types/listing';
 import { validateListingStatusForm, createListingFieldValidator, type ListingFormData, type ValidationErrors } from '@/lib/admin/validation/listingValidation';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { ConfirmBlockUserModal } from './ConfirmBlockUserModal';
 import styles from './EditListingModal.module.scss';
 
@@ -97,20 +99,22 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
     setBlockModalVisible(true);
   };
 
-  // Status options with Arabic labels
-  const statusOptions = [
-    { value: 'draft', label: 'مسودة' },
-    { value: 'pending_approval', label: 'في انتظار الموافقة' },
-    { value: 'active', label: 'نشط' },
-    { value: 'hidden', label: 'مخفي' },
-    { value: 'sold', label: 'مباع' },
-    { value: 'sold_via_platform', label: 'مباع عبر المنصة' },
-  ];
+  // Fetch listing metadata
+  const { listingStatuses } = useMetadataStore();
+
+  useEffect(() => {
+    const metadataStore = useMetadataStore.getState();
+    if (listingStatuses.length === 0) {
+      metadataStore.fetchListingMetadata();
+    }
+  }, [listingStatuses.length]);
+
+  // Status options from metadata store
+  const statusOptions = mapToOptions(listingStatuses, LISTING_STATUS_LABELS);
 
   // Get current status label
   const getCurrentStatusLabel = () => {
-    const currentStatus = statusOptions.find(option => option.value === listing.status);
-    return currentStatus ? currentStatus.label : listing.status;
+    return getLabel(listing.status, LISTING_STATUS_LABELS);
   };
 
   // Format price - using English numbers to match user-facing listings

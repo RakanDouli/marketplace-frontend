@@ -50,6 +50,9 @@
   --text: var(--text-header); // Dark text on light background
   --text-muted: var(--text-body-dark); // Medium gray text
   --text-inverse: var(--text-light); // Light text for dark elements
+
+  // Avatar colors for light theme
+  --avatar-lightness: 85%; // Very light pastel colors - calm and easy on eyes
 }
 
 // Dark theme
@@ -65,6 +68,9 @@
   --text: var(--text-light); // Light text on dark background
   --text-muted: var(--text-body-light); // Medium gray text
   --text-inverse: var(--text-header); // Dark text for light elements
+
+  // Avatar colors for dark theme
+  --avatar-lightness: 35%; // Muted darker colors - calm and not too bright
 }
 
 // System preference detection
@@ -79,5 +85,8 @@
     --text: var(--text-light);
     --text-muted: var(--text-body-light);
     --text-inverse: var(--text-header);
+
+    // Avatar colors for system dark theme
+    --avatar-lightness: 35%;
   }
 }

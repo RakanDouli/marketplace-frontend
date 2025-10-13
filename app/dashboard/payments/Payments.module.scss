@@ -1,0 +1,122 @@
+@import "../../../styles/variables";
+
+.payments {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xl;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-md;
+}
+
+.currentPlan {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-lg;
+  background: $surface;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+}
+
+.planInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-lg;
+}
+
+.planItem {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  padding: $space-xxl;
+  text-align: center;
+  background: $surface;
+  border-radius: $radius-md;
+  border: 1px dashed $border;
+}
+
+.emptyIcon {
+  color: $text-muted;
+  opacity: 0.5;
+}
+
+.paymentsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.paymentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+}
+
+.paymentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.paymentDetails {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.status {
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+
+  &.success {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+
+  &.warning {
+    background: rgba($warning, 0.1);
+    color: $warning;
+  }
+
+  &.error {
+    background: rgba($error, 0.1);
+    color: $error;
+  }
+}

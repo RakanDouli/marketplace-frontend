@@ -19,8 +19,11 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleButtonClick = () => {
-    // Try native share API first (mainly for mobile)
-    if (navigator.share) {
+    // Check if we're on mobile (native share works better on mobile)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // Try native share API on mobile only
+    if (isMobile && navigator.share) {
       navigator.share({
         title: metadata.title,
         text: metadata.description,
@@ -30,7 +33,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
         setIsModalOpen(true);
       });
     } else {
-      // Desktop or browsers without native share - open modal
+      // Desktop or browsers without native share - always open modal
       setIsModalOpen(true);
     }
   };

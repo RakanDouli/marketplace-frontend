@@ -3,39 +3,77 @@
 .aside {
   position: relative;
   width: 100%;
+  height: 100%;
   background-color: $surface;
   border-radius: $radius-md;
-  transition: all 0.3s ease-out;
-
-  // Mobile behavior
+  overflow-y: auto;
+  background: $bg;
+  // Mobile behavior (default: with header offset)
   @media (max-width: $breakpoint-lg) {
     position: fixed;
-    top: $header-height;
-    left: -100%;
-    // width: calc(100% - #{$space-md * 2});
-    height: calc(100% - #{$header-height});
-    // margin: 0 $space-md;
+    top: 0;
+    right: -100%;
+    height: 100vh;
     z-index: $z-sidebar;
-    overflow-y: auto;
     width: 50%;
-    &.open {
-      left: 0;
-    }
+    border-radius: 0;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    transition: right 0.4s ease-out;
 
-    &.closed {
-      left: -100%;
+    &.open {
+      right: 0;
     }
   }
+
   @media (max-width: $breakpoint-md) {
-    top: $header-height-mobile;
-    height: calc(100% - #{$header-height-mobile});
-    width: 100%;
+    width: 80%;
+    max-width: 320px;
+  }
+
+  // Full height variant (no header offset - for dashboard)
+  &.fullHeight {
+    @media (max-width: $breakpoint-lg) {
+      top: 0;
+      height: 100vh;
+    }
+
+    @media (max-width: $breakpoint-md) {
+      top: 0;
+      height: 100vh;
+    }
   }
 }
 
 .content {
   padding: $space-md;
   height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.closeButton {
+  position: absolute;
+  top: $space-md;
+  left: $space-md;
+  z-index: 1001; // Above aside content
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $surface;
+  }
+
+  // Hide on desktop where sidebar is always visible
+  @media (min-width: $breakpoint-lg) {
+    display: none;
+  }
 }
 
 .overlay {
@@ -50,23 +88,5 @@
   // Only show overlay on mobile
   @media (min-width: $breakpoint-lg) {
     display: none;
-  }
-}
-
-// RTL Support
-:global([dir="rtl"]) {
-  @media (max-width: $breakpoint-lg) {
-    .aside {
-      left: auto;
-      right: -100%;
-
-      &.open {
-        right: 0;
-      }
-
-      &.closed {
-        right: -100%;
-      }
-    }
   }
 }

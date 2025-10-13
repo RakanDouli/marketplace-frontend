@@ -10,6 +10,8 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, RefreshCw, Edit, Trash2 } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { USER_STATUS_LABELS, ACCOUNT_TYPE_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import styles from '../SharedDashboardPanel.module.scss';
 
 interface User {
@@ -84,32 +86,21 @@ export const UsersDashboardPanel: React.FC = () => {
     }
   }, [error, clearError, addNotification]);
 
-  // Simple helper functions for display
+  // Fetch metadata on mount
+  const { userStatuses } = useMetadataStore();
+
+  useEffect(() => {
+    const metadataStore = useMetadataStore.getState();
+    if (userStatuses.length === 0) {
+      metadataStore.fetchUserMetadata();
+    }
+  }, [userStatuses.length]);
+
+  // Simple helper functions for display (now using metadata-labels.ts)
   const getRoleLabel = (role: string) => {
     // Try to find role by case-insensitive match (since backend uses lowercase enum)
     const roleObj = roles.find(r => r.name.toLowerCase() === role.toLowerCase());
     return roleObj ? roleObj.name : role.toUpperCase();
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      'ACTIVE': 'نشط',
-      'PENDING': 'معلق',
-      'BANNED': 'محظور',
-      'active': 'نشط',
-      'pending': 'معلق',
-      'banned': 'محظور'
-    };
-    return statusLabels[status] || status;
-  };
-
-  const getAccountTypeLabel = (accountType: string) => {
-    const typeLabels: Record<string, string> = {
-      'individual': 'فردي',
-      'dealer': 'تاجر',
-      'business': 'شركة'
-    };
-    return typeLabels[accountType] || accountType;
   };
 
   // Action handlers for new modal structure
@@ -274,9 +265,7 @@ export const UsersDashboardPanel: React.FC = () => {
               }}
               options={[
                 { value: "", label: "جميع الحالات" },
-                { value: "active", label: "نشط" },
-                { value: "pending", label: "معلق" },
-                { value: "banned", label: "محظور" }
+                ...mapToOptions(userStatuses, USER_STATUS_LABELS)
               ]}
             />
 
@@ -312,8 +301,8 @@ export const UsersDashboardPanel: React.FC = () => {
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{getRoleLabel(user.role)}</TableCell>
-                  <TableCell>{getStatusLabel(user.status)}</TableCell>
-                  <TableCell>{getAccountTypeLabel(user.accountType)}</TableCell>
+                  <TableCell>{getLabel(user.status, USER_STATUS_LABELS)}</TableCell>
+                  <TableCell>{getLabel(user.accountType, ACCOUNT_TYPE_LABELS)}</TableCell>
                   {(canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>

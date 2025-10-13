@@ -47,10 +47,23 @@ export const ListingCard: React.FC<ListingCardProps> = ({
     onClick?.(id);
   };
 
-  const sellerTypeLabels = {
-    private: "Private",
-    dealer: "Dealer",
-    business: "Business",
+  // Get Arabic seller type from specs if available, fallback to English labels
+  const getSellerTypeLabel = () => {
+    // Check specs for Arabic seller type value
+    if (specs?.sellerType) {
+      return typeof specs.sellerType === 'object' ? specs.sellerType.value : specs.sellerType;
+    }
+    if (specs?.seller_type) {
+      return typeof specs.seller_type === 'object' ? specs.seller_type.value : specs.seller_type;
+    }
+
+    // Fallback to English labels if not in specs
+    const sellerTypeLabels = {
+      private: "Private",
+      dealer: "Dealer",
+      business: "Business",
+    };
+    return sellerTypeLabels[sellerType] || sellerType;
   };
 
   return (
@@ -194,7 +207,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           <div className={styles.sellerSection}>
             {!isLoading && <User size={16} className={styles.specIcon} />}
             <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="40%">
-              {sellerTypeLabels[sellerType]}
+              {getSellerTypeLabel()}
             </Text>
           </div>
         </div>
