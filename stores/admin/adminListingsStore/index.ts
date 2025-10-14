@@ -34,7 +34,7 @@ interface ListingFilterInput {
   search?: string;
   status?: string;
   categoryId?: string;
-  sellerType?: string;
+  accountType?: string;
   city?: string;
   province?: string;
   priceMinMinor?: number;
@@ -105,7 +105,10 @@ interface AdminListingsStore {
 
   // Cache management
   isCacheValid: () => boolean;
-  loadListingsWithCache: (page?: number, forceRefresh?: boolean) => Promise<void>;
+  loadListingsWithCache: (
+    page?: number,
+    forceRefresh?: boolean
+  ) => Promise<void>;
   invalidateCache: () => void;
 }
 
@@ -199,8 +202,8 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
       if (filterInput.categoryId) {
         filter.categoryId = filterInput.categoryId;
       }
-      if (filterInput.sellerType) {
-        filter.sellerType = filterInput.sellerType;
+      if (filterInput.accountType) {
+        filter.accountType = filterInput.accountType;
       }
       if (filterInput.city) {
         filter.city = filterInput.city;
@@ -237,7 +240,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
             specs: {}, // Not requested in simplified query
             specsDisplay: {}, // Not requested in simplified query
             imageKeys: [], // Not requested in simplified query
-            sellerType: "PRIVATE" as "PRIVATE" | "DEALER" | "BUSINESS", // Default value
+            accountType: "INDIVIDUAL" as "INDIVIDUAL" | "DEALER" | "BUSINESS", // Default value
             city: "", // Not requested in simplified query
             country: "", // Add missing country field
             prices: [
@@ -392,9 +395,12 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
           url: imageUrl, // imageKeys already contain full URLs
           alt: listingData.title,
         })),
-        sellerType: listingData.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
+        accountType: listingData.accountType as
+          | "INDIVIDUAL"
+          | "DEALER"
+          | "BUSINESS",
         sellerLabel: listingData.sellerLabel || "",
-        sellerBadge: listingData.sellerBadge || "",
+        accountBadge: listingData.accountBadge || "",
         province: listingData.location?.province || "",
         city: listingData.location?.city || "",
         area: listingData.location?.area || "",
@@ -417,7 +423,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
               status: listingData.user.status,
               accountType: listingData.user.accountType,
               companyName: listingData.user.companyName,
-              sellerBadge: listingData.user.sellerBadge,
+              accountBadge: listingData.user.accountBadge,
               businessVerified: listingData.user.businessVerified,
               phone: listingData.user.phone,
               contactPhone: listingData.user.contactPhone,

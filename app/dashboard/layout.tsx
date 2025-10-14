@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Container, Aside, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import type { AccountType } from '@/stores/userAuthStore/types';
 import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown } from 'lucide-react';
 import styles from './Dashboard.module.scss';
 
@@ -53,7 +54,7 @@ export default function DashboardLayout({
       href: '/dashboard/subscription',
     },
     // Analytics only for dealers and business accounts
-    ...(user?.accountType === 'dealer' || user?.accountType === 'business'
+    ...(user?.accountType === 'DEALER' || user?.accountType === 'BUSINESS'
       ? [
         {
           icon: <BarChart3 size={20} />,

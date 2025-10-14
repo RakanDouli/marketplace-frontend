@@ -28,7 +28,13 @@ export interface Listing {
   // Legacy fields for backward compatibility (deprecated)
   province?: string;
   city?: string;
-  status: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "SOLD" | "SOLD_VIA_PLATFORM" | "HIDDEN";
+  status:
+    | "DRAFT"
+    | "PENDING_APPROVAL"
+    | "ACTIVE"
+    | "SOLD"
+    | "SOLD_VIA_PLATFORM"
+    | "HIDDEN";
   allowBidding: boolean;
   biddingStartPrice?: number;
   specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
@@ -36,8 +42,8 @@ export interface Listing {
   imageKeys?: string[];
   images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
   sellerLabel?: string;
-  sellerBadge?: string;
-  sellerType?: "PRIVATE" | "DEALER" | "BUSINESS"; // Updated to match backend
+  accountBadge?: string;
+  accountType?: "INDIVIDUAL" | "DEALER" | "BUSINESS"; // Unified with User.accountType
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -48,7 +54,7 @@ export interface Listing {
     status: "PENDING" | "ACTIVE" | "BANNED";
     accountType: "INDIVIDUAL" | "DEALER" | "BUSINESS";
     companyName?: string;
-    sellerBadge: "NONE" | "VERIFIED" | "PREMIUM";
+    accountBadge: "NONE" | "VERIFIED" | "PREMIUM"; // Renamed from accountBadge
     businessVerified: boolean;
     phone?: string;
     contactPhone?: string;

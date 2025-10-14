@@ -10,7 +10,7 @@ export const LISTINGS_GRID_QUERY = `
       priceMinor
       imageKeys
       categoryId
-      sellerType
+      accountType
       location {
         province
         city

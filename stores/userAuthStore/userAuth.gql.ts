@@ -12,7 +12,7 @@ export const ME_QUERY = `
         accountType
         isEmailConfirmed
         companyName
-        sellerBadge
+        accountBadge
         avatar
         website
         kvkNumber

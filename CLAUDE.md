@@ -617,7 +617,7 @@ export default function AdminPage({ params }: AdminPageProps) {
 export const UPDATE_USER_MUTATION = `
   mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
     updateUser(id: $id, input: $input) {
-      id, email, name, role, status, accountType, sellerBadge, businessVerified, updatedAt
+      id, email, name, role, status, accountType, accountBadge, businessVerified, updatedAt
     }
   }
 `;

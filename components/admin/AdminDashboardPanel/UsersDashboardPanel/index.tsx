@@ -21,7 +21,7 @@ interface User {
   role: string;
   status: string; // "pending" | "active" | "banned"
   accountType: string;
-  sellerBadge: string | null;
+  accountBadge: string | null;
   businessVerified: boolean;
   createdAt?: string;
   updatedAt?: string;

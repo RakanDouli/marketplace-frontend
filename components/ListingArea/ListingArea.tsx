@@ -175,9 +175,9 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       currency: displayCurrency,
       location: (allSpecs as any).location || (listing as any).province || (listing as any).city || "",
       sellerType:
-        listing.sellerType === "PRIVATE"
+        listing.accountType === "INDIVIDUAL"
           ? "private"
-          : listing.sellerType === "DEALER"
+          : listing.accountType === "DEALER"
             ? "dealer"
             : "business",
       specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags

@@ -57,7 +57,7 @@ export interface ListingsState {
     location?: string;
     city?: string;
     province?: string;
-    sellerType?: string;
+    accountType?: string;
     // Dynamic attribute filters (replaces hardcoded car filters)
     specs?: Record<string, any>;
     // Other filters

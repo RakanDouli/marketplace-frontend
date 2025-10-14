@@ -20,13 +20,13 @@ export const GET_ACCOUNT_TYPES_QUERY = `
   }
 `;
 
-// ===== LISTING METADATA =====
-
-export const GET_SELLER_TYPES_QUERY = `
-  query GetSellerTypes {
-    getSellerTypes
+export const GET_ACCOUNT_BADGES_QUERY = `
+  query GetAccountBadges {
+    getAccountBadges
   }
 `;
+
+// ===== LISTING METADATA =====
 
 export const GET_LISTING_STATUSES_QUERY = `
   query GetListingStatuses {

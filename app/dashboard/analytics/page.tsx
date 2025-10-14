@@ -18,13 +18,13 @@ export default function AnalyticsPage() {
       return;
     }
 
-    if (user.accountType === 'individual') {
+    if (user.accountType === 'INDIVIDUAL') {
       // Redirect individuals to upgrade page
       router.push('/dashboard');
     }
   }, [user, router]);
 
-  if (!user || user.accountType === 'individual') {
+  if (!user || user.accountType === 'INDIVIDUAL') {
     return null;
   }
 

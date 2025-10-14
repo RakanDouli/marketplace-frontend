@@ -12,7 +12,7 @@ export interface ListingCardProps {
   price: string;
   currency: string;
   location: string;
-  sellerType: "private" | "dealer" | "business";
+  accountType: "individual" | "dealer" | "business"; // Changed from sellerType to accountType
   specs?: Record<string, any>; // Dynamic specs from backend
   images?: string[];
   description?: string;
@@ -31,7 +31,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   price,
   currency,
   location,
-  sellerType,
+  accountType,
   specs = {},
   images,
   description = "",
@@ -47,23 +47,23 @@ export const ListingCard: React.FC<ListingCardProps> = ({
     onClick?.(id);
   };
 
-  // Get Arabic seller type from specs if available, fallback to English labels
-  const getSellerTypeLabel = () => {
-    // Check specs for Arabic seller type value
-    if (specs?.sellerType) {
-      return typeof specs.sellerType === 'object' ? specs.sellerType.value : specs.sellerType;
+  // Get Arabic account type label from specs if available, fallback to English labels
+  const getAccountTypeLabel = () => {
+    // Check specs for Arabic account type value (from backend specsDisplay)
+    if (specs?.accountType) {
+      return typeof specs.accountType === 'object' ? specs.accountType.value : specs.accountType;
     }
-    if (specs?.seller_type) {
-      return typeof specs.seller_type === 'object' ? specs.seller_type.value : specs.seller_type;
+    if (specs?.account_type) {
+      return typeof specs.account_type === 'object' ? specs.account_type.value : specs.account_type;
     }
 
     // Fallback to English labels if not in specs
-    const sellerTypeLabels = {
-      private: "Private",
-      dealer: "Dealer",
-      business: "Business",
+    const accountTypeLabels = {
+      individual: "فردي",
+      dealer: "تاجر",
+      business: "شركة",
     };
-    return sellerTypeLabels[sellerType] || sellerType;
+    return accountTypeLabels[accountType] || accountType;
   };
 
   return (
@@ -165,7 +165,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             <div className={styles.specsCompact}>
               <Text variant="xs" className={styles.specsCompactText} skeleton={isLoading} skeletonWidth="80%">
                 {Object.entries(specs)
-                  .filter(([key]) => key !== 'sellerType' && key !== 'seller_type')
+                  .filter(([key]) => key !== 'accountType' && key !== 'account_type')
                   .map(([, value]) => {
                     if (!value) return null;
                     const displayValue = typeof value === 'object' ? value.value : value;
@@ -182,7 +182,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           {viewMode === "list" && specs && Object.keys(specs).length > 0 && (
             <div className={styles.specsList}>
               {Object.entries(specs)
-                .filter(([key]) => key !== 'sellerType' && key !== 'seller_type')
+                .filter(([key]) => key !== 'accountType' && key !== 'account_type')
                 .map(([key, value]) => {
                   if (!value) return null;
                   const displayLabel = typeof value === 'object' ? value.label : key;
@@ -203,11 +203,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             </div>
           )}
 
-          {/* Seller Type - At the end with border-top */}
+          {/* Account Type - At the end with border-top */}
           <div className={styles.sellerSection}>
             {!isLoading && <User size={16} className={styles.specIcon} />}
             <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="40%">
-              {getSellerTypeLabel()}
+              {getAccountTypeLabel()}
             </Text>
           </div>
         </div>

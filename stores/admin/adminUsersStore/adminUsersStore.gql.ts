@@ -9,7 +9,7 @@ export const GET_USERS_QUERY = `
       role
       status
       accountType
-      sellerBadge
+      accountBadge
       businessVerified
     }
   }
@@ -24,7 +24,7 @@ export const USERS_SEARCH_QUERY = `
       role
       status
       accountType
-      sellerBadge
+      accountBadge
       businessVerified
     }
   }
@@ -45,7 +45,7 @@ export const CREATE_USER_MUTATION = `
       role
       status
       accountType
-      sellerBadge
+      accountBadge
       businessVerified
     }
   }
@@ -60,7 +60,7 @@ export const UPDATE_USER_MUTATION = `
       role
       status
       accountType
-      sellerBadge
+      accountBadge
       businessVerified
     }
   }
@@ -104,7 +104,7 @@ export const GET_USER_BY_ID_QUERY = `
       role
       status
       accountType
-      sellerBadge
+      accountBadge
       businessVerified
       createdAt
       updatedAt

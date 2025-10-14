@@ -220,8 +220,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       }
 
       // Seller type filter
-      if (finalFilters.sellerType) {
-        graphqlFilter.sellerType = finalFilters.sellerType;
+      if (finalFilters.accountType) {
+        graphqlFilter.accountType = finalFilters.accountType;
       }
 
       // Dynamic attribute filters - use specs object directly (now using backend format)
@@ -297,7 +297,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             specs, // English keys for backend processing and filtering
             specsDisplay, // Arabic keys and values for frontend display
             imageKeys: item.imageKeys || [], // Store raw keys, optimize per usage
-            sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
+            accountType: item.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
             createdAt: item.createdAt,
             updatedAt: item.createdAt,
           };
@@ -319,7 +319,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
               title: listings[0].title,
               specs: listings[0].specs,
               prices: listings[0].prices,
-              sellerType: listings[0].sellerType,
+              accountType: listings[0].accountType,
             }
           : null,
         sampleSpecs: listings[0]?.specs
@@ -435,7 +435,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         specs,
         specsDisplay,
         imageKeys: item.imageKeys || [],
-        sellerType: item.sellerType as "PRIVATE" | "DEALER" | "BUSINESS",
+        accountType: item.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
         createdAt: item.createdAt,
         updatedAt: item.createdAt,
         location: item.location,
@@ -452,7 +452,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           status: 'ACTIVE' as const,
           accountType: item.user.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
           companyName: undefined,
-          sellerBadge: 'NONE' as const,
+          accountBadge: 'NONE' as const,
           businessVerified: false,
           phone: item.user.phone,
           createdAt: item.createdAt,

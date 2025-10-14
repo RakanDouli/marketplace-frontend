@@ -19,7 +19,7 @@ interface User {
   role: string;
   status: string; // "pending" | "active" | "banned"
   accountType: string;
-  sellerBadge: string | null;
+  accountBadge: string | null;
   businessVerified: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -49,7 +49,7 @@ interface UpdateUserInput {
   role?: string;
   accountType?: string;
   isActive?: boolean;
-  sellerBadge?: string;
+  accountBadge?: string;
 }
 
 interface PaginationInput {
@@ -79,7 +79,14 @@ interface PaginatedUsers {
 export interface TableColumn {
   key: string;
   label: string;
-  type?: 'text' | 'email' | 'date' | 'boolean' | 'badge' | 'currency' | 'number';
+  type?:
+    | "text"
+    | "email"
+    | "date"
+    | "boolean"
+    | "badge"
+    | "currency"
+    | "number";
   width?: string;
   sortable?: boolean;
 }
@@ -87,7 +94,7 @@ export interface TableColumn {
 export interface TableAction {
   key: string;
   label: string;
-  variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'success';
+  variant?: "primary" | "secondary" | "danger" | "warning" | "success";
   requiresConfirmation?: boolean;
   confirmationMessage?: string;
 }
@@ -287,7 +294,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
       const data = await makeGraphQLCall(GET_USER_BY_ID_QUERY, { id });
       return data.userById || null;
     } catch (error) {
-      console.error('Failed to fetch user by ID:', error);
+      console.error("Failed to fetch user by ID:", error);
       return null;
     }
   },

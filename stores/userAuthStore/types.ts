@@ -1,6 +1,7 @@
 // User authentication types
 
-export type AccountType = 'individual' | 'business' | 'dealer';
+// AccountType definition (matches backend enum)
+export type AccountType = 'INDIVIDUAL' | 'DEALER' | 'BUSINESS';
 
 export interface UserSubscriptionPlan {
   id: string;
@@ -36,7 +37,7 @@ export interface PublicUser {
   accountType: AccountType;
   isEmailConfirmed: boolean;
   companyName: string | null;
-  sellerBadge: string | null;
+  accountBadge: string | null;
   avatar: string | null;
   website: string | null;
   kvkNumber: string | null;

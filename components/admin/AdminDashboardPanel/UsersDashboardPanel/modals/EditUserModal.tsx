@@ -25,7 +25,7 @@ interface User {
   role: string;
   accountType: string;
   status: string;
-  sellerBadge?: string | null;
+  accountBadge?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -61,7 +61,7 @@ export function EditUserModal({
     role: 'USER',
     accountType: 'individual',
     status: 'active',
-    sellerBadge: ''
+    accountBadge: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -96,7 +96,7 @@ export function EditUserModal({
             role: userData.role || 'USER',
             accountType: userData.accountType || 'individual',
             status: userData.status || 'active',
-            sellerBadge: userData.sellerBadge || ''
+            accountBadge: userData.accountBadge || ''
           });
         }
       } else if (initialData) {
@@ -106,7 +106,7 @@ export function EditUserModal({
           role: initialData.role || 'USER',
           accountType: initialData.accountType || 'individual',
           status: initialData.status || 'active',
-          sellerBadge: initialData.sellerBadge || ''
+          accountBadge: initialData.accountBadge || ''
         });
       }
       setErrors({});
@@ -151,7 +151,7 @@ export function EditUserModal({
       id: initialData?.id,
       name: formData.name,
       status: formData.status
-      // Note: email, role, accountType, sellerBadge are NOT allowed in UpdateUserInput
+      // Note: email, role, accountType, accountBadge are NOT allowed in UpdateUserInput
     };
 
     // Map values to GraphQL enum keys before sending
@@ -277,7 +277,7 @@ export function EditUserModal({
             شارة البائع
           </label>
           <div className={styles.readOnlyField}>
-            {formData.sellerBadge || 'غير محدد'}
+            {formData.accountBadge || 'غير محدد'}
           </div>
           <p className={styles.helpText}>
             💡 شارة البائع يتم منحها بناءً على نظام التقييم والتحقق

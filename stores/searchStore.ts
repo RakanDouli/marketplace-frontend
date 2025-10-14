@@ -23,8 +23,8 @@ export interface SearchFilters {
   // Search query
   search?: string;
 
-  // Seller type filter
-  sellerType?: string;
+  // Account type filter (unified with User.accountType)
+  accountType?: string;
 
   // Sort option
   sort?: string;
@@ -296,11 +296,11 @@ export const useSearchStore = create<SearchStore>()(
         backendFilters.city = appliedFilters.city;
       }
 
-      // Handle seller type as top-level filter
-      // Extract from specs.sellerType if present, otherwise use top-level sellerType
-      const sellerTypeValue = appliedFilters.specs?.sellerType || appliedFilters.sellerType;
-      if (sellerTypeValue) {
-        backendFilters.sellerType = sellerTypeValue;
+      // Handle account type as top-level filter
+      // Extract from specs.accountType if present, otherwise use top-level accountType
+      const accountTypeValue = appliedFilters.specs?.accountType || appliedFilters.accountType;
+      if (accountTypeValue) {
+        backendFilters.accountType = accountTypeValue;
       }
 
       // Handle brandId and modelId (legacy top-level filters now moved to specs)
@@ -321,8 +321,8 @@ export const useSearchStore = create<SearchStore>()(
         const specs: Record<string, any> = { ...backendFilters.specs };
 
         Object.entries(appliedFilters.specs).forEach(([key, value]) => {
-          // Skip location and sellerType - they're already handled as top-level filters
-          if (key !== 'location' && key !== 'sellerType') {
+          // Skip location and accountType - they're already handled as top-level filters
+          if (key !== 'location' && key !== 'accountType') {
             specs[key] = value;
           }
         });
@@ -366,11 +366,11 @@ export const useSearchStore = create<SearchStore>()(
         storeFilters.city = appliedFilters.city;
       }
 
-      // Seller type (top-level filter)
-      // Extract from specs.sellerType if present, otherwise use top-level sellerType
-      const sellerTypeValue = appliedFilters.specs?.sellerType || appliedFilters.sellerType;
-      if (sellerTypeValue) {
-        storeFilters.sellerType = sellerTypeValue;
+      // Account type (top-level filter)
+      // Extract from specs.accountType if present, otherwise use top-level accountType
+      const accountTypeValue = appliedFilters.specs?.accountType || appliedFilters.accountType;
+      if (accountTypeValue) {
+        storeFilters.accountType = accountTypeValue;
       }
 
       // Brand/Model
@@ -396,8 +396,8 @@ export const useSearchStore = create<SearchStore>()(
         const specs: Record<string, any> = { ...storeFilters.specs };
 
         Object.entries(appliedFilters.specs).forEach(([key, value]) => {
-          // Skip location and sellerType - they're already handled as top-level filters
-          if (key !== 'location' && key !== 'sellerType') {
+          // Skip location and accountType - they're already handled as top-level filters
+          if (key !== 'location' && key !== 'accountType') {
             specs[key] = value;
           }
         });

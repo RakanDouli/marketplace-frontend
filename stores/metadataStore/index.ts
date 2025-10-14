@@ -4,7 +4,7 @@ import {
   GET_USER_STATUSES_QUERY,
   GET_USER_ROLES_QUERY,
   GET_ACCOUNT_TYPES_QUERY,
-  GET_SELLER_TYPES_QUERY,
+  GET_ACCOUNT_BADGES_QUERY,
   GET_LISTING_STATUSES_QUERY,
   GET_BILLING_CYCLES_QUERY,
   GET_SUBSCRIPTION_STATUSES_QUERY,
@@ -21,9 +21,9 @@ interface MetadataState {
   userStatuses: string[];
   userRoles: string[];
   accountTypes: string[];
+  accountBadges: string[];
 
   // Listing metadata
-  sellerTypes: string[];
   listingStatuses: string[];
 
   // Subscription metadata
@@ -55,7 +55,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   userStatuses: [],
   userRoles: [],
   accountTypes: [],
-  sellerTypes: [],
+  accountBadges: [],
   listingStatuses: [],
   billingCycles: [],
   subscriptionStatuses: [],
@@ -81,16 +81,18 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   fetchUserMetadata: async () => {
     set({ loading: true, error: null });
     try {
-      const [statusesData, rolesData, accountTypesData] = await Promise.all([
+      const [statusesData, rolesData, accountTypesData, accountBadgesData] = await Promise.all([
         cachedGraphQLRequest(GET_USER_STATUSES_QUERY),
         cachedGraphQLRequest(GET_USER_ROLES_QUERY),
         cachedGraphQLRequest(GET_ACCOUNT_TYPES_QUERY),
+        cachedGraphQLRequest(GET_ACCOUNT_BADGES_QUERY),
       ]);
 
       set({
         userStatuses: (statusesData as any).getUserStatuses || [],
         userRoles: (rolesData as any).getUserRoles || [],
         accountTypes: (accountTypesData as any).getAccountTypes || [],
+        accountBadges: (accountBadgesData as any).getAccountBadges || [],
         loading: false,
       });
     } catch (error: any) {
@@ -103,13 +105,11 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   fetchListingMetadata: async () => {
     set({ loading: true, error: null });
     try {
-      const [sellerTypesData, listingStatusesData] = await Promise.all([
-        cachedGraphQLRequest(GET_SELLER_TYPES_QUERY),
+      const [listingStatusesData] = await Promise.all([
         cachedGraphQLRequest(GET_LISTING_STATUSES_QUERY),
       ]);
 
       set({
-        sellerTypes: (sellerTypesData as any).getSellerTypes || [],
         listingStatuses: (listingStatusesData as any).getListingStatuses || [],
         loading: false,
       });

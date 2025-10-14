@@ -145,7 +145,7 @@ async function getListingAggregations(
   });
 
   // Everything is now in attributes array - no separate extraction needed
-  // All attributes (location, sellerType, etc.) are processed uniformly
+  // All attributes (location, accountType, etc.) are processed uniformly
   (aggregations.attributes || []).forEach((attr: any) => {
     if (!attributes[attr.field]) {
       attributes[attr.field] = {};
@@ -173,7 +173,7 @@ async function getListingAggregations(
 
   // Return unified attributes structure
   return {
-    attributes, // All filters including location, sellerType, brands, models, and category attributes
+    attributes, // All filters including location, accountType, brands, models, and category attributes
     rawAggregations: aggregations, // Keep raw data for additional processing
   };
 }
@@ -570,7 +570,7 @@ export const useLocationAttribute = () =>
   useFiltersStore((state) =>
     state.attributes.find((attr) => attr.key === "location")
   );
-export const useSellerTypeAttribute = () =>
+export const useAccountTypeAttribute = () =>
   useFiltersStore((state) =>
-    state.attributes.find((attr) => attr.key === "sellerType")
+    state.attributes.find((attr) => attr.key === "accountType")
   );

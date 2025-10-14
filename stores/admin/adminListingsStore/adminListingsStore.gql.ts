@@ -48,7 +48,7 @@ export const UPDATE_LISTING_MUTATION = `
       category {
         name
       }
-      sellerType
+      accountType
       location {
         province
         city
@@ -103,9 +103,9 @@ export const GET_LISTING_BY_ID_QUERY = `
       createdAt
       updatedAt
       categoryId
-      sellerType
+      accountType
       sellerLabel
-      sellerBadge
+      accountBadge
       allowBidding
       biddingStartPrice
       location {
@@ -132,7 +132,7 @@ export const GET_LISTING_BY_ID_QUERY = `
         status
         accountType
         companyName
-        sellerBadge
+        accountBadge
         businessVerified
         phone
         contactPhone
@@ -153,7 +153,7 @@ export const UPDATE_USER_MUTATION = `
       role
       status
       accountType
-      sellerBadge
+      accountBadge
       businessVerified
       updatedAt
     }

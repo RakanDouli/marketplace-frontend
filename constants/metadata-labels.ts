@@ -54,17 +54,19 @@ export const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   BUSINESS: "شركة",
 };
 
-// ===== LISTING METADATA LABELS =====
+// ===== USER/SELLER BADGE LABELS =====
 
-export const SELLER_TYPE_LABELS: Record<string, string> = {
-  private: "المالك",
-  dealer: "تاجر",
-  business: "شركه",
+export const ACCOUNT_BADGE_LABELS: Record<string, string> = {
+  none: "بدون شارة",
+  verified: "موثق",
+  premium: "مميز",
   // Uppercase variants (for backward compatibility)
-  PRIVATE: "المالك",
-  DEALER: "تاجر",
-  BUSINESS: "شركه",
+  NONE: "بدون شارة",
+  VERIFIED: "موثق",
+  PREMIUM: "مميز",
 };
+
+// ===== LISTING METADATA LABELS =====
 
 export const LISTING_STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",

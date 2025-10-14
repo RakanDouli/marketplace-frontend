@@ -196,14 +196,14 @@ export function AppliedFilters() {
     });
   }
 
-  // Add seller type filter (using backend data)
-  if (filters.sellerType) {
-    const sellerTypeAttribute = attributes.find((attr) => attr.key === "sellerType");
-    const displayValue = getAttributeDisplayName("sellerType", filters.sellerType);
+  // Add account type filter (using backend data)
+  if (filters.accountType) {
+    const accountTypeAttribute = attributes.find((attr) => attr.key === "accountType");
+    const displayValue = getAttributeDisplayName("accountType", filters.accountType);
 
     activeFilters.push({
-      key: "sellerType",
-      label: sellerTypeAttribute?.name || "نوع البائع",
+      key: "accountType",
+      label: accountTypeAttribute?.name || "نوع الحساب",
       value: displayValue,
     });
   }
