@@ -1,0 +1,180 @@
+@import '../../../../styles/variables.scss';
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $space-xxl;
+  gap: $space-md;
+  background: $bg;
+}
+
+.loadingText {
+  color: $text-muted;
+}
+
+.listingHeader {
+  margin-bottom: $space-xl;
+  padding: $space-lg;
+  background: $bg;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+}
+
+.listingTitle {
+  margin-bottom: $space-md;
+  color: $text;
+  font-weight: $weight-semibold;
+}
+
+.listingInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-md;
+
+  .infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: $space-xs;
+
+    .label {
+      color: $text-muted;
+      text-transform: uppercase;
+      font-weight: $weight-medium;
+      letter-spacing: 0.5px;
+    }
+
+    .value {
+      color: $text;
+      font-weight: $weight-medium;
+
+      &.price {
+        color: $primary;
+        font-weight: $weight-bold;
+      }
+    }
+  }
+}
+
+.imagesSection {
+  margin-bottom: $space-xl;
+}
+
+.imagesSectionTitle {
+  margin-bottom: $space-md;
+  color: $text;
+  font-weight: $weight-semibold;
+}
+
+.specificationsSection {
+  margin-bottom: $space-xl;
+  padding: $space-lg;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $bg;
+}
+
+.specificationsTitle {
+  margin-bottom: $space-lg;
+  color: $text;
+  font-weight: $weight-semibold;
+}
+
+.specsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.specItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm $space-md;
+  background: $bg;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+
+  .specLabel {
+    color: $text-muted;
+    font-weight: $weight-medium;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .specValue {
+    color: $text;
+    font-weight: $weight-semibold;
+    text-align: right;
+    margin-left: $space-sm;
+  }
+}
+
+.editSection {
+  margin-bottom: $space-lg;
+  padding: $space-lg;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $surface;
+}
+
+.sectionTitle {
+  margin-bottom: $space-md;
+  color: $text;
+  font-weight: $weight-semibold;
+}
+
+.biddingSection {
+  margin-top: $space-md;
+  padding: $space-md;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $bg;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  cursor: pointer;
+  margin-bottom: $space-md;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  span {
+    color: $text;
+    font-weight: $weight-medium;
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-end;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+  margin-top: $space-xl;
+}
+
+@media (max-width: $breakpoint-md) {
+  .listingInfo {
+    grid-template-columns: 1fr;
+  }
+
+  .specsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}

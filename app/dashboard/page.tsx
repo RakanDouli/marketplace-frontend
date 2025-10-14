@@ -126,6 +126,37 @@ export default function AccountPage() {
               <Text variant="paragraph">{user.companyName}</Text>
             </div>
           )}
+
+          {user.website && (
+            <div className={styles.infoItem}>
+              <Text variant="small">
+                الموقع الإلكتروني
+              </Text>
+              <Text variant="paragraph">
+                <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)' }}>
+                  {user.website}
+                </a>
+              </Text>
+            </div>
+          )}
+
+          {user.kvkNumber && (
+            <div className={styles.infoItem}>
+              <Text variant="small">
+                رقم التسجيل التجاري
+              </Text>
+              <Text variant="paragraph">{user.kvkNumber}</Text>
+            </div>
+          )}
+
+          {user.contactPhone && (
+            <div className={styles.infoItem}>
+              <Text variant="small">
+                هاتف العمل
+              </Text>
+              <Text variant="paragraph">{user.contactPhone}</Text>
+            </div>
+          )}
         </div>
 
         <Button variant="primary">تعديل المعلومات</Button>

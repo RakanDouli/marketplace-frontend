@@ -27,6 +27,7 @@
   padding: $space-xl $space-lg $space-lg;
   width: 100%;
   max-width: 100%;
+  max-height: 98%;
   position: relative;
   overflow-y: auto;
   animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -86,7 +87,7 @@
 
 .modalClose {
   // padding: $space-xs !important;
-  position: fixed;
+  position: absolute;
   top: $space-md;
   right: $space-md;
   z-index: 1001; // Above modal content

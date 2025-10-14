@@ -1,0 +1,138 @@
+@import "../../styles/variables";
+
+.container {
+  padding: $space-xl $space-md;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $space-xxl;
+}
+
+.subtitle {
+  color: $text-muted;
+  margin-top: $space-md;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: $space-xl;
+  margin-top: $space-xl;
+}
+
+.planCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-xl;
+  background: $surface;
+  border: 2px solid $border;
+  border-radius: $radius-lg;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: $primary;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  &.current {
+    border-color: $primary;
+    background: rgba($primary, 0.05);
+  }
+}
+
+.planHeader {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+}
+
+.description {
+  color: $text-muted;
+  line-height: 1.5;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: $space-xs;
+  padding: $space-md 0;
+}
+
+.billingCycle {
+  color: $text-muted;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  flex: 1;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-sm;
+
+    &.included {
+      color: $text;
+    }
+
+    &.notIncluded {
+      color: $text-muted;
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+  }
+}
+
+.checkIcon {
+  color: $success;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.actions {
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+
+  button {
+    width: 100%;
+  }
+}
+
+.currentBadge {
+  position: absolute;
+  top: $space-md;
+  left: $space-md;
+  padding: $space-xs $space-sm;
+  background: $primary;
+  color: white;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+}
+
+@media (max-width: $breakpoint-md) {
+  .container {
+    padding: $space-lg $space-sm;
+  }
+
+  .plansGrid {
+    grid-template-columns: 1fr;
+    gap: $space-lg;
+  }
+
+  .planCard {
+    padding: $space-lg;
+  }
+}

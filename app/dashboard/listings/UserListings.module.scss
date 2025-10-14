@@ -1,0 +1,181 @@
+@import "../../../styles/variables.scss";
+
+// STANDARDIZED USER DASHBOARD STYLES
+// Based on admin dashboard panel styles
+
+.dashboardPanel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-md;
+  border-radius: $radius-base;
+  background: $bg;
+}
+
+// Header Section
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.title {
+  margin: 0 0 $space-sm 0;
+}
+
+.description {
+  margin: 0;
+  color: $text-muted;
+}
+
+.headerActions {
+  display: flex;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+// Search & Filters Section
+.searchSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-sm;
+  border-radius: $radius-base;
+  border: 1px solid $border;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-sm;
+  flex-wrap: wrap;
+
+  > span {
+    color: $primary;
+    float: right;
+    padding: $space-xs $space-sm;
+    border: 1px solid $border;
+    border-radius: $radius-base;
+  }
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+.itemCount {
+  color: $primary;
+  padding: $space-xs $space-sm;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+}
+
+// Table Content
+.itemTitle {
+  font-weight: $weight-medium;
+  color: $text;
+}
+
+// Loading & Empty States
+.loadingContainer,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: $space-xl;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: $text-muted;
+  opacity: 0.5;
+}
+
+.actions {
+  display: flex;
+  gap: $space-sm;
+  flex-wrap: wrap;
+
+  button {
+    padding: $space-sm !important;
+  }
+}
+
+// Status Badges
+.statusBadge {
+  padding: $space-xs $space-sm;
+  border-radius: $radius-base;
+  text-align: center;
+  min-width: fit-content;
+  display: inline-block;
+}
+
+// Status variants for listings
+.status-draft {
+  background-color: $warning-bg;
+  color: $warning;
+}
+
+.status-pending_approval,
+.status-pending-approval {
+  background-color: $info-bg;
+  color: $info;
+}
+
+.status-active {
+  background-color: $success-bg;
+  color: $success;
+}
+
+.status-sold,
+.status-sold_via_platform,
+.status-sold-via-platform {
+  background-color: $success-bg;
+  color: $success;
+}
+
+.status-hidden {
+  background-color: $surface;
+  color: $text-muted;
+}
+
+// Responsive
+@media (max-width: $breakpoint-md) {
+  .dashboardPanel {
+    padding: $space-sm;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions {
+    justify-content: stretch;
+
+    button {
+      flex: 1;
+    }
+  }
+
+  .actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

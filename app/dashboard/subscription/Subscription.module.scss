@@ -1,0 +1,162 @@
+@import "../../../styles/variables";
+
+.container {
+  padding: $space-md;
+}
+
+.header {
+  margin-bottom: $space-lg;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.planCard {
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.planHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-md;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+}
+
+.planDescription {
+  color: $text-muted;
+  margin-top: $space-xs;
+}
+
+.price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.billingCycle {
+  color: $text-muted;
+  margin-top: $space-xs;
+}
+
+.usageStats {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-md;
+  background: $bg;
+  border-radius: $radius-md;
+}
+
+.usageStat {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: $border;
+  border-radius: $radius-sm;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: $primary;
+  border-radius: $radius-sm;
+  transition: width 0.3s ease;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.featuresTitle {
+  padding-bottom: $space-sm;
+  border-bottom: 1px solid $border;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+
+    &.included {
+      color: $text;
+    }
+
+    &.notIncluded {
+      color: $text-muted;
+      opacity: 0.6;
+    }
+  }
+}
+
+.checkIcon {
+  color: $success;
+  flex-shrink: 0;
+}
+
+.xIcon {
+  color: $text-muted;
+  flex-shrink: 0;
+}
+
+.billingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  padding: $space-md;
+  background: $bg;
+  border-radius: $radius-md;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+.infoCard {
+  padding: $space-md;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+
+  p {
+    color: $text-muted;
+    line-height: 1.6;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .planHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .price {
+    align-items: flex-start;
+  }
+}

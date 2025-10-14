@@ -39,6 +39,13 @@ interface UserAuthActions {
   closeAuthModal: () => void;
   switchAuthView: (view: 'login' | 'signup' | 'magic-link') => void;
 
+  // Token expiration management
+  extendSession: () => Promise<void>;
+  checkTokenExpiration: () => boolean;
+  getTimeUntilExpiration: () => number;
+  startExpirationWarning: () => void;
+  dismissExpirationWarning: () => void;
+
   // Utility
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -59,6 +66,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
       error: null,
       showAuthModal: false,
       authModalView: 'login',
+      showExpirationWarning: false,
 
       // Login with email/password
       login: async (email: string, password: string) => {
@@ -372,6 +380,78 @@ export const useUserAuthStore = create<UserAuthStore>()(
             user: { ...user, ...userData },
           });
         }
+      },
+
+      // Token expiration management
+      extendSession: async () => {
+        const state = get();
+        if (!state.user || !state.user.token) {
+          throw new Error('No active session to extend');
+        }
+
+        try {
+          console.log('🔄 Extending Supabase session...');
+
+          // Refresh the Supabase session
+          const { data, error } = await supabase.auth.refreshSession();
+
+          if (error) {
+            console.error('❌ Session extension failed:', error);
+            throw new Error('Failed to extend session');
+          }
+
+          if (data.session) {
+            const newExpiresAt = data.session.expires_at
+              ? data.session.expires_at * 1000
+              : Date.now() + (60 * 60 * 1000);
+
+            set({
+              user: {
+                ...state.user,
+                token: data.session.access_token,
+                tokenExpiresAt: newExpiresAt
+              },
+              showExpirationWarning: false,
+            });
+
+            console.log('✅ Session extended successfully');
+          } else {
+            throw new Error('No session returned from refresh');
+          }
+        } catch (error) {
+          console.error('Session extension error:', error);
+          throw error;
+        }
+      },
+
+      checkTokenExpiration: () => {
+        const { user } = get();
+        if (!user || !user.tokenExpiresAt) return false;
+
+        const now = Date.now();
+        const timeUntilExpiry = user.tokenExpiresAt - now;
+
+        // Return true if token has expired
+        return timeUntilExpiry <= 0;
+      },
+
+      getTimeUntilExpiration: () => {
+        const { user } = get();
+        if (!user || !user.tokenExpiresAt) return 0;
+
+        const now = Date.now();
+        const timeUntilExpiry = user.tokenExpiresAt - now;
+
+        // Return seconds until expiration (or 0 if already expired)
+        return Math.max(0, Math.floor(timeUntilExpiry / 1000));
+      },
+
+      startExpirationWarning: () => {
+        set({ showExpirationWarning: true });
+      },
+
+      dismissExpirationWarning: () => {
+        set({ showExpirationWarning: false });
       },
     }),
     {

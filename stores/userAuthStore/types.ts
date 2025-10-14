@@ -32,13 +32,12 @@ export interface PublicUser {
   email: string;
   name: string | null;
   phone: string | null;
-  avatar: string | null;
   role: 'USER'; // Only USER role allowed in public area
   accountType: AccountType;
   isEmailConfirmed: boolean;
   companyName: string | null;
   sellerBadge: string | null;
-  companyLogo: string | null;
+  avatar: string | null;
   website: string | null;
   kvkNumber: string | null;
   contactPhone: string | null;
@@ -57,4 +56,5 @@ export interface UserAuthState {
   error: string | null;
   showAuthModal: boolean;
   authModalView: 'login' | 'signup' | 'magic-link';
+  showExpirationWarning: boolean;
 }

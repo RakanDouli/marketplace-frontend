@@ -3,7 +3,8 @@
 .myListings {
   display: flex;
   flex-direction: column;
-  gap: $space-xl;
+  gap: $space-lg;
+  padding: $space-md;
 }
 
 .header {
@@ -12,6 +13,20 @@
   align-items: center;
   flex-wrap: wrap;
   gap: $space-md;
+}
+
+.statusFilters {
+  display: flex;
+  gap: $space-xs;
+  flex-wrap: wrap;
+  margin-bottom: $space-md;
+}
+
+.error {
+  padding: $space-md;
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: $radius-md;
 }
 
 .loading,
@@ -32,4 +47,51 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: $space-lg;
+}
+
+.listingWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.actions {
+  display: flex;
+  gap: $space-xs;
+  padding: $space-xs;
+  background: $surface;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+
+  button {
+    flex: 1;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-lg 0;
+}
+
+@media (max-width: $breakpoint-sm) {
+  .myListings {
+    padding: $space-sm;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .listingsGrid {
+    grid-template-columns: 1fr;
+  }
 }

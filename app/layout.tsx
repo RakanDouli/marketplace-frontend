@@ -21,7 +21,6 @@ export default function RootLayout({
       </head>
       <body>
         <LanguageProvider defaultLanguage="ar">
-
           <ThemeProvider>
             <ErrorBoundary>
               <PublicLayoutClient>

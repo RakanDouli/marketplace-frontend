@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Container, Aside, Button } from '@/components/slices';
+import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { User, Package, CreditCard, LogOut, BarChart3, Menu } from 'lucide-react';
+import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown } from 'lucide-react';
 import styles from './Dashboard.module.scss';
 
 export default function DashboardLayout({
@@ -13,17 +15,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useUserAuthStore();
+  const { user, logout, isLoading } = useUserAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Protect dashboard - redirect if not authenticated
+  // Authentication guard - redirect to home if not authenticated
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !user) {
       router.push('/');
     }
-  }, [isAuthenticated, router]);
+  }, [user, isLoading, router]);
 
-  if (!isAuthenticated || !user) {
+  // Show loading or nothing while checking authentication
+  if (isLoading || !user) {
     return null;
   }
 
@@ -44,8 +47,13 @@ export default function DashboardLayout({
       label: 'إعلاناتي',
       href: '/dashboard/listings',
     },
+    {
+      icon: <Crown size={20} />,
+      label: 'الاشتراك',
+      href: '/dashboard/subscription',
+    },
     // Analytics only for dealers and business accounts
-    ...(user.accountType === 'dealer' || user.accountType === 'business'
+    ...(user?.accountType === 'dealer' || user?.accountType === 'business'
       ? [
         {
           icon: <BarChart3 size={20} />,
@@ -62,46 +70,50 @@ export default function DashboardLayout({
   ];
 
   return (
-    <Container className={styles.dashboardContainer}>
-      {!isSidebarOpen && (
-        <Button
-          variant='outline'
-          className={styles.menuButton}
-          onClick={() => setIsSidebarOpen(true)}
-          icon={<Menu size={20} />}
-        >
-        </Button>
-      )}
+    <>
+      <UserTokenMonitor />
 
-      <div className={styles.dashboard}>
-        <Aside
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          fullHeight={true}
-          className={styles.aside}
-        >
-          <nav className={styles.nav}>
-            {menuItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className={styles.navItem}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </a>
-            ))}
-          </nav>
+      <Container className={styles.dashboardContainer}>
+        {!isSidebarOpen && (
+          <Button
+            variant='outline'
+            className={styles.menuButton}
+            onClick={() => setIsSidebarOpen(true)}
+            icon={<Menu size={20} />}
+          >
+          </Button>
+        )}
 
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            <LogOut size={20} />
-            <span>تسجيل الخروج</span>
-          </button>
-        </Aside>
+        <div className={styles.dashboard}>
+          <Aside
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            fullHeight={true}
+            className={styles.aside}
+          >
+            <nav className={styles.nav}>
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={styles.navItem}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
 
-        {/* Main content */}
-        <main className={styles.content}>{children}</main>
-      </div>
-    </Container>
+            <button onClick={handleLogout} className={styles.logoutButton}>
+              <LogOut size={20} />
+              <span>تسجيل الخروج</span>
+            </button>
+          </Aside>
+
+          {/* Main content */}
+          <main className={styles.content}>{children}</main>
+        </div>
+      </Container>
+    </>
   );
 }

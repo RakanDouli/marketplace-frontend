@@ -15,11 +15,8 @@ export const MY_LISTINGS_QUERY = `
         slug
       }
       prices {
-        usd
-        eur
-        sar
-        syp
-        aed
+        currency
+        value
       }
     }
   }
@@ -55,11 +52,8 @@ export const MY_LISTING_BY_ID_QUERY = `
         slug
       }
       prices {
-        usd
-        eur
-        sar
-        syp
-        aed
+        currency
+        value
       }
     }
   }

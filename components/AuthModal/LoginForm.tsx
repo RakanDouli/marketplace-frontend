@@ -10,13 +10,31 @@ import styles from './AuthModal.module.scss';
 // Development credentials from backend seed
 const DEV_CREDENTIALS = [
   {
-    name: 'User 1',
+    name: '👨 Individual (5 listings, no avatar)',
+    email: 'individual@marketplace.com',
+    password: 'Individual123!',
+    accountType: 'individual',
+  },
+  {
+    name: '🚗 Dealer (unlimited, avatar)',
+    email: 'dealer@marketplace.com',
+    password: 'Dealer123!',
+    accountType: 'dealer',
+  },
+  {
+    name: '🏢 Business (unlimited, avatar)',
+    email: 'business@marketplace.com',
+    password: 'Business123!',
+    accountType: 'business',
+  },
+  {
+    name: 'User 1 (Legacy)',
     email: 'user@marketplace.com',
     password: 'User123!',
     accountType: 'individual',
   },
   {
-    name: 'User 2',
+    name: 'User 2 (Legacy)',
     email: 'user2@marketplace.com',
     password: 'User123!',
     accountType: 'individual',
