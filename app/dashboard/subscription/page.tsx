@@ -28,7 +28,7 @@ interface SubscriptionPlan {
 
 export default function SubscriptionPage() {
   const router = useRouter();
-  const { user } = useUserAuthStore();
+  const { user, userPackage } = useUserAuthStore();
 
   if (!user) {
     return (
@@ -38,8 +38,8 @@ export default function SubscriptionPage() {
     );
   }
 
-  const subscription = (user as any).subscription as SubscriptionPlan | null;
-  const currentListingsCount = 3; // TODO: Get from API
+  const subscription = userPackage?.userSubscription as SubscriptionPlan | null;
+  const currentListingsCount = userPackage?.currentListings || 0;
 
   const features: SubscriptionFeature[] = [
     {
