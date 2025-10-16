@@ -33,6 +33,8 @@ export interface PublicUser {
   email: string;
   name: string | null;
   phone: string | null;
+  gender: string | null;
+  dateOfBirth: string | null;
   role: 'USER'; // Only USER role allowed in public area
   accountType: AccountType;
   isEmailConfirmed: boolean;

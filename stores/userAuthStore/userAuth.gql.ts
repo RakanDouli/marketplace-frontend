@@ -8,6 +8,8 @@ export const ME_QUERY = `
         email
         name
         phone
+        gender
+        dateOfBirth
         role
         accountType
         isEmailConfirmed

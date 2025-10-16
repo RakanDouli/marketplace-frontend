@@ -83,10 +83,12 @@
 .listingsContainer {
   &.grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 238px));
+    grid-template-columns: repeat(auto-fit, minmax(24%, 24%));
     gap: $space-sm;
     align-items: start;
-
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: 1fr 1fr 1fr !important;
+    }
     @media (max-width: $breakpoint-sm) {
       grid-template-columns: 1fr 1fr !important;
       gap: $space-xs;

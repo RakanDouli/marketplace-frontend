@@ -153,30 +153,27 @@ export function optimizeListingImage(
   // Otherwise, treat it as an image key/UUID for Cloudflare Images
   const imageUrl = imageKey.startsWith("http") ? imageKey : imageKey;
 
-  // In development, return original or optimize Unsplash URLs
-  if (IS_DEVELOPMENT) {
-    if (imageUrl.includes('unsplash.com')) {
-      // Map viewMode to appropriate dimensions for Unsplash
-      const sizeMap = {
-        card: { w: 400, h: 300 },
-        small: { w: 300, h: 200 },
-        large: { w: 800, h: 600 },
-        desktop: { w: 1200, h: 900 },
-        mobile: { w: 320, h: 240 },
-        tablet: { w: 768, h: 576 },
-        thumbnail: { w: 20, h: 20 },
-        public: { w: 1366, h: 768 }
-      };
+  // In development, optimize Unsplash URLs
+  if (IS_DEVELOPMENT && imageUrl.includes('unsplash.com')) {
+    // Map viewMode to appropriate dimensions for Unsplash
+    const sizeMap = {
+      card: { w: 400, h: 300 },
+      small: { w: 300, h: 200 },
+      large: { w: 800, h: 600 },
+      desktop: { w: 1200, h: 900 },
+      mobile: { w: 320, h: 240 },
+      tablet: { w: 768, h: 576 },
+      thumbnail: { w: 150, h: 150 },
+      public: { w: 1366, h: 768 }
+    };
 
-      const dimensions = sizeMap[viewMode];
-      const url = new URL(imageUrl);
-      url.searchParams.set('w', dimensions.w.toString());
-      url.searchParams.set('h', dimensions.h.toString());
-      url.searchParams.set('q', '85');
-      url.searchParams.set('fit', 'crop');
-      return url.toString();
-    }
-    return imageUrl;
+    const dimensions = sizeMap[viewMode];
+    const url = new URL(imageUrl);
+    url.searchParams.set('w', dimensions.w.toString());
+    url.searchParams.set('h', dimensions.h.toString());
+    url.searchParams.set('q', '85');
+    url.searchParams.set('fit', 'crop');
+    return url.toString();
   }
 
   // For production, use Cloudflare Images with direct variant names
@@ -195,8 +192,10 @@ export function optimizeListingImage(
     return imageUrl; // Can't extract ID, return original
   }
 
-  // Use the exact variant name from Cloudflare
-  return `https://${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/${imageId}/${viewMode}`;
+  // Use 'public' as default variant (every Cloudflare account has this)
+  // If specific variant doesn't exist, Cloudflare will serve the original image
+  const variant = viewMode || 'public';
+  return `https://${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/${imageId}/${variant}`;
 }
 
 /**

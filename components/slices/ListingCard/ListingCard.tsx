@@ -67,15 +67,15 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   };
 
   return (
-    <Link href={`/listing/${id}`} className={styles.cardLink}>
-      <div
-        className={`
+
+    <div
+      className={`
           ${styles.card}
           ${styles[viewMode]}
           ${className}
         `.trim()}
-        onClick={handleCardClick}
-      >
+      onClick={handleCardClick}
+    >    <Link href={`/listing/${id}`} className={styles.cardLink}>
         {/* Image Gallery Section */}
         <div className={styles.imageContainer}>
           <ImageGallery
@@ -210,9 +210,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               {getAccountTypeLabel()}
             </Text>
           </div>
-        </div>
-      </div>
-    </Link>
+        </div>    </Link>
+    </div>
+
   );
 };
 

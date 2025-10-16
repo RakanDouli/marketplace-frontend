@@ -1,0 +1,359 @@
+@import "../../styles/variables";
+
+// Panel Container
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  max-width: 1200px;
+}
+
+// Profile Header
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-lg;
+  padding: $space-lg;
+  background: $bg;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+  box-shadow: $shadow-sm;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-md;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+  border: 3px solid $border;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+.initials {
+  font-size: $font-3xl;
+  font-weight: $weight-bold;
+  color: $text;
+  user-select: none;
+}
+
+.avatarActions {
+  display: flex;
+  gap: $space-sm;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  flex: 1;
+  min-width: 0;
+
+  @media (max-width: $breakpoint-sm) {
+    align-items: center;
+  }
+}
+
+// Section
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-lg;
+  background: $bg;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+  box-shadow: $shadow-sm;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+}
+
+// Info Grid
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $space-lg;
+  padding-top: $space-sm;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  padding: $space-md;
+  background: rgba($surface, 0.5);
+  border-radius: $radius-md;
+  border: 1px solid rgba($border, 0.5);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $surface;
+    border-color: $border;
+  }
+}
+
+.infoLabel {
+  color: $text-secondary;
+  font-weight: $weight-medium;
+}
+
+.link {
+  color: $primary;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+}
+
+// Warning Card
+.warningCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  background: $warning-bg;
+  border: 1px solid $warning-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.warningContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+// Settings Grid
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: $space-md;
+}
+
+.settingCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: $space-md;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: $shadow-sm;
+    border-color: rgba($primary, 0.3);
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.settingContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  flex: 1;
+}
+
+// Features List
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: $space-sm;
+    border-radius: $radius-sm;
+
+    &.included {
+      background: rgba($success, 0.1);
+    }
+
+    &.notIncluded {
+      background: rgba($text-secondary, 0.05);
+      opacity: 0.6;
+    }
+  }
+}
+
+.checkIcon {
+  color: $success;
+  flex-shrink: 0;
+}
+
+.xIcon {
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+// Subscription Card
+.subscriptionCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.subscriptionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: $space-xs;
+}
+
+.description {
+  color: $text-secondary;
+}
+
+.feature {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm 0;
+  border-bottom: 1px solid rgba($border, 0.5);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.subscriptionActions {
+  display: flex;
+  gap: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+  }
+}
+
+.renewalDate {
+  color: $text-secondary;
+  text-align: center;
+  padding-top: $space-sm;
+}
+
+// Usage Stats
+.usageStats {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-md;
+  background: rgba($primary, 0.05);
+  border-radius: $radius-md;
+  border: 1px solid rgba($primary, 0.1);
+}
+
+.usageStat {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba($border, 0.3);
+  border-radius: $radius-sm;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: $primary;
+  transition: width 0.3s ease;
+}
+
+// Empty State
+.emptyState {
+  text-align: center;
+  padding: $space-xl;
+  color: $text-secondary;
+}
+
+// Loading State
+.loadingState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $space-xl;
+}

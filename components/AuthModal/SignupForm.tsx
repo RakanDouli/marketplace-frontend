@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Input, Text } from '@/components/slices';
+import { Button, Form, Input, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { SocialButtons } from './SocialButtons';
@@ -21,6 +21,8 @@ export const SignupForm: React.FC = () => {
     acceptTerms: false,
   });
 
+  const [formError, setFormError] = useState('');
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -31,45 +33,17 @@ export const SignupForm: React.FC = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+
+    // Clear form-level error when user types
+    if (formError) setFormError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validation
-    if (!formData.name || !formData.email || !formData.password) {
-      addNotification({
-        type: 'error',
-        title: 'بيانات ناقصة',
-        message: 'يرجى ملء جميع الحقول المطلوبة',
-      });
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      addNotification({
-        type: 'error',
-        title: 'خطأ',
-        message: 'كلمة المرور غير متطابقة',
-      });
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      addNotification({
-        type: 'error',
-        title: 'خطأ',
-        message: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
-      });
-      return;
-    }
-
+    // Check terms acceptance
     if (!formData.acceptTerms) {
-      addNotification({
-        type: 'error',
-        title: 'خطأ',
-        message: 'يرجى الموافقة على الشروط والأحكام',
-      });
+      setFormError('يرجى الموافقة على الشروط والأحكام');
       return;
     }
 
@@ -82,80 +56,80 @@ export const SignupForm: React.FC = () => {
       });
     } catch (signupError) {
       console.error('Signup error:', signupError);
-      addNotification({
-        type: 'error',
-        title: 'خطأ في إنشاء الحساب',
-        message: error || 'يرجى المحاولة مرة أخرى',
-      });
+      setFormError(error || 'يرجى المحاولة مرة أخرى');
     }
   };
 
   return (
     <div className={styles.form}>
-      <form onSubmit={handleSubmit} className={styles.formFields}>
+      <Form
+        onSubmit={handleSubmit}
+        error={formError}
+        className={styles.formFields}
+      >
         {/* Name */}
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            <Text variant="small">الاسم الكامل</Text>
-          </label>
-          <Input
-            type="text"
-            name="name"
-            placeholder="أدخل اسمك الكامل"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-            disabled={isLoading}
-          />
-        </div>
+        <Input
+          type="text"
+          name="name"
+          label="الاسم الكامل"
+          placeholder="أدخل اسمك الكامل"
+          value={formData.name}
+          onChange={handleInputChange}
+          validate={(v) => !v.trim() ? 'الاسم مطلوب' : undefined}
+          required
+          disabled={isLoading}
+        />
 
         {/* Email */}
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            <Text variant="small">البريد الإلكتروني</Text>
-          </label>
-          <Input
-            type="email"
-            name="email"
-            placeholder="example@email.com"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-            disabled={isLoading}
-          />
-        </div>
+        <Input
+          type="email"
+          name="email"
+          label="البريد الإلكتروني"
+          placeholder="example@email.com"
+          value={formData.email}
+          onChange={handleInputChange}
+          validate={(v) => {
+            if (!v.trim()) return 'البريد الإلكتروني مطلوب';
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'البريد الإلكتروني غير صحيح';
+            return undefined;
+          }}
+          required
+          disabled={isLoading}
+        />
 
         {/* Password */}
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            <Text variant="small">كلمة المرور</Text>
-          </label>
-          <Input
-            type="password"
-            name="password"
-            placeholder="8 أحرف على الأقل"
-            value={formData.password}
-            onChange={handleInputChange}
-            required
-            disabled={isLoading}
-          />
-        </div>
+        <Input
+          type="password"
+          name="password"
+          label="كلمة المرور"
+          placeholder="8 أحرف على الأقل"
+          value={formData.password}
+          onChange={handleInputChange}
+          validate={(v) => {
+            if (!v) return 'كلمة المرور مطلوبة';
+            if (v.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+            return undefined;
+          }}
+          required
+          disabled={isLoading}
+        />
 
         {/* Confirm Password */}
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            <Text variant="small">تأكيد كلمة المرور</Text>
-          </label>
-          <Input
-            type="password"
-            name="confirmPassword"
-            placeholder="أعد إدخال كلمة المرور"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            required
-            disabled={isLoading}
-          />
-        </div>
+        <Input
+          type="password"
+          name="confirmPassword"
+          label="تأكيد كلمة المرور"
+          placeholder="أعد إدخال كلمة المرور"
+          value={formData.confirmPassword}
+          onChange={handleInputChange}
+          validate={(v) => {
+            if (!v) return 'تأكيد كلمة المرور مطلوب';
+            if (v !== formData.password) return 'كلمة المرور غير متطابقة';
+            return undefined;
+          }}
+          required
+          disabled={isLoading}
+        />
 
         {/* Terms and Conditions */}
         <div className={styles.checkboxGroup}>
@@ -186,7 +160,7 @@ export const SignupForm: React.FC = () => {
         >
           {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
         </Button>
-      </form>
+      </Form>
 
       {/* Divider */}
       <div className={styles.divider}>

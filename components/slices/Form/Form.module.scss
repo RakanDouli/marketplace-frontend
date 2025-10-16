@@ -1,0 +1,32 @@
+@import "../../../styles/variables.scss";
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.formError,
+.formSuccess {
+  padding: $space-sm $space-md;
+  border-radius: $radius-md;
+  margin-bottom: $space-sm;
+}
+
+.formError {
+  background-color: $error-bg;
+  border: 1px solid $error;
+
+  .errorText {
+    color: $error;
+  }
+}
+
+.formSuccess {
+  background-color: $success-bg;
+  border: 1px solid $success;
+
+  .successText {
+    color: $success;
+  }
+}

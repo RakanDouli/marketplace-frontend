@@ -39,7 +39,7 @@ export const LISTINGS_LIST_QUERY = `
       imageKeys
       createdAt
       categoryId
-      sellerType
+      accountType
       location {
         province
         city
@@ -69,7 +69,7 @@ export const LISTINGS_DETAIL_QUERY = `
       imageKeys
       createdAt
       categoryId
-      sellerType
+      accountType
       location {
         province
         city
@@ -105,7 +105,7 @@ export const LISTINGS_SEARCH_QUERY = `
       imageKeys
       createdAt
       categoryId
-      sellerType
+      accountType
       location {
         province
         city
@@ -147,7 +147,7 @@ export const LISTING_BY_ID_QUERY = `
         name
         slug
       }
-      sellerType
+      accountType
       location {
         province
         city

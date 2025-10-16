@@ -41,7 +41,7 @@ export interface Listing {
   specsDisplay?: Record<string, { label: string; value: string }>; // Display specs (English keys with Arabic label/value)
   imageKeys?: string[];
   images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
-  sellerLabel?: string;
+  accountLabel?: string;
   accountBadge?: string;
   accountType?: "INDIVIDUAL" | "DEALER" | "BUSINESS"; // Unified with User.accountType
   createdAt: string;

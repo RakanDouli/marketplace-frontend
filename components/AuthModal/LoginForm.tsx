@@ -91,11 +91,11 @@ export const LoginForm: React.FC = () => {
 
     try {
       await login(formData.email, formData.password);
-      addNotification({
-        type: 'success',
-        title: 'تسجيل دخول ناجح',
-        message: 'مرحباً بك مرة أخرى!',
-      });
+      // addNotification({
+      //   type: 'success',
+      //   title: 'تسجيل دخول ناجح',
+      //   message: 'مرحباً بك مرة أخرى!',
+      // });
     } catch (loginError) {
       console.error('Login error:', loginError);
       addNotification({

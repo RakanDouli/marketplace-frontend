@@ -8,6 +8,7 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { User, LayoutDashboard, LogOut } from 'lucide-react';
 import { Text } from '@/components/slices';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
+import { optimizeListingImage } from '@/utils/cloudflare-images';
 import styles from './UserMenu.module.scss';
 
 export const UserMenu: React.FC = () => {
@@ -34,6 +35,13 @@ export const UserMenu: React.FC = () => {
     router.push('/');
   };
 
+  // Helper to get avatar URL
+  const getAvatarUrl = (avatar: string | null) => {
+    if (!avatar) return null;
+    if (avatar.startsWith('http')) return avatar; // Full URL (Unsplash)
+    return optimizeListingImage(avatar, 'small'); // Cloudflare asset key - use 'small' for better quality (300x200)
+  };
+
   if (!isAuthenticated || !user) {
     return (
       <button onClick={() => openAuthModal('login')} className={styles.loginButton}>
@@ -43,6 +51,8 @@ export const UserMenu: React.FC = () => {
     );
   }
 
+  const avatarUrl = getAvatarUrl(user.avatar);
+
   return (
     <div className={styles.userMenu} ref={menuRef}>
       <button
@@ -50,10 +60,10 @@ export const UserMenu: React.FC = () => {
         className={styles.userButton}
         aria-expanded={isOpen}
       >
-        {user.avatar ? (
+        {avatarUrl ? (
           <div className={styles.avatarImage}>
             <img
-              src={user.avatar}
+              src={avatarUrl}
               alt={user.name || 'Avatar'}
               width={36}
               height={36}

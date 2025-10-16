@@ -11,6 +11,7 @@ import {
   useSearchStore,
   useFiltersStore,
   useListingsViewType,
+  useCategoriesStore,
 } from "../../stores";
 import styles from "./ListingArea.module.scss";
 
@@ -50,6 +51,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   const viewType = useListingsViewType();
   const { appliedFilters, getStoreFilters, setFilter } = useSearchStore();
   const { attributes, isLoading: countLoading } = useFiltersStore();
+  const { getCategoryBySlug } = useCategoriesStore();
 
   // Store-based handlers (previously passed as props)
   const handleCardClick = (listingId: string) => {
@@ -72,12 +74,19 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
         return;
       }
 
+      // Convert slug to ID using cached categories
+      const category = getCategoryBySlug(categorySlug);
+      if (!category) {
+        console.log("❌ Category not found for slug:", categorySlug);
+        return;
+      }
+
       try {
         // Get current filters from search store
-        const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
+        const storeFilters = { categoryId: category.id, ...getStoreFilters() };
         console.log("📋 Fetching listings with filters:", storeFilters);
 
-        // Fetch listings for the current category
+        // Fetch listings for the current category (pass slug for URL, but use ID in filters)
         await fetchListingsByCategory(categorySlug, storeFilters, viewType);
         console.log("✅ Successfully fetched listings");
       } catch (error) {
@@ -86,7 +95,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     };
 
     fetchInitialListings();
-  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters]);
+  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug]);
 
   // Sync local viewMode with store viewType for backward compatibility
   const [viewMode, setViewMode] = useState<"grid" | "list">(

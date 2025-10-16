@@ -104,7 +104,7 @@ export const GET_LISTING_BY_ID_QUERY = `
       updatedAt
       categoryId
       accountType
-      sellerLabel
+      accountLabel
       accountBadge
       allowBidding
       biddingStartPrice

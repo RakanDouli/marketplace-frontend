@@ -17,6 +17,8 @@ export { default as Spacer } from "./Spacer/Spacer";
 export type { SpacerProps } from "./Spacer/Spacer";
 export type { InputProps } from "./Input/Input";
 export { default as Input } from "./Input/Input";
+export { Form } from "./Form";
+export type { FormProps } from "./Form";
 export { default as Aside } from "./Aside/Aside";
 export type { AsideProps } from "./Aside/Aside";
 export { default as ListingCard } from "./ListingCard/ListingCard";

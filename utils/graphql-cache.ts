@@ -161,12 +161,28 @@ class GraphQLCache {
     });
 
     if (!response.ok) {
-      throw new Error(`GraphQL request failed: ${response.statusText}`);
+      // Try to get error details from response body
+      let errorDetails = response.statusText;
+      try {
+        const errorBody = await response.text();
+        errorDetails = errorBody || response.statusText;
+        console.error('GraphQL HTTP Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorBody,
+          query: query.substring(0, 100),
+          variables
+        });
+      } catch (e) {
+        // Ignore parse errors
+      }
+      throw new Error(`GraphQL request failed: ${errorDetails}`);
     }
 
     const result = await response.json();
 
     if (result.errors) {
+      console.error('GraphQL Response Errors:', result.errors);
       throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
     }
 

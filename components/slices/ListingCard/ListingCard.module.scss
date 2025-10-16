@@ -27,22 +27,16 @@
     flex-direction: column;
     height: 100%;
 
+    // > div:first-of-type {
+    //   // border: 2px solid red;
+    //   // aspect-ratio: 1/1;
+    // }
     .content {
       flex: 1;
       padding: $space-md $space-md $space-sm $space-md;
       display: flex;
       flex-direction: column;
       gap: $shadow-sm;
-    }
-
-    .specs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: $space-xs;
-    }
-
-    .actions {
-      display: none; // Hidden in grid view
     }
   }
 
@@ -75,18 +69,6 @@
 
     .title {
       font-size: $font-xl;
-    }
-
-    .specs {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: $space-sm;
-    }
-
-    .actions {
-      display: flex;
-      gap: $space-sm;
-      margin-top: auto;
     }
   }
 }
@@ -184,21 +166,11 @@
   .specText {
     color: $text;
     margin: 0;
-    font-size: $font-sm;
-  }
-
-  .specLabel {
-    color: $text-muted;
-    margin: 0;
-    font-size: $font-sm;
-    font-weight: $weight-medium;
+    font-size: $font-xs;
   }
 }
 
 // Grid View Specs - Compact single line with | separator (like AutoScout24)
-.specsCompact {
-  // margin-top: $space-sm;
-}
 
 .specsCompactText {
   line-height: $line-tight;
@@ -208,7 +180,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   opacity: 0.7;
-
+  font-size: $font-xs;
+  margin: $space-xs 0;
   @media (max-width: $breakpoint-sm) {
     -webkit-line-clamp: 1;
   }
@@ -219,21 +192,24 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: $space-sm;
-  // margin-top: $space-sm;
 }
 
 .specList {
   display: flex;
   align-items: center;
   gap: $space-xs;
-}
 
-.actions {
-  display: flex;
-  gap: $space-sm;
+  .specLabel {
+    color: $text-muted;
+    margin: 0;
+    font-size: $font-xs;
+    font-weight: $weight-medium;
+  }
 
-  button {
-    flex: 1;
+  .specText {
+    color: $text;
+    margin: 0;
+    font-size: $font-xs;
   }
 }
 

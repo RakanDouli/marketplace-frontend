@@ -399,16 +399,23 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
           | "INDIVIDUAL"
           | "DEALER"
           | "BUSINESS",
-        sellerLabel: listingData.sellerLabel || "",
+        accountLabel: listingData.accountLabel || "",
         accountBadge: listingData.accountBadge || "",
-        province: listingData.location?.province || "",
-        city: listingData.location?.city || "",
-        area: listingData.location?.area || "",
-        locationLink: listingData.location?.link || "",
-        lat: listingData.location?.coordinates?.lat || null,
-        lng: listingData.location?.coordinates?.lng || null,
+        location: listingData.location
+          ? {
+              province: listingData.location.province,
+              city: listingData.location.city,
+              area: listingData.location.area,
+              link: listingData.location.link,
+              coordinates: listingData.location.coordinates
+                ? {
+                    lat: listingData.location.coordinates.lat,
+                    lng: listingData.location.coordinates.lng,
+                  }
+                : undefined,
+            }
+          : undefined,
         biddingStartPrice: listingData.biddingStartPrice || null,
-        country: "Syria", // Default for Syrian marketplace
         prices: listingData.prices || [
           { currency: "USD", value: (listingData.priceMinor / 100).toString() },
         ],

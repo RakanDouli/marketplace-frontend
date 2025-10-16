@@ -28,7 +28,18 @@ interface SubscriptionPlan {
 
 export default function SubscriptionPage() {
   const router = useRouter();
-  const { user, userPackage } = useUserAuthStore();
+  const { user, userPackage, refreshAuth } = useUserAuthStore();
+
+  // Refetch user package on component mount to ensure we have latest data
+  React.useEffect(() => {
+    refreshAuth();
+  }, [refreshAuth]);
+
+  // DEBUG: Log everything
+  console.log("=== SUBSCRIPTION PAGE DEBUG ===");
+  console.log("user:", user);
+  console.log("userPackage:", userPackage);
+  console.log("userPackage?.userSubscription:", userPackage?.userSubscription);
 
   if (!user) {
     return (
@@ -40,6 +51,10 @@ export default function SubscriptionPage() {
 
   const subscription = userPackage?.userSubscription as SubscriptionPlan | null;
   const currentListingsCount = userPackage?.currentListings || 0;
+
+  console.log("subscription:", subscription);
+  console.log("subscription?.maxListings:", subscription?.maxListings);
+  console.log("subscription?.maxImagesPerListing:", subscription?.maxImagesPerListing);
 
   const features: SubscriptionFeature[] = [
     {
@@ -85,7 +100,7 @@ export default function SubscriptionPage() {
   };
 
   const isFree = subscription?.price === 0;
-  const canUpgrade = user.accountType === "individual" || user.accountType === "dealer";
+  const canUpgrade = user.accountType === "INDIVIDUAL" || user.accountType === "DEALER";
 
   return (
     <div className={styles.container}>
@@ -100,9 +115,9 @@ export default function SubscriptionPage() {
             <div>
               <Text variant="h3">{subscription?.title || "لا يوجد اشتراك"}</Text>
               <Text variant="paragraph" className={styles.planDescription}>
-                {user.accountType === "individual" && "خطة فردية"}
-                {user.accountType === "dealer" && "خطة تاجر"}
-                {user.accountType === "business" && "خطة أعمال"}
+                {user.accountType === "INDIVIDUAL" && "خطة فردية"}
+                {user.accountType === "DEALER" && "خطة تاجر"}
+                {user.accountType === "BUSINESS" && "خطة أعمال"}
               </Text>
             </div>
             <div className={styles.price}>
@@ -196,11 +211,11 @@ export default function SubscriptionPage() {
         {isFree && (
           <div className={styles.infoCard}>
             <Text variant="paragraph">
-              {user.accountType === "individual" &&
+              {user.accountType === "INDIVIDUAL" &&
                 "استمتع بالخطة الفردية المجانية! يمكنك ترقية اشتراكك في أي وقت للحصول على ميزات إضافية."}
-              {user.accountType === "dealer" &&
+              {user.accountType === "DEALER" &&
                 "استمتع بخطة التاجر المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 29$ شهرياً قريباً."}
-              {user.accountType === "business" &&
+              {user.accountType === "BUSINESS" &&
                 "استمتع بخطة الأعمال المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 99$ شهرياً قريباً."}
             </Text>
           </div>
