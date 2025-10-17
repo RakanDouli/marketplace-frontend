@@ -29,6 +29,7 @@ interface Subscription {
   sortOrder: number;
   isPublic: boolean;
   isDefault: boolean;
+  accountType: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -77,8 +78,6 @@ export const SubscriptionsDashboardPanel: React.FC = () => {
   const getBillingCycleLabel = (cycle: string) => {
     const labels: Record<string, string> = {
       'MONTHLY': 'شهري',
-      'YEARLY': 'سنوي',
-      'FREE': 'مجاني'
     };
     return labels[cycle] || cycle;
   };

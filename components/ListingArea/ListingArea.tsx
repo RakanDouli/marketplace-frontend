@@ -313,6 +313,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
             <ListingCard
               key={listing.id}
               {...listing}
+              accountType={listing.sellerType as "individual" | "dealer" | "business"}
               viewMode={viewMode}
               onClick={handleCardClick}
               onLike={handleCardLike}

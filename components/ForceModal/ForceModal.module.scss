@@ -1,0 +1,86 @@
+@import "@/styles/variables";
+
+.modalBg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: $space-md;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background-color: $surface;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+
+  // No close button styles - forced modals cannot be closed
+
+  // Width variants
+  &.sm {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  &.md {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  &.lg {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  &.xl {
+    width: 100%;
+    max-width: 900px;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    max-height: 95vh;
+    border-radius: $radius-md $radius-md 0 0;
+    animation: slideUpMobile 0.3s ease-out;
+  }
+}
+
+.modalContent {
+  padding: $space-xl;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-lg;
+  }
+}
+
+// Animations
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpMobile {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

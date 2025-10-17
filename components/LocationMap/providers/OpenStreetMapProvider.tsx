@@ -111,6 +111,7 @@ export class OpenStreetMapProvider implements IMapProvider {
   renderMap(config: MapConfig): React.ReactElement {
     // Import Leaflet CSS dynamically
     if (typeof window !== 'undefined') {
+      // @ts-ignore - CSS import
       import('leaflet/dist/leaflet.css');
 
       // Fix for default marker icon in Leaflet with Next.js

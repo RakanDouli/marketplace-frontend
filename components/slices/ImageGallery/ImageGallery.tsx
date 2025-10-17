@@ -23,7 +23,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   alt,
   aspectRatio = "4 / 3",
   className = "",
-  viewMode = "grid",
+  viewMode = "card",
   priority = false,
   sizes,
   skeleton = false,

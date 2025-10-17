@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
       <div className={styles.header}>
         <div>
           <Text variant="h2">الإحصائيات</Text>
-          <Text variant="small" color="muted">
+          <Text variant="small" color="secondary">
             متاح فقط لحسابات المعارض والتجار
           </Text>
         </div>
@@ -78,7 +78,7 @@ export default function AnalyticsPage() {
           <div key={index} className={styles.statCard}>
             <div className={styles.statIcon}>{stat.icon}</div>
             <div className={styles.statContent}>
-              <Text variant="small" color="muted">
+              <Text variant="small" color="secondary">
                 {stat.label}
               </Text>
               <Text variant="h2" className={styles.statValue}>
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
           <Text variant="h3">المشاهدات خلال الأسبوع</Text>
           <div className={styles.chartPlaceholder}>
             <BarChart3 size={48} className={styles.chartIcon} />
-            <Text variant="paragraph" color="muted">
+            <Text variant="paragraph" color="secondary">
               سيتم إضافة الرسوم البيانية قريباً
             </Text>
           </div>
@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
           <Text variant="h3">أداء الإعلانات</Text>
           <div className={styles.chartPlaceholder}>
             <TrendingUp size={48} className={styles.chartIcon} />
-            <Text variant="paragraph" color="muted">
+            <Text variant="paragraph" color="secondary">
               سيتم إضافة الرسوم البيانية قريباً
             </Text>
           </div>
@@ -120,15 +120,16 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Upgrade message for free plans */}
-      {user.subscription?.planId === 'free_starter' && (
+      {/* TODO: Implement subscription check when userPackage is added to user object */}
+      {/* {user.subscription?.planId === 'free_starter' && (
         <div className={styles.upgradeCard}>
           <Text variant="h3">احصل على المزيد من الإحصائيات</Text>
-          <Text variant="paragraph" color="muted">
+          <Text variant="paragraph" color="secondary">
             قم بترقية خطتك للحصول على تقارير مفصلة وتحليلات متقدمة
           </Text>
           <Button variant="primary">ترقية الخطة</Button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

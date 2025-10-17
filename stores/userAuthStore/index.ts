@@ -1,8 +1,12 @@
+import React from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { PublicUser, UserAuthState, AccountType } from './types';
 import { supabase } from '@/lib/supabase';
 import { ME_QUERY } from './userAuth.gql';
+import { SIGNUP_MUTATION } from './userAuth.signup.gql';
+import { useForceModalStore } from '@/stores/forceModalStore';
+import { ReactivateContent } from '@/components/ForceModal/contents';
 
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
@@ -32,7 +36,7 @@ interface UserAuthActions {
   loginWithFacebook: () => Promise<void>;
   sendMagicLink: (email: string) => Promise<void>;
   logout: () => void;
-  refreshAuth: () => Promise<void>;
+  refreshUserData: () => Promise<void>; // Fetch latest user data from API
 
   // Modal control
   openAuthModal: (view?: 'login' | 'signup' | 'magic-link') => void;
@@ -104,6 +108,11 @@ export const useUserAuthStore = create<UserAuthStore>()(
               throw new Error('المستخدم غير موجود');
             }
 
+            // Check user status before allowing login
+            if (user.status === 'BANNED' || user.status === 'banned') {
+              throw new Error('تم حظر حسابك. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
+            }
+
             // Step 3: Verify user has USER role only (not admin roles)
             if (user.role !== 'USER') {
               throw new Error('هذا الحساب مخصص للإدارة. يرجى استخدام لوحة الإدارة');
@@ -118,6 +127,9 @@ export const useUserAuthStore = create<UserAuthStore>()(
                 ? data.session.expires_at * 1000
                 : Date.now() + (60 * 60 * 1000));
 
+            // Determine if we should show inactive modal
+            const isInactive = user.status === 'INACTIVE' || user.status === 'inactive';
+
             set({
               user: {
                 ...user,
@@ -130,6 +142,14 @@ export const useUserAuthStore = create<UserAuthStore>()(
               error: null,
               showAuthModal: false,
             });
+
+            // Show force modal for INACTIVE users
+            if (isInactive) {
+              useForceModalStore.getState().showForceModal(
+                React.createElement(ReactivateContent),
+                { title: 'حسابك معطل', maxWidth: 'md' }
+              );
+            }
 
           } catch (backendError) {
             console.error('❌ Backend call failed:', backendError);
@@ -156,58 +176,54 @@ export const useUserAuthStore = create<UserAuthStore>()(
         try {
           console.log('📝 Signing up user...', { email, name, accountType });
 
-          // Step 1: Create auth user with Supabase
-          const { data, error } = await supabase.auth.signUp({
+          // Step 1: Call backend signup mutation (creates in both auth and database)
+          await makeGraphQLCall(SIGNUP_MUTATION, {
+            input: { email, password, name, accountType }
+          });
+
+          console.log('✅ Backend signup successful');
+
+          // Step 2: Login to get session token
+          const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
-            options: {
-              data: {
-                name,
-                account_type: accountType,
-              },
-            },
           });
 
           if (error) {
-            console.error('❌ Signup error:', error);
-            throw new Error('فشل إنشاء الحساب. يرجى المحاولة مرة أخرى');
+            console.error('❌ Login after signup error:', error);
+            throw new Error('تم إنشاء الحساب ولكن فشل تسجيل الدخول. يرجى تسجيل الدخول يدوياً');
           }
 
-          console.log('✅ Supabase signup successful');
-
-          // Step 2: Auto-login if email confirmation is disabled
-          if (data.session?.access_token) {
-            const token = data.session.access_token;
-
-            // Get full user data from backend
-            const meData = await makeGraphQLCall(ME_QUERY, {}, token);
-            const user = meData?.me?.user;
-
-            if (user) {
-              const finalTokenExpiresAt = data.session.expires_at
-                ? data.session.expires_at * 1000
-                : Date.now() + (60 * 60 * 1000);
-
-              set({
-                user: {
-                  ...user,
-                  token,
-                  tokenExpiresAt: finalTokenExpiresAt,
-                },
-                isAuthenticated: true,
-                isLoading: false,
-                error: null,
-                showAuthModal: false,
-              });
-            }
-          } else {
-            // Email confirmation required
-            set({
-              isLoading: false,
-              error: null,
-              showAuthModal: false,
-            });
+          if (!data.session?.access_token) {
+            throw new Error('No access token received');
           }
+
+          const token = data.session.access_token;
+          console.log('✅ Login successful');
+
+          // Step 3: Get full user data from backend
+          const meData = await makeGraphQLCall(ME_QUERY, {}, token);
+          const user = meData?.me?.user;
+
+          if (!user) {
+            throw new Error('المستخدم غير موجود');
+          }
+
+          const finalTokenExpiresAt = data.session.expires_at
+            ? data.session.expires_at * 1000
+            : Date.now() + (60 * 60 * 1000);
+
+          set({
+            user: {
+              ...user,
+              token,
+              tokenExpiresAt: finalTokenExpiresAt,
+            },
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+            showAuthModal: false,
+          });
 
         } catch (error) {
           console.error('Signup error:', error);
@@ -308,11 +324,11 @@ export const useUserAuthStore = create<UserAuthStore>()(
         });
       },
 
-      // Refresh auth state
-      refreshAuth: async () => {
+      // Refresh user data from API (called after profile updates)
+      refreshUserData: async () => {
         const state = get();
+
         if (!state.user?.token) {
-          set({ isAuthenticated: false, user: null, userPackage: null });
           return;
         }
 
@@ -320,7 +336,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
           const { data } = await supabase.auth.getSession();
 
           if (data.session) {
-            // Session is valid, refresh user data
             const meData = await makeGraphQLCall(ME_QUERY, {}, data.session.access_token);
             const user = meData?.me?.user;
             const userPackage = meData?.myPackage;
@@ -342,8 +357,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
             set({ isAuthenticated: false, user: null, userPackage: null });
           }
         } catch (error) {
-          console.error('Refresh auth error:', error);
-          set({ isAuthenticated: false, user: null, userPackage: null });
+          console.error('Refresh user data error:', error);
         }
       },
 
@@ -458,6 +472,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
       name: 'user-auth-storage',
       partialize: (state) => ({
         user: state.user,
+        userPackage: state.userPackage,
         isAuthenticated: state.isAuthenticated,
       }),
     }

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { PaymentContext, StripeProvider, IPaymentProvider } from '@/lib/payments/PaymentProvider';
+import { PaymentContext, StripeProvider, IPaymentProvider, PaymentMethod } from '@/lib/payments/PaymentProvider';
 
 // Hook to manage payments with pluggable providers
 export const usePayments = (provider?: IPaymentProvider) => {
   const [paymentContext] = useState(() => new PaymentContext(provider || new StripeProvider()));
   const [isInitialized, setIsInitialized] = useState(false);
-  const [availableMethods, setAvailableMethods] = useState([]);
+  const [availableMethods, setAvailableMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {

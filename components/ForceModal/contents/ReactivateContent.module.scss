@@ -1,0 +1,31 @@
+@import '@/styles/variables';
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.message {
+  text-align: center;
+  margin-bottom: $space-sm;
+}
+
+.note {
+  padding: $space-md;
+  background-color: var(--surface-alt);
+  border-radius: $radius-sm;
+  text-align: right;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  gap: $space-md;
+  justify-content: center;
+  margin-top: $space-lg;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column-reverse;
+  }
+}

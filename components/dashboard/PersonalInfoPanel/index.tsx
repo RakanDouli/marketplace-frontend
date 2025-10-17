@@ -15,7 +15,7 @@ import styles from '../SharedDashboardPanel.module.scss';
 
 export const PersonalInfoPanel: React.FC = () => {
   const router = useRouter();
-  const { user, userPackage, logout, refreshAuth } = useUserAuthStore();
+  const { user, userPackage, logout, refreshUserData } = useUserAuthStore();
   const { updateProfile, deleteAccount, deactivateAccount, sendPasswordResetEmail, changeEmail, uploadAvatar, deleteAvatar } = useUserProfileStore();
   const { addNotification } = useNotificationStore();
   const [showEditModal, setShowEditModal] = useState(false);
@@ -31,7 +31,7 @@ export const PersonalInfoPanel: React.FC = () => {
     if (!user.token) throw new Error('No authentication token');
 
     await updateProfile(user.token, data);
-    await refreshAuth(); // Refresh user data after update
+    await refreshUserData(); // Refresh user data after update
     setShowEditModal(false);
   };
 
@@ -60,7 +60,7 @@ export const PersonalInfoPanel: React.FC = () => {
     if (!user.token) throw new Error('No authentication token');
 
     await changeEmail(user.token, newEmail);
-    await refreshAuth(); // Refresh user data to show new email
+    await refreshUserData(); // Refresh user data to show new email
     setShowEmailModal(false);
   };
 
@@ -93,7 +93,7 @@ export const PersonalInfoPanel: React.FC = () => {
     setIsUploadingAvatar(true);
     try {
       await uploadAvatar(user.token, file);
-      await refreshAuth();
+      await refreshUserData();
       addNotification({
         type: 'success',
         title: 'تم رفع الصورة',
@@ -121,7 +121,7 @@ export const PersonalInfoPanel: React.FC = () => {
     setIsUploadingAvatar(true);
     try {
       await deleteAvatar(user.token);
-      await refreshAuth();
+      await refreshUserData();
       addNotification({
         type: 'success',
         title: 'تم الحذف',
@@ -269,10 +269,23 @@ export const PersonalInfoPanel: React.FC = () => {
             <Text variant="paragraph">{user.email}</Text>
           </div>
 
+          {/* Phone field - for ALL users (personal/WhatsApp number) */}
           <div className={styles.infoItem}>
-            <Text variant="small" className={styles.infoLabel}>رقم الهاتف</Text>
-            <Text variant="paragraph">{user.phone || 'غير محدد'}</Text>
+            <Text variant="small" className={styles.infoLabel}>رقم الجوال</Text>
+            <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
+              {user.phone || 'غير محدد'}
+            </Text>
           </div>
+
+          {/* Contact Phone - additional field for DEALER/BUSINESS only */}
+          {(user.accountType === 'DEALER' || user.accountType === 'BUSINESS') && user.contactPhone && (
+            <div className={styles.infoItem}>
+              <Text variant="small" className={styles.infoLabel}>هاتف الشركة</Text>
+              <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
+                {user.contactPhone}
+              </Text>
+            </div>
+          )}
 
           {user.website && (
             <div className={styles.infoItem}>
@@ -294,13 +307,6 @@ export const PersonalInfoPanel: React.FC = () => {
             <div className={styles.infoItem}>
               <Text variant="small" className={styles.infoLabel}>رقم التسجيل التجاري</Text>
               <Text variant="paragraph">{user.kvkNumber}</Text>
-            </div>
-          )}
-
-          {user.contactPhone && (
-            <div className={styles.infoItem}>
-              <Text variant="small" className={styles.infoLabel}>هاتف العمل</Text>
-              <Text variant="paragraph">{user.contactPhone}</Text>
             </div>
           )}
         </div>

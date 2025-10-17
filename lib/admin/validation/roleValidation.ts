@@ -1,7 +1,9 @@
 /**
- * Role validation utilities for admin dashboard
+ * Role validation utilities for admin dashboard with Zod
  * Provides client-side validation with Arabic error messages
  */
+
+import { z } from 'zod';
 
 export interface RoleFormData {
   name: string;
@@ -12,73 +14,65 @@ export interface ValidationErrors {
   [key: string]: string | undefined;
 }
 
-/**
- * Validate role name field
- */
+// Zod schemas
+const nameSchema = z.string()
+  .min(1, 'اسم الدور مطلوب')
+  .min(2, 'اسم الدور يجب أن يكون حرفين على الأقل')
+  .max(50, 'اسم الدور يجب أن يكون أقل من 50 حرف')
+  .regex(/^[\u0600-\u06FF\u0750-\u077Fa-zA-Z0-9\s_-]+$/, 'اسم الدور يجب أن يحتوي على أحرف وأرقام فقط')
+  .transform(val => val.trim());
+
+const descriptionSchema = z.string()
+  .max(200, 'وصف الدور يجب أن يكون أقل من 200 حرف')
+  .optional();
+
+const roleFormSchema = z.object({
+  name: nameSchema,
+  description: descriptionSchema,
+});
+
+// Individual field validators
 export const validateRoleName = (name: string): string | undefined => {
-  if (!name || !name.trim()) {
-    return 'اسم الدور مطلوب';
+  const result = nameSchema.safeParse(name);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'اسم الدور غير صحيح';
   }
-
-  if (name.trim().length < 2) {
-    return 'اسم الدور يجب أن يكون حرفين على الأقل';
-  }
-
-  if (name.trim().length > 50) {
-    return 'اسم الدور يجب أن يكون أقل من 50 حرف';
-  }
-
-  // Check for valid characters (Arabic, English, numbers, spaces, underscores)
-  const validNamePattern = /^[\u0600-\u06FF\u0750-\u077Fa-zA-Z0-9\s_-]+$/;
-  if (!validNamePattern.test(name.trim())) {
-    return 'اسم الدور يجب أن يحتوي على أحرف وأرقام فقط';
-  }
-
   return undefined;
 };
 
-/**
- * Validate role description field
- */
 export const validateRoleDescription = (description: string): string | undefined => {
-  if (description && description.length > 200) {
-    return 'وصف الدور يجب أن يكون أقل من 200 حرف';
+  const result = descriptionSchema.safeParse(description);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'وصف الدور غير صحيح';
   }
-
   return undefined;
 };
 
-/**
- * Validate entire role form
- */
+// Full form validation
 export const validateRoleForm = (formData: RoleFormData): ValidationErrors => {
+  const result = roleFormSchema.safeParse(formData);
+
+  if (result.success) {
+    return {};
+  }
+
   const errors: ValidationErrors = {};
-
-  // Validate name
-  const nameError = validateRoleName(formData.name);
-  if (nameError) {
-    errors.name = nameError;
-  }
-
-  // Validate description
-  const descriptionError = validateRoleDescription(formData.description);
-  if (descriptionError) {
-    errors.description = descriptionError;
-  }
+  result.error.issues.forEach((issue) => {
+    const field = issue.path[0] as string;
+    if (!errors[field]) {
+      errors[field] = issue.message;
+    }
+  });
 
   return errors;
 };
 
-/**
- * Check if form has any validation errors
- */
+// Helper to check if there are any errors
 export const hasValidationErrors = (errors: ValidationErrors): boolean => {
   return Object.values(errors).some(error => error !== undefined);
 };
 
-/**
- * Real-time field validator for use with Input components
- */
+// Real-time field validator for use with Input components
 export const createFieldValidator = (fieldName: keyof RoleFormData) => {
   return (value: string): string | undefined => {
     switch (fieldName) {

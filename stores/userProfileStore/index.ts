@@ -90,14 +90,14 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
     }
   },
 
-  // Deactivate account (set status to banned)
+  // Deactivate account (set status to inactive - user self-deactivation)
   deactivateAccount: async (token: string) => {
     set({ loading: true, error: null });
 
     try {
       await makeGraphQLCall(
         DEACTIVATE_MY_ACCOUNT_MUTATION,
-        { input: { status: 'banned' } },
+        { input: { status: 'INACTIVE' } },
         token
       );
       set({ loading: false });

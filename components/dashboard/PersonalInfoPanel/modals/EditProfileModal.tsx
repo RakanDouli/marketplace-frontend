@@ -5,7 +5,7 @@ import { User } from 'lucide-react';
 
 interface EditProfileModalProps {
   user: {
-    name: string;
+    name: string | null;
     email: string;
     phone?: string | null;
     gender?: string | null;
@@ -53,7 +53,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setIsSaving(true);
 
     try {
-      // Prepare update data
+      // Prepare update data - phone is for ALL users
       const updateData: any = {
         name: formData.name,
         phone: formData.phone || null,
@@ -134,10 +134,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
           <Input
             type="tel"
-            label="رقم الهاتف"
+            label="رقم الجوال"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             placeholder="+31612345678"
+            helpText="رقم الجوال الشخصي للتواصل عبر واتساب"
           />
 
           <Input
@@ -173,11 +174,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
             <Input
               type="tel"
-              label="هاتف العمل"
+              label="هاتف الشركة"
               value={formData.contactPhone}
               onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
               placeholder="+31612345678"
-              helpText="رقم الهاتف المخصص للعمل (سيظهر في إعلاناتك)"
+              helpText="رقم هاتف الشركة أو المعرض (إضافي)"
             />
 
             <Input
@@ -186,7 +187,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://example.com"
-              helpText="رابط موقعك الإلكتروني أو صفحة التواصل الاجتماعي"
+              helpText="رابط موقعك الإلكتروني"
             />
 
             {user.accountType === 'BUSINESS' && (
@@ -196,7 +197,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 value={formData.kvkNumber}
                 onChange={(e) => setFormData({ ...formData, kvkNumber: e.target.value })}
                 placeholder="12345678"
-                helpText="رقم التسجيل التجاري في هولندا (KVK)"
+                helpText="رقم التسجيل التجاري في هولندا"
               />
             )}
           </div>
@@ -211,26 +212,27 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           {/* Email Change */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <Text variant="small" style={{ fontWeight: 600 }}>البريد الإلكتروني</Text>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Text variant="paragraph">{user.email}</Text>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onChangeEmailClick}
                 type="button"
+                style={{ alignSelf: 'flex-start' }}
               >
                 تغيير
               </Button>
             </div>
             <Text variant="small" style={{ color: 'var(--text-secondary)' }}>
-              💡 لتغيير البريد الإلكتروني، يجب تأكيد كلمة المرور
+              لتغيير البريد الإلكتروني، يجب تأكيد كلمة المرور
             </Text>
           </div>
 
           {/* Password Reset */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <Text variant="small" style={{ fontWeight: 600 }}>كلمة المرور</Text>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Text variant="paragraph">••••••••</Text>
               <Button
                 variant="outline"
@@ -238,12 +240,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onClick={handlePasswordReset}
                 disabled={isResettingPassword}
                 type="button"
+                style={{ alignSelf: 'flex-start' }}
               >
                 {isResettingPassword ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
               </Button>
             </div>
             <Text variant="small" style={{ color: 'var(--text-secondary)' }}>
-              🔒 سيتم إرسال رابط آمن إلى: {user.email}
+              سيتم إرسال رابط آمن إلى: {user.email}
             </Text>
           </div>
         </div>

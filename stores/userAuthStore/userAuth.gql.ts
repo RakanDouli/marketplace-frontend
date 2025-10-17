@@ -12,6 +12,7 @@ export const ME_QUERY = `
         dateOfBirth
         role
         accountType
+        status
         isEmailConfirmed
         companyName
         accountBadge

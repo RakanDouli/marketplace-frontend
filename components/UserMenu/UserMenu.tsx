@@ -15,7 +15,13 @@ export const UserMenu: React.FC = () => {
   const router = useRouter();
   const { user, isAuthenticated, logout, openAuthModal } = useUserAuthStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Wait for Zustand persist to hydrate from localStorage
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,6 +47,11 @@ export const UserMenu: React.FC = () => {
     if (avatar.startsWith('http')) return avatar; // Full URL (Unsplash)
     return optimizeListingImage(avatar, 'small'); // Cloudflare asset key - use 'small' for better quality (300x200)
   };
+
+  // Show nothing while waiting for hydration (prevents flash of login button)
+  if (!hydrated) {
+    return null;
+  }
 
   if (!isAuthenticated || !user) {
     return (

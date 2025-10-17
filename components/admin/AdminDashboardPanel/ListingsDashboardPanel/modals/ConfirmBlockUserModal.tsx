@@ -43,8 +43,9 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
 
         addNotification({
           type: 'success',
+          title: '',
           message,
-          duration: 5000,
+
         });
 
         onClose();
@@ -56,8 +57,8 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
 
         addNotification({
           type: 'error',
+          title: '',
           message: errorMessage,
-          duration: 5000,
         });
       }
     } catch (error) {
@@ -68,8 +69,9 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
 
       addNotification({
         type: 'error',
+        title: '',
         message: errorMessage,
-        duration: 5000,
+
       });
     } finally {
       setIsLoading(false);

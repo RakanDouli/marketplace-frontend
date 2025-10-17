@@ -323,7 +323,7 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
         <Input
           label="نوع الخاصية"
           type="text"
-          value={ATTRIBUTE_TYPE_LABELS[formData.type] || formData.type}
+          value={formData.type ? (ATTRIBUTE_TYPE_LABELS[formData.type] || formData.type) : ''}
           disabled={true}
           helpText="لا يمكن تعديل النوع بعد الإنشاء"
         />

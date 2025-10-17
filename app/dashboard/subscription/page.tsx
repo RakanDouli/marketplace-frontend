@@ -28,12 +28,7 @@ interface SubscriptionPlan {
 
 export default function SubscriptionPage() {
   const router = useRouter();
-  const { user, userPackage, refreshAuth } = useUserAuthStore();
-
-  // Refetch user package on component mount to ensure we have latest data
-  React.useEffect(() => {
-    refreshAuth();
-  }, [refreshAuth]);
+  const { user, userPackage } = useUserAuthStore();
 
   // DEBUG: Log everything
   console.log("=== SUBSCRIPTION PAGE DEBUG ===");

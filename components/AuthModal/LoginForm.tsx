@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Text } from '@/components/slices';
+import { Button, Form, Input, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { useNotificationStore } from '@/stores/notificationStore';
 import { SocialButtons } from './SocialButtons';
 import { AccountType } from '@/common/enums';
 import styles from './AuthModal.module.scss';
@@ -49,7 +48,6 @@ const DEV_CREDENTIALS = [
 
 export const LoginForm: React.FC = () => {
   const { login, isLoading, error, switchAuthView } = useUserAuthStore();
-  const { addNotification } = useNotificationStore();
   const isProduction = process.env.NODE_ENV === 'production';
 
   const [selectedOption, setSelectedOption] = useState(0);
@@ -57,6 +55,7 @@ export const LoginForm: React.FC = () => {
     email: isProduction ? '' : DEV_CREDENTIALS[0].email,
     password: isProduction ? '' : DEV_CREDENTIALS[0].password,
   });
+  const [formError, setFormError] = useState<string>('');
 
   // Update form when option changes (development only)
   useEffect(() => {
@@ -80,29 +79,21 @@ export const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Clear previous error
+    setFormError('');
+
     if (!formData.email || !formData.password) {
-      addNotification({
-        type: 'error',
-        title: 'بيانات ناقصة',
-        message: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
-      });
+      setFormError('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
 
     try {
       await login(formData.email, formData.password);
-      // addNotification({
-      //   type: 'success',
-      //   title: 'تسجيل دخول ناجح',
-      //   message: 'مرحباً بك مرة أخرى!',
-      // });
+      // Success - modal will close automatically via store
     } catch (loginError) {
       console.error('Login error:', loginError);
-      addNotification({
-        type: 'error',
-        title: 'خطأ في تسجيل الدخول',
-        message: error || 'يرجى التحقق من بيانات الاعتماد',
-      });
+      // Show error in Form component (inside modal)
+      setFormError(error || 'بيانات الاعتماد غير صحيحة. يرجى المحاولة مرة أخرى');
     }
   };
 
@@ -130,7 +121,7 @@ export const LoginForm: React.FC = () => {
       )}
 
       {/* Login form */}
-      <form onSubmit={handleSubmit} className={styles.formFields}>
+      <Form onSubmit={handleSubmit} error={formError} className={styles.formFields}>
         <div className={styles.inputGroup}>
           <label className={styles.label}>
             <Text variant="small">البريد الإلكتروني</Text>
@@ -180,7 +171,7 @@ export const LoginForm: React.FC = () => {
         >
           {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
         </Button>
-      </form>
+      </Form>
 
       {/* Divider */}
       <div className={styles.divider}>

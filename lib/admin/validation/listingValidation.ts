@@ -1,5 +1,9 @@
-// Listing validation utilities with Arabic error messages
-// Following the same pattern as userValidation.ts and roleValidation.ts
+/**
+ * Listing validation utilities with Zod and Arabic error messages
+ * Following the same pattern as userValidation.ts and roleValidation.ts
+ */
+
+import { z } from 'zod';
 
 export interface ListingFormData {
   status: string;
@@ -9,27 +13,43 @@ export interface ValidationErrors {
   status?: string;
 }
 
+// Zod schema
+const statusSchema = z.enum(
+  ['draft', 'pending_approval', 'active', 'hidden', 'sold', 'sold_via_platform'],
+  { message: 'حالة الإعلان المختارة غير صحيحة' }
+);
+
+const listingStatusFormSchema = z.object({
+  status: statusSchema,
+});
+
 // Status validation
 export const validateStatus = (status: string): string | undefined => {
   if (!status || !status.trim()) {
     return 'يجب اختيار حالة الإعلان';
   }
-
-  const validStatuses = ['draft', 'pending_approval', 'active', 'hidden', 'sold', 'sold_via_platform'];
-  if (!validStatuses.includes(status)) {
-    return 'حالة الإعلان المختارة غير صحيحة';
+  const result = statusSchema.safeParse(status);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'حالة الإعلان غير صحيحة';
   }
-
   return undefined;
 };
 
-
 // Form-level validation for status change
 export const validateListingStatusForm = (formData: ListingFormData): ValidationErrors => {
-  const errors: ValidationErrors = {};
+  const result = listingStatusFormSchema.safeParse(formData);
 
-  const statusError = validateStatus(formData.status);
-  if (statusError) errors.status = statusError;
+  if (result.success) {
+    return {};
+  }
+
+  const errors: ValidationErrors = {};
+  result.error.issues.forEach((issue) => {
+    const field = issue.path[0] as keyof ValidationErrors;
+    if (!errors[field]) {
+      errors[field] = issue.message;
+    }
+  });
 
   return errors;
 };

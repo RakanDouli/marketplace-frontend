@@ -479,6 +479,7 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
                     </TableCell>
                     <TableCell>
                       {/* Actions are handled by InlineEdit component */}
+                      {null}
                     </TableCell>
                   </TableRow>
                 )}

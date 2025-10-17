@@ -37,6 +37,7 @@ export interface PublicUser {
   dateOfBirth: string | null;
   role: 'USER'; // Only USER role allowed in public area
   accountType: AccountType;
+  status: string; // User status: ACTIVE, INACTIVE, BANNED, PENDING
   isEmailConfirmed: boolean;
   companyName: string | null;
   accountBadge: string | null;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Input, Button, Text } from '@/components/slices';
+import { Modal, Button, Text } from '@/components/slices';
 import { AlertTriangle } from 'lucide-react';
 
 interface DeleteAccountModalProps {
@@ -12,15 +12,9 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   onConfirm,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
-    if (confirmText !== 'DELETE') {
-      setError('يرجى كتابة "DELETE" للتأكيد');
-      return;
-    }
-
     setError(null);
     setIsDeleting(true);
 
@@ -59,14 +53,6 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
           <li>الاشتراكات النشطة</li>
         </ul>
 
-        <Input
-          type="text"
-          label={<span>اكتب <strong>DELETE</strong> للتأكيد</span>}
-          value={confirmText}
-          onChange={(e) => setConfirmText(e.target.value)}
-          placeholder="DELETE"
-        />
-
         {error && (
           <div style={{ color: 'var(--error)', fontSize: '14px', padding: '8px 12px', backgroundColor: 'rgba(var(--error-rgb), 0.1)', borderRadius: '4px' }}>
             {error}
@@ -80,7 +66,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
           <Button
             variant="secondary"
             onClick={handleConfirm}
-            disabled={isDeleting || confirmText !== 'DELETE'}
+            disabled={isDeleting}
           >
             {isDeleting ? 'جاري الحذف...' : 'حذف الحساب نهائياً'}
           </Button>

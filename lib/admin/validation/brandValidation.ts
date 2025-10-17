@@ -1,95 +1,118 @@
-// Brand validation functions
+/**
+ * Brand & Model validation utilities for admin dashboard with Zod
+ * Provides client-side validation with Arabic error messages
+ */
+
+import { z } from 'zod';
+
+export interface BrandFormData {
+  name: string;
+  externalId?: string;
+  source?: string;
+  status?: string;
+  aliases?: string[];
+}
+
+export interface ModelFormData {
+  name: string;
+  externalId?: string;
+  source?: string;
+  status?: string;
+  aliases?: string[];
+}
+
+export interface ValidationErrors {
+  [key: string]: string | undefined;
+}
+
+// Zod schemas for Brand
+const brandNameSchema = z.string()
+  .min(1, 'اسم العلامة التجارية مطلوب')
+  .min(2, 'اسم العلامة التجارية يجب أن يكون على الأقل حرفين')
+  .max(100, 'اسم العلامة التجارية يجب أن يكون أقل من 100 حرف')
+  .transform(val => val.trim());
+
+const externalIdSchema = z.string()
+  .max(255, 'المعرف الخارجي يجب أن يكون أقل من 255 حرف')
+  .optional();
+
+const sourceSchema = z.enum(['manual', 'sync'], {
+  message: 'مصدر البيانات غير صحيح'
+}).optional();
+
+const statusSchema = z.enum(['active', 'archived'], {
+  message: 'حالة العلامة التجارية غير صحيحة'
+}).optional();
+
+const aliasesSchema = z.array(z.string()
+  .min(1, 'الاسم البديل لا يمكن أن يكون فارغاً')
+  .max(100, 'الاسم البديل يجب أن يكون أقل من 100 حرف')
+).refine(
+  (aliases) => new Set(aliases).size === aliases.length,
+  { message: 'لا يمكن أن تكون هناك أسماء بديلة مكررة' }
+).optional();
+
+const brandFormSchema = z.object({
+  name: brandNameSchema,
+  externalId: externalIdSchema,
+  source: sourceSchema,
+  status: statusSchema,
+  aliases: aliasesSchema,
+});
+
+// Zod schemas for Model
+const modelNameSchema = z.string()
+  .min(1, 'اسم الموديل مطلوب')
+  .min(2, 'اسم الموديل يجب أن يكون على الأقل حرفين')
+  .max(100, 'اسم الموديل يجب أن يكون أقل من 100 حرف')
+  .transform(val => val.trim());
+
+const modelStatusSchema = z.enum(['active', 'archived'], {
+  message: 'حالة الموديل غير صحيحة'
+}).optional();
+
+const modelFormSchema = z.object({
+  name: modelNameSchema,
+  externalId: externalIdSchema,
+  source: sourceSchema,
+  status: modelStatusSchema,
+  aliases: aliasesSchema,
+});
+
+// Brand validation
 export function validateBrandForm(formData: any): Record<string, string> {
+  const result = brandFormSchema.safeParse(formData);
+
+  if (result.success) {
+    return {};
+  }
+
   const errors: Record<string, string> = {};
-
-  // Name validation
-  if (!formData.name || formData.name.trim().length === 0) {
-    errors.name = 'اسم العلامة التجارية مطلوب';
-  } else if (formData.name.trim().length < 2) {
-    errors.name = 'اسم العلامة التجارية يجب أن يكون على الأقل حرفين';
-  } else if (formData.name.trim().length > 100) {
-    errors.name = 'اسم العلامة التجارية يجب أن يكون أقل من 100 حرف';
-  }
-
-  // External ID validation (optional)
-  if (formData.externalId && formData.externalId.length > 255) {
-    errors.externalId = 'المعرف الخارجي يجب أن يكون أقل من 255 حرف';
-  }
-
-  // Source validation (case-insensitive)
-  if (formData.source && !['manual', 'sync'].includes(formData.source.toLowerCase())) {
-    errors.source = 'مصدر البيانات غير صحيح';
-  }
-
-  // Status validation (case-insensitive)
-  if (formData.status && !['active', 'archived'].includes(formData.status.toLowerCase())) {
-    errors.status = 'حالة العلامة التجارية غير صحيحة';
-  }
-
-  // Aliases validation
-  if (formData.aliases && Array.isArray(formData.aliases)) {
-    formData.aliases.forEach((alias: string, index: number) => {
-      if (!alias || alias.trim().length === 0) {
-        errors[`alias_${index}`] = `الاسم البديل ${index + 1} لا يمكن أن يكون فارغاً`;
-      } else if (alias.length > 100) {
-        errors[`alias_${index}`] = `الاسم البديل ${index + 1} يجب أن يكون أقل من 100 حرف`;
-      }
-    });
-
-    // Check for duplicate aliases
-    const uniqueAliases = [...new Set(formData.aliases)];
-    if (uniqueAliases.length !== formData.aliases.length) {
-      errors.aliases = 'لا يمكن أن تكون هناك أسماء بديلة مكررة';
+  result.error.issues.forEach((issue) => {
+    const field = issue.path.join('_');
+    if (!errors[field]) {
+      errors[field] = issue.message;
     }
-  }
+  });
 
   return errors;
 }
 
-// Model validation functions
+// Model validation
 export function validateModelForm(formData: any): Record<string, string> {
+  const result = modelFormSchema.safeParse(formData);
+
+  if (result.success) {
+    return {};
+  }
+
   const errors: Record<string, string> = {};
-
-  // Name validation
-  if (!formData.name || formData.name.trim().length === 0) {
-    errors.name = 'اسم الموديل مطلوب';
-  } else if (formData.name.trim().length < 2) {
-    errors.name = 'اسم الموديل يجب أن يكون على الأقل حرفين';
-  } else if (formData.name.trim().length > 100) {
-    errors.name = 'اسم الموديل يجب أن يكون أقل من 100 حرف';
-  }
-
-  // External ID validation (optional)
-  if (formData.externalId && formData.externalId.length > 255) {
-    errors.externalId = 'المعرف الخارجي يجب أن يكون أقل من 255 حرف';
-  }
-
-  // Source validation (case-insensitive)
-  if (formData.source && !['manual', 'sync'].includes(formData.source.toLowerCase())) {
-    errors.source = 'مصدر البيانات غير صحيح';
-  }
-
-  // Status validation (case-insensitive)
-  if (formData.status && !['active', 'archived'].includes(formData.status.toLowerCase())) {
-    errors.status = 'حالة الموديل غير صحيحة';
-  }
-
-  // Aliases validation
-  if (formData.aliases && Array.isArray(formData.aliases)) {
-    formData.aliases.forEach((alias: string, index: number) => {
-      if (!alias || alias.trim().length === 0) {
-        errors[`alias_${index}`] = `الاسم البديل ${index + 1} لا يمكن أن يكون فارغاً`;
-      } else if (alias.length > 100) {
-        errors[`alias_${index}`] = `الاسم البديل ${index + 1} يجب أن يكون أقل من 100 حرف`;
-      }
-    });
-
-    // Check for duplicate aliases
-    const uniqueAliases = [...new Set(formData.aliases)];
-    if (uniqueAliases.length !== formData.aliases.length) {
-      errors.aliases = 'لا يمكن أن تكون هناك أسماء بديلة مكررة';
+  result.error.issues.forEach((issue) => {
+    const field = issue.path.join('_');
+    if (!errors[field]) {
+      errors[field] = issue.message;
     }
-  }
+  });
 
   return errors;
 }

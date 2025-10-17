@@ -180,6 +180,8 @@ export interface InputProps
   hasError?: boolean;
   /** Validation function for real-time validation */
   validate?: (value: string) => string | undefined;
+  /** Value to compare against (for password confirmation) */
+  compareWith?: string;
 }
 
 export const Input = forwardRef<
@@ -199,6 +201,7 @@ export const Input = forwardRef<
       rows = 4,
       hasError = false,
       validate,
+      compareWith,
       ...props
     },
     ref
@@ -206,6 +209,14 @@ export const Input = forwardRef<
     const [isFocused, setIsFocused] = useState(false);
     const [validationError, setValidationError] = useState<string | undefined>();
     const generatedId = useId();
+
+    // Re-validate when compareWith changes (for password confirmation)
+    useEffect(() => {
+      if (compareWith !== undefined && validate && props.value) {
+        const validationResult = validate(String(props.value));
+        setValidationError(validationResult);
+      }
+    }, [compareWith, validate, props.value]);
 
     // Priority: external error > validation error
     const displayError = error || validationError;

@@ -135,7 +135,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
             placeholder={placeholder}
             autoFocus
             className={styles.input}
-            error={error}
+            error={error || undefined}
           />
           <div className={styles.actions}>
             <Button
@@ -178,7 +178,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
             placeholder={placeholder}
             autoFocus
             className={styles.input}
-            error={error}
+            error={error || undefined}
           />
           <div className={styles.actions}>
             <Button
@@ -216,7 +216,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
           <span className={styles.value}>{value}</span>
           {canEdit && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               icon={<Edit size={14} />}
               onClick={handleStartEdit}

@@ -15,8 +15,6 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
   const {
     isAuthenticated,
     user,
-    refreshAuth,
-    isLoading,
     getTimeUntilExpiration,
     extendSession,
     logout,
@@ -24,21 +22,20 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
     dismissExpirationWarning
   } = useUserAuthStore();
 
+  const [hydrated, setHydrated] = useState(false);
   const [isExpirationModalVisible, setIsExpirationModalVisible] = useState(false);
 
-  // Authentication check
+  // Wait for Zustand persist to hydrate from localStorage
   useEffect(() => {
-    if (!isAuthenticated) {
-      refreshAuth();
-    }
-  }, [isAuthenticated, refreshAuth]);
+    setHydrated(true);
+  }, []);
 
-  // Redirect to home if not authenticated
+  // Redirect to home if not authenticated (after hydration)
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (hydrated && !isAuthenticated) {
       router.push('/');
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [hydrated, isAuthenticated, router]);
 
   // Token expiration monitoring with smart setTimeout
   useEffect(() => {
@@ -119,17 +116,8 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
     setIsExpirationModalVisible(false);
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Loading type='svg' />
-      </div>
-    );
-  }
-
-  // If not authenticated, don't render anything (redirect will happen)
-  if (!isAuthenticated || !user) {
+  // Show nothing while waiting for hydration or if not authenticated
+  if (!hydrated || !isAuthenticated || !user) {
     return null;
   }
 

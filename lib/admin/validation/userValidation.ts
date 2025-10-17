@@ -1,7 +1,9 @@
 /**
- * User validation utilities for admin dashboard
+ * User validation utilities for admin dashboard with Zod
  * Provides client-side validation with Arabic error messages
  */
+
+import { z } from 'zod';
 
 export interface UserFormData {
   name: string;
@@ -15,180 +17,148 @@ export interface ValidationErrors {
   [key: string]: string | undefined;
 }
 
-/**
- * Validate user name field
- */
+// Zod schemas
+const nameSchema = z.string()
+  .min(1, 'اسم المستخدم مطلوب')
+  .min(2, 'اسم المستخدم يجب أن يكون حرفين على الأقل')
+  .max(100, 'اسم المستخدم يجب أن يكون أقل من 100 حرف')
+  .regex(/^[\u0600-\u06FF\u0750-\u077Fa-zA-Z0-9\s.-]+$/, 'اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط')
+  .transform(val => val.trim());
+
+const emailSchema = z.string()
+  .min(1, 'البريد الإلكتروني مطلوب')
+  .email('البريد الإلكتروني غير صحيح')
+  .max(255, 'البريد الإلكتروني يجب أن يكون أقل من 255 حرف')
+  .transform(val => val.trim());
+
+const passwordSchemaRequired = z.string()
+  .min(1, 'كلمة المرور مطلوبة')
+  .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+  .max(128, 'كلمة المرور يجب أن تكون أقل من 128 حرف')
+  .refine(
+    (val) => /[A-Z]/.test(val) && /[a-z]/.test(val) && /\d/.test(val),
+    'كلمة المرور يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام'
+  );
+
+const passwordSchemaOptional = z.string()
+  .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+  .max(128, 'كلمة المرور يجب أن تكون أقل من 128 حرف')
+  .refine(
+    (val) => !val || (/[A-Z]/.test(val) && /[a-z]/.test(val) && /\d/.test(val)),
+    'كلمة المرور يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام'
+  )
+  .optional();
+
+const roleSchema = z.string()
+  .min(1, 'الدور مطلوب')
+  .transform(val => val.trim());
+
+const statusSchema = z.enum(['active', 'pending', 'banned'], {
+  message: 'حالة المستخدم غير صحيحة'
+});
+
+// Full form schemas
+const userFormCreateSchema = z.object({
+  name: nameSchema,
+  email: emailSchema,
+  password: passwordSchemaRequired,
+  role: roleSchema,
+  status: statusSchema,
+});
+
+const userFormEditSchema = z.object({
+  name: nameSchema,
+  email: emailSchema,
+  password: passwordSchemaOptional,
+  role: roleSchema,
+  status: statusSchema,
+});
+
+// Individual field validators
 export const validateUserName = (name: string): string | undefined => {
-  if (!name || !name.trim()) {
-    return 'اسم المستخدم مطلوب';
+  const result = nameSchema.safeParse(name);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'اسم المستخدم غير صحيح';
   }
-
-  if (name.trim().length < 2) {
-    return 'اسم المستخدم يجب أن يكون حرفين على الأقل';
-  }
-
-  if (name.trim().length > 100) {
-    return 'اسم المستخدم يجب أن يكون أقل من 100 حرف';
-  }
-
-  // Check for valid characters (Arabic, English, numbers, spaces)
-  const validNamePattern = /^[\u0600-\u06FF\u0750-\u077Fa-zA-Z0-9\s.-]+$/;
-  if (!validNamePattern.test(name.trim())) {
-    return 'اسم المستخدم يجب أن يحتوي على أحرف وأرقام فقط';
-  }
-
   return undefined;
 };
 
-/**
- * Validate email field
- */
 export const validateUserEmail = (email: string): string | undefined => {
-  if (!email || !email.trim()) {
-    return 'البريد الإلكتروني مطلوب';
+  const result = emailSchema.safeParse(email);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'البريد الإلكتروني غير صحيح';
   }
-
-  // Basic email validation
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(email.trim())) {
-    return 'البريد الإلكتروني غير صحيح';
-  }
-
-  if (email.length > 255) {
-    return 'البريد الإلكتروني يجب أن يكون أقل من 255 حرف';
-  }
-
   return undefined;
 };
 
-/**
- * Validate password field
- */
 export const validateUserPassword = (password: string, isRequired: boolean = true): string | undefined => {
-  if (!password || !password.trim()) {
-    if (isRequired) {
-      return 'كلمة المرور مطلوبة';
-    }
-    return undefined; // Optional for edit mode
+  const schema = isRequired ? passwordSchemaRequired : passwordSchemaOptional;
+  const result = schema.safeParse(password);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'كلمة المرور غير صحيحة';
   }
-
-  if (password.length < 6) {
-    return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-  }
-
-  if (password.length > 128) {
-    return 'كلمة المرور يجب أن تكون أقل من 128 حرف';
-  }
-
-  // Check for basic password strength
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-
-  if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-    return 'كلمة المرور يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام';
-  }
-
   return undefined;
 };
 
-/**
- * Validate role field
- */
 export const validateUserRole = (role: string): string | undefined => {
-  if (!role || !role.trim()) {
-    return 'الدور مطلوب';
+  const result = roleSchema.safeParse(role);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'الدور غير صحيح';
   }
-
   return undefined;
 };
 
-/**
- * Validate status field
- */
 export const validateUserStatus = (status: string): string | undefined => {
-  if (!status || !status.trim()) {
-    return 'حالة المستخدم مطلوبة';
+  const result = statusSchema.safeParse(status);
+  if (!result.success) {
+    return result.error.issues[0]?.message || 'حالة المستخدم غير صحيحة';
   }
-
-  const validStatuses = ['active', 'pending', 'banned'];
-  if (!validStatuses.includes(status)) {
-    return 'حالة المستخدم غير صحيحة';
-  }
-
   return undefined;
 };
 
-/**
- * Validate entire user form for create mode
- */
+// Full form validation
 export const validateUserFormCreate = (formData: UserFormData): ValidationErrors => {
-  const errors: ValidationErrors = {};
+  const result = userFormCreateSchema.safeParse(formData);
 
-  // Validate name
-  const nameError = validateUserName(formData.name);
-  if (nameError) errors.name = nameError;
-
-  // Validate email
-  const emailError = validateUserEmail(formData.email);
-  if (emailError) errors.email = emailError;
-
-  // Validate password (required for create)
-  const passwordError = validateUserPassword(formData.password || '', true);
-  if (passwordError) errors.password = passwordError;
-
-  // Validate role
-  const roleError = validateUserRole(formData.role);
-  if (roleError) errors.role = roleError;
-
-  // Validate status
-  const statusError = validateUserStatus(formData.status);
-  if (statusError) errors.status = statusError;
-
-  return errors;
-};
-
-/**
- * Validate entire user form for edit mode
- */
-export const validateUserFormEdit = (formData: UserFormData): ValidationErrors => {
-  const errors: ValidationErrors = {};
-
-  // Validate name
-  const nameError = validateUserName(formData.name);
-  if (nameError) errors.name = nameError;
-
-  // Validate email
-  const emailError = validateUserEmail(formData.email);
-  if (emailError) errors.email = emailError;
-
-  // Validate password (optional for edit)
-  if (formData.password && formData.password.trim()) {
-    const passwordError = validateUserPassword(formData.password, false);
-    if (passwordError) errors.password = passwordError;
+  if (result.success) {
+    return {};
   }
 
-  // Validate role
-  const roleError = validateUserRole(formData.role);
-  if (roleError) errors.role = roleError;
-
-  // Validate status
-  const statusError = validateUserStatus(formData.status);
-  if (statusError) errors.status = statusError;
+  const errors: ValidationErrors = {};
+  result.error.issues.forEach((issue) => {
+    const field = issue.path[0] as string;
+    if (!errors[field]) {
+      errors[field] = issue.message;
+    }
+  });
 
   return errors;
 };
 
-/**
- * Check if form has any validation errors
- */
+export const validateUserFormEdit = (formData: UserFormData): ValidationErrors => {
+  const result = userFormEditSchema.safeParse(formData);
+
+  if (result.success) {
+    return {};
+  }
+
+  const errors: ValidationErrors = {};
+  result.error.issues.forEach((issue) => {
+    const field = issue.path[0] as string;
+    if (!errors[field]) {
+      errors[field] = issue.message;
+    }
+  });
+
+  return errors;
+};
+
+// Helper to check if there are any errors
 export const hasValidationErrors = (errors: ValidationErrors): boolean => {
   return Object.values(errors).some(error => error !== undefined);
 };
 
-/**
- * Real-time field validator for use with Input components
- */
+// Real-time field validator for use with Input components
 export const createUserFieldValidator = (fieldName: keyof UserFormData, mode: 'create' | 'edit' = 'create') => {
   return (value: string): string | undefined => {
     switch (fieldName) {

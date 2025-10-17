@@ -16,18 +16,24 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, logout, isLoading } = useUserAuthStore();
+  const { user, logout } = useUserAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Authentication guard - redirect to home if not authenticated
+  // Wait for Zustand persist to hydrate from localStorage
   useEffect(() => {
-    if (!isLoading && !user) {
+    setHydrated(true);
+  }, []);
+
+  // Authentication guard - redirect to home if not authenticated (after hydration)
+  useEffect(() => {
+    if (hydrated && !user) {
       router.push('/');
     }
-  }, [user, isLoading, router]);
+  }, [user, hydrated, router]);
 
-  // Show loading or nothing while checking authentication
-  if (isLoading || !user) {
+  // Show nothing while waiting for hydration or if not authenticated
+  if (!hydrated || !user) {
     return null;
   }
 

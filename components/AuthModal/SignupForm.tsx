@@ -3,14 +3,18 @@
 import React, { useState } from 'react';
 import { Button, Form, Input, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { useNotificationStore } from '@/stores/notificationStore';
 import { SocialButtons } from './SocialButtons';
 import type { AccountType } from '@/stores/userAuthStore/types';
+import {
+  validateSignupForm,
+  createSignupFieldValidator,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/validation/authValidation';
 import styles from './AuthModal.module.scss';
 
 export const SignupForm: React.FC = () => {
   const { signup, isLoading, error, switchAuthView } = useUserAuthStore();
-  const { addNotification } = useNotificationStore();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -21,7 +25,8 @@ export const SignupForm: React.FC = () => {
     acceptTerms: false,
   });
 
-  const [formError, setFormError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [formError, setFormError] = useState<string>('');
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -33,30 +38,32 @@ export const SignupForm: React.FC = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-
-    // Clear form-level error when user types
-    if (formError) setFormError('');
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Check terms acceptance
-    if (!formData.acceptTerms) {
-      setFormError('يرجى الموافقة على الشروط والأحكام');
-      return;
+    // Clear previous form error
+    setFormError('');
+
+    // Validate form - BLOCKS submission if errors exist
+    const errors = validateSignupForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Validation failed:', errors);
+      return; // STOP - do not submit
     }
+
+    console.log('✅ Validation passed, submitting...');
 
     try {
       await signup(formData.email, formData.password, formData.name, formData.accountType);
-      addNotification({
-        type: 'success',
-        title: 'تم إنشاء الحساب بنجاح',
-        message: 'مرحباً بك في السوق السوري!',
-      });
+      // Success - modal will close automatically via store
     } catch (signupError) {
       console.error('Signup error:', signupError);
-      setFormError(error || 'يرجى المحاولة مرة أخرى');
+      // Show error in Form component (inside modal)
+      setFormError(error || 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى');
     }
   };
 
@@ -75,7 +82,8 @@ export const SignupForm: React.FC = () => {
           placeholder="أدخل اسمك الكامل"
           value={formData.name}
           onChange={handleInputChange}
-          validate={(v) => !v.trim() ? 'الاسم مطلوب' : undefined}
+          validate={createSignupFieldValidator('name')}
+          error={validationErrors.name}
           required
           disabled={isLoading}
         />
@@ -88,11 +96,8 @@ export const SignupForm: React.FC = () => {
           placeholder="example@email.com"
           value={formData.email}
           onChange={handleInputChange}
-          validate={(v) => {
-            if (!v.trim()) return 'البريد الإلكتروني مطلوب';
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'البريد الإلكتروني غير صحيح';
-            return undefined;
-          }}
+          validate={createSignupFieldValidator('email')}
+          error={validationErrors.email}
           required
           disabled={isLoading}
         />
@@ -105,11 +110,8 @@ export const SignupForm: React.FC = () => {
           placeholder="8 أحرف على الأقل"
           value={formData.password}
           onChange={handleInputChange}
-          validate={(v) => {
-            if (!v) return 'كلمة المرور مطلوبة';
-            if (v.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
-            return undefined;
-          }}
+          validate={createSignupFieldValidator('password')}
+          error={validationErrors.password}
           required
           disabled={isLoading}
         />
@@ -122,11 +124,8 @@ export const SignupForm: React.FC = () => {
           placeholder="أعد إدخال كلمة المرور"
           value={formData.confirmPassword}
           onChange={handleInputChange}
-          validate={(v) => {
-            if (!v) return 'تأكيد كلمة المرور مطلوب';
-            if (v !== formData.password) return 'كلمة المرور غير متطابقة';
-            return undefined;
-          }}
+          validate={createSignupFieldValidator('confirmPassword', formData.password)}
+          error={validationErrors.confirmPassword}
           required
           disabled={isLoading}
         />
@@ -151,6 +150,11 @@ export const SignupForm: React.FC = () => {
             </Text>
           </label>
         </div>
+        {validationErrors.acceptTerms && (
+          <Text variant="small" style={{ color: 'rgb(239, 68, 68)', marginTop: '-8px' }}>
+            {validationErrors.acceptTerms}
+          </Text>
+        )}
 
         {/* Submit button */}
         <Button

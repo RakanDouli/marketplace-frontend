@@ -23,10 +23,12 @@
 export const USER_STATUS_LABELS: Record<string, string> = {
   active: "نشط",
   pending: "معلق",
+  inactive: "غير نشط",
   banned: "محظور",
   // Uppercase variants (for backward compatibility)
   ACTIVE: "نشط",
   PENDING: "معلق",
+  INACTIVE: "غير نشط",
   BANNED: "محظور",
 };
 

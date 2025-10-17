@@ -52,12 +52,13 @@ export default function PaymentsPage() {
       </div>
 
       {/* Current plan */}
-      {user?.subscription && (
+      {/* TODO: Implement subscription display when userPackage is added to user object */}
+      {/* {user?.subscription && (
         <div className={styles.currentPlan}>
           <Text variant="h3">الخطة الحالية</Text>
           <div className={styles.planInfo}>
             <div className={styles.planItem}>
-              <Text variant="small" color="muted">
+              <Text variant="small" color="secondary">
                 الحالة
               </Text>
               <Text variant="paragraph">
@@ -65,7 +66,7 @@ export default function PaymentsPage() {
               </Text>
             </div>
             <div className={styles.planItem}>
-              <Text variant="small" color="muted">
+              <Text variant="small" color="secondary">
                 تاريخ التجديد
               </Text>
               <Text variant="paragraph">
@@ -77,7 +78,7 @@ export default function PaymentsPage() {
           </div>
           <Button variant="primary">ترقية الخطة</Button>
         </div>
-      )}
+      )} */}
 
       {/* Payment history */}
       <div className={styles.section}>
@@ -91,7 +92,7 @@ export default function PaymentsPage() {
           <div className={styles.empty}>
             <CreditCard size={48} className={styles.emptyIcon} />
             <Text variant="h4">لا توجد مدفوعات</Text>
-            <Text variant="paragraph" color="muted">
+            <Text variant="paragraph" color="secondary">
               سيظهر هنا سجل جميع المدفوعات والفواتير
             </Text>
           </div>
@@ -101,7 +102,7 @@ export default function PaymentsPage() {
               <div key={payment.id} className={styles.paymentItem}>
                 <div className={styles.paymentInfo}>
                   <Text variant="paragraph">{payment.description}</Text>
-                  <Text variant="small" color="muted">
+                  <Text variant="small" color="secondary">
                     {new Date(payment.createdAt).toLocaleDateString('ar')}
                   </Text>
                 </div>
