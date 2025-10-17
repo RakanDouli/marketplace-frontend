@@ -59,9 +59,23 @@ export const MY_LISTING_BY_ID_QUERY = `
   }
 `;
 
+export const CREATE_MY_LISTING_MUTATION = `
+  mutation CreateMyListing($input: CreateListingInput!) {
+    createMyListing(input: $input) {
+      id
+      title
+      status
+      priceMinor
+      imageKeys
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const UPDATE_MY_LISTING_MUTATION = `
   mutation UpdateMyListing($id: ID!, $input: UpdateListingInput!) {
-    updateListing(id: $id, input: $input) {
+    updateMyListing(id: $id, input: $input) {
       id
       title
       status
@@ -72,6 +86,6 @@ export const UPDATE_MY_LISTING_MUTATION = `
 
 export const DELETE_MY_LISTING_MUTATION = `
   mutation DeleteMyListing($id: ID!, $soldViaPlatform: Boolean) {
-    deleteListing(id: $id, soldViaPlatform: $soldViaPlatform)
+    deleteMyListing(id: $id, soldViaPlatform: $soldViaPlatform)
   }
 `;

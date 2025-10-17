@@ -10,7 +10,6 @@ import {
   createFieldValidator,
   type ValidationErrors
 } from '@/lib/admin/validation/roleValidation';
-import { Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import styles from './RoleModal.module.scss';
 
 interface EditRoleModalProps {
@@ -179,7 +178,6 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="مثال: مدير المحتوى"
               disabled={true}
-              helpText="لا يمكن تغيير اسم الدور بعد إنشائه"
             />
 
             <Input
@@ -216,24 +214,19 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
               <>
                 <div className={styles.permissionsHeader}>
                   <div className={styles.permissionsInfo}>
-                    <Settings size={20} />
                     <span>الصلاحيات المحددة: {getPermissionCount()}</span>
                   </div>
                   <div className={styles.permissionsLegend}>
                     <div className={styles.legendItem}>
-                      <Eye size={16} />
                       <span>عرض</span>
                     </div>
                     <div className={styles.legendItem}>
-                      <Plus size={16} />
                       <span>إنشاء</span>
                     </div>
                     <div className={styles.legendItem}>
-                      <Edit size={16} />
                       <span>تعديل</span>
                     </div>
                     <div className={styles.legendItem}>
-                      <Trash2 size={16} />
                       <span>حذف</span>
                     </div>
                   </div>
@@ -269,7 +262,6 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
                             onClick={() => handlePermissionChange(feature.name, 'view', !featurePerms.view)}
                             title="صلاحية العرض"
                           >
-                            <Eye size={16} />
                             <span>عرض</span>
                           </button>
 
@@ -279,7 +271,6 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
                             onClick={() => handlePermissionChange(feature.name, 'create', !featurePerms.create)}
                             title="صلاحية الإنشاء"
                           >
-                            <Plus size={16} />
                             <span>إنشاء</span>
                           </button>
 
@@ -289,7 +280,6 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
                             onClick={() => handlePermissionChange(feature.name, 'modify', !featurePerms.modify)}
                             title="صلاحية التعديل"
                           >
-                            <Edit size={16} />
                             <span>تعديل</span>
                           </button>
 
@@ -299,7 +289,6 @@ export const EditRoleModal: React.FC<EditRoleModalProps> = ({
                             onClick={() => handlePermissionChange(feature.name, 'delete', !featurePerms.delete)}
                             title="صلاحية الحذف"
                           >
-                            <Trash2 size={16} />
                             <span>حذف</span>
                           </button>
                         </div>

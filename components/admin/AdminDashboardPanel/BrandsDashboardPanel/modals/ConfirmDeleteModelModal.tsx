@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '@/components/slices/Modal/Modal';
-import { Button } from '@/components/slices/Button/Button';
-import { Text } from '@/components/slices/Text/Text';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useBrandsStore } from '@/stores/admin/adminBrandsStore';
 import { AlertTriangle, Trash2 } from 'lucide-react';
@@ -38,13 +36,16 @@ export const ConfirmDeleteModelModal: React.FC<ConfirmDeleteModelModalProps> = (
   model,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
   const { deleteModel } = useBrandsStore();
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!model) return;
 
     setIsLoading(true);
+    setError(null);
     try {
       // Call the store's delete function
       await deleteModel(model.id);
@@ -59,14 +60,10 @@ export const ConfirmDeleteModelModal: React.FC<ConfirmDeleteModelModalProps> = (
       onClose();
     } catch (error) {
       console.error('Error deleting model:', error);
-      addNotification({
-        type: 'error',
-        title: 'خطأ في الحذف',
-        message: 'فشل في حذف الموديل. يرجى المحاولة مرة أخرى.',
-        duration: 5000
-      });
+      setError(error instanceof Error ? error.message : 'فشل في حذف الموديل. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   if (!model) return null;
@@ -76,59 +73,58 @@ export const ConfirmDeleteModelModal: React.FC<ConfirmDeleteModelModalProps> = (
       isVisible={isVisible}
       onClose={onClose}
       title="تأكيد حذف الموديل"
-      maxWidth="sm"
+      maxWidth="md"
     >
-      <div className={styles.deleteModalContent}>
-        <div className={styles.warningIcon}>
-          <AlertTriangle size={48} color="#f59e0b" />
-        </div>
-
-        <div className={styles.deleteMessage}>
-          <Text variant="h3">
-            هل أنت متأكد من حذف الموديل؟
-          </Text>
-        </div>
-
-        <div className={styles.userInfo}>
-          <div className={styles.userDetail}>
-            <Text variant="paragraph">
-              <strong>اسم الموديل:</strong> {model.name}
+      <Form onSubmit={handleConfirm} error={error || undefined}>
+        <div className={styles.deleteModalContent}>
+          <div className={styles.deleteMessage}>
+            <Text variant="h3">
+              هل أنت متأكد من حذف الموديل؟
             </Text>
           </div>
-          <div className={styles.userDetail}>
-            <Text variant="paragraph">
-              <strong>الحالة:</strong> {model.status === 'active' ? 'نشط' : 'مؤرشف'}
-            </Text>
+
+          <div className={styles.userInfo}>
+            <div className={styles.userDetail}>
+              <Text variant="paragraph">
+                <strong>اسم الموديل:</strong> {model.name}
+              </Text>
+            </div>
+            <div className={styles.userDetail}>
+              <Text variant="paragraph">
+                <strong>الحالة:</strong> {model.status === 'active' ? 'نشط' : 'مؤرشف'}
+              </Text>
+            </div>
+          </div>
+
+          <div className={styles.warningBox}>
+            <AlertTriangle size={20} />
+            <div>
+              <Text variant="small"><strong>تنبيه:</strong> حذف الموديلات غير متوفر حالياً في النظام الخلفي.</Text>
+              <Text variant="small">سيتم وضع علامة للحذف محلياً فقط، ولن يتم الحذف الفعلي من قاعدة البيانات.</Text>
+            </div>
+          </div>
+
+          <div className={styles.deleteActions}>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="outline"
+              disabled={isLoading}
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              loading={isLoading}
+              disabled={isLoading}
+              icon={<Trash2 size={16} />}
+            >
+              {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
+            </Button>
           </div>
         </div>
-
-        <div className={styles.warningBox}>
-          <AlertTriangle size={20} />
-          <div>
-            <Text variant="small"><strong>تنبيه:</strong> حذف الموديلات غير متوفر حالياً في النظام الخلفي.</Text>
-            <Text variant="small">سيتم وضع علامة للحذف محلياً فقط، ولن يتم الحذف الفعلي من قاعدة البيانات.</Text>
-          </div>
-        </div>
-
-        <div className={styles.deleteActions}>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            disabled={isLoading}
-          >
-            إلغاء
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            variant="danger"
-            loading={isLoading}
-            disabled={isLoading}
-            icon={<Trash2 size={16} />}
-          >
-            {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
-          </Button>
-        </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

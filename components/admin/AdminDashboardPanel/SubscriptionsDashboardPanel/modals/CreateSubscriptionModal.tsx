@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
-import { Button, Text } from '@/components/slices';
+import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import styles from './SubscriptionModals.module.scss';
 import { useMetadataStore } from '@/stores/metadataStore';
@@ -36,6 +36,8 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
     }
   }, [isVisible, billingCycles.length, fetchSubscriptionMetadata]);
 
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: '',
     title: '',
@@ -58,27 +60,32 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
-    // Reset form
-    setFormData({
-      name: '',
-      title: '',
-      description: '',
-      price: 0,
-      billingCycle: 'monthly',
-      maxListings: 0,
-      maxImagesPerListing: 0,
-      videoAllowed: false,
-      priorityPlacement: false,
-      analyticsAccess: false,
-      customBranding: false,
-      featuredListings: false,
-      status: 'active',
-      sortOrder: 0,
-      isPublic: true,
-      isDefault: false,
-      accountType: 'all',
-    });
+    setError(null);
+    try {
+      await onSubmit(formData);
+      // Reset form
+      setFormData({
+        name: '',
+        title: '',
+        description: '',
+        price: 0,
+        billingCycle: 'monthly',
+        maxListings: 0,
+        maxImagesPerListing: 0,
+        videoAllowed: false,
+        priorityPlacement: false,
+        analyticsAccess: false,
+        customBranding: false,
+        featuredListings: false,
+        status: 'active',
+        sortOrder: 0,
+        isPublic: true,
+        isDefault: false,
+        accountType: 'all',
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في إنشاء خطة الاشتراك');
+    }
   };
 
   const handleChange = (field: string, value: any) => {
@@ -93,7 +100,7 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
       description="أضف خطة اشتراك جديدة مع تحديد الميزات والحدود"
       maxWidth="xl"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Basic Information */}
         <div className={styles.section}>
           <Text variant="h4">المعلومات الأساسية</Text>
@@ -260,7 +267,7 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
             {isLoading ? 'جاري الإنشاء...' : 'إنشاء الخطة'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

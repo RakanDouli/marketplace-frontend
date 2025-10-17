@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Input, Button, Text } from '@/components/slices';
-import { Mail } from 'lucide-react';
+import { Modal, Input, Button, Text, Form } from '@/components/slices';
+import styles from './DashboardModals.module.scss';
 
 interface ChangeEmailModalProps {
   currentEmail: string;
@@ -51,53 +51,44 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
   };
 
   return (
-    <Modal isVisible={true} onClose={onClose} maxWidth="sm">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <Mail size={24} />
-        <Text variant="h3">تغيير البريد الإلكتروني</Text>
-      </div>
+    <Modal isVisible={true} onClose={onClose} maxWidth="md" title="تغيير البريد الإلكتروني">
+      <Form onSubmit={handleSubmit} error={error || undefined}>
+        <div className={styles.content}>
+          <Input
+            type="email"
+            label="البريد الإلكتروني الحالي"
+            value={currentEmail}
+            disabled
+          />
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <Input
-          type="email"
-          label="البريد الإلكتروني الحالي"
-          value={currentEmail}
-          disabled
-        />
+          <Input
+            type="email"
+            label="البريد الإلكتروني الجديد *"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            required
+            autoComplete="email"
+            placeholder="example@email.com"
+          />
 
-        <Input
-          type="email"
-          label="البريد الإلكتروني الجديد *"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-          required
-          autoComplete="email"
-          placeholder="example@email.com"
-        />
+          <Input
+            type="password"
+            label="كلمة المرور للتأكيد *"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+            placeholder="أدخل كلمة المرور الحالية"
+          />
 
-        <Input
-          type="password"
-          label="كلمة المرور للتأكيد *"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-          placeholder="أدخل كلمة المرور الحالية"
-        />
-
-        <div style={{ backgroundColor: 'rgba(var(--warning-rgb), 0.1)', padding: '12px', borderRadius: '4px' }}>
-          <Text variant="small">
-            ملاحظة: سيتم إرسال رسالة تأكيد إلى البريد الإلكتروني الجديد
-          </Text>
+          <div className={styles.infoBox}>
+            <Text variant="small">
+              ملاحظة: سيتم إرسال رسالة تأكيد إلى البريد الإلكتروني الجديد
+            </Text>
+          </div>
         </div>
 
-        {error && (
-          <div style={{ color: 'var(--error)', fontSize: '14px', padding: '8px 12px', backgroundColor: 'rgba(var(--error-rgb), 0.1)', borderRadius: '4px' }}>
-            {error}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
+        <div className={styles.formActions}>
           <Button variant="outline" onClick={onClose} disabled={isChanging} type="button">
             إلغاء
           </Button>
@@ -105,7 +96,7 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
             {isChanging ? 'جاري التغيير...' : 'تغيير البريد الإلكتروني'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

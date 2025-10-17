@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Button, Text } from '@/components/slices';
-import { AlertTriangle } from 'lucide-react';
+import { Modal, Button, Text, Form } from '@/components/slices';
+import styles from './DashboardModals.module.scss';
 
 interface DeleteAccountModalProps {
   onClose: () => void;
@@ -27,51 +27,40 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   };
 
   return (
-    <Modal isVisible={true} onClose={onClose} maxWidth="sm">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <AlertTriangle size={24} color="var(--error)" />
-        <Text variant="h3" style={{ color: 'var(--error)' }}>
-          حذف الحساب نهائياً
-        </Text>
-      </div>
+    <Modal isVisible={true} onClose={onClose} maxWidth="md" title="حذف الحساب نهائياً">
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.content}>
+          <div className={styles.warningBox}>
+            <Text variant="paragraph" style={{ fontWeight: 600 }}>
+              تحذير: هذا الإجراء لا يمكن التراجع عنه!
+            </Text>
+          </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div style={{ backgroundColor: 'rgba(var(--error-rgb), 0.1)', padding: '12px', borderRadius: '4px' }}>
-          <Text variant="paragraph" style={{ fontWeight: 600 }}>
-            تحذير: هذا الإجراء لا يمكن التراجع عنه!
+          <Text variant="paragraph">
+            سيتم حذف حسابك بشكل نهائي، بما في ذلك:
           </Text>
+
+          <ul className={styles.list}>
+            <li>جميع إعلاناتك </li>
+            <li>معلوماتك الشخصية </li>
+            <li>سجل المعاملات </li>
+            <li> الاشتراكات النشطة</li>
+          </ul>
         </div>
 
-        <Text variant="paragraph">
-          سيتم حذف حسابك بشكل نهائي، بما في ذلك:
-        </Text>
-
-        <ul style={{ paddingRight: '20px', margin: '8px 0' }}>
-          <li>جميع إعلاناتك</li>
-          <li>معلوماتك الشخصية</li>
-          <li>سجل المعاملات</li>
-          <li>الاشتراكات النشطة</li>
-        </ul>
-
-        {error && (
-          <div style={{ color: 'var(--error)', fontSize: '14px', padding: '8px 12px', backgroundColor: 'rgba(var(--error-rgb), 0.1)', borderRadius: '4px' }}>
-            {error}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
-          <Button variant="outline" onClick={onClose} disabled={isDeleting}>
+        <div className={styles.formActions}>
+          <Button variant="outline" onClick={onClose} disabled={isDeleting} type="button">
             إلغاء
           </Button>
           <Button
             variant="secondary"
-            onClick={handleConfirm}
+            type="submit"
             disabled={isDeleting}
           >
             {isDeleting ? 'جاري الحذف...' : 'حذف الحساب نهائياً'}
           </Button>
         </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

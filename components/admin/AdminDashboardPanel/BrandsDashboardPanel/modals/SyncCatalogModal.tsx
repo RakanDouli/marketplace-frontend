@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Modal, Button, Text } from '@/components/slices';
-import { Zap, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import styles from './BrandModals.module.scss';
 
 interface SyncCatalogModalProps {
@@ -20,11 +19,14 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
   categoryName,
   isLoading = false
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
   const handleConfirm = async () => {
+    setError(null);
     try {
       await onConfirm();
-    } catch (error) {
-      // Error is handled by parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في مزامنة الكتالوج');
     }
   };
 
@@ -35,17 +37,13 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
       title="مزامنة كتالوج العلامات التجارية"
       maxWidth="md"
     >
-      <div className={styles.syncModal}>
-        {/* Icon */}
-        <div className={styles.syncIcon}>
-          <Zap size={48} color="var(--primary)" />
-        </div>
-
-        {/* Content */}
-        <div className={styles.syncContent}>
-          <Text variant="h3" className={styles.title}>
-            مزامنة البيانات مع APIs الخارجية
-          </Text>
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.syncModal}>
+          {/* Content */}
+          <div className={styles.syncContent}>
+            <Text variant="h3" className={styles.title}>
+              مزامنة البيانات مع APIs الخارجية
+            </Text>
 
           <Text variant="paragraph" className={styles.description}>
             {categoryName ?
@@ -62,19 +60,15 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
 
             <div className={styles.processList}>
               <div className={styles.processItem}>
-                <CheckCircle size={16} color="var(--success)" />
                 <span>جلب العلامات التجارية الجديدة من APIs الخارجية</span>
               </div>
               <div className={styles.processItem}>
-                <CheckCircle size={16} color="var(--success)" />
                 <span>تحديث الموديلات الموجودة بآخر البيانات</span>
               </div>
               <div className={styles.processItem}>
-                <CheckCircle size={16} color="var(--success)" />
                 <span>إضافة أسماء بديلة جديدة للعلامات</span>
               </div>
               <div className={styles.processItem}>
-                <CheckCircle size={16} color="var(--success)" />
                 <span>معالجة التكرارات تلقائياً</span>
               </div>
             </div>
@@ -83,19 +77,16 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
           {/* Important Notes */}
           <div className={styles.importantNotes}>
             <div className={styles.noteItem}>
-              <AlertCircle size={16} color="var(--info)" />
               <Text variant="small">
                 <strong>ملاحظة:</strong> العلامات التجارية المضافة يدوياً لن تتأثر بهذه العملية
               </Text>
             </div>
             <div className={styles.noteItem}>
-              <Clock size={16} color="var(--warning)" />
               <Text variant="small">
                 <strong>الوقت المتوقع:</strong> قد تستغرق العملية من 2-5 دقائق حسب كمية البيانات
               </Text>
             </div>
             <div className={styles.noteItem}>
-              <Zap size={16} color="var(--primary)" />
               <Text variant="small">
                 <strong>المصادر:</strong> RapidAPI Car Data، ومصادر أخرى معتمدة
               </Text>
@@ -126,10 +117,10 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
           {/* Warning */}
           <div className={styles.warningSection}>
             <Text variant="small" color="warning" className={styles.warningText}>
-              ⚠️ تأكد من وجود اتصال مستقر بالإنترنت قبل البدء
+              تأكد من وجود اتصال مستقر بالإنترنت قبل البدء
             </Text>
             <Text variant="small" color="secondary" className={styles.warningText}>
-              💡 يمكنك متابعة استخدام النظام أثناء المزامنة، وستظهر النتائج عند الانتهاء
+              يمكنك متابعة استخدام النظام أثناء المزامنة، وستظهر النتائج عند الانتهاء
             </Text>
           </div>
         </div>
@@ -140,20 +131,21 @@ export const SyncCatalogModal: React.FC<SyncCatalogModalProps> = ({
             onClick={onClose}
             variant="outline"
             disabled={isLoading}
+            type="button"
           >
             إلغاء
           </Button>
           <Button
-            onClick={handleConfirm}
+            type="submit"
             variant="primary"
             loading={isLoading}
             disabled={isLoading}
-            icon={<Zap size={16} />}
           >
             {isLoading ? 'جاري المزامنة...' : 'بدء المزامنة'}
           </Button>
         </div>
       </div>
+      </Form>
     </Modal>
   );
 };

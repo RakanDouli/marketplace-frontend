@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Input, Text } from '@/components/slices';
+import { Modal, Button, Input, Text, Form } from '@/components/slices';
 import { Trash2, Plus } from 'lucide-react';
 import type { UpdateAttributeInput, Attribute, AttributeOption } from '@/stores/admin/adminAttributesStore';
 import styles from './CategoryModals.module.scss';
@@ -59,6 +59,7 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
 
   const [options, setOptions] = useState<EditableAttributeOptionData[]>([]);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Populate form when attribute changes
   useEffect(() => {
@@ -251,8 +252,8 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
       };
 
       await onSubmit(attribute.id, attributeInput);
-    } catch (error) {
-      // Error is handled by the parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء تحديث الخاصية');
     }
   };
 
@@ -292,10 +293,10 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
       title={`تعديل الخاصية: ${attribute.name}`}
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {isReadOnly && (
           <Text variant="small" color="warning" className={styles.readOnlyNotice}>
-            ⚠️ هذه خاصية أساسية في النظام. بعض الحقول غير قابلة للتعديل.
+            هذه خاصية أساسية في النظام. بعض الحقول غير قابلة للتعديل.
           </Text>
         )}
 
@@ -316,7 +317,6 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
           type="text"
           value={formData.key || ''}
           disabled={true}
-          helpText="لا يمكن تعديل المفتاح بعد الإنشاء"
         />
 
         {/* Attribute Type - READ ONLY */}
@@ -325,7 +325,6 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
           type="text"
           value={formData.type ? (ATTRIBUTE_TYPE_LABELS[formData.type] || formData.type) : ''}
           disabled={true}
-          helpText="لا يمكن تعديل النوع بعد الإنشاء"
         />
 
         {/* Validation - READ ONLY */}
@@ -334,7 +333,6 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
           type="text"
           value={ATTRIBUTE_VALIDATION_LABELS[formData.validation || ''] || formData.validation}
           disabled={true}
-          helpText="لا يمكن تعديل التحقق بعد الإنشاء"
         />
 
         {/* Display Options */}
@@ -413,7 +411,6 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
                   error={validationErrors[`option_${index}_key`]}
                   placeholder="مثال: gasoline, diesel, hybrid"
                   disabled={isLoading || !option.isNew}
-                  helpText={option.isNew ? "سيتم إنشاؤه تلقائياً من القيمة" : "مفتاح الخيارات الموجودة غير قابل للتعديل"}
                 />
                 <Button
                   type="button"
@@ -478,7 +475,7 @@ export const EditAttributeModal: React.FC<EditAttributeModalProps> = ({
             {isLoading ? 'جاري التحديث...' : 'تحديث الخاصية'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

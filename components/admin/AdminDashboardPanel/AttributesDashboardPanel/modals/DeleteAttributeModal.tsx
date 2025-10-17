@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Modal, Button, Text } from '@/components/slices';
-import { AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import type { Attribute } from '@/stores/admin/adminAttributesStore';
 import styles from './CategoryModals.module.scss';
 
@@ -21,13 +20,16 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
   attribute,
   isLoading = false
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
   const handleConfirm = async () => {
     if (!attribute) return;
 
+    setError(null);
     try {
       await onConfirm();
-    } catch (error) {
-      // Error is handled by the parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء حذف الخاصية');
     }
   };
 
@@ -40,30 +42,25 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
       title="حذف الخاصية"
       maxWidth="md"
     >
-      <div className={styles.deleteModalContent}>
-        <div className={styles.warningIcon}>
-          <AlertTriangle size={48} color="var(--error)" />
-        </div>
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.deleteModalContent}>
+          <Text variant="h3" align="center">
+            هل أنت متأكد من حذف هذه الخاصية؟
+          </Text>
 
-        <Text variant="h3" align="center">
-          هل أنت متأكد من حذف هذه الخاصية؟
-        </Text>
-
-        <div className={styles.userInfo}>
-          <Text variant="paragraph" weight="medium">الخاصية المحددة للحذف:</Text>
-          <div className={styles.userDetail}>
-            <Text variant="small"><strong>اسم الخاصية:</strong> {attribute.name}</Text>
-            <Text variant="small"><strong>المفتاح:</strong> {attribute.key}</Text>
-            <Text variant="small"><strong>النوع:</strong> {attribute.type}</Text>
-            {attribute.group && (
-              <Text variant="small"><strong>المجموعة:</strong> {attribute.group}</Text>
-            )}
+          <div className={styles.userInfo}>
+            <Text variant="paragraph" weight="medium">الخاصية المحددة للحذف:</Text>
+            <div className={styles.userDetail}>
+              <Text variant="small"><strong>اسم الخاصية:</strong> {attribute.name}</Text>
+              <Text variant="small"><strong>المفتاح:</strong> {attribute.key}</Text>
+              <Text variant="small"><strong>النوع:</strong> {attribute.type}</Text>
+              {attribute.group && (
+                <Text variant="small"><strong>المجموعة:</strong> {attribute.group}</Text>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.warningBox}>
-          <AlertTriangle size={20} />
-          <div>
+          <div className={styles.warningBox}>
             <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
             <ul>
               <li>ستفقد جميع البيانات المرتبطة بهذه الخاصية في جميع الإعلانات</li>
@@ -74,25 +71,26 @@ export const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
               )}
             </ul>
           </div>
-        </div>
 
-        <div className={styles.deleteActions}>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            disabled={isLoading}
-          >
-            إلغاء
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            variant="danger"
-            disabled={isLoading}
-          >
-            {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
-          </Button>
+          <div className={styles.deleteActions}>
+            <Button
+              onClick={onClose}
+              variant="outline"
+              disabled={isLoading}
+              type="button"
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              disabled={isLoading}
+            >
+              {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
+            </Button>
+          </div>
         </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Button, Input, Text } from '@/components/slices';
+import { Modal, Button, Input, Text, Form } from '@/components/slices';
 import styles from './CategoryModals.module.scss';
 
 interface CreateCategoryModalProps {
@@ -32,6 +32,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
     isActive: true
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Handle input changes
   const handleInputChange = (field: keyof CreateCategoryData, value: any) => {
@@ -101,8 +102,8 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         isActive: true
       });
       setValidationErrors({});
-    } catch (error) {
-      // Error is handled by the parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء إنشاء التصنيف');
     }
   };
 
@@ -124,7 +125,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
       title="إضافة تصنيف جديد"
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Category Name (English) */}
         <Input
           label="اسم التصنيف (بالإنجليزية) *"
@@ -156,7 +157,6 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
           error={validationErrors.slug}
           placeholder="مثال: cars, electronics, real-estate"
           disabled={isLoading}
-          helpText="سيتم إنشاؤه تلقائياً من اسم التصنيف"
         />
 
         {/* Active Status */}
@@ -189,7 +189,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             {isLoading ? 'جاري الإنشاء...' : 'إنشاء التصنيف'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

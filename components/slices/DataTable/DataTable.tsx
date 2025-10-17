@@ -176,7 +176,7 @@ export function DataTable({
           isVisible={true}
           onClose={() => setConfirmAction(null)}
           title="تأكيد الإجراء"
-          maxWidth="sm"
+          maxWidth="md"
         >
           <div className={styles.confirmationModal}>
             <p>{confirmAction.action.confirmationMessage || 'هل أنت متأكد من هذا الإجراء؟'}</p>

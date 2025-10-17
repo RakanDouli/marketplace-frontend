@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/slices';
+import { Button, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { Modal } from '@/components/slices';
-import { User, Mail, Shield, Building, Key } from 'lucide-react';
 import styles from './UserModals.module.scss';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { USER_STATUS_LABELS, USER_ROLE_LABELS, ACCOUNT_TYPE_LABELS, getLabel } from '@/constants/metadata-labels';
@@ -66,6 +65,7 @@ export function EditUserModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [error, setError] = useState<string | null>(null);
   const [fullUserData, setFullUserData] = useState<User | null>(null);
 
   const { getUserById } = useAdminUsersStore();
@@ -141,6 +141,7 @@ export function EditUserModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!validateForm()) {
       return;
@@ -160,8 +161,9 @@ export function EditUserModal({
     try {
       await onSubmit(mappedData);
       onClose();
-    } catch (error) {
-      console.error('Form submission error:', error);
+    } catch (err) {
+      console.error('Form submission error:', err);
+      setError(err instanceof Error ? err.message : 'فشل في تحديث المستخدم');
     }
   };
 
@@ -180,7 +182,7 @@ export function EditUserModal({
       title="تعديل المستخدم"
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Name Field */}
         <Input
           label="الاسم الكامل"
@@ -197,41 +199,29 @@ export function EditUserModal({
         {/* Email Field - Read Only */}
         <div className={styles.field}>
           <label className={styles.label}>
-            <Mail size={16} />
             البريد الإلكتروني
           </label>
           <div className={styles.readOnlyField}>
             {formData.email}
           </div>
-          <p className={styles.helpText}>
-            💡 البريد الإلكتروني لا يمكن تعديله لأسباب أمنية
-          </p>
         </div>
 
         {/* Role Display - Read-only */}
         <div className={styles.field}>
           <label className={styles.label}>
-            <Shield size={16} />
             الدور الحالي
           </label>
           <div className={styles.readOnlyField}>
             {getRoleLabel(formData.role)}
           </div>
-          <p className={styles.helpText}>
-            💡 لتغيير دور المستخدم، استخدم نظام إدارة الأدوار المخصص لضمان الأمان
-          </p>
         </div>
 
         {/* Password Reset Section */}
         <div className={styles.field}>
           <label className={styles.label}>
-            <Key size={16} />
             إعادة تعيين كلمة المرور
           </label>
           <div className={styles.passwordResetSection}>
-            <p className={styles.helpText}>
-              إرسال رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني: <strong>{formData.email}</strong>
-            </p>
             <Button
               type="button"
               variant="outline"
@@ -248,27 +238,19 @@ export function EditUserModal({
               }}
               disabled={isLoading || !onResetPassword}
             >
-              <Key size={16} />
               إرسال رابط إعادة التعيين
             </Button>
-            <p className={styles.securityNote}>
-              🔒 سيتم إرسال رابط آمن للمستخدم عبر البريد الإلكتروني
-            </p>
           </div>
         </div>
 
         {/* Account Type Field - Read Only */}
         <div className={styles.field}>
           <label className={styles.label}>
-            <Building size={16} />
             نوع الحساب
           </label>
           <div className={styles.readOnlyField}>
             {getAccountTypeLabel(formData.accountType)}
           </div>
-          <p className={styles.helpText}>
-            💡 نوع الحساب يتم تحديده من قبل المستخدم ولا يمكن تعديله من لوحة الإدارة
-          </p>
         </div>
 
         {/* Seller Badge Field - Read Only */}
@@ -279,9 +261,6 @@ export function EditUserModal({
           <div className={styles.readOnlyField}>
             {formData.accountBadge || 'غير محدد'}
           </div>
-          <p className={styles.helpText}>
-            💡 شارة البائع يتم منحها بناءً على نظام التقييم والتحقق
-          </p>
         </div>
 
         {/* Status Field */}
@@ -346,7 +325,7 @@ export function EditUserModal({
             {isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }

@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Button, Text } from '@/components/slices';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useBrandsStore } from '@/stores/admin/adminBrandsStore';
-import { AlertTriangle } from 'lucide-react';
 import styles from './BrandModals.module.scss';
 
 
@@ -31,12 +30,15 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
   isLoading: propIsLoading = false
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
   const { deleteBrand } = useBrandsStore();
+
   const handleConfirm = async () => {
     if (!brand) return;
 
     setIsLoading(true);
+    setError(null);
     try {
       // Call the store's delete function
       await deleteBrand(brand.id);
@@ -49,16 +51,12 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
       });
 
       onClose();
-    } catch (error) {
-      console.error('Error deleting brand:', error);
-      addNotification({
-        type: 'error',
-        title: 'خطأ في الحذف',
-        message: 'فشل في حذف العلامة التجارية. يرجى المحاولة مرة أخرى.',
-        duration: 5000
-      });
+    } catch (err) {
+      console.error('Error deleting brand:', err);
+      setError(err instanceof Error ? err.message : 'فشل في حذف العلامة التجارية');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   if (!brand) {
@@ -75,29 +73,24 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
       title="حذف العلامة التجارية"
       maxWidth="md"
     >
-      <div className={styles.deleteModalContent}>
-        <div className={styles.warningIcon}>
-          <AlertTriangle size={48} color="var(--error)" />
-        </div>
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.deleteModalContent}>
+          <Text variant="h3" align="center">
+            هل أنت متأكد من حذف هذه العلامة التجارية؟
+          </Text>
 
-        <Text variant="h3" align="center">
-          هل أنت متأكد من حذف هذه العلامة التجارية؟
-        </Text>
-
-        <div className={styles.userInfo}>
-          <Text variant="paragraph" weight="medium">العلامة التجارية المحددة للحذف:</Text>
-          <div className={styles.userDetail}>
-            <Text variant="small"><strong>اسم العلامة:</strong> {brand.name}</Text>
-            <Text variant="small"><strong>المصدر:</strong> {brand.source?.toLowerCase() === 'manual' ? 'يدوي' : 'مزامنة'}</Text>
-            {hasModels && (
-              <Text variant="small"><strong>عدد الموديلات:</strong> {brand.modelsCount}</Text>
-            )}
+          <div className={styles.userInfo}>
+            <Text variant="paragraph" weight="medium">العلامة التجارية المحددة للحذف:</Text>
+            <div className={styles.userDetail}>
+              <Text variant="small"><strong>اسم العلامة:</strong> {brand.name}</Text>
+              <Text variant="small"><strong>المصدر:</strong> {brand.source?.toLowerCase() === 'manual' ? 'يدوي' : 'مزامنة'}</Text>
+              {hasModels && (
+                <Text variant="small"><strong>عدد الموديلات:</strong> {brand.modelsCount}</Text>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.warningBox}>
-          <AlertTriangle size={20} />
-          <div>
+          <div className={styles.warningBox}>
             <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
             <ul>
               <li>لا يمكن التراجع عن هذا الإجراء</li>
@@ -106,25 +99,26 @@ export const DeleteBrandModal: React.FC<DeleteBrandModalProps> = ({
               {isFromSync && <li>قد تعود العلامة عند المزامنة التالية (مزامنة من API خارجي)</li>}
             </ul>
           </div>
-        </div>
 
-        <div className={styles.deleteActions}>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            disabled={isLoading}
-          >
-            إلغاء
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            variant="danger"
-            disabled={isLoading}
-          >
-            {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
-          </Button>
+          <div className={styles.deleteActions}>
+            <Button
+              onClick={onClose}
+              variant="outline"
+              disabled={isLoading}
+              type="button"
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              disabled={isLoading}
+            >
+              {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
+            </Button>
+          </div>
         </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

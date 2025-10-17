@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Input, Text } from '@/components/slices';
+import { Modal, Button, Input, Text, Form } from '@/components/slices';
 import { Trash2, Plus } from 'lucide-react';
 import type { CreateAttributeInput } from '@/stores/admin/adminAttributesStore';
 import styles from './CategoryModals.module.scss';
@@ -58,6 +58,7 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
 
   const [options, setOptions] = useState<AttributeOptionData[]>([]);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Reset form when categoryId changes
   useEffect(() => {
@@ -198,14 +199,14 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
 
       // Debug: Log options being sent
       if (options.length > 0) {
-        console.log('📤 Options being sent:', options);
-        console.log('📤 Option keys:', options.map(o => o.key));
+        console.log('Options being sent:', options);
+        console.log('Option keys:', options.map(o => o.key));
 
         // Check for duplicates
         const keys = options.map(o => o.key.toLowerCase());
         const uniqueKeys = new Set(keys);
         if (keys.length !== uniqueKeys.size) {
-          console.error('❌ DUPLICATE KEYS DETECTED:', keys);
+          console.error('DUPLICATE KEYS DETECTED:', keys);
         }
       }
 
@@ -213,8 +214,8 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
 
       // Reset form on success
       resetForm();
-    } catch (error) {
-      // Error is handled by the parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء إنشاء الخاصية');
     }
   };
 
@@ -249,7 +250,7 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
       title="إضافة خاصية جديدة"
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Attribute Name */}
         <Input
           label="اسم الخاصية *"
@@ -270,7 +271,6 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
           error={validationErrors.key}
           placeholder="مثال: fuel_type, car_color, doors_count"
           disabled={isLoading}
-          helpText="سيتم إنشاؤه تلقائياً من اسم الخاصية"
         />
 
         {/* Attribute Type */}
@@ -360,7 +360,6 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
                   error={validationErrors[`option_${index}_value`]}
                   placeholder="مثال: بنزين، ديزل، هايبرد"
                   disabled={isLoading}
-                  helpText=""
 
                 />
                 <Input
@@ -371,7 +370,6 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
                   error={validationErrors[`option_${index}_key`]}
                   placeholder="مثال: gasoline, diesel, hybrid"
                   disabled={isLoading}
-                  helpText="سيتم إنشاؤه تلقائياً من القيمة"
                 />
                 <Button
                   type="button"
@@ -413,7 +411,7 @@ export const CreateAttributeModal: React.FC<CreateAttributeModalProps> = ({
             {isLoading ? 'جاري الإنشاء...' : 'إنشاء الخاصية'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

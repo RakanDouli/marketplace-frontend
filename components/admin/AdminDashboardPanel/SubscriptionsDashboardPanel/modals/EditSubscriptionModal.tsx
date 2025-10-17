@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
-import { Button, Text } from '@/components/slices';
+import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import styles from './SubscriptionModals.module.scss';
 import { useMetadataStore } from '@/stores/metadataStore';
@@ -59,6 +59,8 @@ export const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
     }
   }, [isVisible, billingCycles.length, fetchSubscriptionMetadata]);
 
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -107,7 +109,12 @@ export const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    setError(null);
+    try {
+      await onSubmit(formData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في تحديث خطة الاشتراك');
+    }
   };
 
   const handleChange = (field: string, value: any) => {
@@ -122,7 +129,7 @@ export const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
       description="تعديل بيانات وميزات الخطة"
       maxWidth="xl"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Basic Information */}
         <div className={styles.section}>
           <Text variant="h4">المعلومات الأساسية</Text>
@@ -289,7 +296,7 @@ export const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
             {isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

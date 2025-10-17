@@ -327,6 +327,7 @@ export const useAdminUsersStore = create<AdminUsersStore>((set, get) => ({
 
     try {
       const { id, ...updateData } = input;
+
       const data = await makeGraphQLCall(UPDATE_USER_MUTATION, {
         id,
         input: updateData,

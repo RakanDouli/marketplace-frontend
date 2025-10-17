@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/slices';
+import { Button, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { Modal } from '@/components/slices';
-import { Eye, EyeOff, User, Mail, Shield } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import styles from './UserModals.module.scss';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { USER_STATUS_LABELS } from '@/constants/metadata-labels';
@@ -52,6 +52,7 @@ export function CreateUserModal({
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch user statuses from centralized metadata store
   useEffect(() => {
@@ -108,6 +109,7 @@ export function CreateUserModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!validateForm()) {
       return;
@@ -118,8 +120,9 @@ export function CreateUserModal({
       const submitData = mapValuesToGraphQLFormats(formData);
       await onSubmit(submitData);
       onClose();
-    } catch (error) {
-      console.error('Form submission error:', error);
+    } catch (err) {
+      console.error('Form submission error:', err);
+      setError(err instanceof Error ? err.message : 'فشل في إنشاء المستخدم');
     }
   };
 
@@ -138,7 +141,7 @@ export function CreateUserModal({
       title="إضافة مستخدم إداري جديد"
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Name Field */}
         <Input
           label="الاسم الكامل"
@@ -190,7 +193,7 @@ export function CreateUserModal({
 
         {/* Role Field */}
         <Input
-          label="الدور الإداري"
+          label="الدور الإداري *"
           type="select"
           value={formData.role}
           onChange={(e) => handleInputChange('role', e.target.value)}
@@ -198,7 +201,6 @@ export function CreateUserModal({
           validate={createUserFieldValidator('role', 'create')}
           error={validationErrors.role}
           required
-          helpText="💡 يتم إنشاء حسابات إدارية فقط. المستخدمون العاديون يسجلون من الموقع الرئيسي"
           options={[
             { value: '', label: 'اختر الدور' },
             ...roles
@@ -241,7 +243,7 @@ export function CreateUserModal({
             {isLoading ? 'جاري الإنشاء...' : 'إنشاء حساب إداري'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }

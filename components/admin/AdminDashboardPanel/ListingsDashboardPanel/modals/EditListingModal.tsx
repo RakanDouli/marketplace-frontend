@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Text, Modal, Loading } from '@/components/slices';
+import { Button, Text, Modal, Loading, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { ImageGallery } from '@/components/slices/ImageGallery/ImageGallery';
 import { Listing } from '@/types/listing';
@@ -27,6 +27,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
     status: listing.status,
   });
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailedListing, setDetailedListing] = useState<Listing | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(true);
@@ -64,6 +65,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     // Validate form
     const newValidationErrors = validateListingStatusForm(formData);
@@ -79,8 +81,9 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
         status: formData.status as Listing['status'],
         // TODO: Add moderation notes field to Listing type and backend
       });
-    } catch (error) {
-      console.error('Save error:', error);
+    } catch (err) {
+      console.error('Save error:', err);
+      setError(err instanceof Error ? err.message : 'فشل في حفظ التغييرات');
     } finally {
       setIsSubmitting(false);
     }
@@ -365,7 +368,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} error={error || undefined}>
         {/* Status Selection */}
         <Input
           type="select"
@@ -396,7 +399,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
             {isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات'}
           </Button>
         </div>
-      </form>
+      </Form>
 
       {/* Block User Confirmation Modal */}
       <ConfirmBlockUserModal

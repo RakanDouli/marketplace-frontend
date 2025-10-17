@@ -1,0 +1,102 @@
+@import "@/styles/variables";
+
+// Form container
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-right: $space-xs;
+}
+
+// Content container (non-scrolling)
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+// Section dividers
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid var(--border);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+// .sectionTitle {
+//   color: var(--primary);
+//   margin-bottom: $space-xxs;
+// }
+
+// Field groups
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.fieldLabel {
+  font-weight: 600;
+}
+
+.fieldActions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+
+  button {
+    align-self: flex-start;
+  }
+}
+
+.fieldHint {
+  color: var(--text-secondary);
+}
+
+// Info/Warning boxes
+.infoBox {
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  background-color: rgba(var(--warning-rgb), 0.1);
+}
+
+.warningBox {
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  background-color: rgba(var(--error-rgb), 0.1);
+
+  p {
+    font-weight: 600;
+  }
+}
+
+// Lists
+.list {
+  padding-right: 20px;
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  li {
+    margin-bottom: $space-xs;
+    font-size: $font-sm;
+    margin-right: $space-md;
+  }
+}
+
+// Form actions (buttons at bottom)
+.formActions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: space-between;
+  margin-top: $space-md;
+  padding-top: $space-md;
+}

@@ -38,3 +38,5 @@ export { Collapsible } from "./Collapsible";
 export { SortableList, SortableItem } from "./SortableList";
 export type { SortableItemData } from "./SortableList";
 export { InlineEdit } from "./InlineEdit";
+export { ImageUploadGrid } from "./ImageUploadGrid";
+export type { ImageItem } from "./ImageUploadGrid";

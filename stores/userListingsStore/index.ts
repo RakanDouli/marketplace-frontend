@@ -4,12 +4,13 @@ import {
   MY_LISTINGS_QUERY,
   MY_LISTINGS_COUNT_QUERY,
   MY_LISTING_BY_ID_QUERY,
+  CREATE_MY_LISTING_MUTATION,
   UPDATE_MY_LISTING_MUTATION,
   DELETE_MY_LISTING_MUTATION,
 } from './userListingsStore.gql';
 import { Listing } from '../types';
 
-export type ListingStatus = 'active' | 'draft' | 'sold' | 'hidden' | 'sold_via_platform';
+export type ListingStatus = 'ACTIVE' | 'DRAFT' | 'SOLD' | 'HIDDEN' | 'PENDING_APPROVAL' | 'REJECTED' | 'SOLD_VIA_PLATFORM';
 
 interface UserListingsState {
   listings: Listing[];
@@ -33,6 +34,9 @@ interface UserListingsActions {
 
   // Load single listing by ID
   loadMyListingById: (id: string) => Promise<void>;
+
+  // Create listing
+  createMyListing: (input: any) => Promise<Listing>;
 
   // Update listing
   updateMyListing: (id: string, input: any) => Promise<void>;
@@ -137,6 +141,29 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
         error: error.message || 'Failed to load listing',
         loading: false,
       });
+    }
+  },
+
+  createMyListing: async (input: any) => {
+    set({ loading: true, error: null });
+
+    try {
+      const data = await cachedGraphQLRequest(CREATE_MY_LISTING_MUTATION, {
+        input,
+      });
+
+      // Invalidate cache and refresh listings
+      invalidateGraphQLCache('myListings');
+      await get().refreshMyListings();
+
+      set({ loading: false });
+      return data.createMyListing;
+    } catch (error: any) {
+      set({
+        error: error.message || 'Failed to create listing',
+        loading: false,
+      });
+      throw error;
     }
   },
 

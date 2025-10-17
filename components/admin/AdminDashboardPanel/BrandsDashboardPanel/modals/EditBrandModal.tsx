@@ -225,18 +225,18 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
   // Handle brand form submission
   const handleBrandSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔥 SAVE BUTTON CLICKED!');
-    console.log('📝 Brand form data:', brandFormData);
-    console.log('📋 Local models:', localModels);
-    console.log('🆕 New models:', localModels.filter(m => m.isNew));
-    console.log('✏️ Modified models:', localModels.filter(m => m.isModified));
+    console.log('SAVE BUTTON CLICKED!');
+    console.log('Brand form data:', brandFormData);
+    console.log('Local models:', localModels);
+    console.log('New models:', localModels.filter(m => m.isNew));
+    console.log('Modified models:', localModels.filter(m => m.isModified));
 
     // Validate form
     const newValidationErrors = validateBrandForm(brandFormData);
     setBrandValidationErrors(newValidationErrors);
 
     if (Object.keys(newValidationErrors).length > 0) {
-      console.log('❌ Validation errors:', newValidationErrors);
+      console.log('Validation errors:', newValidationErrors);
       return;
     }
 
@@ -250,20 +250,20 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
       };
 
       // First save the brand changes
-      console.log('🚀 Calling onSubmit with:', formattedBrandData);
-      console.log('📄 Initial data:', initialData);
+      console.log('Calling onSubmit with:', formattedBrandData);
+      console.log('Initial data:', initialData);
       await onSubmit(formattedBrandData);
-      console.log('✅ Brand onSubmit completed successfully');
+      console.log('Brand onSubmit completed successfully');
 
       // Then handle all model changes using the store methods
-      console.log('🔄 Processing models...');
+      console.log('Processing models...');
       let newModelCount = 0;
       let modifiedModelCount = 0;
       let deletedModelCount = 0;
 
       for (const model of localModels) {
         if (model.isNew) {
-          console.log('🆕 Creating new model:', {
+          console.log('Creating new model:', {
             brandId: initialData!.id,
             name: model.name,
             externalId: model.externalId,
@@ -279,7 +279,7 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
           });
           newModelCount++;
         } else if (model.isModified) {
-          console.log('✏️ Updating existing model:', {
+          console.log('Updating existing model:', {
             id: model.id,
             brandId: initialData!.id,
             name: model.name,
@@ -293,14 +293,14 @@ export const EditBrandModal: React.FC<EditBrandModalProps> = ({
           });
           modifiedModelCount++;
         } else if (model.isDeleted) {
-          console.log('🗑️ Skipping deleted model (delete not implemented in backend):', model.id);
+          console.log('Skipping deleted model (delete not implemented in backend):', model.id);
           // Note: Backend doesn't have deleteModel mutation, so we skip this
           // The model is already removed from localModels in handleDeleteModel
           deletedModelCount++;
         }
       }
 
-      console.log(`📊 Models processed: ${newModelCount} created, ${modifiedModelCount} modified, ${deletedModelCount} deleted`);
+      console.log(`Models processed: ${newModelCount} created, ${modifiedModelCount} modified, ${deletedModelCount} deleted`);
 
       addNotification({
         type: 'success',

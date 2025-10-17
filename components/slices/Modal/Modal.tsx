@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { Button } from '../';
+import { Button, Text } from '../';
 import styles from './Modal.module.scss';
 
 export interface ModalProps {
@@ -12,7 +12,7 @@ export interface ModalProps {
   onClose?: () => void;
   children: React.ReactNode;
   className?: string;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  maxWidth?: 'md' | 'lg' | 'xl';
   title?: string;
   description?: string;
 }
@@ -80,6 +80,9 @@ export const Modal: React.FC<ModalProps> = ({
         `.trim()}
       >
         {/* Close Button */}
+
+        {/* <div className={styles.modalHeader}> */}
+
         {closeable && (
           <button
             className={styles.modalClose}
@@ -91,12 +94,13 @@ export const Modal: React.FC<ModalProps> = ({
           </button>
         )}
 
+        {/* </div> */}
         {/* Modal Content */}
         <div className={styles.modalContent}>
           {title && (
-            <h2 id="modal-title" className={styles.modalTitle}>
-              {title}
-            </h2>
+            <Text variant="h3" className={styles.modalTitle}>
+              {title} {""}
+            </Text>
           )}
           {description && (
             <p id="modal-description" className={styles.modalDescription}>

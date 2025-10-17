@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, Text } from '@/components/slices';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
 import { useNotificationStore } from '@/stores';
 import styles from './ConfirmBlockUserModal.module.scss';
@@ -25,6 +25,7 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
   onSuccess,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { updateUser } = useAdminListingsStore();
   const { addNotification } = useNotificationStore();
 
@@ -32,6 +33,7 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
     if (!user) return;
 
     setIsLoading(true);
+    setError(null);
     try {
       const newStatus = isBlocking ? 'BANNED' : 'ACTIVE';
       const result = await updateUser({ id: user.id, status: newStatus });
@@ -45,7 +47,6 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
           type: 'success',
           title: '',
           message,
-
         });
 
         onClose();
@@ -54,25 +55,14 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
         const errorMessage = isBlocking
           ? 'فشل في حظر المستخدم'
           : 'فشل في إلغاء حظر المستخدم';
-
-        addNotification({
-          type: 'error',
-          title: '',
-          message: errorMessage,
-        });
+        setError(errorMessage);
       }
-    } catch (error) {
-      console.error('Error updating user status:', error);
+    } catch (err) {
+      console.error('Error updating user status:', err);
       const errorMessage = isBlocking
         ? 'فشل في حظر المستخدم'
         : 'فشل في إلغاء حظر المستخدم';
-
-      addNotification({
-        type: 'error',
-        title: '',
-        message: errorMessage,
-
-      });
+      setError(err instanceof Error ? err.message : errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -84,67 +74,70 @@ export const ConfirmBlockUserModal: React.FC<ConfirmBlockUserModalProps> = ({
       title={isBlocking ? "حظر المستخدم" : "إلغاء حظر المستخدم"}
       maxWidth="md"
     >
-      <div className={styles.modalContent}>
-        <Text variant="h3" align="center">
-          {isBlocking
-            ? "هل أنت متأكد من حظر هذا المستخدم؟"
-            : "هل أنت متأكد من إلغاء حظر هذا المستخدم؟"
-          }
-        </Text>
-
-        <div className={styles.userInfo}>
-          <Text variant="paragraph" weight="medium">المستخدم المحدد:</Text>
-          <div className={styles.userDetail}>
-            <Text variant="small"><strong>الاسم:</strong> {user?.name || 'غير محدد'}</Text>
-            <Text variant="small"><strong>البريد الإلكتروني:</strong> {user?.email || ''}</Text>
-            <Text variant="small"><strong>الحالة الحالية:</strong> {user?.status === 'BANNED' ? 'محظور' : 'نشط'}</Text>
-          </div>
-        </div>
-
-        <div className={isBlocking ? styles.warningBox : styles.infoBox}>
-          <div>
-            <Text variant="small" weight="bold" color={isBlocking ? "error" : "secondary"}>
-              {isBlocking ? "تحذير مهم:" : "النتيجة:"}
-            </Text>
-            <ul>
-              {isBlocking ? (
-                <>
-                  <li>سيتم منع المستخدم من تسجيل الدخول</li>
-                  <li>لن يتمكن من إنشاء عروض جديدة</li>
-                  <li>ستظل عروضه الحالية مرئية</li>
-                  <li>يمكن إلغاء الحظر لاحقاً</li>
-                </>
-              ) : (
-                <>
-                  <li>سيتمكن المستخدم من تسجيل الدخول</li>
-                  <li>يمكنه إنشاء عروض جديدة</li>
-                  <li>سيعود حسابه إلى الحالة النشطة</li>
-                </>
-              )}
-            </ul>
-          </div>
-        </div>
-
-        <div className={styles.actions}>
-          <Button
-            onClick={onClose}
-            variant="secondary"
-            disabled={isLoading}
-          >
-            إلغاء
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            variant={isBlocking ? "danger" : "primary"}
-            disabled={isLoading}
-          >
-            {isLoading
-              ? (isBlocking ? "جاري الحظر..." : "جاري إلغاء الحظر...")
-              : (isBlocking ? "تأكيد الحظر" : "تأكيد إلغاء الحظر")
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.modalContent}>
+          <Text variant="h3" align="center">
+            {isBlocking
+              ? "هل أنت متأكد من حظر هذا المستخدم؟"
+              : "هل أنت متأكد من إلغاء حظر هذا المستخدم؟"
             }
-          </Button>
+          </Text>
+
+          <div className={styles.userInfo}>
+            <Text variant="paragraph" weight="medium">المستخدم المحدد:</Text>
+            <div className={styles.userDetail}>
+              <Text variant="small"><strong>الاسم:</strong> {user?.name || 'غير محدد'}</Text>
+              <Text variant="small"><strong>البريد الإلكتروني:</strong> {user?.email || ''}</Text>
+              <Text variant="small"><strong>الحالة الحالية:</strong> {user?.status === 'BANNED' ? 'محظور' : 'نشط'}</Text>
+            </div>
+          </div>
+
+          <div className={isBlocking ? styles.warningBox : styles.infoBox}>
+            <div>
+              <Text variant="small" weight="bold" color={isBlocking ? "error" : "secondary"}>
+                {isBlocking ? "تحذير مهم:" : "النتيجة:"}
+              </Text>
+              <ul>
+                {isBlocking ? (
+                  <>
+                    <li>سيتم منع المستخدم من تسجيل الدخول</li>
+                    <li>لن يتمكن من إنشاء عروض جديدة</li>
+                    <li>ستظل عروضه الحالية مرئية</li>
+                    <li>يمكن إلغاء الحظر لاحقاً</li>
+                  </>
+                ) : (
+                  <>
+                    <li>سيتمكن المستخدم من تسجيل الدخول</li>
+                    <li>يمكنه إنشاء عروض جديدة</li>
+                    <li>سيعود حسابه إلى الحالة النشطة</li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <div className={styles.actions}>
+            <Button
+              onClick={onClose}
+              variant="secondary"
+              disabled={isLoading}
+              type="button"
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              variant={isBlocking ? "danger" : "primary"}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? (isBlocking ? "جاري الحظر..." : "جاري إلغاء الحظر...")
+                : (isBlocking ? "تأكيد الحظر" : "تأكيد إلغاء الحظر")
+              }
+            </Button>
+          </div>
         </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

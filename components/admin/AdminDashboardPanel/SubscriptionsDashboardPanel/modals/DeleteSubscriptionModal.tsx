@@ -1,9 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Modal } from '@/components/slices/Modal/Modal';
-import { Button, Text } from '@/components/slices';
-import { AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import styles from './SubscriptionModals.module.scss';
 
 interface Subscription {
@@ -29,10 +27,17 @@ export const DeleteSubscriptionModal: React.FC<DeleteSubscriptionModalProps> = (
   subscription,
   isLoading
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
   if (!subscription) return null;
 
   const handleConfirm = async () => {
-    await onConfirm();
+    setError(null);
+    try {
+      await onConfirm();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء حذف الخطة');
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -56,45 +61,40 @@ export const DeleteSubscriptionModal: React.FC<DeleteSubscriptionModalProps> = (
       title="حذف خطة الاشتراك"
       maxWidth="md"
     >
-      <div className={styles.deleteModalContent}>
-        <div className={styles.warningIcon}>
-          <AlertTriangle size={48} color="var(--error)" />
-        </div>
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.deleteModalContent}>
+          <Text variant="h3" align="center">
+            هل أنت متأكد من حذف هذه الخطة؟
+          </Text>
 
-        <Text variant="h3" align="center">
-          هل أنت متأكد من حذف هذه الخطة؟
-        </Text>
-
-        <div className={styles.subscriptionInfo}>
-          <Text variant="paragraph" weight="medium">الخطة المحددة للحذف:</Text>
-          <div className={styles.subscriptionDetail}>
-            <Text variant="small"><strong>العنوان:</strong> {subscription.title}</Text>
-            <Text variant="small"><strong>المعرف:</strong> {subscription.name}</Text>
-            <Text variant="small"><strong>السعر:</strong> {formatPrice(subscription.price)}</Text>
-            <Text variant="small"><strong>دورة الفوترة:</strong> {getBillingCycleLabel(subscription.billingCycle)}</Text>
+          <div className={styles.subscriptionInfo}>
+            <Text variant="paragraph" weight="medium">الخطة المحددة للحذف:</Text>
+            <div className={styles.subscriptionDetail}>
+              <Text variant="small"><strong>العنوان:</strong> {subscription.title}</Text>
+              <Text variant="small"><strong>المعرف:</strong> {subscription.name}</Text>
+              <Text variant="small"><strong>السعر:</strong> {formatPrice(subscription.price)}</Text>
+              <Text variant="small"><strong>دورة الفوترة:</strong> {getBillingCycleLabel(subscription.billingCycle)}</Text>
+            </div>
           </div>
-        </div>
 
-        <div className={styles.warningBox}>
-          <AlertTriangle size={20} />
-          <div>
+          <div className={styles.warningBox}>
             <Text variant="small" weight="bold" color="error">تحذير مهم:</Text>
             <Text variant="small" color="secondary">
               لا يمكن التراجع عن هذا الإجراء. سيتم حذف الخطة نهائيًا من النظام.
               المستخدمون الذين لديهم هذه الخطة حاليًا لن يتأثروا، لكن لن يمكن للمستخدمين الجدد الاشتراك فيها.
             </Text>
           </div>
-        </div>
 
-        <div className={styles.deleteActions}>
-          <Button onClick={onClose} variant="secondary" disabled={isLoading}>
-            إلغاء
-          </Button>
-          <Button onClick={handleConfirm} variant="danger" disabled={isLoading}>
-            {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
-          </Button>
+          <div className={styles.deleteActions}>
+            <Button onClick={onClose} variant="secondary" disabled={isLoading} type="button">
+              إلغاء
+            </Button>
+            <Button type="submit" variant="danger" disabled={isLoading}>
+              {isLoading ? 'جاري الحذف...' : 'تأكيد الحذف'}
+            </Button>
+          </div>
         </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

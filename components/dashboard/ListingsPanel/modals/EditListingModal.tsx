@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Text, Modal, Loading } from '@/components/slices';
+import { Button, Text, Modal, Loading, Form, ImageUploadGrid, ImageItem } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
-import { ImageGallery } from '@/components/slices/ImageGallery/ImageGallery';
 import { Listing } from '@/types/listing';
 import { useUserListingsStore } from '@/stores/userListingsStore';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { LISTING_STATUS_LABELS, mapToOptions } from '@/constants/metadata-labels';
 import styles from './EditListingModal.module.scss';
 
 interface EditListingModalProps {
@@ -23,13 +24,24 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
     title: listing.title,
     description: listing.description || '',
     priceMinor: listing.priceMinor,
+    status: listing.status,
     allowBidding: listing.allowBidding,
     biddingStartPrice: listing.biddingStartPrice,
   });
+  const [images, setImages] = useState<ImageItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [detailedListing, setDetailedListing] = useState<Listing | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(true);
   const { loadMyListingById } = useUserListingsStore();
+  const { listingStatuses, fetchListingMetadata } = useMetadataStore();
+
+  // Fetch listing statuses on mount
+  useEffect(() => {
+    if (listingStatuses.length === 0) {
+      fetchListingMetadata();
+    }
+  }, [listingStatuses.length, fetchListingMetadata]);
 
   // Fetch detailed listing data from backend
   const fetchListingDetails = async () => {
@@ -38,6 +50,15 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
       await loadMyListingById(listing.id);
       const currentListing = useUserListingsStore.getState().currentListing;
       setDetailedListing(currentListing);
+
+      // Initialize images from existing listing
+      if (currentListing?.images) {
+        const existingImages: ImageItem[] = currentListing.images.map((img, index) => ({
+          id: `existing-${index}`,
+          url: img.url,
+        }));
+        setImages(existingImages);
+      }
     } catch (error) {
       console.error('Failed to fetch listing details:', error);
       // Fallback to basic listing data if API fails
@@ -54,15 +75,16 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     // Basic validation
     if (!formData.title.trim()) {
-      alert('يرجى إدخال عنوان الإعلان');
+      setError('يرجى إدخال عنوان الإعلان');
       return;
     }
 
     if (formData.priceMinor <= 0) {
-      alert('يرجى إدخال سعر صحيح');
+      setError('يرجى إدخال سعر صحيح');
       return;
     }
 
@@ -71,12 +93,14 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
       await onSave({
         title: formData.title,
         description: formData.description,
-        priceMinor: formData.priceMinor,
+        priceMinor: Math.round(formData.priceMinor), // Ensure integer for minor units
+        status: formData.status,
         allowBidding: formData.allowBidding,
-        biddingStartPrice: formData.biddingStartPrice,
+        biddingStartPrice: formData.biddingStartPrice ? Math.round(formData.biddingStartPrice) : undefined,
       });
-    } catch (error) {
-      console.error('Save error:', error);
+    } catch (err) {
+      console.error('Save error:', err);
+      setError(err instanceof Error ? err.message : 'فشل في حفظ التغييرات');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,17 +150,15 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
             </div>
           </div>
 
-          {/* Image Gallery */}
-          {detailedListing.images && detailedListing.images.length > 0 && (
-            <div className={styles.imagesSection}>
-              <Text variant="h4" className={styles.imagesSectionTitle}>صور الإعلان ({detailedListing.images.length})</Text>
-              <ImageGallery
-                images={detailedListing.images.map(img => img.url)}
-                alt={detailedListing.title}
-                viewMode="large"
-              />
-            </div>
-          )}
+          {/* Image Upload Grid */}
+          <div className={styles.imagesSection}>
+            <ImageUploadGrid
+              images={images}
+              onChange={setImages}
+              maxImages={20}
+              disabled={isSubmitting}
+            />
+          </div>
 
           {/* Specifications (Read-only) */}
           {detailedListing.specsDisplay && Object.keys(detailedListing.specsDisplay).length > 0 && (
@@ -159,7 +181,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
         </>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} error={error || undefined}>
         {/* Editable Fields */}
         <div className={styles.editSection}>
           <Text variant="h4" className={styles.sectionTitle}>معلومات الإعلان</Text>
@@ -189,11 +211,21 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
             type="number"
             label="السعر (بالدولار) *"
             placeholder="أدخل السعر"
-            value={formData.priceMinor / 100}
-            onChange={(e) => setFormData({ ...formData, priceMinor: parseFloat(e.target.value) * 100 })}
+            value={Math.round(formData.priceMinor / 100)}
+            onChange={(e) => setFormData({ ...formData, priceMinor: parseFloat(e.target.value || '0') * 100 })}
             required
             min={0}
             step={1}
+          />
+
+          {/* Status */}
+          <Input
+            type="select"
+            label="حالة الإعلان *"
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+            options={mapToOptions(listingStatuses, LISTING_STATUS_LABELS)}
+            required
           />
 
           {/* Bidding Options */}
@@ -212,10 +244,10 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
                 type="number"
                 label="سعر البداية للمزايدة (بالدولار)"
                 placeholder="أدخل سعر البداية"
-                value={formData.biddingStartPrice ? formData.biddingStartPrice / 100 : ''}
+                value={formData.biddingStartPrice ? Math.round(formData.biddingStartPrice / 100) : ''}
                 onChange={(e) => setFormData({
                   ...formData,
-                  biddingStartPrice: e.target.value ? parseFloat(e.target.value) * 100 : undefined
+                  biddingStartPrice: e.target.value ? parseFloat(e.target.value || '0') * 100 : undefined
                 })}
                 min={0}
                 step={1}
@@ -242,7 +274,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
             {isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

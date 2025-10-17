@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Modal, Button, Text } from '@/components/slices';
+import React, { useState } from 'react';
+import { Modal, Button, Text, Form } from '@/components/slices';
 import styles from './CategoryModals.module.scss';
 
 interface DeleteCategoryModalProps {
@@ -19,11 +19,14 @@ export const DeleteCategoryModal: React.FC<DeleteCategoryModalProps> = ({
   category,
   isLoading = false
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
   const handleConfirm = async () => {
+    setError(null);
     try {
       await onConfirm();
-    } catch (error) {
-      // Error is handled by the parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء حذف التصنيف');
     }
   };
 
@@ -34,14 +37,13 @@ export const DeleteCategoryModal: React.FC<DeleteCategoryModalProps> = ({
       isVisible={isVisible}
       onClose={onClose}
       title="تأكيد حذف التصنيف"
-      maxWidth="sm"
+      maxWidth="md"
     >
-      <div className={styles.deleteContent}>
-        <div className={styles.warningIcon}>⚠️</div>
-
-        <Text variant="h4" className={styles.warningTitle}>
-          هل أنت متأكد من حذف هذا التصنيف؟
-        </Text>
+      <Form onSubmit={(e) => { e.preventDefault(); handleConfirm(); }} error={error || undefined}>
+        <div className={styles.deleteContent}>
+          <Text variant="h4" className={styles.warningTitle}>
+            هل أنت متأكد من حذف هذا التصنيف؟
+          </Text>
 
         <div className={styles.categoryDetails}>
           <Text variant="paragraph" color="secondary">
@@ -58,27 +60,27 @@ export const DeleteCategoryModal: React.FC<DeleteCategoryModalProps> = ({
           </Text>
         </div>
 
-        {/* Form Actions */}
-        <div className={styles.formActions}>
-          <Button
-            type="button"
-            onClick={onClose}
-            variant="outline"
-            disabled={isLoading}
-          >
-            إلغاء
-          </Button>
-          <Button
-            type="button"
-            onClick={handleConfirm}
-            variant="danger"
-            loading={isLoading}
-            disabled={isLoading}
-          >
-            {isLoading ? 'جاري الحذف...' : 'حذف التصنيف'}
-          </Button>
+          {/* Form Actions */}
+          <div className={styles.formActions}>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="outline"
+              disabled={isLoading}
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              loading={isLoading}
+              disabled={isLoading}
+            >
+              {isLoading ? 'جاري الحذف...' : 'حذف التصنيف'}
+            </Button>
+          </div>
         </div>
-      </div>
+      </Form>
     </Modal>
   );
 };

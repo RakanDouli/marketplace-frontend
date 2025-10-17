@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Button, Input, Text } from '@/components/slices';
+import { Modal, Button, Input, Text, Form } from '@/components/slices';
 import { validateBrandForm } from '@/lib/admin/validation/brandValidation';
 import styles from './BrandModals.module.scss';
 
@@ -34,6 +34,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
     status: 'active'
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Handle input changes
   const handleInputChange = (field: keyof CreateBrandData, value: any) => {
@@ -60,6 +61,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
     e.preventDefault();
 
     if (!categoryId) {
+      setError('لا يوجد تصنيف محدد');
       return;
     }
 
@@ -74,6 +76,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
     }
 
     try {
+      setError(null);
       await onSubmit(formData);
       // Reset form on success
       setFormData({
@@ -84,7 +87,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
       });
       setValidationErrors({});
     } catch (error) {
-      // Error is handled by the parent component
+      setError(error instanceof Error ? error.message : 'حدث خطأ أثناء إنشاء العلامة التجارية');
     }
   };
 
@@ -110,7 +113,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
       title="إضافة علامة تجارية جديدة"
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined}>
         {/* Brand Name */}
         <Input
           label="اسم العلامة التجارية *"
@@ -145,7 +148,7 @@ export const CreateBrandModal: React.FC<CreateBrandModalProps> = ({
             {isLoading ? 'جاري الإنشاء...' : 'إنشاء العلامة التجارية'}
           </Button>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 };

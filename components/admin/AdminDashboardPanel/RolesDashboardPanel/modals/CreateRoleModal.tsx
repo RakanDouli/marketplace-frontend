@@ -10,7 +10,6 @@ import {
   createFieldValidator,
   type ValidationErrors
 } from '@/lib/admin/validation/roleValidation';
-import { Settings, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import styles from './RoleModal.module.scss';
 
 interface CreateRoleModalProps {
@@ -196,26 +195,13 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
           <div className={styles.stepContent}>
             <div className={styles.permissionsHeader}>
               <div className={styles.permissionsInfo}>
-                <Settings size={20} />
                 <span>الصلاحيات المحددة: {getPermissionCount()}</span>
               </div>
               <div className={styles.permissionsLegend}>
-                <div className={styles.legendItem}>
-                  <Eye size={16} />
-                  <span>عرض</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <Plus size={16} />
-                  <span>إنشاء</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <Edit size={16} />
-                  <span>تعديل</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <Trash2 size={16} />
-                  <span>حذف</span>
-                </div>
+                <span>عرض</span>
+                <span>إنشاء</span>
+                <span>تعديل</span>
+                <span>حذف</span>
               </div>
             </div>
 
@@ -249,8 +235,7 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
                         onClick={() => handlePermissionChange(feature.name, 'view', !featurePerms.view)}
                         title="صلاحية العرض"
                       >
-                        <Eye size={16} />
-                        <span>عرض</span>
+                        عرض
                       </button>
 
                       <button
@@ -259,8 +244,7 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
                         onClick={() => handlePermissionChange(feature.name, 'create', !featurePerms.create)}
                         title="صلاحية الإنشاء"
                       >
-                        <Plus size={16} />
-                        <span>إنشاء</span>
+                        إنشاء
                       </button>
 
                       <button
@@ -269,8 +253,7 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
                         onClick={() => handlePermissionChange(feature.name, 'modify', !featurePerms.modify)}
                         title="صلاحية التعديل"
                       >
-                        <Edit size={16} />
-                        <span>تعديل</span>
+                        تعديل
                       </button>
 
                       <button
@@ -279,8 +262,7 @@ export const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
                         onClick={() => handlePermissionChange(feature.name, 'delete', !featurePerms.delete)}
                         title="صلاحية الحذف"
                       >
-                        <Trash2 size={16} />
-                        <span>حذف</span>
+                        حذف
                       </button>
                     </div>
                   </div>

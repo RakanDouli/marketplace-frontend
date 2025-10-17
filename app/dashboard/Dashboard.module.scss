@@ -9,22 +9,8 @@
 .menuButton {
   position: relative;
   display: none;
-  margin-bottom: $space-md;
   padding: $space-md;
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  align-items: center;
-  justify-content: center;
-  gap: $space-sm;
-
-  &:hover {
-    background: $surface;
-  }
-
+  margin-bottom: $space-md !important;
   @media (max-width: $breakpoint-lg) {
     display: flex;
   }
@@ -41,13 +27,6 @@
 }
 
 // Aside - Desktop: sticky sidebar
-.aside {
-  @media (min-width: $breakpoint-lg) {
-    position: relative;
-    top: $space-md;
-    height: fit-content;
-  }
-}
 
 .nav {
   display: flex;
@@ -78,7 +57,6 @@
 .initials {
   font-size: $font-xl;
   font-weight: $weight-bold;
-  color: white;
   user-select: none;
 }
 

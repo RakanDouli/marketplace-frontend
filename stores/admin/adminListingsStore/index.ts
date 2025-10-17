@@ -290,7 +290,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
     try {
       const data = await makeGraphQLCall(MODERATE_LISTING_STATUS_MUTATION, {
         id,
-        status: status.toUpperCase(), // Backend expects uppercase status
+        status,
       });
 
       const updatedListing = data.moderateListingStatus;
