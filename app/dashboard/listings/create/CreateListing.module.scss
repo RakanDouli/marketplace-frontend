@@ -1,0 +1,67 @@
+@import "@/styles/variables";
+
+.container {
+  padding: $space-xl 0;
+  min-height: 100vh;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md 0;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $space-xl;
+
+  @media (max-width: $breakpoint-sm) {
+    margin-bottom: $space-lg;
+  }
+}
+
+.subtitle {
+  color: $text-secondary;
+  margin-top: $space-sm;
+}
+
+.formContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  padding: $space-xl;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-lg;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+    border-radius: $radius-md;
+  }
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  min-height: 300px;
+}
+
+.stepDescription {
+  color: $text-secondary;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  padding: $space-xl;
+  background-color: rgba($primary, 0.05);
+  border: 2px dashed $border;
+  border-radius: $radius-md;
+  text-align: center;
+  min-height: 200px;
+}

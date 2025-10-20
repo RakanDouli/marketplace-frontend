@@ -12,6 +12,7 @@ import { SubscriptionsDashboardPanel } from '@/components/admin/AdminDashboardPa
 import { Button, Text, Container } from '@/components/slices';
 import { ArrowLeft } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
+import { AuditDashboardPanel } from '@/components/admin/AdminDashboardPanel/AuditDashboardPanel';
 
 // Admin Page Content - simplified without wrapper
 const AdminPageContent = ({ children }: { children: React.ReactNode }) => (
@@ -99,10 +100,12 @@ function AdminPageInner({ params }: AdminPageProps) {
       case 'categories':
       case 'attributes':
         return AttributesDashboardPanel;
-      case 'subscriptions':
-      case 'user-subscriptions':
+      // case 'subscriptions':
+      // case 'user-subscriptions':
       case 'user_subscriptions':
         return SubscriptionsDashboardPanel;
+      case 'audit_logs':
+        return AuditDashboardPanel;
       default:
         return null;
     }

@@ -1,0 +1,341 @@
+@import "../../../../../styles/variables.scss";
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-md 0;
+}
+
+.passwordField,
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordToggle {
+  position: absolute;
+  left: $space-sm;
+  background: none;
+  border: none;
+  color: $text-muted;
+  cursor: pointer;
+  padding: $space-xs;
+  border-radius: $radius-sm;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $text;
+  }
+
+  &:focus {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.readOnlyField {
+  padding: $space-sm;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  color: $text;
+  font-weight: $weight-medium;
+}
+
+.helpText {
+  color: $text-muted;
+  margin-top: $space-xs;
+  line-height: $line-normal;
+}
+
+.passwordResetSection {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  .helpText {
+    margin: 0;
+    color: $text;
+  }
+
+  button {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+  }
+}
+
+.securityNote {
+  color: $text-muted;
+  margin: 0;
+  padding: $space-sm;
+  background: $info-bg;
+  border-radius: $radius-sm;
+  border-left: 3px solid $info;
+}
+
+.actions {
+  display: flex;
+  gap: $space-md;
+  justify-content: flex-end;
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+.deleteModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-md 0;
+}
+
+.warningIcon {
+  color: $error;
+  display: flex;
+  justify-content: center;
+}
+
+.userInfo {
+  width: 100%;
+  text-align: right;
+}
+
+.userDetail {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  margin-top: $space-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.warningBox {
+  background: $error-bg;
+  border: 1px solid $error-border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  display: flex;
+  gap: $space-md;
+  align-items: flex-start;
+  width: 100%;
+  text-align: right;
+
+  svg {
+    color: $error;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: $space-xs;
+  }
+}
+
+.deleteActions {
+  display: flex;
+  gap: $space-md;
+  justify-content: center;
+  width: 100%;
+}
+
+@media (max-width: $breakpoint-md) {
+  .form {
+    gap: $space-md;
+  }
+
+  .actions,
+  .deleteActions {
+    flex-direction: column-reverse;
+    gap: $space-sm;
+  }
+
+  .passwordResetSection {
+    button {
+      align-self: stretch;
+    }
+  }
+}
+
+// Audit Preview Styles
+.auditPreviewContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xl;
+  padding: $space-md 0;
+}
+
+.auditInfoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding: $space-md;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+}
+
+.infoRow {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: $space-md;
+  align-items: start;
+  padding: $space-xs 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid $border;
+    padding-bottom: $space-sm;
+  }
+}
+
+.jsonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.jsonSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.jsonHeader {
+  background: $surface;
+  padding: $space-sm $space-md;
+  border-bottom: 1px solid $border;
+}
+
+.jsonContent {
+  background: $surface;
+  max-height: 400px;
+  overflow: auto;
+}
+
+.jsonBlock {
+  margin: 0;
+  padding: $space-md;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: $text;
+  background: transparent;
+  white-space: pre-wrap;
+  word-break: break-word;
+  direction: ltr;
+  text-align: left;
+}
+
+@media (max-width: $breakpoint-md) {
+  .infoRow {
+    grid-template-columns: 1fr;
+    gap: $space-xs;
+  }
+
+  .jsonContent {
+    max-height: 300px;
+  }
+}
+
+// Detailed Changes Styles
+.changesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xl;
+}
+
+.changeSection {
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.changeSectionHeader {
+  background: $surface;
+  padding: $space-md;
+  border-bottom: 2px solid $border;
+}
+
+.changeSectionContent {
+  padding: $space-md;
+  background: $bg;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.changeRow {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: $space-md;
+  padding: $space-sm 0;
+  align-items: start;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid $border;
+    padding-bottom: $space-md;
+    margin-bottom: $space-md;
+  }
+}
+
+.changeKey {
+  color: $text-secondary;
+  font-weight: $weight-semibold;
+  word-break: break-word;
+}
+
+.changeValue {
+  color: $text;
+  word-break: break-word;
+}
+
+.jsonInline {
+  margin: 0;
+  padding: $space-sm;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: $text;
+  white-space: pre-wrap;
+  word-break: break-word;
+  direction: ltr;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emptyChanges {
+  padding: $space-xl;
+  text-align: center;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+}
+
+@media (max-width: $breakpoint-md) {
+  .changeRow {
+    grid-template-columns: 1fr;
+    gap: $space-sm;
+  }
+
+  .changeSectionContent {
+    max-height: 400px;
+  }
+}

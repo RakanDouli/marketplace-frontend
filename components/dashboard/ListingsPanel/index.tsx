@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Loading, Text, Table, TableHead, TableBody, TableRow, TableCell, Pagination } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
-import { EditListingModal, DeleteListingModal, CreateListingModal } from './modals';
+import { EditListingModal, DeleteListingModal } from './modals';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore';
 import { useMetadataStore } from '@/stores/metadataStore';
@@ -13,6 +14,7 @@ import { Listing } from '@/types/listing';
 import styles from './ListingsPanel.module.scss';
 
 export const ListingsPanel: React.FC = () => {
+  const router = useRouter();
   const { addNotification } = useNotificationStore();
 
   // Use user listings store
@@ -31,7 +33,6 @@ export const ListingsPanel: React.FC = () => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [listingToDelete, setListingToDelete] = useState<Listing | null>(null);
 
@@ -77,9 +78,9 @@ export const ListingsPanel: React.FC = () => {
     loadMyListings(filters, 1);
   };
 
-  // Handle create listing
+  // Handle create listing - navigate to create page
   const handleCreateListing = () => {
-    setShowCreateModal(true);
+    router.push('/dashboard/listings/create');
   };
 
   // Handle edit listing
@@ -120,28 +121,6 @@ export const ListingsPanel: React.FC = () => {
     }
   };
 
-  // Handle create save
-  const handleCreateSave = async (listingData: any) => {
-    try {
-      // TODO: Implement create mutation in userListingsStore
-      addNotification({
-        type: 'success',
-        title: 'تم إنشاء الإعلان بنجاح',
-        message: 'تم إضافة الإعلان الجديد بنجاح',
-        duration: 3000
-      });
-      setShowCreateModal(false);
-      await loadMyListings(filters, 1);
-    } catch (error) {
-      console.error('Create listing error:', error);
-      addNotification({
-        type: 'error',
-        title: 'فشل في إنشاء الإعلان',
-        message: 'حدث خطأ أثناء إنشاء الإعلان',
-        duration: 5000
-      });
-    }
-  };
 
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
@@ -361,14 +340,6 @@ export const ListingsPanel: React.FC = () => {
         />
       )}
 
-      {showCreateModal && (
-        <CreateListingModal
-          onClose={() => {
-            setShowCreateModal(false);
-          }}
-          onSave={handleCreateSave}
-        />
-      )}
     </>
   );
 };

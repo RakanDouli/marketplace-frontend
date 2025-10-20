@@ -40,3 +40,7 @@ export type { SortableItemData } from "./SortableList";
 export { InlineEdit } from "./InlineEdit";
 export { ImageUploadGrid } from "./ImageUploadGrid";
 export type { ImageItem } from "./ImageUploadGrid";
+export { StepIndicator } from "./StepIndicator";
+export type { StepIndicatorProps } from "./StepIndicator";
+export { MultiStepForm } from "./MultiStepForm";
+export type { MultiStepFormProps } from "./MultiStepForm";

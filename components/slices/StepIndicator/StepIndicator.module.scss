@@ -1,0 +1,124 @@
+@import "@/styles/variables";
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-xs;
+  padding: $space-md 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-sm 0;
+    gap: $space-xs;
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-xs;
+  position: relative;
+  min-width: 80px;
+  flex: 1;
+
+  @media (max-width: $breakpoint-sm) {
+    min-width: 60px;
+    gap: $space-xs;
+  }
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover .indicator {
+      transform: scale(1.1);
+    }
+  }
+}
+
+.indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: $surface;
+  border: 2px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-secondary;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  z-index: 1;
+
+  @media (max-width: $breakpoint-sm) {
+    width: 28px;
+    height: 28px;
+  }
+
+  .step.active & {
+    background-color: $primary;
+    border-color: $primary;
+    color: white;
+  }
+
+  .step.completed & {
+    background-color: $success;
+    border-color: $success;
+    color: white;
+  }
+}
+
+.stepNumber {
+  font-size: 0.875rem;
+  line-height: 1;
+
+  @media (max-width: $breakpoint-sm) {
+    font-size: 0.75rem;
+  }
+}
+
+.stepTitle {
+  text-align: center;
+  color: $text-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+
+  @media (max-width: $breakpoint-sm) {
+    max-width: 60px;
+    font-size: 0.65rem;
+  }
+
+  &.activeTitle {
+    color: $primary;
+    font-weight: 600;
+  }
+
+  .step.completed & {
+    color: $text;
+  }
+}
+
+.connector {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background-color: $border;
+  z-index: 0;
+
+  @media (max-width: $breakpoint-sm) {
+    top: 14px;
+  }
+
+  .step.completed & {
+    background-color: $success;
+  }
+
+  .step:last-child & {
+    display: none;
+  }
+}

@@ -19,3 +19,5 @@ export { useAttributesStore } from "./adminAttributesStore";
 
 // Subscriptions management
 export { useAdminSubscriptionsStore } from "./adminSubscriptionsStore";
+
+export { useAdminAuditStore } from "./adminAuditStore";

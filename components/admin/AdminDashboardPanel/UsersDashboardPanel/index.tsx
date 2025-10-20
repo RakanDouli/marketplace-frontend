@@ -244,7 +244,7 @@ export const UsersDashboardPanel: React.FC = () => {
               options={[
                 { value: "", label: "جميع الأدوار" },
                 ...roles.map(role => ({
-                  value: role.name.toLowerCase(),
+                  value: role.name,
                   label: role.name
                 }))
               ]}
