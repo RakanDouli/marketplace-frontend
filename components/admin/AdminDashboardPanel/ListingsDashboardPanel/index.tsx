@@ -80,7 +80,7 @@ export const ListingsDashboardPanel: React.FC = () => {
     const delayedSearch = setTimeout(() => {
       setFilters({
         search: searchTerm || undefined,
-        status: statusFilter || undefined,
+        status: statusFilter ? statusFilter.toUpperCase() : undefined, // Convert to uppercase for GraphQL
         categoryId: categoryFilter || undefined,
       });
       loadListingsWithCache(1, true); // Force refresh when filters change

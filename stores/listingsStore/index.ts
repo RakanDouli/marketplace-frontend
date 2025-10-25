@@ -191,7 +191,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
       // Convert frontend filter format to backend GraphQL format
       const graphqlFilter: any = {
-        status: "ACTIVE", // Default filter for active listings only
+        status: "ACTIVE", // Default filter for active listings only (uppercase for GraphQL enum)
       };
 
       // Category filter - use categoryId string instead of category enum
@@ -297,7 +297,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             specs, // English keys for backend processing and filtering
             specsDisplay, // Arabic keys and values for frontend display
             imageKeys: item.imageKeys || [], // Store raw keys, optimize per usage
-            accountType: item.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
+            accountType: item.accountType as "individual" | "dealer" | "business",
             createdAt: item.createdAt,
             updatedAt: item.createdAt,
           };
@@ -435,7 +435,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         specs,
         specsDisplay,
         imageKeys: item.imageKeys || [],
-        accountType: item.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
+        accountType: item.accountType as "individual" | "dealer" | "business",
         createdAt: item.createdAt,
         updatedAt: item.createdAt,
         location: item.location,
@@ -449,10 +449,10 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           name: item.user.name,
           email: '',
           role: '',
-          status: 'ACTIVE' as const,
-          accountType: item.user.accountType as "INDIVIDUAL" | "DEALER" | "BUSINESS",
+          status: 'active' as const,
+          accountType: item.user.accountType as "individual" | "dealer" | "business",
           companyName: undefined,
-          accountBadge: 'NONE' as const,
+          accountBadge: 'none' as const,
           businessVerified: false,
           phone: item.user.phone,
           createdAt: item.createdAt,

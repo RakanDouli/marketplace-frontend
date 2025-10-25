@@ -63,7 +63,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
       {/* Error Message */}
       {error && (
         <div className={styles.error}>
-          <Text variant="body2" color="danger">
+          <Text variant="paragraph" color="error">
             {error}
           </Text>
         </div>

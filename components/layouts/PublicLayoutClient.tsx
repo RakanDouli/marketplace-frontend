@@ -29,10 +29,11 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
     }
   }, [isAuthenticated, user]);
 
-  // Don't show public header for admin routes
+  // Don't show public header for admin routes or public campaign reports
   const isAdminRoute = pathname?.startsWith('/admin');
+  const isPublicReport = pathname?.startsWith('/public/campaign-report');
 
-  if (isAdminRoute) {
+  if (isAdminRoute || isPublicReport) {
     return <>{children}</>;
   }
 

@@ -91,6 +91,14 @@
   gap: $space-md;
 }
 
+// Ad Section
+.adSection {
+  margin: $space-md 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 // Action Buttons (Share & Favorite)
 .actionButtons {
   display: flex;
@@ -132,14 +140,14 @@
   margin: 0 0 $space-sm 0;
 }
 
-// Grouped Specifications
-.specGroup {
-  margin-bottom: $space-sm;
+// // Grouped Specifications
+// .specGroup {
+//   margin-bottom: $space-sm;
 
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
+//   &:last-child {
+//     margin-bottom: 0;
+//   }
+// }
 
 .specsList {
   display: grid;

@@ -25,11 +25,6 @@ export const USER_STATUS_LABELS: Record<string, string> = {
   pending: "معلق",
   inactive: "غير نشط",
   banned: "محظور",
-  // Uppercase variants (for backward compatibility)
-  ACTIVE: "نشط",
-  PENDING: "معلق",
-  INACTIVE: "غير نشط",
-  BANNED: "محظور",
 };
 
 export const USER_ROLE_LABELS: Record<string, string> = {
@@ -38,22 +33,12 @@ export const USER_ROLE_LABELS: Record<string, string> = {
   admin: "مدير",
   super_admin: "مدير عام",
   ads_manager: "مدير إعلانات",
-  // Uppercase variants (for backward compatibility)
-  USER: "مستخدم",
-  EDITOR: "محرر",
-  ADMIN: "مدير",
-  SUPER_ADMIN: "مدير عام",
-  ADS_MANAGER: "مدير إعلانات",
 };
 
 export const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   individual: "فردي",
   dealer: "تاجر",
   business: "شركة",
-  // Uppercase variants (for backward compatibility)
-  INDIVIDUAL: "فردي",
-  DEALER: "تاجر",
-  BUSINESS: "شركة",
 };
 
 // ===== USER/SELLER BADGE LABELS =====
@@ -62,10 +47,6 @@ export const ACCOUNT_BADGE_LABELS: Record<string, string> = {
   none: "بدون شارة",
   verified: "موثق",
   premium: "مميز",
-  // Uppercase variants (for backward compatibility)
-  NONE: "بدون شارة",
-  VERIFIED: "موثق",
-  PREMIUM: "مميز",
 };
 
 // ===== LISTING METADATA LABELS =====
@@ -77,13 +58,6 @@ export const LISTING_STATUS_LABELS: Record<string, string> = {
   sold: "تم البيع",
   sold_via_platform: "تم البيع عبر المنصة",
   hidden: "مخفي",
-  // Uppercase variants (for backward compatibility)
-  DRAFT: "مسودة",
-  PENDING_APPROVAL: "في الانتظار",
-  ACTIVE: "نشط",
-  SOLD: "تم البيع",
-  SOLD_VIA_PLATFORM: "تم البيع عبر المنصة",
-  HIDDEN: "مخفي",
 };
 
 // ===== SUBSCRIPTION METADATA LABELS =====
@@ -92,20 +66,12 @@ export const BILLING_CYCLE_LABELS: Record<string, string> = {
   free: "مجاني",
   monthly: "شهري",
   yearly: "سنوي",
-  // Uppercase variants
-  FREE: "مجاني",
-  MONTHLY: "شهري",
-  YEARLY: "سنوي",
 };
 
 export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   active: "نشطة",
   inactive: "غير نشطة",
   deprecated: "متوقفة",
-  // Uppercase variants
-  ACTIVE: "نشطة",
-  INACTIVE: "غير نشطة",
-  DEPRECATED: "متوقفة",
 };
 
 export const SUBSCRIPTION_ACCOUNT_TYPE_LABELS: Record<string, string> = {

@@ -100,10 +100,51 @@
 // Status Badges
 .statusBadge {
   padding: $space-xs $space-sm;
-  border-radius: $radius-base;
+  border-radius: $radius-sm;
   text-align: center;
   min-width: fit-content;
   display: inline-block;
+  font-size: $font-sm;
+  font-weight: 600;
+  white-space: nowrap;
+
+  // Ad Campaign Status Variants
+  &.draft {
+    background-color: $surface;
+    color: $text-secondary;
+    border: 1px solid $border;
+  }
+
+  &.paymentSent {
+    background-color: $warning-bg;
+    color: $warning;
+  }
+
+  &.paid {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+
+  &.active {
+    background-color: $success-bg;
+    color: $success;
+  }
+
+  &.paused {
+    background-color: $warning-bg;
+    color: $warning;
+  }
+
+  &.completed {
+    background-color: $surface;
+    color: $text-secondary;
+    border: 1px solid $border;
+  }
+
+  &.cancelled {
+    background-color: $error-bg;
+    color: $error;
+  }
 }
 
 .active {
@@ -407,6 +448,44 @@
   }
 }
 
+// Settings Section (for AdSense, etc.)
+.settingsSection {
+  margin-top: $space-xl;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+}
+
+.settingsGrid {
+  display: grid;
+  gap: $space-md;
+  margin-top: $space-md;
+}
+
+.settingRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: $space-md;
+  align-items: center;
+  padding: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+}
+
+.settingField {
+  flex: 1;
+}
+
+.settingLabel {
+  margin-bottom: $space-xs;
+}
+
+.settingToggle {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  cursor: pointer;
+}
+
 // Responsive
 @media (max-width: $breakpoint-md) {
   .dashboardPanel {
@@ -454,5 +533,14 @@
     flex-direction: column;
     gap: $space-xs;
     text-align: center;
+  }
+
+  .settingRow {
+    grid-template-columns: 1fr;
+    gap: $space-sm;
+  }
+
+  .settingToggle {
+    justify-content: space-between;
   }
 }

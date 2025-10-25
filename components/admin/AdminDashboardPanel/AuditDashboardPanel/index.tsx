@@ -52,10 +52,13 @@ export const AuditDashboardPanel: React.FC = () => {
 
   // Search handler
   const handleSearch = () => {
+    // Check if searchTerm is a valid UUID format
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchTerm);
+
     const newFilters = {
-      userEmail: searchTerm || undefined,
+      userEmail: (!isUUID && searchTerm) || undefined,
       userRole: roleFilter || undefined,
-      entityId: searchTerm || undefined
+      entityId: (isUUID && searchTerm) || undefined
     };
     setFilters(newFilters);
     loadAudits(newFilters, 1);
@@ -129,10 +132,13 @@ export const AuditDashboardPanel: React.FC = () => {
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
+              // Check if searchTerm is a valid UUID format
+              const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchTerm);
+
               const newFilters = {
-                userEmail: searchTerm || undefined,
+                userEmail: (!isUUID && searchTerm) || undefined,
                 userRole: e.target.value || undefined,
-                entityId: searchTerm || undefined
+                entityId: (isUUID && searchTerm) || undefined
               };
               setFilters(newFilters);
               loadAudits(newFilters, 1);

@@ -13,6 +13,11 @@ import { Button, Text, Container } from '@/components/slices';
 import { ArrowLeft } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { AuditDashboardPanel } from '@/components/admin/AdminDashboardPanel/AuditDashboardPanel';
+import { AdPackagesDashboardPanel } from '@/components/admin/AdminDashboardPanel/AdPackagesDashboardPanel';
+import { AdCampaignsDashboardPanel } from '@/components/admin/AdminDashboardPanel/AdCampaignsDashboardPanel';
+import { AdClientsDashboardPanel } from '@/components/admin/AdminDashboardPanel/AdClientsDashboardPanel';
+import { AdReportsDashboardPanel } from '@/components/admin/AdminDashboardPanel/AdReportsDashboardPanel';
+import { PlaceholderDashboardPanel } from '@/components/admin/AdminDashboardPanel/PlaceholderDashboardPanel';
 
 // Admin Page Content - simplified without wrapper
 const AdminPageContent = ({ children }: { children: React.ReactNode }) => (
@@ -106,6 +111,14 @@ function AdminPageInner({ params }: AdminPageProps) {
         return SubscriptionsDashboardPanel;
       case 'audit_logs':
         return AuditDashboardPanel;
+      case 'ad_packages':
+        return AdPackagesDashboardPanel;
+      case 'ad_clients':
+        return AdClientsDashboardPanel;
+      case 'ad_campaigns':
+        return AdCampaignsDashboardPanel;
+      case 'ad_reports':
+        return AdReportsDashboardPanel;
       default:
         return null;
     }

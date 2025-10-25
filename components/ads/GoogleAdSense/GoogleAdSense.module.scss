@@ -1,0 +1,13 @@
+@import "../../../styles/variables";
+
+.googleAdSense {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 90px; // Minimum height for banner ads
+
+  @media (max-width: $breakpoint-sm) {
+    min-height: 250px; // Rectangle ad on mobile
+  }
+}

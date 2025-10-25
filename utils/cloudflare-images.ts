@@ -224,3 +224,74 @@ export function createThumbnail(originalUrl: string): string {
     fit: "cover",
   });
 }
+
+/**
+ * Optimizes ad images using IAB standard variants
+ * Maps to the ad-specific variants you have configured in Cloudflare Images
+ */
+export function optimizeAdImage(
+  imageUrl: string,
+  adType: "banner" | "card" | "video",
+  deviceType: "desktop" | "mobile" = "desktop"
+): string {
+  // In development, optimize Unsplash URLs for testing
+  if (IS_DEVELOPMENT && imageUrl.includes('unsplash.com')) {
+    const sizeMap = {
+      banner: {
+        desktop: { w: 970, h: 90 },   // IAB Super Leaderboard
+        mobile: { w: 300, h: 250 },   // IAB Medium Rectangle
+      },
+      card: {
+        desktop: { w: 300, h: 250 },  // IAB Medium Rectangle
+        mobile: { w: 300, h: 250 },
+      },
+      video: {
+        desktop: { w: 1280, h: 720 }, // 16:9 HD
+        mobile: { w: 720, h: 720 },   // 1:1 Square
+      },
+    };
+
+    const dimensions = sizeMap[adType][deviceType];
+    const url = new URL(imageUrl);
+    url.searchParams.set('w', dimensions.w.toString());
+    url.searchParams.set('h', dimensions.h.toString());
+    url.searchParams.set('q', '85');
+    url.searchParams.set('fit', 'crop');
+    return url.toString();
+  }
+
+  // For production, use Cloudflare Images with ad-specific variants
+  if (!CLOUDFLARE_DOMAIN || !CLOUDFLARE_IMAGES_HASH) {
+    return imageUrl;
+  }
+
+  // If it's already a properly formed Cloudflare Images URL, return as-is
+  if (imageUrl.includes(`${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/`)) {
+    return imageUrl;
+  }
+
+  // Extract image ID from the URL
+  const imageId = extractImageId(imageUrl);
+  if (!imageId) {
+    return imageUrl; // Can't extract ID, return original
+  }
+
+  // Map ad type and device to Cloudflare variant names
+  const variantMap = {
+    banner: {
+      desktop: 'adBannerDesk',  // 970x90
+      mobile: 'adBannerMob',    // 300x250
+    },
+    card: {
+      desktop: 'adCard',        // 300x250
+      mobile: 'adCard',         // 300x250
+    },
+    video: {
+      desktop: 'adVideoDesk',   // 1280x720
+      mobile: 'adVideoMob',     // 720x720
+    },
+  };
+
+  const variant = variantMap[adType][deviceType];
+  return `https://${CLOUDFLARE_DOMAIN}/${CLOUDFLARE_IMAGES_HASH}/${imageId}/${variant}`;
+}

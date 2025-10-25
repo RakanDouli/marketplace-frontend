@@ -135,6 +135,12 @@
   }
 }
 
+// Ad slot styling for between-listings ads
+.adSlot {
+  width: 100%;
+  margin: $space-sm 0;
+}
+
 // Pagination wrapper - just spacing since Pagination component has its own styles
 .pagination {
   margin-top: $space-xl;

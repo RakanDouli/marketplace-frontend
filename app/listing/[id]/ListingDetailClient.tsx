@@ -9,6 +9,7 @@ import { Phone, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { LocationMap } from '@/components/LocationMap';
 import { ShareButton, FavoriteButton } from '@/components/slices/Button';
+import { AdContainer } from '@/components/ads';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -225,6 +226,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   return (
     <Container>
+      {/* Top Banner Ad (below gallery) */}
+      <div className={styles.adSection}>
+        <AdContainer type="BANNER" placement="detail-top" />
+      </div>
       <div className={styles.listingDetail}>
         {/* Breadcrumbs with Back Button */}
         <div className={styles.breadcrumbsContainer}>
@@ -249,6 +254,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
           </nav>
         </div>
 
+
         <div className={styles.layout}>
           {/* Left side - Gallery and Details */}
           <div className={styles.mainContent}>
@@ -260,6 +266,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               aspectRatio="4 / 3"
               priority
             />
+
 
             {/* Title */}
             <Text variant="h2" className={styles.title}>
@@ -292,10 +299,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                 </div>
               </div>
             )}
-
+            {/* sss */}
             {/* Dynamically Grouped Specifications */}
             {!attributesLoading && sortedGroups.length > 0 && (
-              <div className={styles.section}>
+              <>
                 {sortedGroups.map(([groupName, groupData]) => (
                   <CollapsibleSection
                     key={groupName}
@@ -313,9 +320,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                     </div>
                   </CollapsibleSection>
                 ))}
-              </div>
+              </>
             )}
-
+            {/* ww */}
             {/* Description - Moved after attributes */}
             {listing.description && (
               <div className={styles.section}>
@@ -338,6 +345,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                 <LocationMap location={listing.location} />
               </div>
             )}
+
+
           </div>
 
           {/* Right side - Seller Card (Sticky) */}
@@ -405,6 +414,11 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             </div>
           </aside>
         </div>
+
+      </div>
+      {/* Bottom Banner Ad (after all content) */}
+      <div className={styles.adSection}>
+        <AdContainer type="BETWEEN_LISTINGS_BANNER" placement="detail-bottom" />
       </div>
     </Container>
   );

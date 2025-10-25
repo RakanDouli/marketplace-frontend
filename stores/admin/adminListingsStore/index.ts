@@ -240,7 +240,7 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
             specs: {}, // Not requested in simplified query
             specsDisplay: {}, // Not requested in simplified query
             imageKeys: [], // Not requested in simplified query
-            accountType: "INDIVIDUAL" as "INDIVIDUAL" | "DEALER" | "BUSINESS", // Default value
+            accountType: "individual" as "individual" | "dealer" | "business", // Default value
             city: "", // Not requested in simplified query
             country: "", // Add missing country field
             prices: [
@@ -396,9 +396,9 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
           alt: listingData.title,
         })),
         accountType: listingData.accountType as
-          | "INDIVIDUAL"
-          | "DEALER"
-          | "BUSINESS",
+          | "individual"
+          | "dealer"
+          | "business",
         accountLabel: listingData.accountLabel || "",
         accountBadge: listingData.accountBadge || "",
         location: listingData.location

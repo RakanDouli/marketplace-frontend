@@ -204,13 +204,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           )}
 
           {/* Account Type - At the end with border-top */}
-          <div className={styles.sellerSection}>
+          {/* <div className={styles.sellerSection}>
             {!isLoading && <User size={16} className={styles.specIcon} />}
             <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="40%">
               {getAccountTypeLabel()}
             </Text>
-          </div>
-        </div>    </Link>
+          </div> */}
+        </div>
+      </Link>
     </div>
 
   );

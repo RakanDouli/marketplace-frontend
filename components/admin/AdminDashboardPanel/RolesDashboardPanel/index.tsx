@@ -58,6 +58,21 @@ export const RolesDashboardPanel: React.FC = () => {
     }
   }, [error, clearError, addNotification]);
 
+  // Client-side filtering
+  const filteredRoles = roles.filter(role => {
+    // Search filter (name or description)
+    const matchesSearch = !searchTerm ||
+      role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      role.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Status filter
+    const matchesStatus = !statusFilter ||
+      (statusFilter === 'active' && role.isActive) ||
+      (statusFilter === 'inactive' && !role.isActive);
+
+    return matchesSearch && matchesStatus;
+  });
+
   // Simple helper functions for display
   const getPriorityLabel = (priority: number) => {
     const priorityLabels: Record<number, string> = {
@@ -181,7 +196,7 @@ export const RolesDashboardPanel: React.FC = () => {
         <div className={styles.searchSection}>
           <div className={styles.searchRow}>
             <Text variant="small" className={styles.roleCount}>
-              النتيحه: {roles.length}
+              النتيجة: {filteredRoles.length} من {roles.length}
             </Text>
             <Input
               type="search"
@@ -243,10 +258,12 @@ export const RolesDashboardPanel: React.FC = () => {
           <div className={styles.loadingContainer}>
             <Loading type='svg' />
           </div>
-        ) : roles.length === 0 ? (
+        ) : filteredRoles.length === 0 ? (
           <div className={styles.emptyState}>
             <Text variant="h3">لا توجد أدوار</Text>
-            <Text variant="paragraph" color="secondary">لم يتم العثور على أي أدوار</Text>
+            <Text variant="paragraph" color="secondary">
+              {searchTerm || statusFilter ? 'لم يتم العثور على نتائج مطابقة للبحث' : 'لم يتم العثور على أي أدوار'}
+            </Text>
           </div>
         ) : (
           <Table>
@@ -260,7 +277,7 @@ export const RolesDashboardPanel: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {roles.map(role => (
+              {filteredRoles.map(role => (
                 <TableRow key={role.id}>
                   <TableCell>
                     <div className={styles.roleName}>

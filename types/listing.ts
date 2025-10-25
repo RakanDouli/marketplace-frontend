@@ -43,7 +43,7 @@ export interface Listing {
   images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
   accountLabel?: string;
   accountBadge?: string;
-  accountType?: "INDIVIDUAL" | "DEALER" | "BUSINESS"; // Unified with User.accountType
+  accountType?: "individual" | "dealer" | "business"; // Lowercase to match backend enum values
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -51,10 +51,10 @@ export interface Listing {
     name: string;
     email: string;
     role: string;
-    status: "PENDING" | "ACTIVE" | "BANNED";
-    accountType: "INDIVIDUAL" | "DEALER" | "BUSINESS";
+    status: "pending" | "active" | "banned"; // Lowercase to match backend
+    accountType: "individual" | "dealer" | "business"; // Lowercase to match backend
     companyName?: string;
-    accountBadge: "NONE" | "VERIFIED" | "PREMIUM"; // Renamed from accountBadge
+    accountBadge: "none" | "verified" | "premium"; // Lowercase to match backend
     businessVerified: boolean;
     phone?: string;
     contactPhone?: string;

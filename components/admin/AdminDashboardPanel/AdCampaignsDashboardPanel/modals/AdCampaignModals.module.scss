@@ -1,0 +1,213 @@
+@import "../../../../../styles/variables.scss";
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-md 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.description {
+  margin-top: -$space-xs;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.label {
+  display: block;
+  font-size: $font-sm;
+  font-weight: 500;
+  color: $text;
+  margin-bottom: $space-xs;
+}
+
+.select {
+  width: 100%;
+  padding: $space-sm $space-md;
+  font-size: $font-md;
+  color: $text;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  cursor: pointer;
+  padding: $space-xs;
+  border-radius: $radius-sm;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $surface;
+  }
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  span {
+    font-size: $font-sm;
+    color: $text;
+  }
+}
+
+.reportLinkActions {
+  display: flex;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+.modalActions {
+  display: flex;
+  gap: $space-md;
+  justify-content: flex-end;
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+.actions {
+  display: flex;
+  gap: $space-md;
+  justify-content: flex-end;
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+// Public Report Link Modal Styles
+.publicReportLinkModal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  padding: $space-md 0;
+}
+
+.linkContainer {
+  display: flex;
+  gap: $space-sm;
+  align-items: flex-end;
+
+  .linkInput {
+    flex: 1;
+  }
+}
+
+.securityNote {
+  padding: $space-sm;
+  background: $warning-bg;
+  border: 1px solid $warning-border;
+  border-radius: $radius-sm;
+  text-align: right;
+}
+
+// Delete Modal Styles
+.deleteModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-md 0;
+}
+
+.warningIcon {
+  color: $error;
+  display: flex;
+  justify-content: center;
+}
+
+.campaignInfo {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.campaignDetail {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  text-align: right;
+}
+
+.warningBox {
+  background: $error-bg;
+  border: 1px solid $error-border;
+  border-radius: $radius-sm;
+  padding: $space-md;
+  display: flex;
+  gap: $space-md;
+  align-items: flex-start;
+  width: 100%;
+  text-align: right;
+
+  svg {
+    color: $error;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: $space-xs;
+  }
+}
+
+.deleteActions {
+  display: flex;
+  gap: $space-md;
+  justify-content: center;
+  width: 100%;
+}
+
+@media (max-width: $breakpoint-md) {
+  .form {
+    gap: $space-md;
+  }
+
+  .modalActions,
+  .deleteActions {
+    flex-direction: column-reverse;
+    gap: $space-sm;
+  }
+
+  .reportLinkActions {
+    flex-direction: column;
+  }
+}

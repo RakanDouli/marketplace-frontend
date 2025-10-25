@@ -234,6 +234,17 @@ export const BrandsDashboardPanel: React.FC = () => {
     }
   };
 
+  // Client-side filtering
+  const filteredBrands = brands.filter(brand => {
+    // Source filter
+    const matchesSource = !sourceFilter || brand.source?.toLowerCase() === sourceFilter.toLowerCase();
+
+    // Status filter
+    const matchesStatus = !statusFilter || brand.status?.toLowerCase() === statusFilter.toLowerCase();
+
+    return matchesSource && matchesStatus;
+  });
+
   // Helper functions
   const getSourceLabel = (source: string) => {
     return source?.toLowerCase() === 'manual' ? 'يدوي' : 'مزامنة';
@@ -397,14 +408,14 @@ export const BrandsDashboardPanel: React.FC = () => {
             <Loading />
             <Text variant="paragraph">جاري تحميل العلامات التجارية...</Text>
           </div>
-        ) : brands.length === 0 ? (
+        ) : filteredBrands.length === 0 ? (
           <div className={styles.emptyState}>
             <Package size={48} className={styles.emptyIcon} />
             <Text variant="h3">لا توجد علامات تجارية</Text>
             <Text variant="paragraph" color="secondary">
-              لم يتم العثور على أي علامات تجارية في هذه الفئة
+              {sourceFilter || statusFilter ? 'لم يتم العثور على نتائج مطابقة للفلتر' : 'لم يتم العثور على أي علامات تجارية في هذه الفئة'}
             </Text>
-            {canCreate && (
+            {canCreate && !sourceFilter && !statusFilter && (
               <Button
                 onClick={handleCreateBrand}
                 variant="primary"
@@ -428,7 +439,7 @@ export const BrandsDashboardPanel: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {brands.map(brand => (
+              {filteredBrands.map(brand => (
                 <TableRow key={brand.id}>
                   <TableCell>
                     <div className={styles.brandName}>
@@ -491,7 +502,7 @@ export const BrandsDashboardPanel: React.FC = () => {
               }}
             />
             <Text variant="small" color="secondary">
-              صفحة {pagination.page} من {pagination.totalPages} - عرض {brands.length} من {pagination.total} علامة تجارية
+              صفحة {pagination.page} من {pagination.totalPages} - عرض {filteredBrands.length} من {pagination.total} علامة تجارية
             </Text>
           </>
         )}

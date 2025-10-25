@@ -8,6 +8,7 @@ import Button from "../components/slices/Button/Button";
 import { useTranslation } from "../hooks/useTranslation";
 import { useNotificationStore } from "../stores";
 import SubmitButton from "../components/slices/Button/SubmitButton";
+import { AdContainer } from "../components/ads";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -49,6 +50,11 @@ export default function HomePage() {
             </Button>
           </div>
         </TextSection>
+      </Container>
+
+      {/* Top Banner Ad */}
+      <Container size="lg" padding>
+        <AdContainer type="BANNER" placement="homepage-top" />
       </Container>
       {/* Features Section */}
       <Container size="lg" padding>

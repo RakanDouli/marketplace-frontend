@@ -13,6 +13,7 @@ import {
   useListingsViewType,
   useCategoriesStore,
 } from "../../stores";
+import { AdContainer } from "../ads";
 import styles from "./ListingArea.module.scss";
 
 export interface ListingData {
@@ -21,7 +22,7 @@ export interface ListingData {
   price: string;
   currency: string;
   location: string;
-  sellerType: "private" | "dealer" | "business";
+  accountType: "individual" | "dealer" | "business";
   specs?: Record<string, any>; // Dynamic specs from backend
   images: string[];
   isLiked?: boolean;
@@ -102,6 +103,25 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     viewType === "detail" ? "list" : viewType === "list" ? "list" : "grid"
   );
 
+  // Track grid columns for responsive ad insertion
+  const [gridColumns, setGridColumns] = useState(4);
+
+  // Detect grid columns based on viewport width
+  useEffect(() => {
+    const updateGridColumns = () => {
+      const width = window.innerWidth;
+      if (width <= 768) { // breakpoint-sm
+        setGridColumns(3);
+      } else {
+        setGridColumns(4);
+      }
+    };
+
+    updateGridColumns();
+    window.addEventListener('resize', updateGridColumns);
+    return () => window.removeEventListener('resize', updateGridColumns);
+  }, []);
+
   // Update store when viewMode changes and refetch data with appropriate view
   const handleViewModeChange = (newViewMode: "grid" | "list") => {
     setViewMode(newViewMode);
@@ -167,8 +187,15 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     // Use specsDisplay for Arabic values if available, fallback to specs
     const allSpecs = listing.specsDisplay || listing.specs || {};
 
+    // Add account type to specs with Arabic label if available from specsDisplay
+    const specsWithAccountType = {
+      ...allSpecs,
+      // If accountType exists in specsDisplay, use it; otherwise create it from listing.accountType
+      accountType: allSpecs.accountType || listing.accountType,
+    };
+
     // Filter specs based on current view type and attribute flags
-    const viewFilteredSpecs = filterSpecsByViewType(allSpecs, viewType);
+    const viewFilteredSpecs = filterSpecsByViewType(specsWithAccountType, viewType);
 
     // Handle price formatting consistently
     const displayPrice = listing.prices?.[0]?.value
@@ -183,12 +210,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       price: displayPrice,
       currency: displayCurrency,
       location: (allSpecs as any).location || (listing as any).province || (listing as any).city || "",
-      sellerType:
-        listing.accountType === "INDIVIDUAL"
-          ? "private"
-          : listing.accountType === "DEALER"
-            ? "dealer"
-            : "business",
+      accountType: listing.accountType as "individual" | "dealer" | "business",
       specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags
       images: listing.imageKeys || [],
       isLiked: false, // TODO: Get from user favorites
@@ -309,17 +331,32 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       {/* Listings Grid/List */}
       {!loading && listingData.length > 0 && (
         <div className={`${styles.listingsContainer} ${styles[viewMode]}`}>
-          {listingData.map((listing, index) => (
-            <ListingCard
-              key={listing.id}
-              {...listing}
-              accountType={listing.sellerType as "individual" | "dealer" | "business"}
-              viewMode={viewMode}
-              onClick={handleCardClick}
-              onLike={handleCardLike}
-              priority={index < 4}
-            />
-          ))}
+          {listingData.map((listing, index) => {
+            // Calculate ad insertion frequency based on grid columns
+            // Insert ad after every 2 full rows in grid mode
+            const adFrequency = viewMode === 'grid' ? gridColumns * 2 : 6;
+            const shouldShowAd = (index + 1) % adFrequency === 0 && index !== listingData.length - 1;
+
+            return (
+              <React.Fragment key={listing.id}>
+                <ListingCard
+                  {...listing}
+                  viewMode={viewMode}
+                  onClick={handleCardClick}
+                  onLike={handleCardLike}
+                  priority={index < 4}
+                />
+                {shouldShowAd && (
+                  <div className={styles.adSlot} style={{ gridColumn: viewMode === 'grid' ? '1 / -1' : 'auto' }}>
+                    <AdContainer
+                      type="BETWEEN_LISTINGS_BANNER"
+                      placement={`listings-between-${Math.floor(index / adFrequency)}`}
+                    />
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 

@@ -21,3 +21,6 @@ export { useAttributesStore } from "./adminAttributesStore";
 export { useAdminSubscriptionsStore } from "./adminSubscriptionsStore";
 
 export { useAdminAuditStore } from "./adminAuditStore";
+
+// Ad Packages management
+export { useAdminAdPackagesStore } from "./adminAdPackagesStore";

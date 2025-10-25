@@ -12,6 +12,10 @@ import {
   GET_ATTRIBUTE_TYPES_QUERY,
   GET_ATTRIBUTE_VALIDATIONS_QUERY,
   GET_ATTRIBUTE_STORAGE_TYPES_QUERY,
+  GET_AD_MEDIA_TYPES_QUERY,
+  GET_AD_CAMPAIGN_STATUSES_QUERY,
+  GET_AD_CLIENT_STATUSES_QUERY,
+  GET_CAMPAIGN_START_PREFERENCES_QUERY,
 } from "./metadataStore.gql";
 
 // ===== TYPES =====
@@ -36,6 +40,12 @@ interface MetadataState {
   attributeValidations: string[];
   attributeStorageTypes: string[];
 
+  // Ad system metadata
+  adMediaTypes: string[];
+  adCampaignStatuses: string[];
+  adClientStatuses: string[];
+  campaignStartPreferences: string[];
+
   // Loading states
   loading: boolean;
   error: string | null;
@@ -46,6 +56,7 @@ interface MetadataState {
   fetchListingMetadata: () => Promise<void>;
   fetchSubscriptionMetadata: () => Promise<void>;
   fetchAttributeMetadata: () => Promise<void>;
+  fetchAdMetadata: () => Promise<void>;
 }
 
 // ===== STORE =====
@@ -63,6 +74,10 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   attributeTypes: [],
   attributeValidations: [],
   attributeStorageTypes: [],
+  adMediaTypes: [],
+  adCampaignStatuses: [],
+  adClientStatuses: [],
+  campaignStartPreferences: [],
   loading: false,
   error: null,
 
@@ -74,6 +89,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
       store.fetchListingMetadata(),
       store.fetchSubscriptionMetadata(),
       store.fetchAttributeMetadata(),
+      store.fetchAdMetadata(),
     ]);
   },
 
@@ -159,6 +175,35 @@ export const useMetadataStore = create<MetadataState>((set) => ({
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch attribute metadata:", error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  // Fetch ad system-related metadata
+  fetchAdMetadata: async () => {
+    set({ loading: true, error: null });
+    try {
+      const [
+        mediaTypesData,
+        campaignStatusesData,
+        clientStatusesData,
+        startPreferencesData,
+      ] = await Promise.all([
+        cachedGraphQLRequest(GET_AD_MEDIA_TYPES_QUERY),
+        cachedGraphQLRequest(GET_AD_CAMPAIGN_STATUSES_QUERY),
+        cachedGraphQLRequest(GET_AD_CLIENT_STATUSES_QUERY),
+        cachedGraphQLRequest(GET_CAMPAIGN_START_PREFERENCES_QUERY),
+      ]);
+
+      set({
+        adMediaTypes: (mediaTypesData as any).getAdMediaTypes || [],
+        adCampaignStatuses: (campaignStatusesData as any).getAdCampaignStatuses || [],
+        adClientStatuses: (clientStatusesData as any).getAdClientStatuses || [],
+        campaignStartPreferences: (startPreferencesData as any).getCampaignStartPreferences || [],
+        loading: false,
+      });
+    } catch (error: any) {
+      console.error("❌ Failed to fetch ad metadata:", error);
       set({ error: error.message, loading: false });
     }
   },

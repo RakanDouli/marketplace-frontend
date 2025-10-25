@@ -262,11 +262,11 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
           <div className={styles.userInfoHeader}>
             <Text variant="h4" className={styles.userInfoTitle}>معلومات حساب المستخدم</Text>
             <div className={styles.userBadges}>
-              {detailedListing.user.status === 'BANNED' ? (
+              {detailedListing.user.status === 'banned' ? (
                 <Text variant="small" className={`${styles.statusBadge} ${styles.statusBanned}`}>
                   محظور
                 </Text>
-              ) : detailedListing.user.status === 'ACTIVE' ? (
+              ) : detailedListing.user.status === 'active' ? (
                 <Text variant="small" className={`${styles.statusBadge} ${styles.statusActive}`}>
                   نشط
                 </Text>
@@ -297,8 +297,8 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
             <div className={styles.userDetailItem}>
               <span className={styles.label}>نوع الحساب</span>
               <span className={styles.value}>
-                {detailedListing.user.accountType === 'INDIVIDUAL' ? 'شخصي' :
-                  detailedListing.user.accountType === 'DEALER' ? 'معرض' : 'تجاري'}
+                {detailedListing.user.accountType === 'individual' ? 'شخصي' :
+                  detailedListing.user.accountType === 'dealer' ? 'معرض' : 'تجاري'}
               </span>
             </div>
 
@@ -345,7 +345,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
 
           {/* User Actions */}
           <div className={styles.userActions}>
-            {detailedListing.user.status !== 'BANNED' ? (
+            {detailedListing.user.status !== 'banned' ? (
               <Button
                 variant="danger"
                 onClick={() => handleBlockUser(detailedListing.user!)}

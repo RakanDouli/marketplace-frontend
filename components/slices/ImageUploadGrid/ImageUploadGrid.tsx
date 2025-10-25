@@ -90,11 +90,11 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Text variant="body2" weight="medium">
+        <Text variant="paragraph" weight="medium">
           الصور ({images.length}/{maxImages})
         </Text>
         {!disabled && canAddMore && (
-          <Text variant="caption" className={styles.hint}>
+          <Text variant="small" className={styles.hint}>
             اسحب الصور هنا أو انقر على + للإضافة
           </Text>
         )}
@@ -141,7 +141,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <Text variant="caption">
+            <Text variant="small">
               إضافة صورة
             </Text>
           </div>

@@ -73,3 +73,29 @@ export const GET_ATTRIBUTE_STORAGE_TYPES_QUERY = `
     getAttributeStorageTypes
   }
 `;
+
+// ===== AD SYSTEM METADATA =====
+
+export const GET_AD_MEDIA_TYPES_QUERY = `
+  query GetAdMediaTypes {
+    getAdMediaTypes
+  }
+`;
+
+export const GET_AD_CAMPAIGN_STATUSES_QUERY = `
+  query GetAdCampaignStatuses {
+    getAdCampaignStatuses
+  }
+`;
+
+export const GET_AD_CLIENT_STATUSES_QUERY = `
+  query GetAdClientStatuses {
+    getAdClientStatuses
+  }
+`;
+
+export const GET_CAMPAIGN_START_PREFERENCES_QUERY = `
+  query GetCampaignStartPreferences {
+    getCampaignStartPreferences
+  }
+`;
