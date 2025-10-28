@@ -5,6 +5,7 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useMetadataStore } from '@/stores/metadataStore';
+import { AD_MEDIA_TYPE_LABELS, mapToOptions } from '@/constants/metadata-labels';
 import styles from './AdPackageModals.module.scss';
 
 interface CreateAdPackageModalProps {
@@ -13,14 +14,6 @@ interface CreateAdPackageModalProps {
   onSubmit: (data: any) => Promise<void>;
   isLoading: boolean;
 }
-
-// Arabic labels for ad media types
-const AD_TYPE_LABELS: Record<string, string> = {
-  'BANNER': 'بانر علوي',
-  'VIDEO': 'فيديو علوي',
-  'BETWEEN_LISTINGS_CARD': 'بين القوائم - كارت',
-  'BETWEEN_LISTINGS_BANNER': 'بين القوائم - بانر كامل',
-};
 
 export const CreateAdPackageModal: React.FC<CreateAdPackageModalProps> = ({
   isVisible,
@@ -126,16 +119,12 @@ export const CreateAdPackageModal: React.FC<CreateAdPackageModalProps> = ({
             onChange={(e) => handleChange('adType', e.target.value)}
             options={[
               { value: '', label: '-- اختر نوع الإعلان --' },
-              ...adMediaTypes.map(type => ({
-                value: type,
-                label: AD_TYPE_LABELS[type] || type
-              }))
+              ...mapToOptions(adMediaTypes, AD_MEDIA_TYPE_LABELS)
             ]}
             required
           />
           <Text variant="small" color="secondary">
             {formData.adType === 'VIDEO' && 'يتطلب فيديو بنسبة 16:9 للسطح المكتب و 1:1 للموبايل'}
-            {formData.adType === 'BETWEEN_LISTINGS_CARD' && 'إعلان بحجم كارت القائمة يظهر ضمن الشبكة'}
             {formData.adType === 'BETWEEN_LISTINGS_BANNER' && 'بانر عريض كامل بين صفوف القوائم'}
             {formData.adType === 'BANNER' && 'بانر علوي بعرض 1200x200 بكسل'}
           </Text>

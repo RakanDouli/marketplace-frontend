@@ -40,6 +40,7 @@ export interface Listing {
   specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
   specsDisplay?: Record<string, { label: string; value: string }>; // Display specs (English keys with Arabic label/value)
   imageKeys?: string[];
+  videoUrl?: string; // Video URL for premium accounts (Business/Dealer)
   images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
   accountLabel?: string;
   accountBadge?: string;

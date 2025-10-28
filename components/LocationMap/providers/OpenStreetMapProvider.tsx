@@ -43,6 +43,27 @@ export const PROVINCE_ARABIC_NAMES: Record<string, string> = {
 };
 
 /**
+ * Reverse mapping: Arabic province names to English keys
+ * Allows lookups by either English or Arabic name
+ */
+export const PROVINCE_ARABIC_TO_ENGLISH: Record<string, string> = {
+  'دمشق': 'damascus',
+  'حلب': 'aleppo',
+  'حمص': 'homs',
+  'حماة': 'hama',
+  'اللاذقية': 'latakia',
+  'طرطوس': 'tartous',
+  'درعا': 'daraa',
+  'السويداء': 'sweida',
+  'القنيطرة': 'quneitra',
+  'إدلب': 'idlib',
+  'الرقة': 'raqqa',
+  'دير الزور': 'deir_ez_zor',
+  'الحسكة': 'hasakah',
+  'ريف دمشق': 'rif_damascus',
+};
+
+/**
  * Syria province coordinates - verified centers
  */
 const SYRIA_PROVINCE_COORDS: Record<string, Coordinates> = {
@@ -86,7 +107,18 @@ export class OpenStreetMapProvider implements IMapProvider {
 
     // Priority 2: Use province coordinates
     if (location.province) {
-      const provinceCoords = SYRIA_PROVINCE_COORDS[location.province.toLowerCase()];
+      // Try to find province by English key first (lowercase)
+      let provinceKey = location.province.toLowerCase();
+      let provinceCoords = SYRIA_PROVINCE_COORDS[provinceKey];
+
+      // If not found, try Arabic-to-English lookup
+      if (!provinceCoords) {
+        const englishKey = PROVINCE_ARABIC_TO_ENGLISH[location.province];
+        if (englishKey) {
+          provinceCoords = SYRIA_PROVINCE_COORDS[englishKey];
+        }
+      }
+
       if (provinceCoords) {
         // Determine zoom based on detail level
         let zoom = 8; // Default province-level zoom

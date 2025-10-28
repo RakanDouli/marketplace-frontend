@@ -16,9 +16,21 @@ import {
   GET_AD_CAMPAIGN_STATUSES_QUERY,
   GET_AD_CLIENT_STATUSES_QUERY,
   GET_CAMPAIGN_START_PREFERENCES_QUERY,
+  GET_PROVINCES_QUERY,
 } from "./metadataStore.gql";
 
 // ===== TYPES =====
+
+export interface ProvinceCoordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface Province {
+  key: string;
+  nameAr: string;
+  coordinates: ProvinceCoordinates;
+}
 
 interface MetadataState {
   // User metadata
@@ -46,6 +58,9 @@ interface MetadataState {
   adClientStatuses: string[];
   campaignStartPreferences: string[];
 
+  // Location metadata
+  provinces: Province[];
+
   // Loading states
   loading: boolean;
   error: string | null;
@@ -57,6 +72,7 @@ interface MetadataState {
   fetchSubscriptionMetadata: () => Promise<void>;
   fetchAttributeMetadata: () => Promise<void>;
   fetchAdMetadata: () => Promise<void>;
+  fetchLocationMetadata: () => Promise<void>;
 }
 
 // ===== STORE =====
@@ -78,6 +94,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   adCampaignStatuses: [],
   adClientStatuses: [],
   campaignStartPreferences: [],
+  provinces: [],
   loading: false,
   error: null,
 
@@ -90,6 +107,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
       store.fetchSubscriptionMetadata(),
       store.fetchAttributeMetadata(),
       store.fetchAdMetadata(),
+      store.fetchLocationMetadata(),
     ]);
   },
 
@@ -204,6 +222,22 @@ export const useMetadataStore = create<MetadataState>((set) => ({
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch ad metadata:", error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  // Fetch location-related metadata
+  fetchLocationMetadata: async () => {
+    set({ loading: true, error: null });
+    try {
+      const provincesData = await cachedGraphQLRequest(GET_PROVINCES_QUERY);
+
+      set({
+        provinces: (provincesData as any).getProvinces || [],
+        loading: false,
+      });
+    } catch (error: any) {
+      console.error("❌ Failed to fetch location metadata:", error);
       set({ error: error.message, loading: false });
     }
   },

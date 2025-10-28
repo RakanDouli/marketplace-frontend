@@ -128,12 +128,11 @@ export default function PublicCampaignReportPage() {
 
   const getAdTypeLabel = (adType: string) => {
     const labels: Record<string, string> = {
-      BANNER: 'بانر علوي',
-      VIDEO: 'فيديو علوي',
-      BETWEEN_LISTINGS_CARD: 'بين القوائم - كارت',
-      BETWEEN_LISTINGS_BANNER: 'بين القوائم - بانر كامل',
+      banner: 'بانر علوي',
+      video: 'فيديو علوي',
+      between_listings_banner: 'بين القوائم - بانر كامل',
     };
-    return labels[adType] || adType;
+    return labels[adType.toLowerCase()] || adType;
   };
 
   if (loading) {

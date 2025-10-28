@@ -1,67 +1,145 @@
 @import "@/styles/variables";
 
 .container {
-  padding: $space-xl 0;
-  min-height: 100vh;
-
-  @media (max-width: $breakpoint-sm) {
-    padding: $space-md 0;
-  }
-}
-
-.header {
-  text-align: center;
-  margin-bottom: $space-xl;
-
-  @media (max-width: $breakpoint-sm) {
-    margin-bottom: $space-lg;
-  }
-}
-
-.subtitle {
-  color: $text-secondary;
-  margin-top: $space-sm;
-}
-
-.formContainer {
-  max-width: 900px;
-  margin: 0 auto;
-  background-color: $surface;
+  background-color: $bg !important;
   border: 1px solid $border;
-  border-radius: $radius-lg;
-  padding: $space-xl;
-
-  @media (max-width: $breakpoint-md) {
-    padding: $space-lg;
-  }
-
+  border-radius: $radius-md;
+  min-height: 100%;
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   @media (max-width: $breakpoint-sm) {
     padding: $space-md;
-    border-radius: $radius-md;
   }
 }
 
-.stepContent {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-  min-height: 300px;
+// ===== PAGE 1: CATEGORY SELECTION =====
+// .categorySelectionPage {
+//   .categoryCard {
+//     padding: $space-lg;
+//     box-shadow: $shadow-sm;
+
+//     @media (max-width: $breakpoint-sm) {
+//       padding: $space-md;
+//       border-radius: $radius-md;
+//     }
+//   }
+// }
+
+// ===== PAGE 2: DETAILS FORM =====
+.detailsPage {
+  .backButton {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-xs;
+    color: $text-secondary;
+    margin-bottom: $space-md;
+    cursor: pointer;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: $text;
+    }
+  }
+
+  .formCard {
+    background-color: $bg;
+    display: flex;
+    flex-direction: column;
+    gap: $space-md;
+
+    @media (max-width: $breakpoint-sm) {
+      border-radius: $radius-md;
+    }
+  }
+
+  .formSection {
+    padding: $space-md;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    &:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+      padding: $space-md;
+    }
+  }
+
+  .sectionHeader {
+    margin-bottom: $space-md;
+  }
+
+  .formFields {
+    display: flex;
+    flex-direction: column;
+    gap: $space-md;
+  }
+
+  .formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-md;
+
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .stickyActions {
+    background-color: $surface;
+    border-top: 1px solid $border;
+    padding: $space-md $space-lg;
+    display: flex;
+    justify-content: space-between;
+    gap: $space-md;
+
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+      padding: $space-md;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .leftActions,
+  .rightActions {
+    display: flex;
+    gap: $space-sm;
+
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
 }
 
-.stepDescription {
-  color: $text-secondary;
-}
-
-.placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $space-sm;
-  padding: $space-xl;
-  background-color: rgba($primary, 0.05);
-  border: 2px dashed $border;
+// ===== ERROR MESSAGE =====
+.errorMessage {
+  margin-bottom: $space-md;
+  padding: $space-md;
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
   border-radius: $radius-md;
-  text-align: center;
-  min-height: 200px;
+}
+
+// ===== SPECS GRID (for dynamic attribute groups) =====
+.specsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ===== CANCEL BUTTON (for category selection page) =====
+.cancelButton {
+  display: flex;
+  justify-content: center;
+  margin-top: $space-lg;
 }

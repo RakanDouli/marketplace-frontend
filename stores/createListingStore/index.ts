@@ -17,6 +17,7 @@ const initialFormData: CreateListingFormData = {
   priceMinor: 0,
   allowBidding: false,
   biddingStartPrice: undefined,
+  videoUrl: undefined,
   images: [],
   specs: {},
   location: {
@@ -33,6 +34,18 @@ const initialSteps: Step[] = [
     id: "basic",
     type: "basic",
     title: "المعلومات الأساسية",
+    isValid: false,
+  },
+  {
+    id: "images",
+    type: "images",
+    title: "الصور",
+    isValid: false,
+  },
+  {
+    id: "location_review",
+    type: "location_review",
+    title: "الموقع والمراجعة",
     isValid: false,
   },
 ];
@@ -173,8 +186,9 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
 
   // ===== GENERATE DYNAMIC STEPS =====
   generateSteps: () => {
-    const { attributes } = get();
+    const { attributes, steps: currentSteps } = get();
 
+    // Group attributes by group name
     const groupsMap = new Map<string, Attribute[]>();
     attributes.forEach((attr) => {
       if (["search", "title", "description", "price"].includes(attr.key))
@@ -184,10 +198,12 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       groupsMap.get(groupName)!.push(attr);
     });
 
+    // Sort attributes within each group
     groupsMap.forEach((attrs) =>
       attrs.sort((a, b) => a.sortOrder - b.sortOrder)
     );
 
+    // Create attribute groups
     const attributeGroups: AttributeGroup[] = [];
     groupsMap.forEach((attrs, name) => {
       if (attrs.length && name !== "other") {
@@ -201,35 +217,101 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
 
     attributeGroups.sort((a, b) => a.groupOrder - b.groupOrder);
 
+    // Create dynamic attribute steps
+    const dynamicSteps: Step[] = attributeGroups.map((group, i) => ({
+      id: `group-${i}`,
+      type: "attribute_group" as const,
+      title: group.name,
+      isValid: false,
+      attributeGroup: group,
+    }));
+
+    // Get existing basic and images steps (preserve their validation state)
+    const basicStep = currentSteps.find(s => s.type === "basic") || {
+      id: "basic",
+      type: "basic" as const,
+      title: "المعلومات الأساسية",
+      isValid: false,
+    };
+
+    const imagesStep = currentSteps.find(s => s.type === "images") || {
+      id: "images",
+      type: "images" as const,
+      title: "الصور",
+      isValid: false,
+    };
+
+    const locationReviewStep = currentSteps.find(s => s.type === "location_review") || {
+      id: "location_review",
+      type: "location_review" as const,
+      title: "الموقع والمراجعة",
+      isValid: false,
+    };
+
+    // Build new steps array: basic -> images -> dynamic attributes -> location_review
     const steps: Step[] = [
-      {
-        id: "basic",
-        type: "basic",
-        title: "المعلومات الأساسية",
-        isValid: false,
-      },
-      { id: "images", type: "images", title: "الصور", isValid: false },
-      ...attributeGroups.map((group, i) => ({
-        id: `group-${i}`,
-        type: "attribute_group" as const,
-        title: group.name,
-        isValid: false,
-        attributeGroup: group,
-      })),
-      {
-        id: "location_review",
-        type: "location_review",
-        title: "الموقع والمراجعة",
-        isValid: false,
-      },
+      basicStep,
+      imagesStep,
+      ...dynamicSteps,
+      locationReviewStep,
     ];
 
     set({ steps, attributeGroups });
   },
 
+  // ===== UPLOAD IMAGES TO CLOUDFLARE =====
+  uploadImages: async (): Promise<string[]> => {
+    const { formData } = get();
+    const imageKeys: string[] = [];
+
+    for (const imageItem of formData.images) {
+      // Skip images that don't have a file (already uploaded images with URLs)
+      if (!imageItem.file) {
+        continue;
+      }
+
+      try {
+        // Step 1: Get Cloudflare upload URL (cachedGraphQLRequest gets token automatically)
+        const uploadData = await cachedGraphQLRequest(
+          `mutation { createImageUploadUrl { uploadUrl assetKey } }`
+        );
+        const { uploadUrl } = (uploadData as any).createImageUploadUrl;
+
+        // Step 2: Upload to Cloudflare
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", imageItem.file);
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "POST",
+          body: formDataUpload,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`فشل رفع الصورة: ${uploadResponse.statusText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+
+        // Step 3: Extract real image ID from Cloudflare response
+        if (!uploadResult.result?.id) {
+          throw new Error("فشل الحصول على معرف الصورة من Cloudflare");
+        }
+
+        imageKeys.push(uploadResult.result.id);
+      } catch (error: any) {
+        console.error("❌ Error uploading image:", error);
+        throw new Error(`فشل رفع الصورة: ${error.message}`);
+      }
+    }
+
+    return imageKeys;
+  },
+
   // ===== SUBMIT LISTING =====
   submitListing: async () => {
     const { formData, validateStep, steps } = get();
+
+    // Validate all steps
     for (let i = 0; i < steps.length; i++) {
       if (!validateStep(i)) {
         set({ error: `يرجى ملء جميع الحقول المطلوبة في الخطوة ${i + 1}` });
@@ -238,15 +320,75 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     }
 
     set({ isSubmitting: true, error: null });
+
     try {
-      console.log("Submitting listing:", formData);
-      // TODO: replace with actual backend mutation
-      throw new Error("Submission not yet implemented");
+      // Get auth token from Supabase session
+      const { supabase } = await import('@/lib/supabase');
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      if (!token) throw new Error("يرجى تسجيل الدخول أولاً");
+
+      // Extract brand/model names from specs
+      const brandName = formData.specs._brandName || undefined;
+      const modelName = formData.specs._modelName || undefined;
+
+      // Build clean specs object (remove temp fields and temp IDs)
+      const specs = { ...formData.specs };
+      delete specs._brandName;
+      delete specs._modelName;
+      // Remove temp brandId/modelId (backend will create real ones)
+      if (specs.brandId?.startsWith('temp_')) delete specs.brandId;
+      if (specs.modelId?.startsWith('temp_')) delete specs.modelId;
+
+      // Build FormData for REST API
+      const formDataPayload = new FormData();
+      formDataPayload.append('categoryId', formData.categoryId);
+      formDataPayload.append('title', formData.title);
+      if (formData.description) formDataPayload.append('description', formData.description);
+      formDataPayload.append('priceMinor', formData.priceMinor.toString());
+      formDataPayload.append('allowBidding', formData.allowBidding.toString());
+      if (formData.biddingStartPrice) formDataPayload.append('biddingStartPrice', formData.biddingStartPrice.toString());
+      if (brandName) formDataPayload.append('brandName', brandName);
+      if (modelName) formDataPayload.append('modelName', modelName);
+      if (formData.location.province) formDataPayload.append('location', JSON.stringify(formData.location));
+      formDataPayload.append('specs', JSON.stringify(specs));
+
+      // Add images as files
+      formData.images.forEach((imageItem) => {
+        if (imageItem.file) {
+          formDataPayload.append('images', imageItem.file);
+        }
+      });
+
+      console.log("📤 Sending REST API request to /api/listings/create");
+
+      // Submit to REST API endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/listings/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formDataPayload,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(errorData.message || 'فشل إنشاء الإعلان');
+      }
+
+      const result = await response.json();
+      console.log("✅ Backend response:", result);
+
+      set({ isSubmitting: false });
+      console.log("✅ Listing created successfully");
     } catch (error: any) {
       console.error("❌ Error submitting listing:", error);
-      set({ error: error.message || "فشل إنشاء الإعلان" });
-    } finally {
-      set({ isSubmitting: false });
+      set({
+        error: error.message || "فشل إنشاء الإعلان",
+        isSubmitting: false,
+      });
+      throw error;
     }
   },
 

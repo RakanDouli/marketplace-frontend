@@ -2,26 +2,19 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, MultiStepForm, Text } from '@/components/slices';
+import { Container, Button } from '@/components/slices';
+import Text from '@/components/slices/Text/Text';
+import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
+import { useCategoriesStore } from '@/stores/categoriesStore';
 import styles from './CreateListing.module.scss';
 
 export default function CreateListingPage() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useUserAuthStore();
-  const {
-    formData,
-    currentStep,
-    steps,
-    error,
-    isSubmitting,
-    nextStep,
-    previousStep,
-    submitListing,
-    reset,
-    fetchAttributes,
-  } = useCreateListingStore();
+  const { formData, setFormField, fetchAttributes, reset } = useCreateListingStore();
+  const { categories, isLoading: isLoadingCategories, initializeCategories } = useCategoriesStore();
 
   // Auth guard
   useEffect(() => {
@@ -30,118 +23,63 @@ export default function CreateListingPage() {
     }
   }, [user, isAuthLoading, router]);
 
-  // Fetch attributes when category is selected
+  // Initialize categories on mount (only fetches once if not already loaded)
   useEffect(() => {
-    if (formData.categoryId) {
-      fetchAttributes(formData.categoryId);
-    }
-  }, [formData.categoryId, fetchAttributes]);
+    initializeCategories();
+  }, [initializeCategories]);
 
-  // Cleanup on unmount
+  // Reset form on mount
   useEffect(() => {
-    return () => {
-      reset();
-    };
+    reset();
   }, [reset]);
 
   if (isAuthLoading || !user) {
     return null;
   }
 
-  // Render current step content
-  const renderStepContent = () => {
-    const step = steps[currentStep];
-    if (!step) return null;
+  const handleCategorySelect = async (categoryId: string) => {
+    if (!categoryId) return;
 
-    switch (step.type) {
-      case 'basic':
-        return (
-          <div className={styles.stepContent}>
-            <Text variant="h2">المعلومات الأساسية</Text>
-            <Text variant="paragraph" className={styles.stepDescription}>
-              أدخل المعلومات الأساسية عن الإعلان
-            </Text>
-            <div className={styles.placeholder}>
-              <Text variant="paragraph">📝 Step 1: Category & Basic Info (Coming soon)</Text>
-              <Text variant="small">
-                Fields: Category, Title, Description, Price, Bidding options
-              </Text>
-            </div>
-          </div>
-        );
+    // Save category to store
+    setFormField('categoryId', categoryId);
 
-      case 'images':
-        return (
-          <div className={styles.stepContent}>
-            <Text variant="h2">الصور</Text>
-            <Text variant="paragraph" className={styles.stepDescription}>
-              أضف صور للإعلان (3 صور على الأقل)
-            </Text>
-            <div className={styles.placeholder}>
-              <Text variant="paragraph">📷 Step 2: Images (Coming soon)</Text>
-              <Text variant="small">ImageUploadGrid component will be here</Text>
-            </div>
-          </div>
-        );
+    // Fetch attributes in background (don't wait)
+    fetchAttributes(categoryId);
 
-      case 'attribute_group':
-        return (
-          <div className={styles.stepContent}>
-            <Text variant="h2">{step.title}</Text>
-            <Text variant="paragraph" className={styles.stepDescription}>
-              املأ المواصفات المطلوبة
-            </Text>
-            <div className={styles.placeholder}>
-              <Text variant="paragraph">⚙️ Step: {step.title} (Coming soon)</Text>
-              <Text variant="small">
-                Dynamic attribute fields will be rendered here
-              </Text>
-            </div>
-          </div>
-        );
-
-      case 'location_review':
-        return (
-          <div className={styles.stepContent}>
-            <Text variant="h2">الموقع والمراجعة</Text>
-            <Text variant="paragraph" className={styles.stepDescription}>
-              حدد الموقع وراجع الإعلان قبل النشر
-            </Text>
-            <div className={styles.placeholder}>
-              <Text variant="paragraph">📍 Step: Location & Review (Coming soon)</Text>
-              <Text variant="small">
-                Location fields + review summary will be here
-              </Text>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+    // Navigate to form page immediately
+    router.push('/dashboard/listings/create/details');
   };
 
   return (
     <Container className={styles.container}>
-      <div className={styles.header}>
-        <Text variant="h1">إنشاء إعلان جديد</Text>
-        <Text variant="paragraph" className={styles.subtitle}>
-          اتبع الخطوات لإنشاء إعلان احترافي
-        </Text>
-      </div>
+      <div className={styles.categorySelectionPage}>
+        <div className={styles.header}>
+          <Text variant="h1">إنشاء إعلان جديد</Text>
+          <Text variant="paragraph" className={styles.subtitle}>
+            ما الذي تريد بيعه؟
+          </Text>
+        </div>
 
-      <div className={styles.formContainer}>
-        <MultiStepForm
-          steps={steps}
-          currentStep={currentStep}
-          onNext={nextStep}
-          onPrevious={previousStep}
-          onSubmit={submitListing}
-          isSubmitting={isSubmitting}
-          error={error}
-        >
-          {renderStepContent()}
-        </MultiStepForm>
+        <div className={styles.categoryCard}>
+          <Text variant="h3" className={styles.sectionTitle}>
+            اختر الفئة
+          </Text>
+
+          <Input
+            type="select"
+            label="الفئة"
+            value={formData.categoryId || ''}
+            onChange={(e) => handleCategorySelect(e.target.value)}
+            options={[
+              { value: '', label: '-- اختر الفئة --' },
+              ...categories.map(cat => ({
+                value: cat.id,
+                label: cat.name,
+              })),
+            ]}
+            disabled={isLoadingCategories}
+          />
+        </div>
       </div>
     </Container>
   );

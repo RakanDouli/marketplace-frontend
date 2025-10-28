@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Text, Button } from '@/components/slices';
 import { Trash2 } from 'lucide-react';
 import styles from './ImageUploadGrid.module.scss';
@@ -26,6 +26,17 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Cleanup blob URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      images.forEach((img) => {
+        if (img.url.startsWith('blob:')) {
+          URL.revokeObjectURL(img.url);
+        }
+      });
+    };
+  }, []);
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || disabled) return;
@@ -90,7 +101,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Text variant="paragraph" weight="medium">
+        <Text variant="paragraph">
           الصور ({images.length}/{maxImages})
         </Text>
         {!disabled && canAddMore && (

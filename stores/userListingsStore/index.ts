@@ -33,7 +33,7 @@ interface UserListingsActions {
   loadMyListings: (filters?: Partial<UserListingsState['filters']>, page?: number) => Promise<void>;
 
   // Load single listing by ID
-  loadMyListingById: (id: string) => Promise<void>;
+  loadMyListingById: (id: string) => Promise<Listing>;
 
   // Create listing
   createMyListing: (input: any) => Promise<Listing>;
@@ -136,11 +136,14 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
         currentListing: data.myListingById,
         loading: false,
       });
+
+      return data.myListingById;
     } catch (error: any) {
       set({
         error: error.message || 'Failed to load listing',
         loading: false,
       });
+      throw error;
     }
   },
 

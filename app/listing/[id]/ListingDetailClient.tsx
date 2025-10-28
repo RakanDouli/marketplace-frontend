@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
+import { useFiltersStore } from '@/stores/filtersStore';
+import type { Attribute } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, CollapsibleSection, Container } from '@/components/slices';
 import { Phone, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { LocationMap } from '@/components/LocationMap';
 import { ShareButton, FavoriteButton } from '@/components/slices/Button';
 import { AdContainer } from '@/components/ads';
@@ -16,51 +17,10 @@ interface ListingDetailClientProps {
   listingId: string;
 }
 
-interface AttributeOption {
-  id: string;
-  key: string;
-  value: string;
-  sortOrder: number;
-}
-
-interface Attribute {
-  id: string;
-  key: string;
-  name: string;
-  type: string;
-  group: string | null;
-  groupOrder: number;
-  sortOrder: number;
-  showInDetail: boolean;
-  options: AttributeOption[];
-}
-
-const GET_ATTRIBUTES_QUERY = `
-  query GetAttributesByCategory($categoryId: String!) {
-    getAttributesByCategory(categoryId: $categoryId) {
-      id
-      key
-      name
-      type
-      group
-      groupOrder
-      sortOrder
-      showInDetail
-      options {
-        id
-        key
-        value
-        sortOrder
-      }
-    }
-  }
-`;
-
 export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listingId }) => {
   const router = useRouter();
   const { currentListing, isLoading, error, fetchListingById } = useListingsStore();
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [attributesLoading, setAttributesLoading] = useState(false);
+  const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
 
   useEffect(() => {
     if (listingId) {
@@ -68,28 +28,13 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     }
   }, [listingId, fetchListingById]);
 
-  // Fetch attributes when listing is loaded
+  // Fetch attributes when listing is loaded (uses filtersStore cache)
   useEffect(() => {
-    const categoryId = currentListing?.category?.id;
-    if (categoryId) {
-      const fetchAttributes = async () => {
-        setAttributesLoading(true);
-        try {
-          const data = await cachedGraphQLRequest(
-            GET_ATTRIBUTES_QUERY,
-            { categoryId },
-            { ttl: 10 * 60 * 1000 } // Cache for 10 minutes
-          );
-          setAttributes(data.getAttributesByCategory || []);
-        } catch (err) {
-          console.error('Failed to fetch attributes:', err);
-        } finally {
-          setAttributesLoading(false);
-        }
-      };
-      fetchAttributes();
+    const categorySlug = currentListing?.category?.slug;
+    if (categorySlug) {
+      fetchFilterData(categorySlug);
     }
-  }, [currentListing?.category?.id]);
+  }, [currentListing?.category?.slug, fetchFilterData]);
 
   // Separate grouped and ungrouped specifications
   const { groupedSpecs, ungroupedSpecs } = useMemo(() => {
@@ -218,6 +163,20 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   const listing = currentListing;
   const primaryPrice = listing.prices?.[0];
+
+  // Debug: Log location data
+  console.log('🔍 Listing Location Debug:', {
+    location: listing.location,
+    hasLocation: listing.location && (
+      listing.location.city ||
+      listing.location.province ||
+      listing.location.coordinates
+    ),
+    province: listing.location?.province,
+    city: listing.location?.city,
+    area: listing.location?.area,
+  });
+
   const hasLocation = listing.location && (
     listing.location.city ||
     listing.location.province ||

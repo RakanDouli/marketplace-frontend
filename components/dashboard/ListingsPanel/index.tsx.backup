@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Loading, Text, Pagination, ListingCard } from '@/components/slices';
+import { Button, Loading, Text, Table, TableHead, TableBody, TableRow, TableCell, Pagination } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { EditListingModal, DeleteListingModal } from './modals';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -11,7 +11,6 @@ import { useMetadataStore } from '@/stores/metadataStore';
 import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { RefreshCw, Edit, Trash2, Eye, Plus } from 'lucide-react';
 import { Listing } from '@/types/listing';
-import { optimizeListingImage } from '@/utils/cloudflare-images';
 import styles from './ListingsPanel.module.scss';
 
 export const ListingsPanel: React.FC = () => {
@@ -74,7 +73,10 @@ export const ListingsPanel: React.FC = () => {
     return () => clearTimeout(delayedSearch);
   }, [searchTerm, statusFilter]);
 
-
+  // Handle refresh
+  const handleRefresh = () => {
+    loadMyListings(filters, 1);
+  };
 
   // Handle create listing - navigate to create page
   const handleCreateListing = () => {
@@ -82,17 +84,13 @@ export const ListingsPanel: React.FC = () => {
   };
 
   // Handle edit listing
-  const handleEditListing = (listing: Listing, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const handleEditListing = (listing: Listing) => {
     setSelectedListing(listing);
     setShowEditModal(true);
   };
 
   // Handle delete listing
-  const handleDeleteListing = (listing: Listing, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const handleDeleteListing = (listing: Listing) => {
     setListingToDelete(listing);
     setShowDeleteModal(true);
   };
@@ -160,33 +158,22 @@ export const ListingsPanel: React.FC = () => {
     }
   }, [listingStatuses.length]);
 
-  // Format price
+  // Format price - using English numbers to match user-facing listings
   const formatPrice = (priceMinor: number) => {
     return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
     }).format(priceMinor / 100);
+  };
+
+  // Format date - using English dates for consistency
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US');
   };
 
   // Calculate total pages
   const totalPages = Math.ceil(pagination.total / pagination.limit);
-
-  // Convert listing to ListingCard props
-  const getListingCardProps = (listing: Listing) => {
-    const images = listing.imageKeys?.map(key => optimizeListingImage(key, 'card')) || [];
-
-    return {
-      id: listing.id,
-      title: listing.title,
-      price: formatPrice(listing.priceMinor),
-      currency: 'USD',
-      location: listing.location?.province || 'غير محدد',
-      accountType: (listing.user?.accountType as "individual" | "dealer" | "business") || 'individual',
-      specs: listing.specsDisplay || {},
-      images,
-      description: listing.description,
-    };
-  };
 
   return (
     <>
@@ -200,6 +187,14 @@ export const ListingsPanel: React.FC = () => {
             </Text>
           </div>
           <div className={styles.headerActions}>
+            <Button
+              onClick={handleRefresh}
+              variant="secondary"
+              icon={<RefreshCw size={16} />}
+              disabled={loading}
+            >
+              تحديث
+            </Button>
             <Button
               onClick={handleCreateListing}
               variant="primary"
@@ -256,44 +251,55 @@ export const ListingsPanel: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <div className={styles.listingsGrid}>
-            {listings.map(listing => (
-              <div key={listing.id} className={styles.listingCardWrapper}>
-                {/* Status Badge Overlay */}
-                <div className={`${styles.statusBadge} ${styles[`status-${listing.status.toLowerCase()}`]}`}>
-                  {getLabel(listing.status, LISTING_STATUS_LABELS)}
-                </div>
-
-                {/* Listing Card */}
-                <ListingCard
-                  {...getListingCardProps(listing)}
-                  onClick={() => router.push(`/listing/${listing.id}`)}
-                />
-
-                {/* Action Buttons */}
-                <div className={styles.cardActions}>
-                  <Button
-                    onClick={(e) => handleEditListing(listing, e)}
-                    variant="outline"
-                    size="sm"
-                    icon={<Edit size={16} />}
-
-                  >
-                    تعديل
-                  </Button>
-                  <Button
-                    onClick={(e) => handleDeleteListing(listing, e)}
-                    variant="danger"
-                    size="sm"
-                    icon={<Trash2 size={16} />}
-
-                  >
-                    حذف
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell isHeader>العنوان</TableCell>
+                <TableCell isHeader>السعر</TableCell>
+                <TableCell isHeader>الفئة</TableCell>
+                <TableCell isHeader>الحالة</TableCell>
+                <TableCell isHeader>تاريخ الإنشاء</TableCell>
+                <TableCell isHeader>الإجراءات</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {listings.map(listing => (
+                <TableRow key={listing.id}>
+                  <TableCell>
+                    <div className={styles.itemTitle}>
+                      {listing.title}
+                    </div>
+                  </TableCell>
+                  <TableCell>{formatPrice(listing.priceMinor)}</TableCell>
+                  <TableCell>{listing.category?.name || 'سيارات'}</TableCell>
+                  <TableCell>
+                    <span className={`${styles.statusBadge} ${styles[`status-${listing.status.toLowerCase()}`]}`}>
+                      {getLabel(listing.status, LISTING_STATUS_LABELS)}
+                    </span>
+                  </TableCell>
+                  <TableCell>{formatDate(listing.createdAt)}</TableCell>
+                  <TableCell>
+                    <div className={styles.actions}>
+                      <Button
+                        onClick={() => handleEditListing(listing)}
+                        variant="outline"
+                        size="sm"
+                        icon={<Edit size={16} />}
+                        title="تعديل"
+                      />
+                      <Button
+                        onClick={() => handleDeleteListing(listing)}
+                        variant="danger"
+                        size="sm"
+                        icon={<Trash2 size={16} />}
+                        title="حذف"
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
 
         {/* Pagination */}

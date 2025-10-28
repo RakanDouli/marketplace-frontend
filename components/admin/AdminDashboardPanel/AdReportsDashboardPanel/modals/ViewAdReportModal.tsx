@@ -5,6 +5,7 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Loading } from '@/components/slices';
 import { Table, TableHead, TableBody, TableRow, TableCell } from '@/components/slices';
 import type { AdCampaign } from '@/stores/admin/adminAdCampaignsStore';
+import { AD_MEDIA_TYPE_LABELS, AD_CAMPAIGN_STATUS_LABELS, getLabel } from '@/constants/metadata-labels';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import styles from './AdReportModals.module.scss';
 import sharedStyles from '../../SharedDashboardPanel.module.scss';
@@ -129,26 +130,11 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
   };
 
   const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      DRAFT: 'مسودة',
-      PAYMENT_SENT: 'تم إرسال رابط الدفع',
-      PAID: 'تم الدفع',
-      ACTIVE: 'نشطة',
-      PAUSED: 'متوقفة مؤقتاً',
-      COMPLETED: 'مكتملة',
-      CANCELLED: 'ملغاة',
-    };
-    return labels[status.toUpperCase()] || status;
+    return getLabel(status.toLowerCase(), AD_CAMPAIGN_STATUS_LABELS);
   };
 
   const getAdTypeLabel = (adType: string) => {
-    const labels: Record<string, string> = {
-      BANNER: 'بانر علوي',
-      VIDEO: 'فيديو علوي',
-      BETWEEN_LISTINGS_CARD: 'بين القوائم - كارت',
-      BETWEEN_LISTINGS_BANNER: 'بين القوائم - بانر كامل',
-    };
-    return labels[adType] || adType;
+    return getLabel(adType.toLowerCase(), AD_MEDIA_TYPE_LABELS);
   };
 
   const getStatusClass = (status: string): string => {

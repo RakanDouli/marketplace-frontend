@@ -47,3 +47,36 @@ export const GET_CATEGORIES = `
     }
   }
 `;
+
+// Get Cloudflare upload URL for listing images
+export const CREATE_IMAGE_UPLOAD_URL_MUTATION = `
+  mutation CreateImageUploadUrl {
+    createImageUploadUrl {
+      uploadUrl
+      assetKey
+    }
+  }
+`;
+
+// Create listing mutation
+export const CREATE_MY_LISTING_MUTATION = `
+  mutation CreateMyListing($input: CreateListingInput!) {
+    createMyListing(input: $input) {
+      id
+      title
+      description
+      priceMinor
+      allowBidding
+      biddingStartPrice
+      imageKeys
+      location {
+        province
+        city
+        area
+        link
+      }
+      status
+      createdAt
+    }
+  }
+`;

@@ -392,7 +392,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       const data = await cachedGraphQLRequest(
         LISTING_BY_ID_QUERY,
         { id },
-        { ttl: 5 * 60 * 1000 } // Cache for 5 minutes
+        { ttl: 0 } // Bypass cache temporarily to test location fix
       );
 
       if (!data.listing) {

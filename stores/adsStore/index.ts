@@ -6,7 +6,6 @@ import { GET_ACTIVE_ADS_BY_TYPE_QUERY, GET_ADSENSE_SETTINGS_QUERY } from "./adsS
 export type AdMediaType =
   | "BANNER"
   | "VIDEO"
-  | "BETWEEN_LISTINGS_CARD"
   | "BETWEEN_LISTINGS_BANNER";
 
 // Ad Campaign interface

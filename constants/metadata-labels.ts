@@ -106,6 +106,37 @@ export const ATTRIBUTE_STORAGE_TYPE_LABELS: Record<string, string> = {
   location: "موقع (JSONB)",
 };
 
+// ===== AD SYSTEM METADATA LABELS =====
+
+export const AD_MEDIA_TYPE_LABELS: Record<string, string> = {
+  banner: "بانر علوي",
+  video: "فيديو علوي",
+  between_listings_banner: "بين القوائم - بانر كامل",
+};
+
+export const AD_CAMPAIGN_STATUS_LABELS: Record<string, string> = {
+  draft: "مسودة",
+  pending_payment: "بانتظار الدفع",
+  pending_review: "بانتظار المراجعة",
+  scheduled: "مجدولة",
+  active: "نشطة",
+  paused: "موقفة مؤقتاً",
+  completed: "مكتملة",
+  cancelled: "ملغاة",
+};
+
+export const AD_CLIENT_STATUS_LABELS: Record<string, string> = {
+  active: "نشط",
+  inactive: "غير نشط",
+  blacklisted: "محظور",
+};
+
+export const CAMPAIGN_START_PREFERENCE_LABELS: Record<string, string> = {
+  immediate: "فوري بعد الدفع",
+  scheduled: "تاريخ محدد",
+  after_review: "بعد المراجعة",
+};
+
 // ===== HELPER FUNCTIONS =====
 
 /**

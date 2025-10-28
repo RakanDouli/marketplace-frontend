@@ -1,142 +1,10 @@
 'use client';
 import React, { forwardRef, useState, useId, useRef, useEffect } from "react";
+import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
+import { formatNumberWithCommas, parseFormattedNumber } from "@/utils/formatNumber";
 import styles from "./Input.module.scss";
 
-interface CustomSelectProps {
-  options: Array<{ value: string; label: string; disabled?: boolean }>;
-  inputClasses: string;
-  onFocus: () => void;
-  onBlur: () => void;
-  onChange: (e: any) => void;
-  generatedId: string;
-  value?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  name?: string;
-  id?: string;
-}
-
-const CustomSelect: React.FC<CustomSelectProps> = ({
-  options,
-  inputClasses,
-  onFocus,
-  onBlur,
-  onChange,
-  generatedId,
-  value = '',
-  placeholder = 'اختر خيار...',
-  disabled = false,
-  name,
-  id
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(value);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Sync internal state with external value prop
-  useEffect(() => {
-    setSelectedValue(value);
-  }, [value]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        onBlur();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onBlur]);
-
-  const handleToggle = () => {
-    if (disabled) return;
-    setIsOpen(!isOpen);
-    if (!isOpen) {
-      onFocus();
-    } else {
-      onBlur();
-    }
-  };
-
-  const handleOptionClick = (optionValue: string) => {
-    if (disabled) return;
-
-    setSelectedValue(optionValue);
-    setIsOpen(false);
-    onBlur();
-
-    // Create synthetic event for onChange
-    const syntheticEvent = {
-      target: {
-        value: optionValue,
-        name: name || id || generatedId
-      }
-    };
-    onChange(syntheticEvent);
-  };
-
-  const selectedOption = options.find(opt => opt.value === selectedValue);
-  const displayValue = selectedOption?.label || placeholder;
-
-  return (
-    <div ref={dropdownRef} className={styles.customSelectWrapper}>
-      {/* Hidden input for form submission */}
-      <input
-        type="hidden"
-        name={name || id || generatedId}
-        value={selectedValue}
-      />
-
-      {/* Custom select trigger */}
-      <div
-        className={`${inputClasses} ${styles.customSelectTrigger} ${isOpen ? styles.open : ''}`}
-        onClick={handleToggle}
-        tabIndex={disabled ? -1 : 0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleToggle();
-          }
-        }}
-      >
-        <span className={selectedValue ? '' : styles.placeholder}>
-          {displayValue}
-        </span>
-        <div className={`${styles.selectArrow} ${isOpen ? styles.open : ''}`}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Custom dropdown */}
-      {isOpen && (
-        <div className={styles.customSelectDropdown}>
-          {options.map((option) => (
-            <div
-              key={option.value}
-              className={`${styles.customSelectOption} ${
-                option.value === selectedValue ? styles.selected : ''
-              } ${option.disabled ? styles.disabled : ''}`}
-              onClick={() => !option.disabled && handleOptionClick(option.value)}
-            >
-              {option.label}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 export interface InputProps
   extends Omit<
@@ -147,19 +15,19 @@ export interface InputProps
   > {
   /** Input type */
   type?:
-    | "text"
-    | "email"
-    | "password"
-    | "number"
-    | "tel"
-    | "url"
-    | "search"
-    | "textarea"
-    | "boolean"
-    | "select"
-    | "switch"
-    | "date"
-    | "file";
+  | "text"
+  | "email"
+  | "password"
+  | "number"
+  | "tel"
+  | "url"
+  | "search"
+  | "textarea"
+  | "boolean"
+  | "select"
+  | "switch"
+  | "date"
+  | "file";
   /** Input label */
   label?: string;
   /** Error message */
@@ -182,6 +50,14 @@ export interface InputProps
   validate?: (value: string) => string | undefined;
   /** Value to compare against (for password confirmation) */
   compareWith?: string;
+  /** Enable search for select (uses react-select) */
+  searchable?: boolean;
+  /** Enable create new option for select (uses react-select creatable) */
+  creatable?: boolean;
+  /** Loading state for select */
+  isLoading?: boolean;
+  /** Callback when creating a new option (for creatable selects) */
+  onCreateOption?: (inputValue: string) => void;
 }
 
 export const Input = forwardRef<
@@ -202,6 +78,10 @@ export const Input = forwardRef<
       hasError = false,
       validate,
       compareWith,
+      searchable = false,
+      creatable = false,
+      isLoading = false,
+      onCreateOption,
       ...props
     },
     ref
@@ -238,7 +118,19 @@ export const Input = forwardRef<
 
     // Handle validation on change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      const value = e.target.value;
+      let value = e.target.value;
+
+      // For number inputs, parse and format with commas
+      if (type === 'number') {
+        // Remove existing commas
+        const numericValue = parseFormattedNumber(value);
+
+        // Format back with commas (display value)
+        const formattedValue = numericValue > 0 ? formatNumberWithCommas(numericValue) : '';
+
+        // Update the synthetic event with the numeric value (for parent onChange)
+        e.target.value = String(numericValue);
+      }
 
       // Run validation if provided
       if (validate) {
@@ -308,7 +200,7 @@ export const Input = forwardRef<
               checked={isChecked}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              onChange={() => {}} // Prevent default checkbox behavior
+              onChange={() => { }} // Prevent default checkbox behavior
               id={switchProps.id || switchProps.name || generatedId}
               name={switchProps.name || switchProps.id || generatedId}
               disabled={switchProps.disabled}
@@ -341,53 +233,134 @@ export const Input = forwardRef<
       if (type === "select") {
         const selectProps = props as React.SelectHTMLAttributes<HTMLSelectElement>;
 
-        return <CustomSelect
-          options={options}
-          inputClasses={inputClasses}
-          onChange={handleChange}
-          generatedId={generatedId}
-          value={typeof selectProps.value === 'string' ? selectProps.value : undefined}
-          disabled={selectProps.disabled}
-          name={selectProps.name}
-          id={selectProps.id}
-          onFocus={() => handleFocus()}
-          onBlur={() => handleBlur()}
-        />;
+        // ALWAYS use react-select for ALL selects
+        const SelectComponent = creatable ? CreatableSelect : Select;
+        const selectedOption = options.find(opt => opt.value === String(selectProps.value || ''));
+
+        const handleSelectChange = (newValue: any) => {
+          const syntheticEvent = {
+            target: {
+              value: newValue?.value || '',
+              name: selectProps.name || selectProps.id || generatedId
+            }
+          } as any;
+          handleChange(syntheticEvent);
+        };
+
+        const handleCreate = (inputValue: string) => {
+          if (onCreateOption) {
+            onCreateOption(inputValue);
+          }
+        };
+
+        // Get CSS variables from document
+        const getColor = (varName: string) => {
+          if (typeof window === 'undefined') return undefined;
+          return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+        };
+
+        const primaryColor = getColor('--primary');
+        const borderColor = getColor('--border');
+        const surfaceColor = getColor('--surface');
+
+        const customStyles = {
+          control: (base: any, state: any) => ({
+            ...base,
+            minHeight: '44px',
+            borderColor: state.isFocused ? primaryColor : borderColor,
+            boxShadow: state.isFocused ? `0 0 0 3px ${primaryColor}1a` : 'none',
+            '&:hover': {
+              borderColor: primaryColor,
+            },
+          }),
+          option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isSelected ? primaryColor : state.isFocused ? surfaceColor : 'transparent',
+            color: state.isSelected ? 'white' : 'inherit',
+          }),
+        };
+
+        return (
+          <SelectComponent
+            instanceId={selectProps.id || generatedId}
+            inputId={selectProps.id || generatedId}
+            name={selectProps.name || selectProps.id || generatedId}
+            options={options}
+            value={selectedOption || null}
+            onChange={handleSelectChange}
+            onCreateOption={creatable ? handleCreate : undefined}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            isDisabled={selectProps.disabled}
+            isLoading={isLoading}
+            isSearchable={searchable}
+            placeholder='اختر خيار...'
+            noOptionsMessage={() => "لا توجد نتائج"}
+            loadingMessage={() => "جاري التحميل..."}
+            formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
+            styles={customStyles}
+          />
+        );
       }
 
+      // Default: regular input (text, email, password, etc.)
       const inputProps = props as React.InputHTMLAttributes<HTMLInputElement>;
+
+      // For number inputs, format the displayed value with commas
+      let displayValue: string | number | readonly string[] | undefined = inputProps.value;
+      if (type === 'number' && inputProps.value && !Array.isArray(inputProps.value)) {
+        displayValue = formatNumberWithCommas(inputProps.value as string | number);
+      }
+
       return (
         <input
           ref={ref as React.RefObject<HTMLInputElement>}
-          type={type}
+          type={type === 'number' ? 'text' : type} // Use text input for formatted numbers
           className={inputClasses}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...inputProps}
+          value={displayValue}
           onChange={handleChange}
           id={inputProps.id || inputProps.name || generatedId}
           name={inputProps.name || inputProps.id || generatedId}
+          inputMode={type === 'number' ? 'numeric' : undefined} // Mobile keyboard hint
         />
       );
     };
 
     return (
-      <div className={`${styles.inputGroup} ${className}`.trim()}>
-        {label && (
+      <div className={`${styles.inputWrapper} ${className}`}>
+        {label && type !== "switch" && (
           <label
-            className={styles.label}
             htmlFor={props.id || props.name || generatedId}
+            className={styles.label}
           >
             {label}
+            {props.required && <span className={styles.required}>*</span>}
           </label>
         )}
 
-        <div className={styles.inputContainer}>{renderInput()}</div>
+        {type === "switch" && label ? (
+          <div className={styles.switchWrapper}>
+            <label
+              htmlFor={props.id || props.name || generatedId}
+              className={styles.switchLabel}
+            >
+              {label}
+            </label>
+            {renderInput()}
+          </div>
+        ) : (
+          renderInput()
+        )}
 
-        {displayError && <div className={styles.error}>{displayError}</div>}
+        {displayError && (
+          <span className={styles.errorText}>{displayError}</span>
+        )}
 
         {helpText && !displayError && (
-          <div className={styles.helpText}>{helpText}</div>
+          <span className={styles.helpText}>{helpText}</span>
         )}
       </div>
     );

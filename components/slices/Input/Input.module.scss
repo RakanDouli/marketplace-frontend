@@ -1,26 +1,31 @@
 @import "../../../styles/variables";
 
-.inputGroup {
+// Main wrapper
+.inputWrapper {
   display: flex;
   flex-direction: column;
   gap: $space-xs;
   width: 100%;
 }
 
+// Label
 .label {
+  display: block;
   font-size: $font-sm;
   font-weight: $weight-medium;
   color: $text;
   margin-bottom: $space-xs;
 }
 
-.inputContainer {
-  position: relative;
-  width: 100%;
+.required {
+  color: $error;
+  margin-inline-start: 2px;
 }
 
+// Base input styles (text, email, password, number, url, date, etc.)
 .input {
   width: 100%;
+  padding: $space-sm $space-md;
   border: 1px solid $border;
   border-radius: $radius-md;
   font-size: $font-base;
@@ -33,7 +38,10 @@
 
   &::placeholder {
     color: $text-muted;
-    opacity: 1;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $primary;
   }
 
   &:focus {
@@ -42,36 +50,28 @@
   }
 
   &:disabled {
-    background-color: $bg;
+    background-color: $surface;
     color: $text-muted;
     cursor: not-allowed;
     opacity: 0.6;
   }
 
   // Variants
-  &--default {
-    padding: $space-sm $space-md;
-  }
-
   &--outline {
     background-color: transparent;
     border: 2px solid $border;
-    padding: calc(#{$space-sm} - 1px) calc(#{$space-md} - 1px);
 
     &:focus {
       border-color: $primary;
-      background-color: $surface;
     }
   }
 
   &--filled {
-    background-color: $bg;
+    background-color: $surface;
     border: 1px solid transparent;
-    padding: $space-sm $space-md;
 
     &:focus {
-      background-color: $surface;
-      // border-color: $primary;
+      border-color: $primary;
     }
 
     &:hover:not(:disabled) {
@@ -95,7 +95,7 @@
     padding: $space-md $space-lg;
   }
 
-  // States
+  // Error state
   &--error {
     border-color: $error;
 
@@ -110,106 +110,13 @@
   }
 }
 
-// Textarea specific styles
+// Textarea
 textarea.input {
   resize: vertical;
   min-height: 100px;
-  padding: $space-sm $space-md;
 }
 
-// Custom Select Component Styles
-.customSelectWrapper {
-  position: relative;
-  width: 100%;
-  min-width: 150px;
-}
-
-.customSelectTrigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-
-  &:hover:not(:disabled) {
-    background-color: $surface;
-    border-color: $primary;
-  }
-
-  &.open {
-    border-color: $primary;
-    box-shadow: 0 0 0 3px rgba($primary, 0.1);
-  }
-}
-
-.placeholder {
-  color: $text-muted;
-}
-
-.selectArrow {
-  display: flex;
-  align-items: center;
-  color: $text-muted;
-  transition: transform 0.2s ease;
-
-  &.open {
-    transform: rotate(180deg);
-  }
-}
-
-.customSelectDropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.customSelectOption {
-  padding: $space-sm $space-md;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  font-size: $font-base;
-  color: $text;
-
-  &:hover {
-    background-color: $surface;
-  }
-
-  &.selected {
-    background-color: $primary;
-    color: white;
-  }
-
-  &.disabled {
-    color: $text-muted;
-    cursor: not-allowed;
-    background-color: transparent;
-
-    &:hover {
-      background-color: transparent;
-    }
-  }
-
-  &:first-child {
-    border-top-left-radius: calc(#{$radius-md} - 1px);
-    border-top-right-radius: calc(#{$radius-md} - 1px);
-  }
-
-  &:last-child {
-    border-bottom-left-radius: calc(#{$radius-md} - 1px);
-    border-bottom-right-radius: calc(#{$radius-md} - 1px);
-  }
-}
-
-// Checkbox specific styles
+// Checkbox
 .checkbox {
   width: auto !important;
   height: 18px;
@@ -218,7 +125,8 @@ textarea.input {
   margin: 0;
 
   &:focus {
-    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    outline: 2px solid $primary;
+    outline-offset: 2px;
   }
 
   &:disabled {
@@ -226,43 +134,43 @@ textarea.input {
   }
 }
 
-.error {
+// Error text
+.errorText {
   font-size: $font-sm;
   color: $error;
   margin-top: $space-xs;
 }
 
+// Help text
 .helpText {
   font-size: $font-sm;
   color: $text-muted;
   margin-top: $space-xs;
 }
 
-// select.input {
-//   background-position: right $space-sm center;
-//   padding-left: $space-md;
-//   padding-right: calc(#{$space-md} + 24px);
-
-//   option {
-//     direction: rtl;
-//     text-align: right;
-//   }
-// }
-
-// Switch component styles
-.switchContainer {
+// Switch component
+.switchWrapper {
   display: flex;
   align-items: center;
   gap: $space-sm;
+}
+
+.switchLabel {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $text;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switchContainer {
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
 
   &:hover .switchTrack {
     box-shadow: 0 0 0 2px rgba($primary, 0.2);
-  }
-
-  &:active .switchTrack {
-    transform: scale(0.98);
   }
 }
 
@@ -279,9 +187,8 @@ textarea.input {
   width: 48px;
   height: 24px;
   border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.2, 0.0, 0.3, 1);
+  transition: all 0.2s ease;
   cursor: pointer;
-  outline: none;
 
   &:focus-visible {
     box-shadow: 0 0 0 3px rgba($primary, 0.3);
@@ -289,12 +196,11 @@ textarea.input {
 }
 
 .switchTrackOff {
-  background-color: rgba($border, 0.8);
+  background-color: $surface;
   border: 2px solid $border;
 
   &:hover {
-    background-color: rgba($border, 1);
-    border-color: rgba($primary, 0.3);
+    border-color: $primary;
   }
 }
 
@@ -304,7 +210,6 @@ textarea.input {
 
   &:hover {
     background-color: rgba($primary, 0.9);
-    border-color: $primary;
   }
 }
 
@@ -313,10 +218,10 @@ textarea.input {
   top: 1px;
   width: 20px;
   height: 20px;
-  background-color: white;
+  background-color: $bg;
   border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.2, 0.0, 0.3, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .switchThumbOff {
@@ -329,7 +234,7 @@ textarea.input {
   transform: translateX(24px);
 }
 
-// Disabled state
+// Disabled switch
 .switchContainer:has(.switchInput:disabled) {
   cursor: not-allowed;
   opacity: 0.6;
@@ -339,12 +244,11 @@ textarea.input {
 
     &:hover {
       box-shadow: none;
-      transform: none;
     }
   }
 }
 
-// Focus states for accessibility
+// Focus state
 .switchContainer:focus-within .switchTrack {
   box-shadow: 0 0 0 3px rgba($primary, 0.3);
 }

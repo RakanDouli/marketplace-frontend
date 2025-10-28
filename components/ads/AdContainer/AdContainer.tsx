@@ -97,20 +97,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
             </div>
           );
 
-        case 'BETWEEN_LISTINGS_CARD':
-          return (
-            <div className={className}>
-              <AdCard
-                campaignId={selectedAd.id}
-                imageUrl={mediaUrl}
-                targetUrl={selectedAd.clickUrl}
-                altText={selectedAd.description || selectedAd.campaignName}
-                onImpression={handleImpression}
-                onClick={handleClick}
-              />
-            </div>
-          );
-
         default:
           console.warn(`📢 AdContainer: Unknown ad type: ${type}`);
           return null;
@@ -131,7 +117,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
         adSenseSlot = adSenseSettings.videoSlot;
         break;
       case 'BETWEEN_LISTINGS_BANNER':
-      case 'BETWEEN_LISTINGS_CARD':
         adSenseSlot = adSenseSettings.betweenListingsSlot;
         break;
       default:

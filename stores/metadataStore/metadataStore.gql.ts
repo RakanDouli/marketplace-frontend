@@ -99,3 +99,18 @@ export const GET_CAMPAIGN_START_PREFERENCES_QUERY = `
     getCampaignStartPreferences
   }
 `;
+
+// ===== LOCATION METADATA =====
+
+export const GET_PROVINCES_QUERY = `
+  query GetProvinces {
+    getProvinces {
+      key
+      nameAr
+      coordinates {
+        lat
+        lng
+      }
+    }
+  }
+`;

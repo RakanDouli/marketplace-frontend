@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Button, Loading, Text, Input } from '@/components/slices';
 import { useAdminAdPackagesStore, type AdPackage } from '@/stores/admin/adminAdPackagesStore';
 import { useAdminAdNetworkSettingsStore, type AdNetworkSetting } from '@/stores/admin/adminAdNetworkSettingsStore';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { AD_MEDIA_TYPE_LABELS, getLabel } from '@/constants/metadata-labels';
 import { Table, TableHead, TableBody, TableRow, TableCell } from '@/components/slices';
 import { CreateAdPackageModal, EditAdPackageModal, DeleteAdPackageModal } from './modals';
 import { useFeaturePermissions } from '@/hooks/usePermissions';
@@ -91,15 +93,16 @@ export const AdPackagesDashboardPanel: React.FC = () => {
     }
   }, [settingsError, clearSettingsError, addNotification]);
 
+  // Fetch metadata for ad types
+  const { fetchAdMetadata } = useMetadataStore();
+
+  useEffect(() => {
+    fetchAdMetadata();
+  }, [fetchAdMetadata]);
+
   // Helper functions for display
   const getAdTypeLabel = (adType: string) => {
-    const labels: Record<string, string> = {
-      'BANNER': 'بانر علوي',
-      'VIDEO': 'فيديو علوي',
-      'BETWEEN_LISTINGS_CARD': 'بين القوائم - كارت',
-      'BETWEEN_LISTINGS_BANNER': 'بين القوائم - بانر كامل'
-    };
-    return labels[adType] || adType;
+    return getLabel(adType.toLowerCase(), AD_MEDIA_TYPE_LABELS);
   };
 
   const formatPrice = (price: number) => {
@@ -313,69 +316,7 @@ export const AdPackagesDashboardPanel: React.FC = () => {
           </Table>
         )}
 
-        {/* Google AdSense Settings Section */}
-        <div className={styles.settingsSection}>
-          <div className={styles.header}>
-            <div className={styles.headerContent}>
-              <Text variant="h3">إعدادات Google AdSense</Text>
-              <Text variant="paragraph" color="secondary">
-                تكوين إعلانات جوجل الاحتياطية التي تظهر عند انتهاء حملات الإعلانات المدفوعة
-              </Text>
-            </div>
-          </div>
 
-          {settingsLoading ? (
-            <div className={styles.loadingContainer}>
-              <Loading type='svg' />
-              <Text variant="paragraph">جاري تحميل الإعدادات...</Text>
-            </div>
-          ) : adNetworkSettings.length === 0 ? (
-            <div className={styles.emptyState}>
-              <Text variant="paragraph" color="secondary">لا توجد إعدادات متاحة</Text>
-            </div>
-          ) : (
-            <div className={styles.settingsGrid}>
-              {adNetworkSettings.map(setting => (
-                <div key={setting.key} className={styles.settingRow}>
-                  <div className={styles.settingField}>
-                    <Text variant="paragraph" weight="medium" className={styles.settingLabel}>
-                      {getSettingLabel(setting.key)}
-                    </Text>
-                    <Input
-                      type="text"
-                      value={adsenseFormData[setting.key]?.value || ''}
-                      onChange={(e) => handleAdsenseChange(setting.key, 'value', e.target.value)}
-                      placeholder={setting.description || ''}
-                      disabled={!canModify}
-                    />
-                  </div>
-
-                  <label className={styles.settingToggle}>
-                    <input
-                      type="checkbox"
-                      checked={adsenseFormData[setting.key]?.isActive || false}
-                      onChange={(e) => handleAdsenseChange(setting.key, 'isActive', e.target.checked)}
-                      disabled={!canModify}
-                    />
-                    <Text variant="small">مفعّل</Text>
-                  </label>
-
-                  {canModify && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleSaveAdsenseSetting(setting.key)}
-                      icon={<Save size={16} />}
-                      disabled={settingsLoading}
-                    >
-                      حفظ
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Create Ad Package Modal */}
         <CreateAdPackageModal
@@ -411,6 +352,69 @@ export const AdPackagesDashboardPanel: React.FC = () => {
           adPackage={packageToDelete}
           isLoading={loading}
         />
+      </div>
+      {/* Google AdSense Settings Section */}
+      <div className={styles.settingsSection}>
+        <div className={styles.header}>
+          <div className={styles.headerContent}>
+            <Text variant="h3">إعدادات Google AdSense</Text>
+            <Text variant="paragraph" color="secondary">
+              تكوين إعلانات جوجل الاحتياطية التي تظهر عند انتهاء حملات الإعلانات المدفوعة
+            </Text>
+          </div>
+        </div>
+
+        {settingsLoading ? (
+          <div className={styles.loadingContainer}>
+            <Loading type='svg' />
+            <Text variant="paragraph">جاري تحميل الإعدادات...</Text>
+          </div>
+        ) : adNetworkSettings.length === 0 ? (
+          <div className={styles.emptyState}>
+            <Text variant="paragraph" color="secondary">لا توجد إعدادات متاحة</Text>
+          </div>
+        ) : (
+          <div className={styles.settingsGrid}>
+            {adNetworkSettings.map(setting => (
+              <div key={setting.key} className={styles.settingRow}>
+                <div className={styles.settingField}>
+                  <Text variant="paragraph" weight="medium" className={styles.settingLabel}>
+                    {getSettingLabel(setting.key)}
+                  </Text>
+                  <Input
+                    type="text"
+                    value={adsenseFormData[setting.key]?.value || ''}
+                    onChange={(e) => handleAdsenseChange(setting.key, 'value', e.target.value)}
+                    placeholder={setting.description || ''}
+                    disabled={!canModify}
+                  />
+                </div>
+
+                <label className={styles.settingToggle}>
+                  <input
+                    type="checkbox"
+                    checked={adsenseFormData[setting.key]?.isActive || false}
+                    onChange={(e) => handleAdsenseChange(setting.key, 'isActive', e.target.checked)}
+                    disabled={!canModify}
+                  />
+                  <Text variant="small">مفعّل</Text>
+                </label>
+
+                {canModify && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleSaveAdsenseSetting(setting.key)}
+                    icon={<Save size={16} />}
+                    disabled={settingsLoading}
+                  >
+                    حفظ
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

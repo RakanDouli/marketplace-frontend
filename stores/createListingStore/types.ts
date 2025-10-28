@@ -40,6 +40,7 @@ export interface Attribute {
   showInList: boolean;
   showInDetail: boolean;
   showInFilter: boolean;
+  storageType?: string; // "column" | "specs" - where the value is stored
   options: AttributeOption[];
   maxSelections?: number; // For MULTI_SELECTOR
 }
@@ -72,6 +73,7 @@ export interface CreateListingFormData {
   biddingStartPrice?: number;
 
   // Step 2: Images
+  videoUrl?: string;
   images: ImageItem[];
 
   // Step 3-N: Dynamic specs from attributes
@@ -129,6 +131,9 @@ export interface CreateListingStore {
   // Attribute management
   fetchAttributes: (categoryId: string) => Promise<void>;
   generateSteps: () => void;
+
+  // Image upload
+  uploadImages: () => Promise<string[]>;
 
   // Submission
   submitListing: () => Promise<void>;

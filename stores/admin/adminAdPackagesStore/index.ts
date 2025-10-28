@@ -13,7 +13,7 @@ export interface AdPackage {
   id: string;
   packageName: string;
   description: string;
-  adType: string; // "BANNER" | "VIDEO" | "BETWEEN_LISTINGS_CARD" | "BETWEEN_LISTINGS_BANNER"
+  adType: string; // "BANNER" | "VIDEO" | "BETWEEN_LISTINGS_BANNER"
   durationDays: number;
   impressionLimit: number;
   basePrice: number;

@@ -29,7 +29,7 @@ export const MY_LISTINGS_COUNT_QUERY = `
 `;
 
 export const MY_LISTING_BY_ID_QUERY = `
-  query MyListingById($id: ID!) {
+  query MyListingByIdV2($id: ID!) {
     myListingById(id: $id) {
       id
       title
@@ -40,7 +40,12 @@ export const MY_LISTING_BY_ID_QUERY = `
       videoUrl
       specs
       specsDisplay
-      location
+      location {
+        province
+        city
+        area
+        link
+      }
       allowBidding
       biddingStartPrice
       createdAt
