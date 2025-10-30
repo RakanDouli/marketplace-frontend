@@ -1,1453 +1,2411 @@
-# Syrian Marketplace Frontend - Development Progress
-
-## 🚀 **Project Overview**
-Syrian automotive marketplace frontend built with Next.js 14, focusing on performance and Arabic-first UX for Syrian internet conditions.
-
-## ✅ **Latest Session Summary (2025-10-08) - CENTRALIZED METADATA SYSTEM COMPLETE**
-
-### **🏆 Major Achievement: Centralized Metadata System with Common Enums Pattern**
-
-We have successfully implemented a centralized metadata system that eliminates duplicate enum definitions and establishes dynamic backend-driven dropdowns:
-
-- **✅ COMMON ENUMS PATTERN**: Single source of truth for all enums in `/backend/common/enums/`
-- **✅ METADATA RESOLVER SYSTEM**: Backend exposes 9 metadata queries via GraphQL for dynamic frontend dropdowns
-- **✅ CENTRALIZED METADATA STORE**: Frontend `useMetadataStore()` with caching eliminates duplicate queries
-- **✅ ELIMINATED DUPLICATION**: Removed duplicate metadata queries from all admin stores and modals
-- **✅ PERFORMANCE IMPROVEMENT**: 50% faster modal loading with cached metadata (100ms vs 200ms)
-- **✅ PAYMENT SYSTEM ARCHITECTURE**: Implemented Liskov Substitution Principle with IPaymentProvider interface
+# Claude Development Log
 
 ---
 
-## 🎯 **CENTRALIZED METADATA ARCHITECTURE (2025-10-08)**
+## 🚀 SESSION: Archived Listings System (2025-10-30)
 
-### **🏗️ Common Enums Pattern (Backend)**
+### ✅ COMPLETED: Archived Listings Feature
 
-#### **Problem Identified:**
-The codebase had duplicate enum definitions across multiple modules:
-- `AccountType` defined in both users and subscriptions modules
-- `AttributeType`, `AttributeValidation` defined in attribute entities
-- Frontend had hardcoded dropdown options duplicating backend logic
+**Purpose:** Preserve listing data when users delete listings, allow viewing archived listings in read-only mode.
 
-#### **Solution Implemented:**
+#### Backend Implementation ✅
+- Created `ArchivedListing` entity with full data snapshot
+- Archive reasons: `sold_via_platform`, `sold_externally`, `no_longer_for_sale`
+- Analytics preserved: `viewCount`, `chatCount`, `bidCount`, `daysToSell`
+- GraphQL queries:
+  - `archivedListing(id: ID!)` - Public query for viewing archived listings
+  - `myArchivedListings` - User's archived listings
+- GraphQL mutation:
+  - `archiveMyListing(listingId: ID!, reason: ArchivalReason!)` - Archive a listing
+- Database migrations:
+  - `CreateArchivedListingsTable` - Main archived_listings table
+  - `AddArchivedListingIdToChats` - Link chats to archived listings
 
-**Backend: `/marketplace-backend/src/common/enums/`**
+#### Frontend Implementation ✅
+- Archived listing detail page: `/archived-listing/[id]`
+- Features:
+  - Archive banner: "هذا الإعلان لم يعد متاحًا"
+  - Dimmed content (0.6 opacity)
+  - Shows only first image (reduce load)
+  - No ads, no action buttons (share/favorite/contact)
+  - Full listing details preserved (specs, location, seller info)
+- Delete modal with archive reason selector
+- `archivedListingStore` with GraphQL integration
+- Auto-parses `specsJson` to `specsDisplay` object
+- Flattens `location` object for easier component access
 
-```typescript
-// account-type.enum.ts - Single source of truth
-export enum AccountType {
-  INDIVIDUAL = "individual",
-  DEALER = "dealer",
-  BUSINESS = "business",
-}
-
-// subscription-account-type.enum.ts - Extends with "all"
-export enum SubscriptionAccountType {
-  INDIVIDUAL = "individual",
-  DEALER = "dealer",
-  BUSINESS = "business",
-  ALL = "all", // Plan applies to ALL account types (Phase 1 strategy)
-}
-
-// attribute-type.enum.ts - UI input types
-export enum AttributeType {
-  SELECTOR = "selector",
-  MULTI_SELECTOR = "multi_selector",
-  RANGE = "range",
-  CURRENCY = "currency",
-  TEXT = "text",
-  TEXTAREA = "textarea",
-  NUMBER = "number",
-  DATE_RANGE = "date_range",
-  BOOLEAN = "boolean",
-}
-
-export enum AttributeValidation {
-  REQUIRED = "required",
-  OPTIONAL = "optional",
-}
-
-export enum AttributeStorageType {
-  COLUMN = "column",
-  SPECS = "specs",
-  LOCATION = "location",
-}
-
-// index.ts - Barrel export
-export {
-  AccountType,
-  SubscriptionAccountType,
-  AttributeType,
-  AttributeValidation,
-  AttributeStorageType,
-};
-```
-
-**Updated All Modules:**
-```typescript
-// Before: Local enum definitions
-import { AttributeType } from './entities/attribute.entity.js';
-
-// After: Import from common location
-import { AttributeType, AttributeValidation } from '../common/enums/index.js';
-```
-
-### **🔧 Metadata Resolver System (Backend)**
-
-**Extended metadata.resolver.ts with 9 metadata queries:**
-
-```typescript
-@Resolver()
-export class MetadataResolver {
-  // USER METADATA
-  @Query(() => [String])
-  getUserStatuses(): string[] {
-    return Object.values(UserStatus);
-  }
-
-  @Query(() => [String])
-  getUserRoles(): string[] {
-    return Object.values(UserRole);
-  }
-
-  @Query(() => [String])
-  getAccountTypes(): string[] {
-    return Object.values(AccountType);
-  }
-
-  // SUBSCRIPTION METADATA
-  @Query(() => [String])
-  getBillingCycles(): string[] {
-    return Object.values(BillingCycle);
-  }
-
-  @Query(() => [String])
-  getSubscriptionStatuses(): string[] {
-    return Object.values(UserSubscriptionStatus);
-  }
-
-  @Query(() => [String])
-  getSubscriptionAccountTypes(): string[] {
-    return Object.values(SubscriptionAccountType);
-  }
-
-  // ATTRIBUTE METADATA
-  @Query(() => [String])
-  getAttributeTypes(): string[] {
-    return Object.values(AttributeType);
-  }
-
-  @Query(() => [String])
-  getAttributeValidations(): string[] {
-    return Object.values(AttributeValidation);
-  }
-
-  @Query(() => [String])
-  getAttributeStorageTypes(): string[] {
-    return Object.values(AttributeStorageType);
-  }
-}
-```
-
-### **📦 Centralized Metadata Store (Frontend)**
-
-**Created `/stores/metadataStore/` with Zustand:**
-
-```typescript
-// metadataStore.gql.ts - 9 GraphQL queries
-export const GET_USER_STATUSES_QUERY = `
-  query GetUserStatuses {
-    getUserStatuses
-  }
-`;
-// ... 8 more queries
-
-// index.ts - Centralized store with caching
-export const useMetadataStore = create<MetadataState>((set) => ({
-  // State
-  userStatuses: [],
-  userRoles: [],
-  accountTypes: [],
-  billingCycles: [],
-  subscriptionStatuses: [],
-  subscriptionAccountTypes: [],
-  attributeTypes: [],
-  attributeValidations: [],
-  attributeStorageTypes: [],
-  loading: false,
-  error: null,
-
-  // Actions with caching
-  fetchUserMetadata: async () => {
-    set({ loading: true, error: null });
-    const [statusesData, rolesData, accountTypesData] = await Promise.all([
-      cachedGraphQLRequest(GET_USER_STATUSES_QUERY),
-      cachedGraphQLRequest(GET_USER_ROLES_QUERY),
-      cachedGraphQLRequest(GET_ACCOUNT_TYPES_QUERY),
-    ]);
-    set({
-      userStatuses: statusesData.getUserStatuses || [],
-      userRoles: rolesData.getUserRoles || [],
-      accountTypes: accountTypesData.getAccountTypes || [],
-      loading: false,
-    });
-  },
-  // ... fetchSubscriptionMetadata, fetchAttributeMetadata
-}));
-```
-
-**Created `/constants/metadata-labels.ts` for Arabic translations:**
-
-```typescript
-export const USER_STATUS_LABELS: Record<string, string> = {
-  active: "نشط",
-  inactive: "غير نشط",
-  suspended: "موقوف",
-  banned: "محظور",
-};
-
-export const SUBSCRIPTION_ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  individual: "Individual - للأفراد فقط",
-  dealer: "Dealer - للتجار فقط",
-  business: "Business - للشركات فقط",
-  all: "جميع الأنواع (Individual, Dealer, Business)",
-};
-
-export const ATTRIBUTE_TYPE_LABELS: Record<string, string> = {
-  selector: "قائمة منسدلة (اختيار واحد)",
-  multi_selector: "قائمة منسدلة (اختيارات متعددة)",
-  range: "نطاق (من - إلى)",
-  // ... more labels
-};
-
-// Helper function
-export function mapToOptions(
-  values: string[],
-  labelMap: Record<string, string>
-): Array<{ value: string; label: string }> {
-  return values.map((value) => ({
-    value,
-    label: labelMap[value] || value,
-  }));
-}
-```
-
-### **🗑️ Eliminated Duplicate Queries**
-
-**Updated All Modals to Use Centralized Store:**
-
-```typescript
-// Before: Hardcoded options in CreateSubscriptionModal
-options={[
-  { value: 'monthly', label: 'شهري' },
-  { value: 'yearly', label: 'سنوي' }
-]}
-
-// After: Dynamic metadata
-import { useMetadataStore } from '@/stores/metadataStore';
-import { mapToOptions, BILLING_CYCLE_LABELS } from '@/constants/metadata-labels';
-
-const { billingCycles, fetchSubscriptionMetadata } = useMetadataStore();
-
-useEffect(() => {
-  if (isVisible && billingCycles.length === 0) {
-    fetchSubscriptionMetadata();
-  }
-}, [isVisible, billingCycles.length, fetchSubscriptionMetadata]);
-
-options={mapToOptions(billingCycles, BILLING_CYCLE_LABELS)}
-```
-
-**Removed Duplicate Queries from adminUsersStore.gql.ts:**
-
-```typescript
-// ❌ REMOVED DUPLICATE QUERIES - Now use useMetadataStore() instead:
-// - GET_USER_STATUSES_QUERY → useMetadataStore().userStatuses
-// - GET_USER_ROLES_QUERY → useMetadataStore().userRoles
-// - GET_ACCOUNT_TYPES_QUERY → useMetadataStore().accountTypes
-```
-
-**Updated CreateUserModal and EditUserModal:**
-
-```typescript
-// Before: Direct GraphQL call in each modal
-const data = await makeGraphQLCall(GET_USER_STATUSES_QUERY);
-const statuses = data.getUserStatuses || [];
-
-// After: Centralized store with caching
-const { userStatuses, fetchUserMetadata } = useMetadataStore();
-
-useEffect(() => {
-  if (isVisible && userStatuses.length === 0) {
-    fetchUserMetadata();
-  }
-}, [isVisible, userStatuses.length, fetchUserMetadata]);
-
-const statusOptions = userStatuses.map(status => ({
-  value: status,
-  label: USER_STATUS_LABELS[status] || status
-}));
-```
-
-### **💳 Payment System Architecture (Liskov Substitution Principle)**
-
-**Created IPaymentProvider Interface:**
-
-```typescript
-// /payments/interfaces/payment-provider.interface.ts
-export interface IPaymentProvider {
-  getName(): string;
-  createPaymentIntent(amount, currency, metadata?): Promise<PaymentIntent>;
-  confirmPayment(paymentIntentId, paymentMethodId): Promise<PaymentIntent>;
-  getPaymentStatus(paymentIntentId): Promise<PaymentIntent>;
-  cancelPayment(paymentIntentId): Promise<PaymentIntent>;
-  refund(request): Promise<RefundResult>;
-  createCustomer(userId, email, metadata?): Promise<{customerId}>;
-  attachPaymentMethod(customerId, paymentMethodId): Promise<PaymentMethod>;
-  createRecurringSubscription(customerId, priceId, metadata?): Promise<{subscriptionId, status}>;
-  cancelRecurringSubscription(subscriptionId): Promise<void>;
-}
-```
-
-**Created MockPaymentProvider for Development:**
-
-```typescript
-@Injectable()
-export class MockPaymentProvider implements IPaymentProvider {
-  getName(): string {
-    return 'mock';
-  }
-
-  async createPaymentIntent(amount, currency, metadata?): Promise<PaymentIntent> {
-    return {
-      id: `pi_mock_${randomUUID()}`,
-      amount,
-      currency,
-      status: 'succeeded', // Auto-succeed for development
-      metadata,
-    };
-  }
-  // ... all methods auto-succeed for development
-}
-```
-
-**Benefits:**
-- ✅ Zero code changes when swapping payment providers
-- ✅ Ready for Stripe/Syrian payment providers
-- ✅ No real charges during development
-- ✅ Payment system completely independent of subscription logic
-
-### **📊 Performance Improvement:**
-
-**Before (Duplicate Fetching):**
-- Open CreateUserModal → Fetch getUserStatuses (100ms)
-- Open EditUserModal → Fetch getUserStatuses AGAIN (100ms)
-- Open CreateSubscriptionModal → Fetch getBillingCycles (100ms)
-- **Total: 3 network requests = 300ms**
-
-**After (Centralized & Cached):**
-- Open CreateUserModal → Fetch all user metadata (100ms) → CACHED
-- Open EditUserModal → Use CACHED data (0ms)
-- Open CreateSubscriptionModal → Fetch subscription metadata (100ms) → CACHED
-- **Total: 2 network requests = 200ms (33% faster!)**
-
-### **🎯 Architecture Pattern (Always Follow This):**
-
-```
-Backend (Single Source of Truth)
-├── /common/enums/ (All enum definitions)
-└── /common/metadata/metadata.resolver.ts (GraphQL queries)
-        ↓
-Frontend (Centralized Store)
-├── /stores/metadataStore/ (One store for ALL metadata)
-├── /constants/metadata-labels.ts (Arabic translations)
-└── All modals use useMetadataStore() → CACHED!
-```
-
-**Rules for Future Development:**
-1. **New Enum?** → Add to `/backend/common/enums/`
-2. **New Dropdown?** → Add query to `metadata.resolver.ts`
-3. **New Modal?** → Use `useMetadataStore()` + `metadata-labels.ts`
-4. **Never Hardcode** dropdown options in frontend components
-
-### **📁 Files Created/Modified:**
-
+#### Files Created
 **Backend:**
-- `/common/enums/account-type.enum.ts` (CREATED)
-- `/common/enums/subscription-account-type.enum.ts` (CREATED)
-- `/common/enums/attribute-type.enum.ts` (CREATED)
-- `/common/enums/index.ts` (CREATED)
-- `/common/metadata/metadata.resolver.ts` (MODIFIED - added 9 queries)
-- `/attributes/attributes.resolver.ts` (MODIFIED - updated imports)
-- `/attributes/attributes.service.ts` (MODIFIED - updated imports)
-- `/attributes/dto/create-attribute.input.ts` (MODIFIED - updated imports)
-- `/attributes/entities/attribute.entity.ts` (MODIFIED - removed local enums)
-- `/attributes/entities/index.ts` (MODIFIED - re-exports from common)
-- `/listings/listings.service.ts` (MODIFIED - updated imports)
-- `/payments/interfaces/payment-provider.interface.ts` (CREATED)
-- `/payments/providers/mock-payment.provider.ts` (CREATED)
-- `/ARCHITECTURE.md` (CREATED - comprehensive documentation)
+- `src/listings/archived-listing.entity.ts`
+- `src/listings/archived-listing.service.ts`
+- `src/listings/archived-listing.resolver.ts`
+- `src/migrations/1762300000000-CreateArchivedListingsTable.ts`
+- `src/migrations/1762400000000-AddArchivedListingIdToChats.ts`
 
 **Frontend:**
-- `/stores/metadataStore/index.ts` (CREATED)
-- `/stores/metadataStore/metadataStore.gql.ts` (CREATED)
-- `/constants/metadata-labels.ts` (CREATED)
-- `/components/admin/AdminDashboardPanel/SubscriptionsDashboardPanel/modals/CreateSubscriptionModal.tsx` (MODIFIED)
-- `/components/admin/AdminDashboardPanel/SubscriptionsDashboardPanel/modals/EditSubscriptionModal.tsx` (MODIFIED)
-- `/components/admin/AdminDashboardPanel/AttributesDashboardPanel/modals/CreateAttributeModal.tsx` (MODIFIED)
-- `/components/admin/AdminDashboardPanel/AttributesDashboardPanel/modals/EditAttributeModal.tsx` (MODIFIED)
-- `/components/admin/AdminDashboardPanel/UsersDashboardPanel/modals/CreateUserModal.tsx` (MODIFIED)
-- `/components/admin/AdminDashboardPanel/UsersDashboardPanel/modals/EditUserModal.tsx` (MODIFIED)
-- `/stores/admin/adminUsersStore/adminUsersStore.gql.ts` (MODIFIED - removed duplicates)
+- `app/archived-listing/[id]/page.tsx`
+- `app/archived-listing/[id]/ArchivedListingDetailClient.tsx`
+- `app/archived-listing/[id]/ArchivedListingDetail.module.scss`
+- `stores/archivedListingStore/index.ts`
+- `stores/archivedListingStore/archivedListingStore.gql.ts`
+- `stores/archivedListingStore/types.ts`
+
+#### Pending Tasks
+- [ ] **LocationMap Google Maps Link Support** - Handle when user provides Google Maps link instead of province/city
+- [ ] **AI Moderation Rejection Fields** - Decide if moderation fields should stay in `listing.entity.ts`
 
 ---
 
-## ✅ **Previous Session Summary (2025-09-27) - ADMIN AUTHENTICATION ARCHITECTURE REFACTORING COMPLETE**
+## 📋 MANDATORY: Form Validation & Success Toast Pattern
 
-### **🏆 Major Achievement: Centralized Admin Authentication with Dynamic Token Management**
+**⚠️ ALL NEW FORMS MUST FOLLOW THIS STANDARD ⚠️**
 
-We have successfully refactored the admin authentication system for better maintainability and performance:
+### Standard Form Pattern (REQUIRED)
 
-- **✅ LOGIN PAGE STYLING FIX**: Completed missing CSS classes causing positioning issues with error messages
-- **✅ AUTHENTICATION ARCHITECTURE REFACTOR**: Moved from scattered auth logic to centralized AdminAuthGuard component
-- **✅ DYNAMIC TOKEN MANAGEMENT**: Token expiration monitoring now handled in reusable component instead of layout
-- **✅ CLEAN SEPARATION OF CONCERNS**: Layout focused on UI structure, AdminAuthGuard handles all auth logic
-- **✅ PERFORMANCE OPTIMIZATION**: Eliminated redundant authentication checks across multiple components
+**1. Create Validation File** (`/lib/validation/[entity]Validation.ts` or `/lib/admin/validation/[entity]Validation.ts`)
 
----
-
-## 🎯 **ADMIN AUTHENTICATION REFACTORING IMPLEMENTATION (2025-09-27)**
-
-### **🏗️ Login Page Styling Fix**
-
-#### **Problem Identified:**
-The admin login page had incomplete CSS styling causing error messages and form elements to appear in wrong positions:
-
-#### **Solution Implemented:**
-```scss
-// /app/admin/login/AdminLogin.module.scss - Added missing classes
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-}
-
-.credentialSelector {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-  margin-bottom: $space-md;
-}
-
-.submitButton {
-  width: 100%;
-  padding: $space-md;
-  background: $primary;
-  color: white;
-  border: none;
-  border-radius: $radius-base;
-  font-size: $font-base;
-  font-weight: $weight-medium;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover:not(:disabled) {
-    filter: brightness(0.9); // Fixed: Works with CSS variables
-    transform: translateY(-1px);
-  }
-}
-
-.backLink {
-  margin-top: $space-md;
-  text-align: center;
-}
-
-.backButton {
-  color: $text-muted;
-  text-decoration: none;
-  font-size: $font-sm;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: $primary;
-    text-decoration: underline;
-  }
-}
-```
-
-### **🔧 Authentication Architecture Refactoring**
-
-#### **Before (Redundant & Scattered):**
-- **Layout**: 200+ lines with authentication logic, token monitoring, loading states
-- **Each Page**: Duplicate authentication checks and loading states
-- **Multiple Effects**: Same authentication logic repeated across components
-
-#### **After (Clean & Centralized):**
-- **Layout**: 62 lines, focused only on UI structure (header/navigation)
-- **AdminAuthGuard**: 96 lines, reusable authentication component
-- **Pages**: Clean and focused on their specific functionality
-
-#### **New Component: AdminAuthGuard**
 ```typescript
-// /components/admin/AdminAuthGuard.tsx
-'use client';
+import { z } from 'zod';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAdminAuthStore } from '@/stores/admin';
-import { TokenExpirationModal } from '@/components/admin/TokenExpirationModal';
-import { Loading } from '@/components';
-
-interface AdminAuthGuardProps {
-  children: React.ReactNode;
-}
-
-export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
-  // Authentication check
-  // Token expiration monitoring
-  // Session extension handling
-  // Loading states
-  // Redirect logic
-
-  return (
-    <>
-      {children}
-      {/* Token Expiration Modal */}
-      {isAuthenticated && user && user.tokenExpiresAt && (
-        <TokenExpirationModal
-          isVisible={isExpirationModalVisible}
-          expiresAt={user.tokenExpiresAt}
-          onExtendSession={handleExtendSession}
-          onLogout={handleLogout}
-          warningThreshold={25}
-        />
-      )}
-    </>
-  );
-}
-```
-
-#### **Updated Layout (Simplified):**
-```typescript
-// /app/admin/layout.tsx - Now only 62 lines
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  const pathname = usePathname();
-  const isLoginPage = pathname === '/admin/login';
-  const isFeaturePage = getFeatureFromPath(pathname) !== null;
-
-  if (isLoginPage) {
-    return (
-      <>
-        <NotificationToast />
-        {children}
-      </>
-    );
-  }
-
-  if (isFeaturePage) {
-    return (
-      <>
-        <AdminHeader />
-        <NotificationToast />
-        <main>{children}</main>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <NotificationToast />
-        {children}
-      </>
-    );
-  }
-}
-```
-
-#### **Updated Pages (Clean):**
-```typescript
-// /app/admin/page.tsx - Now only 12 lines
-export default function AdminMainPage() {
-  return (
-    <AdminAuthGuard>
-      <AdminDashboard />
-    </AdminAuthGuard>
-  );
-}
-
-// /app/admin/[...slug]/page.tsx - Simplified
-export default function AdminPage({ params }: AdminPageProps) {
-  return (
-    <AdminAuthGuard>
-      <AdminPageInner params={params} />
-    </AdminAuthGuard>
-  );
-}
-```
-
-### **📊 Refactoring Benefits:**
-
-#### **🎯 Single Responsibility:**
-- **AdminAuthGuard** → All authentication concerns (login, logout, token expiration)
-- **Layout** → Only UI structure (header, navigation)
-- **Pages** → Only business logic
-
-#### **🔄 Dynamic & Reusable:**
-- Any page wrapped with `<AdminAuthGuard>` gets automatic token management
-- No need to duplicate token expiration logic
-- Consistent behavior across all admin pages
-
-#### **⚡ Performance:**
-- Token monitoring runs once per page load
-- No redundant intervals across multiple components
-- Clean component unmounting clears intervals properly
-
-#### **🛠️ Maintainable:**
-- All token expiration updates happen in one place
-- Easy to modify warning thresholds or behavior
-- Clear separation of concerns
-
----
-
-## 🎯 **USER MANAGEMENT SYSTEM IMPLEMENTATION (2025-09-25)**
-
-### **🏗️ Complete User Management System**
-
-#### **Backend Integration:**
-```typescript
-// adminListingsStore GraphQL Enhancement
-export const UPDATE_USER_MUTATION = `
-  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
-    updateUser(id: $id, input: $input) {
-      id, email, name, role, status, accountType, accountBadge, businessVerified, updatedAt
-    }
-  }
-`;
-
-// Store Function Implementation
-updateUser: async (input: UpdateUserInput) => {
-  const { id, ...updateData } = input;
-  const data = await makeGraphQLCall(UPDATE_USER_MUTATION, { id, input: updateData });
-  const updatedUser = data.updateUser;
-
-  // Smart state update - updates selectedListing.user if same user
-  if (selectedListing && selectedListing.user?.id === updatedUser.id) {
-    set({ selectedListing: { ...selectedListing, user: updatedUser } });
-  }
-  return updatedUser;
-}
-```
-
-#### **Frontend Components:**
-
-**1. Enhanced EditListingModal:**
-```typescript
-// /components/admin/.../modals/EditListingModal.tsx
-- ✅ User Information Display: Complete user details with status badges
-- ✅ Block/Unblock Buttons: Context-aware based on user.status
-- ✅ Modal State Management: Simple state for opening ConfirmBlockUserModal
-- ✅ Clean Architecture: Only handles UI interactions, delegates API to modal
-```
-
-**2. Professional ConfirmBlockUserModal:**
-```typescript
-// /components/admin/.../modals/ConfirmBlockUserModal.tsx
-- ✅ Self-Contained Logic: Handles all updateUser API calls internally
-- ✅ Professional UX: Warning colors, user info display, consequences explanation
-- ✅ Loading States: "جاري الحظر..." with button disabling
-- ✅ Error Handling: Arabic success/error messages with proper feedback
-- ✅ Modal-over-Modal: Appears over EditListingModal for confirmation
-```
-
-### **🎨 User Experience Features:**
-
-#### **User Information Display:**
-- **Status Badges**: نشط (green) / محظور (red) / في الانتظار (yellow)
-- **Account Details**: Name, email, account type, seller badge, business verification
-- **Contact Information**: Phone, website (if available)
-- **Registration Date**: Arabic date formatting
-
-#### **Block/Unblock System:**
-- **Professional Confirmation**: Modal with user details and consequences
-- **Clear Warnings**: Explains what happens when blocking/unblocking
-- **Loading States**: Visual feedback during API calls
-- **Success Feedback**: Arabic success messages
-- **Error Recovery**: Proper error handling with user-friendly messages
-
-### **🔄 Complete Data Flow:**
-
-```
-1. Admin opens EditListingModal
-   ↓
-2. Backend fetches listing with user data via GET_LISTING_BY_ID_QUERY
-   ↓
-3. Store maps GraphQL response including user: { id, name, email, status, ... }
-   ↓
-4. EditListingModal displays user information with status badges
-   ↓
-5. Admin clicks "حظر المستخدم" → ConfirmBlockUserModal opens
-   ↓
-6. Modal shows user details and consequences
-   ↓
-7. Admin confirms → Modal calls updateUser({ id: userId, status: 'BANNED' })
-   ↓
-8. Backend processes UPDATE_USER_MUTATION
-   ↓
-9. Store updates selectedListing.user.status automatically
-   ↓
-10. UI updates immediately - button changes to "إلغاء الحظر"
-```
-
-### **📊 Implementation Summary:**
-
-| **Component** | **Responsibility** | **Achievement** |
-|---------------|-------------------|-----------------|
-| **Backend GraphQL** | User relationship exposure | ✅ @ResolveField() for user data |
-| **adminListingsStore** | User management API calls | ✅ updateUser() with smart state updates |
-| **EditListingModal** | User info display & UI | ✅ Professional user section with actions |
-| **ConfirmBlockUserModal** | Block confirmation & logic | ✅ Self-contained with professional UX |
-
----
-
-## 🎯 **ADMIN VALIDATION SYSTEM & LAYOUT REFACTORING (2025-09-24)**
-
-### **🏗️ Complete Validation System Implementation**
-
-#### **3-Layer Validation Architecture:**
-```typescript
-// Layer 1: Input-level (Real-time)
-<Input
-  label="اسم الدور *"
-  validate={createFieldValidator('name')} // Real-time validation
-  error={validationErrors.name}           // Immediate feedback
-/>
-
-// Layer 2: Form-level (Pre-submission)
-const validateForm = () => {
-  const newValidationErrors = validateRoleForm(formData);
-  return !hasValidationErrors(newValidationErrors);
+// 1. ValidationConfig - Single source of truth
+export const [Entity]ValidationConfig = {
+  fieldName: { minLength: 3, maxLength: 100 },
+  otherField: { min: 1, max: 1000 },
 };
 
-// Layer 3: Server-level (Backend)
-try {
-  await onSubmit(formData);
-} catch (error) {
-  // Backend Arabic errors already handled
-}
-```
+// 2. Zod Schemas
+const fieldSchema = z.string()
+  .min([Entity]ValidationConfig.fieldName.minLength, 'رسالة الخطأ بالعربي')
+  .max([Entity]ValidationConfig.fieldName.maxLength, 'رسالة الخطأ بالعربي');
 
-#### **Files Created:**
-1. **`/lib/admin/validation/roleValidation.ts`** - Complete role validation system
-2. **`/lib/admin/validation/userValidation.ts`** - Complete user validation system
-3. **Enhanced Input component** with `validate` prop support
-4. **Updated all 4 modals**: CreateRole, EditRole, CreateUser, EditUser
+// 3. Individual Field Validators (for real-time validation)
+export const validateField = (value: string): string | undefined => {
+  const result = fieldSchema.safeParse(value);
+  return result.success ? undefined : result.error.errors[0]?.message;
+};
 
-#### **Validation Features:**
-- ✅ **Arabic Error Messages**: All validation messages in Arabic with proper formatting
-- ✅ **Real-time Feedback**: Immediate validation as user types
-- ✅ **Form-level Validation**: Pre-submission checks with detailed error reporting
-- ✅ **Server Integration**: Seamless integration with backend Arabic error messages
-- ✅ **Input Component Integration**: Consistent validation across all admin forms
-
-### **🧹 Admin Layout Refactoring**
-
-#### **Problems Eliminated:**
-```typescript
-// BEFORE (Confusing & Duplicated):
-app/admin/layout.tsx (169 lines)
-├── Auth & routing logic
-├── Imports AdminLayout as "TokenExpirationWrapper" (confusing!)
-└── Wraps everything in unnecessary component
-
-components/admin/AdminLayout/AdminLayout.tsx (127 lines)
-├── ONLY token expiration logic
-└── Just a wrapper around children + modal
-
-app/admin/[...slug]/page.tsx
-├── AdminPageWrapper component (another wrapper!)
-├── Redundant permission checks
-└── Multiple layout layers
-```
-
-#### **Solution Implemented:**
-```typescript
-// AFTER (Clean & Streamlined):
-app/admin/layout.tsx (265 lines)
-├── Auth & routing logic
-├── Token expiration logic (merged)
-├── TokenExpirationModal (direct import)
-└── Single comprehensive layout
-
-app/admin/[...slug]/page.tsx
-├── AdminPageContent (simplified)
-├── Clean feature routing
-└── Single layout approach
-```
-
-#### **Benefits Achieved:**
-- ✅ **Performance**: Eliminated wrapper component - one less render cycle
-- ✅ **Bundle Size**: Removed 127 lines of redundant code
-- ✅ **Code Clarity**: Single source of truth for all admin layout logic
-- ✅ **Maintainability**: Simpler debugging and easier updates
-- ✅ **Zero Breaking Changes**: All admin routes work unchanged
-
-### **🗑️ Legacy Code Cleanup**
-
-#### **AdminForm System Removal:**
-- ❌ **Deleted**: `/components/admin/AdminForm/AdminForm.module.scss` (141 lines)
-- ❌ **Deleted**: `AdminFormProps<T>` interface from `lib/admin/types.ts`
-- ❌ **Deleted**: `useAdminForm<T>` hook from `lib/admin/core/hooks.ts` (80+ lines)
-- ❌ **Cleaned**: Redundant input/select styling from modal SCSS files
-
-#### **StyleSheets Optimization:**
-- ✅ **UserModals.module.scss**: Removed redundant input styles, kept only modal-specific functionality
-- ✅ **Input Components**: Now handle all form styling consistently
-- ✅ **Reduced Bundle**: Less CSS duplication across the application
-
-### **📊 Session Summary:**
-
-| **Achievement** | **Before** | **After** | **Impact** |
-|-----------------|------------|-----------|------------|
-| **Validation System** | No validation | 3-layer Arabic validation | ✅ Professional UX |
-| **Input Components** | Mixed approaches | Standardized Input usage | ✅ Consistent styling |
-| **Admin Layout** | 3 confusing components | 1 clean layout | ✅ -30 lines, -2 files |
-| **Legacy Code** | AdminForm unused | Completely removed | ✅ -200+ lines cleanup |
-| **SCSS Files** | Duplicated styles | Clean separation | ✅ Reduced bundle size |
-
----
-
-## ✅ **Previous Session Summary (2025-01-21) - USER MANAGEMENT SYSTEM COMPLETE**
-
-### **🏆 Previous Achievement: Complete User Management with Role Hierarchy**
-
-We successfully implemented a comprehensive user management system with security and UX excellence:
-
-- **✅ ROLE HIERARCHY ENFORCEMENT**: Priority-based access control preventing unauthorized user modifications
-- **✅ SECURITY VALIDATION**: Fixed role existence validation to prevent creating users with non-existent roles
-- **✅ ARABIC-FIRST I18N**: All error messages use nestjs-i18n with proper Arabic translations and parameter interpolation
-- **✅ NOTIFICATION CONSISTENCY**: Integrated NotificationToast system replacing inline errors for consistent UX
-- **✅ SUPER_ADMIN PROTECTION**: Complete protection against modification/deletion by lower-priority roles
-
----
-
-## ✅ **Previous Session Summary (2025-01-18) - SYSTEM FULLY FUNCTIONAL**
-
-### **🎯 Previous Achievement: Complete Hybrid Architecture Success**
-
-We successfully implemented and **FIXED** a comprehensive listing system optimized for Syrian users:
-
-- **✅ RESOLVED ALL GRAPHQL ERRORS**: Fixed 400 Bad Request errors by correcting Float→Int type mismatches
-- **✅ FIXED BODY TYPE SYSTEM**: Changed from multi_selector to selector for proper single-value storage
-- **✅ FIXED AGGREGATIONS**: Corrected global attribute joins so province filters work perfectly
-- **✅ ARABIC DISPLAY WORKING**: All specs display properly in Arabic with correct values
-- **✅ PROGRESSIVE LOADING READY**: Complete system reduces load times from 8-15 seconds to 2-4 seconds
-
----
-
-## 🛡️ **USER MANAGEMENT SYSTEM IMPLEMENTATION (2025-01-21)**
-
-### **🏆 Complete Role Hierarchy System**
-
-#### **Backend Integration:**
-- **Role Validation**: Fixed security flaw where adminCreateUser didn't validate role existence
-- **Priority-Based Access**: Implemented canModifyUser() with role hierarchy enforcement
-- **I18n Error Handling**: All errors use nestjs-i18n with Arabic-first translations
-- **GraphQL Updates**: Modified resolvers to pass current user context for hierarchy checks
-
-#### **Frontend UI/UX:**
-- **NotificationToast Integration**: Replaced inline error display with consistent app-wide notifications
-- **Success Feedback**: Added Arabic success messages for create/edit/delete operations
-- **Error Consistency**: All user management errors display through unified notification system
-- **RTL Support**: Proper Arabic text display in all notification messages
-
-#### **Security Features:**
-```typescript
-// Role Hierarchy (Backend Enforcement)
-SUPER_ADMIN (Priority: 5)    // Cannot be modified by anyone
-    ↓
-ADMIN (Priority: 4)          // Can modify EDITOR, ADS_MANAGER, USER
-    ↓
-EDITOR (Priority: 2)         // Can modify USER only
-    ↓
-ADS_MANAGER (Priority: 3)    // Can modify USER only
-    ↓
-USER (Priority: 1)           // Regular marketplace users
-```
-
-#### **UI Components Updated:**
-- **UsersDashboardPanel**: Complete NotificationToast integration
-- **Error Handling**: Arabic error messages with detailed feedback
-- **Success States**: Consistent success notifications across all operations
-- **Loading States**: Proper loading indicators during async operations
-
-### **🎯 Next Development Priority**
-- **Roles Dashboard Panel**: Complete RBAC management interface
-- **Permission Matrix**: Visual role-permission assignment UI
-- **Bulk Operations**: Multiple user role assignment capabilities
-
----
-
-## 🏗️ **System Architecture Overview**
-
-### **🔧 Backend Architecture (Hybrid Attribute System)**
-
-#### **Core Components:**
-- **NestJS + TypeORM + PostgreSQL + Supabase** stack
-- **Dynamic RBAC** with feature-based permissions
-- **Hybrid Attribute System** with global and category-specific attributes
-- **Arabic-first i18n** with nestjs-i18n
-
-#### **Backend Listing & Attributes Architecture:**
-
-```typescript
-// HYBRID ATTRIBUTE SYSTEM
-@Entity("attributes")
-export class Attribute {
-  // Core fields
-  id: string;
-  categoryId: string | null;  // null = global attribute
-  key: string;               // "brandId", "fuel_type", "price"
-  name: string;              // Arabic name only
-  type: AttributeType;       // selector, range, currency, etc.
-
-  // Hybrid System Flags (NEW)
-  isGlobal: boolean;         // true = applies to all categories
-  isSystemCore: boolean;     // true = core business logic, can't be deleted
-  canBeCustomized: boolean;  // true = roles can edit display properties
-  canBeDeleted: boolean;     // true = can be removed (false for system core)
-  requiredPermission: string; // 'attributes' or 'system'
-
-  // Display Control Flags
-  showInGrid: boolean;       // Show in grid view
-  showInList: boolean;       // Show in list view
-  showInDetail: boolean;     // Show in detail view
-  showInFilter: boolean;     // Show in filter sidebar
-
-  options: AttributeOption[];
+// 4. Form Validator (for submit validation)
+export interface ValidationErrors {
+  [key: string]: string | undefined;
 }
 
-// LISTING ENTITY (Optimized)
-@Entity('listings')
-export class Listing {
-  id: string;
-  title: string;
-  specs: Record<string, any>; // JSONB - stores ALL dynamic attributes
-  priceMinor: number;         // Price in cents for precise calculations
-  sellerType: 'PRIVATE' | 'DEALER' | 'BUSINESS';
-  // NOTE: Removed hardcoded brandId/modelId columns - now in specs
+export const validateCreate[Entity]Form = (data: FormData): ValidationErrors => {
+  const errors: ValidationErrors = {};
+  const fieldError = validateField(data.field);
+  if (fieldError) errors.field = fieldError;
+  return errors;
+};
+
+// 5. Helper - Check if form has errors
+export const hasValidationErrors = (errors: ValidationErrors): boolean => {
+  return Object.values(errors).some(error => error !== undefined);
+};
+```
+
+**2. Modal/Form Component Pattern**
+
+```typescript
+import { useNotificationStore } from '@/stores/notificationStore';
+import { validateCreate[Entity]Form, hasValidationErrors, [Entity]ValidationConfig } from '@/lib/validation/[entity]Validation';
+
+export const CreateEntityModal: React.FC<Props> = ({ onClose, onSubmit }) => {
+  const { addNotification } = useNotificationStore();
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validate using Zod
+    const errors = validateCreate[Entity]Form(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Validation failed:', errors);
+      return; // STOP - do not submit
+    }
+
+    console.log('✅ Validation passed, submitting...');
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit(formData);
+
+      // ✅ SUCCESS TOAST (REQUIRED for modals that close)
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'رسالة النجاح بالعربي',
+        duration: 5000,
+      });
+
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'رسالة الخطأ بالعربي');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal isVisible={true} onClose={onClose}>
+      <Form onSubmit={handleSubmit} error={error || undefined}>
+        <Input
+          label="الحقل"
+          value={formData.field}
+          onChange={(e) => setFormField('field', e.target.value)}
+          error={validationErrors.field}
+          required
+        />
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'جاري الحفظ...' : 'حفظ'}
+        </Button>
+      </Form>
+    </Modal>
+  );
+};
+```
+
+**3. Success Toast Rules**
+
+✅ **ADD SUCCESS TOAST IF:**
+- Modal closes after successful submit
+- Page redirects after successful submit
+- User cannot see Form success message
+
+❌ **DO NOT ADD SUCCESS TOAST IF:**
+- Form stays on same page without redirect
+- Success message visible in Form component
+- User can see inline success feedback (e.g., image upload confirmation)
+
+**4. Error Display Rules**
+
+✅ **Errors ALWAYS show in Form component at bottom** (above submit button)
+❌ **NO error toasts** - errors keep modal open for user to fix
+
+### Validation Files Status
+
+**📁 /lib/validation/**
+- ✅ `listingValidation.ts` (create/edit listing)
+- ✅ `authValidation.ts` (signup + login)
+
+**📁 /lib/admin/validation/**
+- ✅ `userValidation.ts`
+- ✅ `roleValidation.ts`
+- ✅ `attributeValidation.ts`
+- ✅ `categoryValidation.ts`
+- ✅ `brandValidation.ts`
+- ✅ `subscriptionValidation.ts`
+- ✅ `adPackageValidation.ts`
+- ✅ `adClientValidation.ts`
+- ✅ `adCampaignValidation.ts`
+
+### Key Principles
+
+1. **One Form = One Validation File** (shared between Create/Edit)
+2. **ValidationConfig = Single Source of Truth** (all limits referenced from config)
+3. **Consistent Pattern** (all validation files have same structure)
+4. **Zod for Validation** (TypeScript-first, automatic type inference)
+5. **Arabic Error Messages** (all user-facing errors in Arabic)
+6. **Success Toast for Modals** (5-second notification after modal closes)
+7. **No Error Toasts** (errors stay in Form component)
+
+---
+
+## 🚧 CURRENT SESSION: Archive System for Sold/Deleted Listings (2025-01-30)
+
+### 📋 Implementation Plan - Archive System with Analytics
+
+**Goal:** Implement soft-delete archive system that preserves listings for analytics, chat history, and wishlist functionality.
+
+**Why Archive Instead of Hard Delete:**
+- ✅ Analytics: Track conversion rates, time to sell, price trends
+- ✅ User History: "Your sold items" builds trust
+- ✅ Chat Preservation: Users can view old chats with listing details
+- ✅ Wishlist Continuity: Favorited items stay visible with status badges
+- ✅ Fraud Prevention: Pattern detection across archived listings
+- ✅ No Accidental Reactivation: Archived items can't be made active again
+
+**Archive Reasons (3 statuses):**
+1. `SOLD_VIA_PLATFORM` - Sold through our platform (✅ Success metric)
+2. `SOLD_EXTERNALLY` - Sold outside platform (💰 Lost commission)
+3. `NO_LONGER_FOR_SALE` - User removed listing (🗑️ Churn tracking)
+
+---
+
+### Phase 1: Core Archive System (IN PROGRESS)
+
+**Step 1.1: Create archived_listings Table** 🔲
+- Migration: `CreateArchivedListingsTable`
+- Fields:
+  ```typescript
+  id: UUID (new UUID for archived entry)
+  originalListingId: UUID (original listing.id for relations)
+
+  // Archive metadata
+  archivalReason: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale'
+  archivedAt: TIMESTAMP
+  archivedBy: UUID (userId)
+
+  // Analytics snapshot
+  viewCount: INT
+  wishlistCount: INT
+  chatCount: INT
+  bidCount: INT
+  daysToSell: INT (calculated: archivedAt - createdAt)
+
+  // Full copy of listing data
+  title, description, priceMinor, images, specs, categoryId, userId, location, createdAt, updatedAt
+  ```
+
+**Step 1.2: Create Archived Listing Entity** 🔲
+- File: `marketplace-backend/src/listings/archived-listing.entity.ts`
+- GraphQL type definition
+- Relations: user, category
+
+**Step 1.3: Update Relations to Support Archive** 🔲
+- **chats table**: Add `archivedListingId UUID` field
+- **wishlist_items table**: Add `archivedListingId UUID` field
+- **bids table**: Add `archivedListingId UUID` field (if needed)
+
+**Step 1.4: Create Archive Service Method** 🔲
+- File: `marketplace-backend/src/listings/listings.service.ts`
+- Method: `archiveListing(listingId: string, reason: ArchivalReason, userId: string)`
+- Logic:
+  1. Fetch listing with relations (viewCount, wishlistCount, chatCount)
+  2. Calculate daysToSell
+  3. Copy to archived_listings
+  4. Update related chats/wishlist with archivedListingId
+  5. Delete from listings table
+  6. Return archived listing
+
+**Step 1.5: Update Delete Mutation** 🔲
+- File: `marketplace-backend/src/listings/listings.resolver.ts`
+- Change `deleteMyListing` to accept `archivalReason` parameter
+- Call `archiveListing()` instead of hard delete
+
+**Step 1.6: Update Frontend Delete Modal** 🔲
+- File: `marketplace-frontend/components/dashboard/ListingsPanel/modals/DeleteListingModal.tsx`
+- Already has 3-option UI ✅
+- Update to pass `archivalReason` to backend
+- Update parent handler in ListingsPanel/index.tsx
+
+**Step 1.7: Create Archived Listing Detail Page** 🔲
+- File: `marketplace-frontend/app/archived-listing/[id]/page.tsx`
+- Read-only view of archived listing
+- Status banner: "مباع عبر المنصة ✓" / "مباع" / "لم يعد متاحاً"
+- Show full details (images, specs, description)
+- Disable contact/bid buttons
+- Show "Similar Listings" section
+
+**Step 1.8: Create Backend Query for Archived Listing** 🔲
+- Resolver: `getArchivedListing(id: string)`
+- Returns: Full archived listing data (excluding seller contact info)
+
+---
+
+### Phase 2: Preserve Chat & Wishlist Relations (TODO)
+
+**Step 2.1: Update Chat Queries** 🔲
+- Modify `getMyChats` to join both `listings` and `archived_listings`
+- Chat type includes: `listing` OR `archivedListing`
+- Clicking archived listing → redirects to archived page
+
+**Step 2.2: Update Wishlist Queries** 🔲
+- Modify `getMyWishlist` to join both tables
+- Show status badge for archived items
+- Add filter: "Hide sold items"
+
+**Step 2.3: Frontend Chat Component** 🔲
+- File: `components/chat/ChatThread.tsx` (or equivalent)
+- Show listing preview with status badge if archived
+- Make clickable → archived listing page
+
+**Step 2.4: Frontend Wishlist Component** 🔲
+- File: `components/dashboard/WishlistPanel/index.tsx` (or equivalent)
+- Show cards with status overlay for archived
+- Filter toggle for hiding sold items
+
+---
+
+### Phase 3: User Dashboard Tabs (TODO)
+
+**Step 3.1: Update User Listings Panel** 🔲
+- File: `marketplace-frontend/components/dashboard/ListingsPanel/index.tsx`
+- Add tabs:
+  - **النشطة (Active)** - From `listings` table
+  - **المباعة (Sold)** - From `archived_listings` where reason = sold_via_platform OR sold_externally
+  - **المؤرشفة (Archived)** - From `archived_listings` where reason = no_longer_for_sale
+
+**Step 3.2: Create Backend Queries** 🔲
+- `getMySoldListings()` - Returns archived with sold reasons
+- `getMyArchivedListings()` - Returns archived with no_longer_for_sale reason
+
+---
+
+### Phase 4: Analytics (TODO)
+
+**Step 4.1: User Stats Page** 🔲
+- Show seller metrics:
+  - Total sold listings (via platform + external)
+  - Conversion rate
+  - Average days to sell
+  - Total views/wishlists
+
+**Step 4.2: Admin Analytics Dashboard** 🔲
+- Business metrics:
+  - Platform conversion rate (sold_via_platform / total)
+  - External leakage rate (sold_externally / total sold)
+  - Removal rate (no_longer_for_sale / total)
+  - Category performance
+  - Average time to sell by category
+
+---
+
+### Display Logic Matrix
+
+| Feature | SOLD_VIA_PLATFORM | SOLD_EXTERNALLY | NO_LONGER_FOR_SALE |
+|---------|-------------------|-----------------|---------------------|
+| Public Search | ❌ Hidden | ❌ Hidden | ❌ Hidden |
+| Seller - Active Tab | ❌ Removed | ❌ Removed | ❌ Removed |
+| Seller - Sold Tab | ✅ Shown | ✅ Shown | ❌ Hidden |
+| Seller - Archived Tab | ❌ Hidden | ❌ Hidden | ✅ Shown |
+| Buyer Wishlist | ✅ "مباع ✓" | ✅ "مباع" | ✅ "لم يعد متاحاً" |
+| Chat Messages | ✅ Clickable | ✅ Clickable | ✅ Clickable |
+| Archived Page | ✅ Viewable | ✅ Viewable | ✅ Viewable |
+| User Analytics | ✅ Counted | ✅ Counted | ❌ Not counted |
+| Admin Analytics | ✅ Success | ⚠️ Lost sale | ℹ️ Removal |
+
+---
+
+## 🚧 PREVIOUS SESSION: Unified Form Validation System (2025-01-30)
+
+### ✅ COMPLETED: Form Validation System Unification + Success Toasts
+
+**Goal:** Create consistent validation across all 32 forms in the application using Zod schemas and centralized ValidationConfig objects, with success toast notifications for modals that close/redirect.
+
+**Problem Solved:**
+- Create listing had minimum image bug (hardcoded validation values in multiple places)
+- Forms had inconsistent validation patterns (some used Zod, others had custom logic)
+- No single source of truth for validation rules
+- Success messages disappearing when modals closed
+- Difficult to maintain and change validation rules
+
+**Solution Implemented:**
+
+#### Phase 1: Critical Fixes for Create Listing ✅
+1. ✅ **Form Component** - Moved error/success display from top to bottom (above submit button)
+   - File: `components/slices/Form/Form.tsx`
+
+2. ✅ **listingValidation.ts** - Created complete Zod validation system
+   - File: `lib/validation/listingValidation.ts`
+   - Features:
+     - `ListingValidationConfig` - Single source of truth for all validation rules
+     - Individual field validators (validateTitle, validatePriceMinor, validateImages, etc.)
+     - Full form validator using Zod schemas
+     - Dynamic attribute validator
+     - All error messages in Arabic
+
+3. ✅ **createListingStore** - Updated to use ValidationConfig
+   - File: `stores/createListingStore/index.ts`
+   - Changed: `images.length >= 3` → `images.length >= ListingValidationConfig.images.min`
+
+4. ✅ **Create Listing Page** - Replaced custom validation with Zod
+   - File: `app/dashboard/listings/create/details/page.tsx`
+   - Imports: validateListingForm, validateAttribute, ListingValidationConfig
+   - Uses Zod for core fields + dynamic attribute validation
+
+#### Phase 2: Created 4 Missing Admin Validation Files ✅
+1. ✅ **subscriptionValidation.ts** - Subscription plans (create/edit)
+   - File: `lib/admin/validation/subscriptionValidation.ts`
+   - Fields: name, title, description, price, billingCycle, maxListings, maxImagesPerListing, etc.
+
+2. ✅ **adPackageValidation.ts** - Ad packages (create/edit)
+   - File: `lib/admin/validation/adPackageValidation.ts`
+   - Fields: packageName, description, adType, durationDays, impressionLimit, basePrice
+
+3. ✅ **adClientValidation.ts** - Ad clients (create/edit)
+   - File: `lib/admin/validation/adClientValidation.ts`
+   - Fields: companyName, contactName, contactEmail, contactPhone, website, industry, notes
+
+4. ✅ **adCampaignValidation.ts** - Ad campaigns (create/edit)
+   - File: `lib/admin/validation/adCampaignValidation.ts`
+   - Fields: campaignName, description, clientId, packageId, startDate, endDate, totalPrice
+   - Special: validateDateRange() helper for date validation
+
+#### Phase 3: Success Toast Implementation ✅
+**Goal:** Add success toast notifications to all 12 forms that close modals or redirect after successful submission.
+
+**Completed Forms (12 total):**
+1. ✅ CreateSubscriptionModal - `'تم إنشاء خطة الاشتراك بنجاح'`
+2. ✅ EditSubscriptionModal - `'تم تحديث خطة الاشتراك بنجاح'`
+3. ✅ CreateAdPackageModal - `'تم إنشاء حزمة الإعلان بنجاح'`
+4. ✅ EditAdPackageModal - `'تم تحديث حزمة الإعلان بنجاح'`
+5. ✅ CreateAdClientModal - `'تم إنشاء العميل الإعلاني بنجاح'`
+6. ✅ EditAdClientModal - `'تم تحديث العميل الإعلاني بنجاح'`
+7. ✅ CreateAdCampaignModal - `'تم إنشاء الحملة الإعلانية بنجاح'`
+8. ✅ EditAdCampaignModal - `'تم تحديث الحملة الإعلانية بنجاح'`
+9. ✅ EditProfileModal - `'تم تحديث الملف الشخصي بنجاح'`
+10. ✅ ChangeEmailModal - `'تم تغيير البريد الإلكتروني بنجاح'`
+11. ✅ EditListingModal - `'تم تحديث الإعلان بنجاح'`
+12. ✅ Create Listing Page - `'تم إنشاء الإعلان بنجاح'`
+
+**Pattern Used:**
+```typescript
+import { useNotificationStore } from '@/stores/notificationStore';
+
+const { addNotification } = useNotificationStore();
+
+// After successful onSubmit:
+addNotification({
+  type: 'success',
+  title: 'نجح',
+  message: '[Arabic success message]',
+  duration: 5000,
+});
+```
+
+**Result:**
+- ✅ Modal closes immediately after success
+- ✅ Toast notification persists for 5 seconds
+- ✅ User sees confirmation even after modal disappears
+- ✅ Errors stay in Form component at bottom (no toast needed)
+- ✅ Consistent UX across all forms
+
+#### Phase 4: Updated Auth Validation (Signup + Login) ✅
+1. ✅ **authValidation.ts** - Added ValidationConfig and Login validation
+   - File: `lib/validation/authValidation.ts`
+   - Added: `AuthValidationConfig` - Single source of truth for name/email/password limits
+   - Added: `LoginFormData` interface and `validateLoginForm()` function
+   - Added: `createLoginFieldValidator()` factory for Login form
+   - Updated: All schemas now reference AuthValidationConfig
+
+2. ✅ **SignupForm** - Already used Zod validation (no changes needed)
+   - File: `components/AuthModal/SignupForm.tsx`
+   - Status: Already implements full Zod validation with real-time validation
+
+3. ✅ **LoginForm** - Migrated to Zod validation
+   - File: `components/AuthModal/LoginForm.tsx`
+   - Changed: Replaced simple `if (!email || !password)` check with Zod validation
+   - Added: `validateLoginForm()` for submit validation
+   - Added: `createLoginFieldValidator()` for real-time Input validation
+   - Added: ValidationErrors state for field-level errors
+   - Result: Login form now has same validation pattern as Signup
+
+### Standard Validation File Pattern
+
+**All validation files follow this structure:**
+
+```typescript
+// 1. ValidationConfig - Single source of truth for limits/rules
+export const [Entity]ValidationConfig = {
+  fieldName: { minLength: 3, maxLength: 100 },
+  // ... other fields
+};
+
+// 2. Zod Schemas - For full validation
+const fieldSchema = z.string()
+  .min([Entity]ValidationConfig.fieldName.minLength, 'error message')
+  .max([Entity]ValidationConfig.fieldName.maxLength, 'error message');
+
+// 3. Individual Field Validators - For real-time validation
+export const validateField = (value: string): string | undefined => {
+  const result = fieldSchema.safeParse(value);
+  return result.success ? undefined : result.error.errors[0]?.message;
+};
+
+// 4. Form Validators - For submit validation
+export const validateCreate[Entity]Form = (data: FormData): ValidationErrors => {
+  const errors: ValidationErrors = {};
+  const fieldError = validateField(data.field);
+  if (fieldError) errors.field = fieldError;
+  return errors;
+};
+
+// 5. Field Validator Factory - For Input component `validate` prop
+export const create[Entity]FieldValidator = (fieldName: string) => {
+  return (value: any): string | undefined => {
+    switch (fieldName) {
+      case 'field': return validateField(value);
+      // ...
+    }
+  };
+};
+
+// 6. Helper - Check if form has errors
+export const hasValidationErrors = (errors: ValidationErrors): boolean => {
+  return Object.values(errors).some(error => error !== undefined);
+};
+```
+
+### Validation Files Status
+
+**📁 /lib/validation/**
+- ✅ `listingValidation.ts` (create/edit listing)
+- ✅ `authValidation.ts` (signup + login) - **UPDATED with ValidationConfig**
+
+**📁 /lib/admin/validation/**
+- ✅ `userValidation.ts` (already existed)
+- ✅ `roleValidation.ts` (already existed)
+- ✅ `attributeValidation.ts` (already existed)
+- ✅ `categoryValidation.ts` (already existed)
+- ✅ `brandValidation.ts` (already existed)
+- ✅ `subscriptionValidation.ts` (NEW - created today)
+- ✅ `adPackageValidation.ts` (NEW - created today)
+- ✅ `adClientValidation.ts` (NEW - created today)
+- ✅ `adCampaignValidation.ts` (NEW - created today)
+
+### Next Steps (For Future Sessions)
+
+**Phase 3: Migrate Forms to Use Validation Files**
+- Update admin forms that don't use validation yet (subscriptions, ad packages, ad clients, ad campaigns)
+- Update user dashboard forms (edit profile, change email, change password)
+- Update edit listing modal to use listingValidation.ts
+
+**Phase 4: Add Real-Time Validation**
+- Add `validate` prop to Input components in forms
+- Users see errors as they type (using field validator factories)
+
+**Phase 5: Testing**
+- Test all 32 forms for consistent behavior
+- Verify error messages display correctly (inline + form-level)
+
+### Key Principles
+
+1. **One Form = One Validation File** (shared between Create/Edit)
+2. **ValidationConfig = Single Source of Truth** (all limits referenced from config)
+3. **Consistent Pattern** (all validation files have same structure)
+4. **Zod for Validation** (TypeScript-first, automatic type inference)
+5. **Arabic Error Messages** (all user-facing errors in Arabic)
+
+---
+
+## 🚧 PREVIOUS SESSION: AI Content Moderation System - Final Cleanup (2025-01-30)
+
+### ⚠️ PENDING DECISION: listing.entity.ts Moderation Fields
+**Before continuing, decide on these fields in `listing.entity.ts`:**
+- `moderationFlags` - DELETE? (technical debug data, never displayed)
+- `moderationStatus` - KEEP (shows AI vs current status)
+- `moderationScore` - KEEP (essential for AI decision logic)
+- `reviewedBy` + `reviewedAt` - KEEP (shows human vs AI decision)
+
+### 📋 TODO List - Next Tasks
+
+**Priority 1: Finish AI Moderation System**
+- [ ] **Finalize listing.entity.ts fields** (delete moderationFlags?)
+- [ ] **Test edit listing with AI re-moderation** (does AI re-run on edit?)
+- [ ] **Admin edit listing workflow** (manual approval/rejection)
+
+**Priority 2: Bidding System**
+- [ ] **Implement bidding logic on listing detail page**
+  - Show bidding UI if `allowBidding` is true
+  - Allow users to place bids
+  - Display current highest bid
+  - Real-time bid updates
+  - Bidding history
+  - Notifications for bid changes
+
+**Priority 3: View Count / Review Analytics**
+- [ ] **Track listing view count**
+  - Increment counter when user views listing detail page
+  - Display view count on listing cards
+  - Analytics for seller dashboard
+
+**Priority 4: User Dashboard Features**
+- [ ] **Wishlist/Favorites System**
+  - Dashboard page: `/dashboard/wishlist`
+  - Show all listings user has liked
+  - Quick actions: remove from wishlist, view listing
+  - Empty state when no favorites
+
+- [ ] **Chat/Messaging System**
+  - Dashboard page: `/dashboard/messages`
+  - Show all chat threads
+  - Display threads where user contacted someone about a listing
+  - Display threads where someone contacted user about their listing
+  - Real-time messaging
+  - Unread message indicators
+  - Thread preview with last message
+
+---
+
+## ✅ COMPLETED: AI Content Moderation System - Create Listing (2025-01-30)
+
+### Implementation Plan - AI Moderation with Toggle
+
+**Goal:** Add AI-powered content moderation for listings with admin override capability
+
+**Key Requirements:**
+1. ✅ AI moderation toggle in app settings (on/off switch via Liskov pattern)
+2. ✅ If AI disabled → All listings go to PENDING_APPROVAL (human review required)
+3. ✅ If AI enabled → Smart 3-tier system:
+   - Safe (90%+) → ACTIVE (auto-approve)
+   - Suspicious (50-89%) → PENDING_APPROVAL (human review)
+   - Unsafe (90%+) → DRAFT (auto-reject with AI reason)
+4. ✅ Rejection reasons enum (backend common/enums + frontend metadata)
+5. ✅ Admin can send rejection messages to users
+6. ✅ User sees rejection reason in dashboard
+7. ❌ AI NEVER bans users (admin-only action)
+
+---
+
+### Step-by-Step Implementation Tasks
+
+#### Phase 1: Database & Enums (Backend Foundation)
+
+**Task 1.1: Create Rejection Reasons Enum**
+- File: `marketplace-backend/src/common/enums/rejection-reason.enum.ts`
+- Values:
+  ```typescript
+  UNCLEAR_IMAGES = "unclear_images"          // صور غير واضحة
+  MISSING_INFO = "missing_info"              // معلومات ناقصة
+  PROHIBITED_CONTENT = "prohibited_content"  // محتوى مخالف
+  UNREALISTIC_PRICE = "unrealistic_price"    // سعر غير واقعي
+  INAPPROPRIATE_IMAGES = "inappropriate_images" // صور مخالفة
+  PROFANITY = "profanity"                    // ألفاظ نابية
+  CONTACT_INFO = "contact_info"              // معلومات اتصال في الوصف
+  SCAM_SUSPECTED = "scam_suspected"          // اشتباه في احتيال
+  DUPLICATE = "duplicate"                    // إعلان مكرر
+  OTHER = "other"                            // سبب آخر
+  ```
+
+**Task 1.2: Add Moderation Fields to Listings Table**
+- Migration: `AddModerationFieldsToListings`
+- Fields:
+  ```typescript
+  moderationStatus: 'auto_approved' | 'auto_rejected' | 'pending_review' | 'human_approved' | 'human_rejected' | null
+  moderationScore: number | null (0-100, AI confidence)
+  moderationFlags: string[] | null (JSON array: ["nsfw", "profanity"])
+  rejectionReason: RejectionReason | null
+  rejectionMessage: string | null (custom admin message)
+  reviewedBy: string | null (admin user ID)
+  reviewedAt: timestamp | null
+  ```
+
+**Task 1.3: Add Violation Tracking to Users Table**
+- Migration: `AddViolationTrackingToUsers`
+- Fields:
+  ```typescript
+  violationCount: number (default 0)
+  lastViolationAt: timestamp | null
+  warningLevel: 'none' | 'low' | 'medium' | 'high' (default 'none')
+  ```
+
+**Task 1.4: Add AI Toggle to App Settings**
+- Migration: `AddAiModerationToggle`
+- Add to `app_settings` table:
+  ```typescript
+  aiModerationEnabled: boolean (default false)
+  ```
+
+---
+
+#### Phase 2: AI Service (Backend Core Logic)
+
+**Task 2.1: Install OpenAI SDK**
+```bash
+cd marketplace-backend
+npm install openai
+```
+
+**Task 2.2: Add OpenAI API Key to .env**
+```
+OPENAI_API_KEY=sk-...
+```
+
+**Task 2.3: Create AI Moderation Service**
+- File: `marketplace-backend/src/listings/services/ai-moderation.service.ts`
+- Methods:
+  - `checkTextContent(title, description)` → Uses OpenAI Moderation API
+  - `checkImages(imageKeys[])` → Uses Cloudflare Images AI
+  - `calculateModerationScore()` → Combines text + image scores
+  - `determineModerationStatus()` → Returns: auto_approved | pending_review | auto_rejected
+  - `getViolationFlags()` → Returns array of flags
+
+**Task 2.4: Create App Settings Service**
+- File: `marketplace-backend/src/app-settings/app-settings.service.ts`
+- Method: `isAiModerationEnabled()` → boolean
+
+---
+
+#### Phase 3: Integration (Backend Mutations)
+
+**Task 3.1: Update createMyListing Mutation**
+- File: `marketplace-backend/src/listings/listings.resolver.ts`
+- Flow:
+  ```typescript
+  1. Check if AI moderation enabled (app settings)
+  2. If disabled → status = PENDING_APPROVAL, moderationStatus = 'pending_review'
+  3. If enabled:
+     - Run AI moderation check
+     - Set status based on AI score:
+       - 90%+ safe → ACTIVE, moderationStatus = 'auto_approved'
+       - 50-89% → PENDING_APPROVAL, moderationStatus = 'pending_review'
+       - <50% unsafe → DRAFT, moderationStatus = 'auto_rejected'
+     - Save moderationScore, moderationFlags
+     - If auto_rejected: set rejectionReason from AI
+     - If violation detected: increment user.violationCount
+  ```
+
+**Task 3.2: Update updateMyListing Mutation**
+- Add rejection reason + message fields
+- Admin can set: status, rejectionReason, rejectionMessage
+- Track reviewedBy + reviewedAt
+
+---
+
+#### Phase 4: GraphQL Schema Updates
+
+**Task 4.1: Add Rejection Reasons to Metadata Resolver**
+- File: `marketplace-backend/src/metadata/metadata.resolver.ts`
+- Add query: `getRejectionReasons()` → returns enum values array
+- Pattern: Same as existing enum queries (listingStatuses, userRoles, etc.)
+
+**Task 4.2: Update Listing Type**
+- Add fields to GraphQL Listing type:
+  ```graphql
+  moderationStatus: String
+  moderationScore: Float
+  moderationFlags: [String!]
+  rejectionReason: RejectionReason
+  rejectionMessage: String
+  reviewedBy: String
+  reviewedAt: DateTime
+  ```
+
+---
+
+#### Phase 5: Frontend Metadata Store
+
+**Task 5.1: Add Rejection Reasons to Metadata Store**
+- File: `marketplace-frontend/stores/metadataStore/index.ts`
+- Add state: `rejectionReasons: string[]`
+- Add fetch method: `fetchRejectionReasons()`
+
+**Task 5.2: Add Rejection Reason Labels**
+- File: `marketplace-frontend/constants/metadata-labels.ts`
+- Add:
+  ```typescript
+  export const REJECTION_REASON_LABELS: Record<string, string> = {
+    unclear_images: 'صور غير واضحة',
+    missing_info: 'معلومات ناقصة',
+    prohibited_content: 'محتوى مخالف',
+    // ... etc
+  };
+  ```
+
+---
+
+#### Phase 6: Admin Dashboard Updates
+
+**Task 6.1: Update ListingsDashboardPanel (Admin)**
+- File: `marketplace-frontend/components/admin/AdminDashboardPanel/ListingsDashboardPanel/index.tsx`
+- Add "Reject with Reason" action:
+  - Dropdown: Select rejection reason (from metadata)
+  - Textarea: Optional custom message
+  - Button: "رفض الإعلان"
+  - On submit: updateListing(id, { status: DRAFT, rejectionReason, rejectionMessage })
+
+**Task 6.2: Show Moderation Info in Admin Table**
+- Add columns:
+  - AI Score (if available)
+  - Moderation Status
+  - Flags (badges)
+
+---
+
+#### Phase 7: User Dashboard Updates
+
+**Task 7.1: Show Rejection Reason in User Listings**
+- File: `marketplace-frontend/components/dashboard/ListingsPanel/index.tsx`
+- If listing.status === DRAFT && listing.rejectionReason:
+  - Show red banner: "إعلانك تم رفضه"
+  - Display reason: getLabel(rejectionReason, REJECTION_REASON_LABELS)
+  - Display custom message (if exists)
+  - Button: "تعديل الإعلان" → Opens edit modal
+
+**Task 7.2: Add Status Messages After Submission**
+- File: `marketplace-frontend/app/dashboard/listings/create/details/page.tsx`
+- After successful creation, check status:
+  - ACTIVE: "تم نشر إعلانك بنجاح ✅"
+  - PENDING_APPROVAL: "إعلانك قيد المراجعة (خلال 24 ساعة) ⏳"
+  - DRAFT: "تم رفض إعلانك - السبب: [reason] ❌"
+
+---
+
+#### Phase 8: App Settings UI (Admin Toggle)
+
+**Task 8.1: Add AI Toggle in Admin Settings**
+- File: `marketplace-frontend/components/admin/AdminDashboardPanel/SettingsPanel/index.tsx`
+- Add switch:
+  - Label: "تفعيل المراجعة الآلية (AI)"
+  - Description: "إذا تم التفعيل، سيتم فحص الإعلانات تلقائياً. إذا تم التعطيل، ستحتاج جميع الإعلانات إلى مراجعة يدوية."
+  - Save to app_settings
+
+---
+
+#### Phase 9: Testing
+
+**Task 9.1: Test AI Moderation**
+- Create listing with clean content → Should be ACTIVE
+- Create listing with profanity → Should be DRAFT or PENDING_APPROVAL
+- Create listing with NSFW image → Should be DRAFT or PENDING_APPROVAL
+
+**Task 9.2: Test Admin Rejection**
+- Admin rejects listing with reason
+- User sees rejection message
+- User edits and resubmits
+
+**Task 9.3: Test AI Toggle**
+- Disable AI → All listings go to PENDING_APPROVAL
+- Enable AI → Listings use AI scoring
+
+---
+
+### Files to Create/Modify
+
+**Backend (New Files):**
+1. `src/common/enums/rejection-reason.enum.ts`
+2. `src/listings/services/ai-moderation.service.ts`
+3. `src/migrations/[timestamp]-AddModerationFieldsToListings.ts`
+4. `src/migrations/[timestamp]-AddViolationTrackingToUsers.ts`
+5. `src/migrations/[timestamp]-AddAiModerationToggle.ts`
+
+**Backend (Modified Files):**
+1. `src/listings/listings.resolver.ts` - Update createMyListing/updateMyListing
+2. `src/listings/listing.entity.ts` - Add moderation fields
+3. `src/users/user.entity.ts` - Add violation tracking
+4. `src/metadata/metadata.resolver.ts` - Add getRejectionReasons query
+5. `src/app-settings/app-settings.service.ts` - Add AI toggle
+
+**Frontend (Modified Files):**
+1. `stores/metadataStore/index.ts` - Add rejectionReasons
+2. `constants/metadata-labels.ts` - Add REJECTION_REASON_LABELS
+3. `components/admin/AdminDashboardPanel/ListingsDashboardPanel/index.tsx` - Add reject action
+4. `components/dashboard/ListingsPanel/index.tsx` - Show rejection messages
+5. `app/dashboard/listings/create/details/page.tsx` - Status messages after submit
+6. `components/admin/AdminDashboardPanel/SettingsPanel/index.tsx` - AI toggle
+
+---
+
+## 🚀 TODO List - Next Features
+
+### Priority 1: Create/Edit Listing Improvements
+- [x] **Fix validation for create/edit listing forms** ✅ COMPLETED
+- [x] **Fix image upload in edit listing** ✅ COMPLETED
+- [ ] **AI Content Moderation System** 🚧 IN PROGRESS
+
+### Priority 2: Bidding System
+- [ ] **Implement bidding logic on listing detail page**
+  - Show bidding UI if `allowBidding` is true
+  - Allow users to place bids
+  - Display current highest bid
+  - Real-time bid updates
+  - Bidding history
+  - Notifications for bid changes
+
+### Priority 3: User Dashboard Features
+- [ ] **Wishlist/Favorites System**
+  - Dashboard page: `/dashboard/wishlist`
+  - Show all listings user has liked
+  - Quick actions: remove from wishlist, view listing
+  - Empty state when no favorites
+
+- [ ] **Chat/Messaging System**
+  - Dashboard page: `/dashboard/messages`
+  - Show all chat threads
+  - Display threads where user contacted someone about a listing
+  - Display threads where someone contacted user about their listing
+  - Real-time messaging
+  - Unread message indicators
+  - Thread preview with last message
+
+---
+
+## Session: 2025-01-29 (Province System & TypeScript Fixes)
+
+### Completed Today
+
+#### 1. Province Cleanup - Dynamic Enum System ✅
+
+**Problem:** Provinces were hardcoded in frontend components, violating single source of truth principle.
+
+**Solution:** Centralized province management using backend enum + metadata API.
+
+**Backend Changes:**
+1. **Created `/common/enums/syria-provinces.enum.ts`**:
+   - `SyriaProvince` enum (14 provinces with English keys)
+   - `SYRIA_PROVINCE_ARABIC_NAMES` mapping (English → Arabic)
+   - `SYRIA_PROVINCE_COORDINATES` for map display
+
+2. **Created `/common/metadata/types/province.type.ts`**:
+   - `Province` GraphQL type with `key`, `nameAr`, `coordinates`
+
+3. **Updated `/common/metadata/metadata.resolver.ts`**:
+   - Added `getProvinces()` query
+   - Returns provinces with Arabic names and coordinates
+
+**Frontend Changes:**
+1. **Updated `metadataStore/index.ts`**:
+   - Added `Province` interface
+   - Added `provinces: Province[]` state
+   - Added `fetchLocationMetadata()` method
+   - Integrated into `fetchAllMetadata()`
+
+2. **Removed hardcoded PROVINCES arrays**:
+   - `app/dashboard/listings/create/details/page.tsx` (lines 52-68 removed)
+   - `components/dashboard/ListingsPanel/modals/EditListingModal.tsx` (lines 88-104 removed)
+
+3. **Added useEffect to fetch provinces**:
+   - Both create and edit forms now fetch provinces on mount if not loaded
+
+**Map Provider Fix:**
+- Updated `OpenStreetMapProvider.tsx` to handle both English keys and Arabic names
+- Added `PROVINCE_ARABIC_TO_ENGLISH` reverse mapping
+- Fixed map display for user-created listings with Arabic province names
+
+**Result:**
+- ✅ Single source of truth in backend
+- ✅ No hardcoded province lists in frontend
+- ✅ Easy to expand to other countries (Jordan, Lebanon)
+- ✅ Map component works with both English and Arabic province values
+
+#### 2. TypeScript Error Fixes ✅
+
+**Fixed 3 TypeScript errors:**
+
+1. **[Input.tsx:310-313](components/slices/Input/Input.tsx:310-313)** - `formatNumberWithCommas` type error
+   - **Problem:** `inputProps.value` can be `string | number | readonly string[]`, but function expects `string | number`
+   - **Fix:** Added type guard `!Array.isArray(inputProps.value)` and explicit type assertion
+   ```typescript
+   let displayValue: string | number | readonly string[] | undefined = inputProps.value;
+   if (type === 'number' && inputProps.value && !Array.isArray(inputProps.value)) {
+     displayValue = formatNumberWithCommas(inputProps.value as string | number);
+   }
+   ```
+
+2. **[createListingStore/index.ts:268-270](stores/createListingStore/index.ts:268-270)** - FormData.append error
+   - **Problem:** `imageItem.file` can be `undefined`, but FormData requires `Blob | File`
+   - **Fix:** Added type guard to skip images without files
+   ```typescript
+   for (const imageItem of formData.images) {
+     if (!imageItem.file) continue; // Skip already-uploaded images
+     // ... upload logic
+   }
+   ```
+
+3. **[EditListingModal.tsx:313](components/dashboard/ListingsPanel/modals/EditListingModal.tsx:313)** - Same FormData issue
+   - **Fix:** Added explicit type assertion after type guard
+   ```typescript
+   if (!imageItem.file) continue;
+   const file: File = imageItem.file; // Type assertion
+   formDataUpload.append('file', file);
+   ```
+
+#### 3. Attribute Validation Fix ✅
+
+**Problem:** Validation error messages showed "undefined مطلوب" instead of attribute names.
+
+**Root Cause:** Code used `attribute.label` (doesn't exist) instead of `attribute.name` (Arabic label from backend).
+
+**Fixed in 2 locations:**
+- Line 201: Validation error message in `handleSubmit`
+- Line 495: Inline error message in `renderAttributeField`
+
+**Change:**
+```typescript
+// Before (wrong):
+validationErrors.push(`${attribute.label} مطلوب`);
+
+// After (correct):
+validationErrors.push(`${attribute.name} مطلوب`);
+```
+
+#### 4. Category Selection UX Improvement ✅
+
+**Problem:** Required two clicks - select category, then click "Next" button.
+
+**Solution:** Navigate immediately after category selection (one-click flow).
+
+**Changes in `app/dashboard/listings/create/page.tsx`:**
+- Removed `selectedCategory` state
+- Removed "Next" button
+- Created `handleCategorySelect` that navigates immediately
+- Renamed `.actions` to `.cancelButton` in SCSS
+
+**Result:** Faster, more intuitive category selection.
+
+#### 5. SCSS & Cache Issues ✅
+
+**Problem:** `CreateListing.module.scss` had persistent SASS compilation errors.
+
+**Root Cause:** Webpack cache issue after rapid file changes.
+
+**Fix:**
+- Added missing `.cancelButton` class
+- Uncommented `.formFields` class
+- Cleared `.next` cache
+- Restarted dev servers
+
+**Result:** Both apps running error-free on ports 3000 (frontend) and 4000 (backend).
+
+### Files Modified (Total: 9 files)
+
+**Backend (2 files):**
+- `src/common/enums/syria-provinces.enum.ts` (CREATED)
+- `src/common/metadata/types/province.type.ts` (CREATED)
+- `src/common/metadata/metadata.resolver.ts` (Modified)
+
+**Frontend (7 files):**
+- `stores/metadataStore/index.ts` (Modified)
+- `stores/metadataStore/metadataStore.gql.ts` (Modified)
+- `stores/createListingStore/index.ts` (Modified)
+- `stores/createListingStore/types.ts` (Modified)
+- `components/slices/Input/Input.tsx` (Modified)
+- `components/dashboard/ListingsPanel/modals/EditListingModal.tsx` (Modified)
+- `app/dashboard/listings/create/details/page.tsx` (Modified)
+- `app/dashboard/listings/create/page.tsx` (Modified)
+- `app/dashboard/listings/create/CreateListing.module.scss` (Modified)
+
+### Lessons Learned
+
+**What NOT to do:**
+- ❌ Don't change backend validation rules to "fix" frontend issues
+- ❌ Don't add complex validation logic when the form was already working
+- ❌ Don't add new GraphQL fields without understanding the full schema
+- ❌ Don't make multiple changes simultaneously - increases debugging complexity
+
+**What worked:**
+- ✅ Revert changes when overcomplicating things
+- ✅ Trust the user when they say "it was working before"
+- ✅ Keep frontend and backend in sync (types, queries, fields)
+- ✅ Use type guards and assertions properly for TypeScript narrowing
+
+---
+
+## Session: 2025-01-25 (Google AdSense Fallback + IAB Ad Dimensions)
+
+### Completed Today
+
+#### Google AdSense Fallback System
+
+**Implementation:** Complete fallback system for showing Google AdSense ads when custom ads are not available.
+
+**Backend Changes:**
+
+1. **[ad-network-settings.resolver.ts](marketplace-backend/src/ad-network-settings/ad-network-settings.resolver.ts:11-59)**
+   - Added `@Public()` GraphQL query `getAdSenseSettings`
+   - Fixed GraphQL type definitions with explicit type annotations:
+     - `AdSenseSlot`: `@Field(() => String)` and `@Field(() => Boolean)`
+     - `AdSenseSettings`: `@Field(() => String, { nullable: true })`
+   - Returns AdSense configuration (clientId, slot IDs, enabled flags)
+
+2. **GraphQL Schema:**
+   ```graphql
+   type AdSenseSlot {
+     id: String!
+     enabled: Boolean!
+   }
+
+   type AdSenseSettings {
+     clientId: String
+     bannerSlot: AdSenseSlot
+     betweenListingsSlot: AdSenseSlot
+     videoSlot: AdSenseSlot
+   }
+
+   query getAdSenseSettings: AdSenseSettings
+   ```
+
+**Frontend Changes:**
+
+1. **[adsStore/index.ts](marketplace-frontend/stores/adsStore/index.ts)** - Added AdSense settings state and fetch method
+2. **[adsStore.gql.ts](marketplace-frontend/stores/adsStore/adsStore.gql.ts)** - Added `GET_ADSENSE_SETTINGS_QUERY`
+3. **[GoogleAdSense.tsx](marketplace-frontend/components/ads/GoogleAdSense/GoogleAdSense.tsx)** (NEW) - Component for rendering Google AdSense ads
+4. **[AdContainer.tsx](marketplace-frontend/components/ads/AdContainer/AdContainer.tsx:121-166)** - Implemented fallback logic:
+   - Priority 1: Custom ads if available
+   - Priority 2: Google AdSense if enabled in admin settings
+   - Priority 3: Render nothing
+   - Maps ad types to slots: BANNER→bannerSlot, VIDEO→videoSlot, BETWEEN_LISTINGS→betweenListingsSlot
+
+**How It Works:**
+- Admin configures AdSense in Ad Network Settings dashboard (clientId, slot IDs, enabled flags)
+- Frontend fetches settings via public GraphQL query
+- When custom ad not available, checks if AdSense is enabled for that ad type
+- Renders GoogleAdSense component with appropriate slot ID
+- Admin can disable AdSense per ad type via enabled flags
+
+#### IAB Standard Ad Dimensions Implementation
+
+**Problem:** Ad components were using incorrect dimensions (1200x200) instead of IAB standard sizes.
+
+**Solution:** Updated all ad components and Cloudflare image optimization to use IAB standard dimensions.
+
+**Cloudflare Variants Created:**
+- `adBannerDesk`: 970x90 (IAB Super Leaderboard)
+- `adBannerMob`: 300x250 (IAB Medium Rectangle)
+- `adCard`: 300x250 (IAB Medium Rectangle)
+- `adVideoDesk`: 1280x720 (16:9 HD)
+- `adVideoMob`: 720x720 (1:1 Square)
+
+**Files Modified:**
+
+1. **[cloudflare-images.ts](marketplace-frontend/utils/cloudflare-images.ts:228-297)** - Added `optimizeAdImage()` function
+   - Maps ad types to Cloudflare variants
+   - Supports development mode with Unsplash URLs
+   - Auto-detects device type (desktop/mobile)
+
+2. **[AdBanner.tsx](marketplace-frontend/components/ads/AdBanner/AdBanner.tsx)**
+   - Added mobile detection via resize listener
+   - Dynamic dimensions: 970x90 (desktop) or 300x250 (mobile)
+   - Uses `optimizeAdImage()` to fetch correct variant
+
+3. **[AdCard.tsx](marketplace-frontend/components/ads/AdCard/AdCard.tsx)**
+   - Uses `optimizeAdImage()` with 'card' type (300x250)
+
+4. **[AdCard.module.scss](marketplace-frontend/components/ads/AdCard/AdCard.module.scss:31)**
+   - Updated aspect-ratio from 3:2 to 6:5 (300x250)
+
+5. **[AdVideo.tsx](marketplace-frontend/components/ads/AdVideo/AdVideo.tsx)**
+   - Added mobile detection
+   - Uses `optimizeAdImage()` for responsive video variants
+
+6. **[AdVideo.module.scss](marketplace-frontend/components/ads/AdVideo/AdVideo.module.scss:12-20)**
+   - Added `.videoContainer` with responsive aspect-ratio
+   - Desktop: 16:9 (1280x720)
+   - Mobile: 1:1 (720x720)
+
+**Technical Details:**
+
+```typescript
+// Cloudflare variant mapping
+const variantMap = {
+  banner: {
+    desktop: 'adBannerDesk',  // 970x90
+    mobile: 'adBannerMob',    // 300x250
+  },
+  card: {
+    desktop: 'adCard',        // 300x250
+    mobile: 'adCard',         // 300x250
+  },
+  video: {
+    desktop: 'adVideoDesk',   // 1280x720
+    mobile: 'adVideoMob',     // 720x720
+  },
+};
+```
+
+**Result:**
+- ✅ All ads now use IAB standard dimensions
+- ✅ Responsive: Desktop and mobile variants switch automatically
+- ✅ Cloudflare optimization: Images served via correct variants
+- ✅ Development mode: Unsplash URLs optimized with correct dimensions
+
+#### Files Modified Summary
+
+**Backend (2 files):**
+- `ad-network-settings.resolver.ts` - Added public AdSense settings query
+- `ad-network-settings.service.ts` - AdSense settings fetch method (already existed)
+
+**Frontend (9 files):**
+- `stores/adsStore/index.ts` - AdSense state management
+- `stores/adsStore/adsStore.gql.ts` - AdSense GraphQL query
+- `components/ads/GoogleAdSense/GoogleAdSense.tsx` (NEW) - Google ads component
+- `components/ads/GoogleAdSense/GoogleAdSense.module.scss` (NEW)
+- `components/ads/GoogleAdSense/index.ts` (NEW)
+- `components/ads/AdContainer/AdContainer.tsx` - Fallback logic
+- `components/ads/AdBanner/AdBanner.tsx` - IAB dimensions + optimization
+- `components/ads/AdCard/AdCard.tsx` - IAB dimensions + optimization
+- `components/ads/AdCard/AdCard.module.scss` - Aspect ratio fix
+- `components/ads/AdVideo/AdVideo.tsx` - IAB dimensions + optimization
+- `components/ads/AdVideo/AdVideo.module.scss` - Responsive aspect ratios
+- `utils/cloudflare-images.ts` - Ad image optimization function
+
+**Total: 11 files modified, 3 files created**
+
+---
+
+## Session: 2025-01-25 (Enum Case Mismatch Fixes - Continuation)
+
+### Completed Today
+
+#### Backend Compilation Fixes After Enum Centralization
+
+**Problem:** After centralizing all enums to `/common/enums/`, backend had 5 TypeScript compilation errors due to incorrect imports mixing entities with enums.
+
+**Solution:** Fixed import statements to properly separate entity imports from enum imports.
+
+**Files Fixed:**
+1. **[bidding.service.ts](marketplace-backend/src/listings/bidding.service.ts)**
+   - Fixed: `Listing` entity was being imported from enums
+   - Separated: Import entity from `./listing.entity.js`, enums from `../common/enums/`
+
+2. **[listings.service.ts](marketplace-backend/src/listings/listings.service.ts)**
+   - Fixed: `Listing`, `Currency`, `ListingStatus` all mixed in one import
+   - Separated: Entity from `./listing.entity.js`, enums from common
+
+3. **[listings-filter.input.ts](marketplace-backend/src/listings/dto/listings-filter.input.ts)**
+   - Fixed: `Currency`, `ListingStatus` imported from entity file
+   - Consolidated: All enum imports to `../../common/enums/index.js`
+
+4. **[user-subscription-payment.service.ts](marketplace-backend/src/user-subscriptions/user-subscription-payment.service.ts)**
+   - Fixed: `UserSubscriptionTransactionStatus` imported from entity
+   - Changed: Import from `../common/enums/index.js`
+
+**Result:** ✅ Backend compiled successfully with 0 errors
+
+#### Frontend GraphQL Enum Case Mismatch Fixes
+
+**Problem:** GraphQL schema expects uppercase enum KEYS (e.g., `ACTIVE`), but frontend was sending lowercase values from metadata endpoint (e.g., `active`), causing validation errors.
+
+**Root Cause:**
+- Database stores lowercase VALUES: `'active'`, `'draft'`, `'pending'`
+- Metadata resolver returns lowercase VALUES (correct)
+- GraphQL schema exposes uppercase KEYS: `ACTIVE`, `DRAFT`, `PENDING`
+- Frontend gets lowercase from metadata but GraphQL validates against uppercase KEYS
+
+**Standard Fix Pattern Established:**
+When sending enum values from frontend to GraphQL, convert to uppercase using `.toUpperCase()`:
+
+```typescript
+// Example pattern:
+status: statusFilter ? statusFilter.toUpperCase() : undefined
+```
+
+**Files Fixed:**
+
+1. **[ListingsDashboardPanel/index.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/ListingsDashboardPanel/index.tsx)** (Line 83)
+   - **Error:** `Variable "$filter" got invalid value "active" at "filter.status"; Value "active" does not exist in "ListingStatus" enum.`
+   - **Fix:** Added `.toUpperCase()` to status filter before sending to GraphQL
+   - **Code:** `status: statusFilter ? statusFilter.toUpperCase() : undefined`
+
+2. **[AuditDashboardPanel/index.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/AuditDashboardPanel/index.tsx)** (Lines 54-65, 133-145)
+   - **Error:** `invalid input syntax for type uuid: "superadmin"` - Search term sent to both `userEmail` AND `entityId` fields
+   - **Root Cause:** Not enum-related, but UUID validation error
+   - **Fix:** Added UUID format detection using regex
+   - **Logic:**
+     - If searchTerm matches UUID pattern → send to `entityId` only
+     - If searchTerm is text (email/username) → send to `userEmail` only
+   - **Pattern:** `/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i`
+
+**Standard Enum Case Fix Pattern (For Future Reference):**
+
+When you encounter enum case mismatch errors in the future:
+
+1. **Identify the Error Pattern:**
+   - Error message: `Value "lowercase" does not exist in "EnumName" enum. Did you mean the enum value "UPPERCASE"?`
+
+2. **Locate the Filter/Input:**
+   - Find where enum value is being sent to GraphQL (usually in `setFilters()` or mutation input)
+
+3. **Apply the Fix:**
+   ```typescript
+   // BEFORE (causes error):
+   status: statusFilter || undefined
+
+   // AFTER (fixed):
+   status: statusFilter ? statusFilter.toUpperCase() : undefined
+   ```
+
+4. **Test:**
+   - Verify dropdown/select still shows Arabic labels correctly
+   - Verify GraphQL accepts the uppercase value
+   - Check database still stores lowercase values
+
+**Why This Works:**
+- Frontend displays: Lowercase values with Arabic labels from metadata
+- Frontend sends: Uppercase values to match GraphQL schema
+- GraphQL validates: Uppercase KEYS from schema
+- Database stores: Lowercase VALUES (unchanged)
+
+**Files Modified (Total: 6)**
+- Backend: 4 files (import fixes)
+- Frontend: 2 files (enum case + UUID validation)
+
+#### Client-Side Search and Filtering Implementation
+
+**Problem:** User reported that Roles and Brands dashboards had search/filter UI elements but they weren't actually working.
+
+**Root Cause:** The UI elements existed (search inputs, status dropdowns) but no filtering logic was implemented. The state variables were declared but never used.
+
+**Solution:** Implemented client-side filtering using JavaScript's `.filter()` method on the data arrays.
+
+**Implementation Pattern:**
+
+```typescript
+// 1. Add filtering logic after data is loaded
+const filteredItems = items.filter(item => {
+  // Search filter (name or description)
+  const matchesSearch = !searchTerm ||
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+  // Status filter
+  const matchesStatus = !statusFilter ||
+    (statusFilter === 'active' && item.isActive) ||
+    (statusFilter === 'inactive' && !item.isActive);
+
+  return matchesSearch && matchesStatus;
+});
+
+// 2. Replace array in rendering
+{filteredItems.map(item => (...))}
+
+// 3. Update result count display
+النتيجة: {filteredItems.length} من {items.length}
+
+// 4. Update empty state message
+{searchTerm || statusFilter ? 'لم يتم العثور على نتائج مطابقة للبحث' : 'لم يتم العثور على أي عناصر'}
+```
+
+**Files Fixed:**
+
+1. **[RolesDashboardPanel/index.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/RolesDashboardPanel/index.tsx)** (Lines 61-74, 199, 261-266, 280)
+   - **Added:** `filteredRoles` computed from `roles` array with search and status filtering
+   - **Search:** Matches role name or description (case-insensitive)
+   - **Status Filter:** Filters by `isActive` boolean (active/inactive)
+   - **Result Count:** Shows "النتيجة: X من Y" (filtered vs total)
+   - **Empty State:** Different message when filters are active
+   - **Replaced:** All `roles.map()` and `roles.length` with `filteredRoles`
+
+2. **[BrandsDashboardPanel/index.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/BrandsDashboardPanel/index.tsx)** (Lines 237-246, 411-418, 442, 505)
+   - **Added:** `filteredBrands` computed from `brands` array with source and status filtering
+   - **Source Filter:** Filters by `source` field (manual/sync)
+   - **Status Filter:** Filters by `status` field (active/archived)
+   - **Note:** Search already worked via backend (connected to `searchTerm` state)
+   - **Empty State:** Conditional message based on active filters
+   - **Replaced:** Table rendering uses `filteredBrands.map()`
+
+**Key Differences:**
+
+| Dashboard | Search | Filters | Implementation |
+|-----------|--------|---------|----------------|
+| Roles | Client-side (name, description) | Status (active/inactive) | Pure client-side |
+| Brands | Backend (via API) | Source + Status (client-side) | Hybrid approach |
+| Listings | Backend (via API) | Status (client-side .toUpperCase()) | Hybrid approach |
+
+**Why Client-Side Filtering:**
+- No backend filter support in Roles resolver
+- Small data sets (typically < 100 items)
+- Instant filtering without API calls
+- Simple implementation for boolean/enum filters
+
+**Files Modified (Total: 2)**
+- Frontend: 2 files (client-side filtering logic)
+
+#### Public Listings Store Enum Fix
+
+**Problem:** After seed refresh, user reported listings not showing on public pages (`http://localhost:3000/car`). Error in console: `Variable "$filter" got invalid value "active" at "filter.status"; Value "active" does not exist in "ListingStatus" enum.`
+
+**Root Cause:** Public listings store ([listingsStore/index.ts](marketplace-frontend/stores/listingsStore/index.ts)) had hardcoded lowercase `status: "active"` being sent to GraphQL on line 194.
+
+**Solution:** Changed to uppercase `status: "ACTIVE"` to match GraphQL schema.
+
+**File Fixed:**
+- **[listingsStore/index.ts](marketplace-frontend/stores/listingsStore/index.ts)** (Line 194)
+  - **Changed:** `status: "active"` → `status: "ACTIVE"`
+  - **Note:** This is the public-facing store used by the car listings page, different from admin store
+
+**Critical Distinction:**
+- **Admin Dashboard Store**: Already fixed (uses `.toUpperCase()` on filter values from metadata)
+- **Public Listings Store**: Had hardcoded lowercase value - now fixed
+
+**Files Modified (Total: 1)**
+- Frontend: 1 file (public listings store enum fix)
+
+**Total Session Changes: 9 files**
+- Backend: 4 files (import fixes)
+- Frontend: 5 files (enum case fixes + client-side filtering)
+
+---
+
+## Session: 2025-01-24 (COMPREHENSIVE ENUM STANDARDIZATION - IN PROGRESS)
+
+### 🎯 Professional Enum System - Complete Cleanup & Standardization
+
+**WHY THIS IS NEEDED:**
+- User found enum error in dashboard panel randomly while fixing seeder
+- Enums scattered across entity files (no single source of truth)
+- GraphQL returns uppercase KEYS but database has lowercase VALUES
+- Frontend has hardcoded enum values and duplicate labels
+- Future developers need a clear standard to follow
+
+**THE COMPLETE PROBLEM:**
+
+1. **Scattered Enums** - Found in multiple entity files, not centralized
+2. **GraphQL Uppercase Issue** - GraphQL schema exposes uppercase KEYS, but data queries return values
+3. **Frontend Inconsistency** - Hardcoded values, duplicate labels, no clear pattern
+
+**COMPREHENSIVE SOLUTION:**
+
+### Phase 1: Backend Enum Audit & Centralization ✅ (IN PROGRESS)
+
+**Step 1.1: Audit ALL Enums in Backend** ✅ COMPLETED
+Found enums in these locations:
+
+**Already Centralized ✅:**
+- `src/common/enums/account-type.enum.ts` - AccountType
+- `src/common/enums/account-badge.enum.ts` - AccountBadge
+- `src/common/enums/gender.enum.ts` - Gender
+- `src/common/enums/user-role.enum.ts` - UserRole
+- `src/common/enums/user-status.enum.ts` - UserStatus
+- `src/common/enums/attribute-type.enum.ts` - AttributeType
+- `src/common/enums/subscription-account-type.enum.ts` - SubscriptionAccountType
+
+**Need to Move to /common/enums/ 🔲:**
+- `src/catalog/brand.entity.ts` - **CatalogSource**, **CatalogStatus**
+- `src/chats/chat-message.entity.ts` - **MessageStatus**
+- `src/email-templates/email-template.entity.ts` - **EmailTemplateCategory**, **EmailTemplateStatus**
+- `src/listings/listing.entity.ts` - **ListingStatus**, **Currency**, ~~ListingCategory~~ (DELETE - should use Category table)
+- `src/user-subscriptions/user-package.entity.ts` - **SubscriptionStatus**
+- `src/user-subscriptions/user-subscription-transaction.entity.ts` - **UserSubscriptionTransactionStatus**
+- `src/user-subscriptions/user-subscription.entity.ts` - **UserSubscriptionStatus**, **BillingCycle**
+- `src/ads-common/ad-enums.ts` - **AdMediaType** ⚠️ (VALUES are UPPERCASE - WRONG!), **AdCampaignStatus**, **AdCampaignMediaType**, **AdClientStatus**, **CampaignStartPreference**
+
+**⚠️ CRITICAL ISSUE - FIXED ✅:**
+`AdMediaType` enum had UPPERCASE values - FIXED!
+- ✅ Fixed enum in: `src/ads-common/ad-enums.ts`
+- ✅ Migration created: `FixAdMediaTypeToLowercase1761346900000`
+- ✅ Database updated: All `adType` values converted to lowercase
+
+**Step 1.2: Move ALL Enums to /common/enums/** ✅ COMPLETED
+
+**Created 16 new enum files:**
+1. `listing-status.enum.ts` - ListingStatus (6 values)
+2. `currency.enum.ts` - Currency (USD, EUR, SYP, etc.)
+3. `catalog-source.enum.ts` - CatalogSource (manual, sync)
+4. `catalog-status.enum.ts` - CatalogStatus (active, archived)
+5. `message-status.enum.ts` - MessageStatus (sent, delivered, read)
+6. `email-template-category.enum.ts` - EmailTemplateCategory (ads, subscription, listing, user_account, system)
+7. `email-template-status.enum.ts` - EmailTemplateStatus (active, draft, archived)
+8. `subscription-status.enum.ts` - SubscriptionStatus (active, expired, cancelled, pending)
+9. `user-subscription-transaction-status.enum.ts` - UserSubscriptionTransactionStatus (pending, completed, failed, refunded, cancelled)
+10. `user-subscription-status.enum.ts` - UserSubscriptionStatus (active, inactive, deprecated)
+11. `billing-cycle.enum.ts` - BillingCycle (monthly, yearly, free)
+12. `ad-media-type.enum.ts` - AdMediaType (banner, video, between_listings_card, between_listings_banner) ⚠️ **FIX VALUES TO LOWERCASE**
+13. `ad-campaign-status.enum.ts` - AdCampaignStatus (draft, payment_sent, paid, active, completed, cancelled, paused)
+14. `ad-campaign-media-type.enum.ts` - AdCampaignMediaType (banner_desktop, banner_mobile, video, between_listings)
+15. `ad-client-status.enum.ts` - AdClientStatus (active, inactive, suspended)
+16. `campaign-start-preference.enum.ts` - CampaignStartPreference (specific_date, asap)
+17. ~~listing-category.enum.ts~~ - **DELETE** (should use Category table, not enum)
+
+**Step 1.3: Update All Entity Imports** 🔲 PENDING
+Update imports in:
+- All entity files
+- All DTO files
+- All service files
+- All resolver files
+
+**Step 1.4: Delete ListingCategory Enum** 🔲 PENDING
+This is wrong - categories should come from Category table, not hardcoded enum
+
+### Phase 2: Fix GraphQL Uppercase Issue 🔲 PENDING
+
+**The Problem:**
+- GraphQL schema exposes: `{ ACTIVE, PENDING, BANNED }` (uppercase KEYS)
+- GraphQL returns data: `{ "status": "ACTIVE" }` (uppercase)
+- Database stores: `'active'`, `'pending'` (lowercase VALUES)
+- Metadata resolver returns: `["active", "pending"]` (lowercase VALUES) ✅ Already fixed
+
+**The Solution:**
+Need to keep GraphQL consistent - either:
+- Option A: Change GraphQL to expose lowercase in schema (professional, keeps everything lowercase)
+- Option B: Accept uppercase in GraphQL, handle conversion in frontend
+
+**Decision:** TBD after Phase 1 complete
+
+### Phase 3: Frontend Cleanup 🔲 PENDING
+
+**Step 3.1: Audit Frontend Enum Usage**
+- Find all hardcoded enum values
+- Find all comparisons using uppercase
+- Check all dropdown/filter components
+
+**Step 3.2: Standardize to Metadata Store**
+- Ensure all enums come from metadata store (single source)
+- Remove all hardcoded values
+- Use metadata labels for display
+
+### ✅ ALREADY COMPLETED (Previous Session):
+
+**Backend:**
+1. ✅ Moved UserStatus, UserRole, Gender to `/common/enums/`
+2. ✅ Fixed database trigger to use lowercase enum values
+3. ✅ Fixed GraphQL metadata resolver - changed `Object.keys()` to `Object.values()` for 13 queries
+4. ✅ Migration executed: `FixTriggerEnumCase1761341943000`
+
+**Frontend:**
+1. ✅ Removed uppercase duplicate labels from `metadata-labels.ts`
+2. ✅ Fixed 16 hardcoded uppercase enum values in 5 files:
+   - ListingArea.tsx (2 fixes)
+   - CreateAdClientModal.tsx (3 fixes)
+   - EditAdClientModal.tsx (3 fixes)
+   - listingsStore/index.ts (5 fixes)
+   - adminListingsStore/index.ts (5 fixes)
+
+### 📋 TODO LIST (Step-by-Step):
+
+**Next Steps:**
+1. 🔲 Complete ad-entities enum audit
+2. 🔲 Create centralized enum files in `/common/enums/`
+3. 🔲 Update all imports across backend
+4. 🔲 Test backend - ensure no import errors
+5. 🔲 Decide on GraphQL uppercase solution
+6. 🔲 Implement GraphQL fix
+7. 🔲 Test frontend with new enum values
+8. 🔲 Document enum standard in ENUMS.md
+
+---
+
+## Session: 2025-01-24 (PREVIOUS)
+
+### 🚧 Ad Display Integration - Frontend Implementation Plan
+
+#### **Ad Placement Strategy**
+
+**1. Homepage**
+- **Top Banner** (above listings grid)
+  - Ad Types: BANNER or VIDEO
+  - Shows 1 active campaign (rotates if multiple)
+  - Desktop: uses `desktopMediaUrl`
+  - Mobile: uses `mobileMediaUrl` (for VIDEO) or `desktopMediaUrl` (for BANNER)
+
+**2. Listing Page** (search results page)
+- **Between Listings** (every 6-8 listings)
+  - Ad Types: BETWEEN_LISTINGS_CARD or BETWEEN_LISTINGS_BANNER
+  - Card: appears in grid like a listing (3:2 ratio)
+  - Banner: full-width between rows
+  - Desktop: uses `desktopMediaUrl`
+  - Mobile: uses `desktopMediaUrl` (banners don't need separate mobile version)
+
+**3. Detail Page** (individual listing view)
+- **Top Banner** (below image gallery or above description)
+  - Ad Types: BANNER or VIDEO
+  - Desktop: uses `desktopMediaUrl`
+  - Mobile: uses `mobileMediaUrl` (for VIDEO) or `desktopMediaUrl` (for BANNER)
+- **Bottom Banner** (below listing description)
+  - Ad Types: BETWEEN_LISTINGS_BANNER
+  - Full-width banner
+  - Desktop: uses `desktopMediaUrl`
+  - Mobile: uses `desktopMediaUrl`
+
+#### **Media Requirements by Ad Type**
+
+| Ad Type | Desktop Media | Mobile Media | Notes |
+|---------|---------------|--------------|-------|
+| BANNER | 1200x200px image | Not required | Uses desktop image on mobile (responsive) |
+| VIDEO | 16:9 video (1920x1080) | 1:1 video (1080x1080) | Required: both versions |
+| BETWEEN_LISTINGS_CARD | 3:2 image (600x400) | Not required | Appears as card in listings grid |
+| BETWEEN_LISTINGS_BANNER | 1200x200px image | Not required | Full-width banner between listings |
+
+#### **Implementation Steps**
+
+**Phase 1: Backend - Ad Serving API**
+- ✅ Already have: `desktopMediaUrl`, `mobileMediaUrl`, `clickUrl`, `openInNewTab` in ad_campaigns table
+- 🔲 Create GraphQL query: `getActiveAdsByType(adType: AdMediaType!)`
+  - Returns active campaigns (status=ACTIVE, within date range)
+  - Filters by adType
+  - Returns: id, desktopMediaUrl, mobileMediaUrl, clickUrl, openInNewTab, campaignName
+- 🔲 Create REST endpoint: POST `/api/ads/track` for impressions/clicks
+  - Body: `{ campaignId, eventType: 'impression' | 'click' }`
+  - Creates ad_reports entry or increments daily counters
+  - No auth required (public endpoint)
+
+**Phase 2: Frontend - Ad Components**
+- 🔲 Create `AdBanner` component
+  - Props: campaignId, desktopUrl, mobileUrl, clickUrl, altText
+  - Responsive image (uses desktop on desktop, mobile on mobile if provided)
+  - Tracks impression on mount (once)
+  - Tracks click when clicked
+  - "إعلان" label overlay
+- 🔲 Create `AdVideo` component
+  - Props: campaignId, desktopUrl, mobileUrl, clickUrl, altText
+  - Auto-play, muted, loop
+  - Responsive (shows desktop video on desktop, mobile video on mobile)
+  - Tracks impression on mount
+  - Tracks click when clicked
+- 🔲 Create `AdCard` component (for BETWEEN_LISTINGS_CARD)
+  - Props: campaignId, imageUrl, clickUrl, altText
+  - Same size as ListingCard
+  - Fits in listings grid
+  - Tracks impression/click
+- 🔲 Create `AdContainer` wrapper component
+  - Fetches active ads by type
+  - Handles loading state
+  - Randomly selects one ad if multiple available
+  - Passes data to child ad component
+
+**Phase 3: Frontend - Page Integration**
+- 🔲 **Homepage**: Integrate top banner
+  - Add `<AdContainer type="BANNER_OR_VIDEO" placement="homepage-top" />` above ListingArea
+  - Component auto-detects if ad is BANNER or VIDEO type
+- 🔲 **Listing Page**: Integrate between listings ads
+  - Modify ListingArea to inject ads every 6-8 listings
+  - Use `<AdContainer type="BETWEEN_LISTINGS" placement="listings-between" />`
+  - Alternate between CARD and BANNER types if both exist
+- 🔲 **Detail Page**: Integrate top + bottom banners
+  - Add `<AdContainer type="BANNER_OR_VIDEO" placement="detail-top" />` below gallery
+  - Add `<AdContainer type="BETWEEN_LISTINGS_BANNER" placement="detail-bottom" />` after description
+
+**Phase 4: Ad Tracking Service**
+- 🔲 Create `adTrackingService.ts` utility
+  - `trackImpression(campaignId: string)`: POST to `/api/ads/track`
+  - `trackClick(campaignId: string)`: POST to `/api/ads/track`
+  - Debounce to prevent duplicate impressions
+  - Queue failed requests for retry
+
+**Phase 5: Testing Setup**
+- 🔲 Create 2 test campaigns with ACTIVE status
+  - Campaign 1: BANNER type, runs for 30 days, 25,000 impressions limit
+    - Client: Test Auto Company
+    - Package: "بانر علوي - قياسي (30 يوم)"
+    - Status: ACTIVE
+    - Desktop image: placeholder banner (1200x200)
+    - Click URL: https://example.com/cars
+  - Campaign 2: BETWEEN_LISTINGS_BANNER type, runs for 30 days
+    - Client: Test Motors LLC
+    - Package: "بين القوائم - بانر كامل (30 يوم)"
+    - Status: ACTIVE
+    - Desktop image: placeholder banner (1200x200)
+    - Click URL: https://example.com/deals
+- 🔲 Test that ads display on all 3 pages
+- 🔲 Test that impressions increment in ad_reports table
+- 🔲 Test that clicks increment in ad_reports table
+- 🔲 Test responsive behavior (desktop vs mobile)
+
+#### **Files to Create**
+
+**Backend:**
+- `marketplace-backend/src/ad-campaigns/ad-campaigns.resolver.ts` - Add `getActiveAdsByType` query
+- `marketplace-backend/src/ad-campaigns/ad-campaigns.service.ts` - Add logic to fetch active ads
+- `marketplace-backend/src/ad-reports/ad-reports.controller.ts` - REST endpoint for tracking (NEW FILE)
+- `marketplace-backend/src/ad-reports/ad-reports.service.ts` - Add tracking logic
+
+**Frontend:**
+- `marketplace-frontend/components/ads/AdBanner/AdBanner.tsx`
+- `marketplace-frontend/components/ads/AdBanner/AdBanner.module.scss`
+- `marketplace-frontend/components/ads/AdBanner/index.ts`
+- `marketplace-frontend/components/ads/AdVideo/AdVideo.tsx`
+- `marketplace-frontend/components/ads/AdVideo/AdVideo.module.scss`
+- `marketplace-frontend/components/ads/AdVideo/index.ts`
+- `marketplace-frontend/components/ads/AdCard/AdCard.tsx`
+- `marketplace-frontend/components/ads/AdCard/AdCard.module.scss`
+- `marketplace-frontend/components/ads/AdCard/index.ts`
+- `marketplace-frontend/components/ads/AdContainer/AdContainer.tsx`
+- `marketplace-frontend/components/ads/AdContainer/index.ts`
+- `marketplace-frontend/components/ads/index.ts` - Export all ad components
+- `marketplace-frontend/services/adTrackingService.ts`
+- `marketplace-frontend/stores/adsStore/index.ts` - Store for fetching ads
+- `marketplace-frontend/stores/adsStore/adsStore.gql.ts` - GraphQL queries
+
+**Modified Files:**
+- `marketplace-frontend/app/page.tsx` - Add top banner
+- `marketplace-frontend/components/ListingArea/ListingArea.tsx` - Inject between-listings ads
+- `marketplace-frontend/app/listing/[id]/ListingDetailClient.tsx` - Add top + bottom banners
+
+#### **Testing Checklist**
+- [ ] Homepage shows top banner ad
+- [ ] Listing page shows ads between listings (every 6-8 items)
+- [ ] Detail page shows top banner + bottom banner
+- [ ] Clicking ad opens clickUrl in new tab
+- [ ] Impressions are tracked in ad_reports table
+- [ ] Clicks are tracked in ad_reports table
+- [ ] Mobile shows correct media (mobileMediaUrl for VIDEO, desktopMediaUrl for BANNER)
+- [ ] Ad label "إعلان" is visible on all ads
+- [ ] Ads don't show when no active campaigns exist
+
+---
+
+## Session: 2025-01-21 (CONTINUED - TODO)
+
+### 🚧 Ad Management System - Implementation Plan
+
+**Priority Order:**
+
+### **Phase 1: Ad Campaigns Dashboard + Public Reports** (IN PROGRESS)
+1. **Ad Campaigns Dashboard** (`AdCampaignsDashboardPanel`)
+   - ✅ Backend already has: entity, resolver, service, seeder
+   - 🔲 Create frontend store: `adminAdCampaignsStore`
+   - 🔲 Create main dashboard component with table
+   - 🔲 Create modals: Create/Edit/Delete
+   - 🔲 Add media asset upload functionality
+   - 🔲 Campaign status management (DRAFT, ACTIVE, PAUSED, COMPLETED, CANCELLED)
+   - 🔲 Link to clients (dropdown) and packages (dropdown)
+   - 🔲 **Add publicReportToken generation on campaign creation**
+   - 🔲 **Add "Copy Report Link" button in Edit Campaign Modal**
+
+2. **Public Campaign Report Page** (NEW FEATURE)
+   - 🔲 Add `publicReportToken` field to ad_campaigns table (migration + entity)
+   - 🔲 Create public resolver (no authentication): `getPublicCampaignReport(token: string)`
+   - 🔲 Create frontend public page: `/ad-report/[token]/page.tsx`
+   - 🔲 Display campaign metrics: impressions, clicks, CTR, cost
+   - 🔲 Show daily breakdown table
+   - 🔲 Auto-refresh every 5 minutes for active campaigns
+   - **Purpose:** Clients can view their ad performance without login via shareable link
+   - **Future:** Weekly email reports, PDF/Excel download, charts
+
+### **Phase 2: Supporting Dashboards**
+3. **Ad Clients Dashboard** (`AdClientsDashboardPanel`)
+   - ✅ Backend ready (entity, resolver, service, seeder)
+   - 🔲 Create frontend store: `adminAdClientsStore`
+   - 🔲 Create dashboard with CRUD modals
+   - Table columns: اسم الشركة | الصناعة | جهة الاتصال | البريد | الهاتف | عدد الحملات | الإجراءات
+
+4. **Ad Reports Dashboard** (`AdReportsDashboardPanel`)
+   - ✅ Backend ready (entity, resolver, service, seeder)
+   - 🔲 Create frontend store: `adminAdReportsStore`
+   - 🔲 Read-only dashboard (no create/edit)
+   - 🔲 Campaign selector + date range filter
+   - 🔲 Metrics cards + daily reports table
+   - 🔲 Optional: Add charts/graphs
+
+**Technical Requirements:**
+- All dashboards follow AdPackagesDashboardPanel pattern
+- Use SharedDashboardPanel.module.scss for styling
+- Implement caching (5-minute timeout)
+- Use useFeaturePermissions hook
+- Dynamic enums from metadata store
+- Proper error handling and notifications
+
+**Database Structure:**
+- `ad_clients` table → External advertisers (companies)
+- `ad_campaigns` table → Ad campaigns linking clients + packages
+- `ad_reports` table → Daily performance metrics per campaign
+- `ad_packages` table → ✅ Already completed (6 packages seeded)
+
+**Status:** Starting with Ad Campaigns Dashboard + Public Report Token
+
+---
+
+## Session: 2025-01-21
+
+### Completed Today
+
+#### Ad Packages System - Type & Tier Removal
+
+**Problem:**
+- User identified that `type` (النوع) and `tier` (المستوى) fields in ad packages were redundant
+- Packages already differentiated by: adType, price, duration, impressionLimit
+- Type (standard/custom) and Tier (basic/premium/enterprise) added no value
+
+**Solution: Complete Removal of type and tier Fields**
+
+##### Backend Changes:
+
+1. **Entity** ([ad-package.entity.ts](marketplace-backend/src/ad-packages/ad-package.entity.ts))
+   - Removed `type` field (AdPackageType enum)
+   - Removed `tier` field (AdPackageTier enum)
+   - Removed import of unused enums
+
+2. **DTOs**
+   - [create-ad-package.input.ts](marketplace-backend/src/ad-packages/dto/create-ad-package.input.ts): Removed `type` and `tier` fields, updated imports
+   - [filter-ad-packages.input.ts](marketplace-backend/src/ad-packages/dto/filter-ad-packages.input.ts): Removed `type` and `tier` filter options
+
+3. **Service** ([ad-packages.service.ts](marketplace-backend/src/ad-packages/ad-packages.service.ts))
+   - Removed `findStandardPackages()` and `findCustomPackages()` methods
+   - Updated `findAll()` to order by `basePrice` instead of `tier`
+   - Updated `findActivePackages()` to order by `basePrice`
+   - Removed AdPackageType import
+
+4. **Resolver** ([ad-packages.resolver.ts](marketplace-backend/src/ad-packages/ad-packages.resolver.ts))
+   - Removed `standardAdPackages` query
+   - Removed `customAdPackages` query
+   - Kept only: `adPackages`, `adPackage`, `activeAdPackages`
+
+5. **Migration**
+   - Generated: [RemoveTypeAndTierFromAdPackages1761008648012.ts](marketplace-backend/src/migrations/1761008648012-RemoveTypeAndTierFromAdPackages.ts)
+   - Successfully ran migration
+   - Dropped `type` column and `ad_packages_type_enum` type
+   - Dropped `tier` column and `ad_packages_tier_enum` type
+
+6. **Seeder** ([ads.seeder.ts](marketplace-backend/src/seeds/seeders/ads.seeder.ts))
+   - Removed `type` and `tier` from all 6 ad packages
+   - Removed AdPackageType and AdPackageTier imports
+   - Packages now only contain: packageName, description, adType, durationDays, impressionLimit, basePrice, currency, mediaRequirements, isActive
+
+##### Frontend Changes:
+
+1. **Store** ([adminAdPackagesStore/index.ts](marketplace-frontend/stores/admin/adminAdPackagesStore/index.ts))
+   - Removed `type` and `tier` from `AdPackage` interface
+   - Removed `type` and `tier` from `CreateAdPackageInput` interface
+   - Removed `type` and `tier` from `UpdateAdPackageInput` interface
+
+2. **GraphQL Queries** ([adminAdPackagesStore.gql.ts](marketplace-frontend/stores/admin/adminAdPackagesStore/adminAdPackagesStore.gql.ts))
+   - Removed `type` and `tier` from:
+     - GET_ALL_AD_PACKAGES_QUERY
+     - GET_AD_PACKAGE_BY_ID_QUERY
+     - GET_ACTIVE_AD_PACKAGES_QUERY
+     - CREATE_AD_PACKAGE_MUTATION
+     - UPDATE_AD_PACKAGE_MUTATION
+
+3. **Modals**
+   - [CreateAdPackageModal.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/AdPackagesDashboardPanel/modals/CreateAdPackageModal.tsx):
+     - Removed "نوع الحزمة والمستوى" section
+     - Removed `type` and `tier` from form state (2 places)
+   - [EditAdPackageModal.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/AdPackagesDashboardPanel/modals/EditAdPackageModal.tsx):
+     - Removed "نوع الحزمة والمستوى" section
+     - Removed `type` and `tier` from form state
+     - Removed from initial data population
+
+4. **Dashboard Table** ([AdPackagesDashboardPanel/index.tsx](marketplace-frontend/components/admin/AdminDashboardPanel/AdPackagesDashboardPanel/index.tsx))
+   - Removed `getTypeLabel()` helper function
+   - Removed `getTierLabel()` helper function
+   - Removed "النوع" (Type) column from table
+   - Removed "المستوى" (Tier) column from table
+   - Updated table headers and cells
+
+**Final Table Structure:**
+| Column | Description |
+|--------|-------------|
+| اسم الحزمة | Package Name + Description preview |
+| نوع الإعلان | Ad Type (BANNER, VIDEO, BETWEEN_LISTINGS_CARD, BETWEEN_LISTINGS_BANNER) |
+| السعر | Price in USD |
+| المدة | Duration in days |
+| حد الظهور | Impression limit |
+| الحالة | Active/Inactive status |
+| الإجراءات | Edit/Delete actions |
+
+**6 Ad Packages in Database:**
+1. **بانر علوي - أساسي (7 أيام)** - BANNER, 7 days, 5,000 impressions, $50
+2. **بانر علوي - قياسي (30 يوم)** - BANNER, 30 days, 25,000 impressions, $150
+3. **فيديو علوي - متميز (30 يوم)** - VIDEO, 30 days, 15,000 impressions, $300
+4. **بين القوائم - كارت (30 يوم)** - BETWEEN_LISTINGS_CARD, 30 days, 20,000 impressions, $100
+5. **بين القوائم - بانر كامل (30 يوم)** - BETWEEN_LISTINGS_BANNER, 30 days, 30,000 impressions, $180
+6. **حزمة مؤسسية مخصصة** - BANNER, 30 days, unlimited, custom pricing
+
+**Files Modified (Total: 12)**
+- Backend: 6 files
+- Frontend: 6 files
+
+**Database Changes:**
+- ✅ Migration executed successfully
+- ✅ Columns dropped: `type`, `tier`
+- ✅ Enums dropped: `ad_packages_type_enum`, `ad_packages_tier_enum`
+
+---
+
+## Session: 2025-01-17 (PLANNED)
+
+### 🚧 Multi-Step Create Listing Form (TODO)
+
+#### Implementation Plan
+
+**Architecture: Dynamic Multi-Step Form with Attribute-Based Steps**
+
+**Step Structure:**
+1. **Step 1: Category & Basic Info** (Fixed)
+   - Category selector (dropdown) - Required
+   - Title (text) - Required
+   - Description (textarea) - Optional
+   - Price (number) - Required
+   - Allow Bidding (switch) - Optional
+   - Bidding Start Price (number) - Conditional
+
+2. **Step 2: Images** (Fixed)
+   - ImageUploadGrid component (min 3, max 20 photos) - Required
+   - Video URL (text) - Optional
+
+3. **Step 3-N: Dynamic Attribute Groups** (Generated from backend)
+   - One step per attribute `group` field
+   - Sorted by `groupOrder`
+   - Example groups for "Car" category:
+     - المواصفات الأساسية (Basic Specs) - Brand, Model, Year, Body Type
+     - المواصفات الفنية (Technical Specs) - Fuel, Transmission, Mileage, Engine
+
+4. **Step N: Location & Review** (Fixed)
+   - Province (selector) - Required
+   - City (text) - Optional
+   - Area (text) - Optional
+   - Map Link (text) - Optional
+   - Review Summary with "Edit Step X" links
+
+**Key Features:**
+- ✅ Step-by-step validation (can't proceed without required fields)
+- ✅ Progress indicator (● Step 1 ○ Step 2 ○ Step 3...)
+- ✅ Form state management via Zustand store
+- ✅ Dynamic field rendering based on attribute type:
+  - SELECTOR → dropdown
+  - MULTI_SELECTOR → checkboxes with max limit
+  - RANGE → min/max number inputs
+  - TEXT → text input
+  - NUMBER → number input
+- ✅ Image upload to storage service (Cloudflare/Supabase)
+- ✅ Final payload construction with specs object
+- ✅ Integration with createMyListing mutation
+
+**Technical Components:**
+1. `useCreateListingStore` - Zustand store for form state
+2. `MultiStepForm` - Wrapper component with navigation
+3. `StepIndicator` - Progress bar component
+4. `DynamicAttributeStep` - Renders fields by attribute type
+5. `ReviewStep` - Summary with edit links
+
+**Data Flow:**
+```
+User opens modal
+  → Step 1: Select category "Car"
+  → Fetch attributes via getAttributesByCategorySlug("car")
+  → Group attributes by `group` field
+  → Generate dynamic steps (one per group)
+  → User fills each step (validated before next)
+  → Final step: Upload images → Build specs object → Submit
+```
+
+**Backend Integration:**
+- Query: `getAttributesByCategorySlug(categorySlug: String!)` returns attributes with options
+- Mutation: `createMyListing(input: CreateListingInput!)` creates listing
+- Image upload: Store → Get URLs → Send as `imageKeys: string[]`
+
+**Validation Rules:**
+- Required fields must be filled before proceeding to next step
+- Step 2: Minimum 3 images required
+- Range fields: min must be ≤ max
+- Multi-selector: Respect `maxSelections` limit
+
+**Files to Create:**
+- `stores/createListingStore/` - Form state store
+- `components/dashboard/ListingsPanel/modals/CreateListingModal/` - Main modal
+- `components/dashboard/ListingsPanel/modals/CreateListingModal/components/` - Step components
+- `components/slices/MultiStepForm/` - Reusable multi-step wrapper
+- `components/slices/StepIndicator/` - Progress indicator
+
+**Status:** Planning completed, ready for implementation
+
+---
+
+## Session: 2025-01-17
+
+### Completed Today
+
+#### Frontend
+
+**1. ImageUploadGrid Component**
+- Created reusable `ImageUploadGrid` component for image upload with preview
+- **Features:**
+  - Responsive grid layout (150px min width, 2 columns on mobile)
+  - Drag & drop support for images
+  - Delete button (danger variant, icon-only, appears on hover)
+  - Add button with + icon
+  - Max images limit (configurable, default 20)
+  - Blob URL preview with proper memory cleanup
+  - Uses slice components (Button, Text)
+- **Files Created:**
+  - `components/slices/ImageUploadGrid/ImageUploadGrid.tsx`
+  - `components/slices/ImageUploadGrid/ImageUploadGrid.module.scss`
+  - `components/slices/ImageUploadGrid/index.ts`
+- **Files Modified:**
+  - `components/slices/index.ts` (exported ImageUploadGrid)
+
+**2. Modal System Improvements**
+- Refactored all modals to use consistent styling
+- Updated admin panel modals (Attributes, Brands, Roles, Subscriptions, Users, Listings)
+- Updated dashboard modals (Personal Info, Listings)
+- Improved delete confirmation modals layout
+- Better spacing and form organization
+- **Files Modified:** 25+ modal components across admin and dashboard
+
+**3. Store Updates**
+- Added `createMyListing` mutation to userListingsStore
+- Updated GraphQL mutations:
+  - `CREATE_MY_LISTING_MUTATION` - New
+  - `UPDATE_MY_LISTING_MUTATION` - Changed to use `updateMyListing`
+  - `DELETE_MY_LISTING_MUTATION` - Changed to use `deleteMyListing`
+- Integrated image handling in EditListingModal with ImageUploadGrid
+- **Files Modified:**
+  - `stores/userListingsStore/index.ts`
+  - `stores/userListingsStore/userListingsStore.gql.ts`
+  - `components/dashboard/ListingsPanel/modals/EditListingModal.tsx`
+
+**4. Technical Improvements**
+- Used native `<input type="file">` for file upload (correct approach)
+- Proper TypeScript types for image items
+- Memory cleanup with `URL.revokeObjectURL()`
+- Hover-based delete button with opacity transition
+
+---
+
+## Session: 2025-01-14
+
+### Completed Today
+
+#### Backend
+
+**1. Avatar Support for Premium Users**
+- Added `avatar` field to User entity (line 150-153 in `user.entity.ts`)
+- Avatar field is nullable (for users without customBranding subscription)
+- Database migration already exists and was previously run
+- GraphQL schema updated to expose avatar field
+- **Files Modified**: `marketplace-backend/src/users/user.entity.ts`
+
+**2. Account Type Test Users with Subscription Features**
+- Created 3 comprehensive test users for testing subscription limits:
+  - **individual@marketplace.com** | Individual123!
+    - Account type: INDIVIDUAL
+    - Subscription: individual_free (5 listings max, 5 photos)
+    - Avatar: NULL (no customBranding)
+    - accountBadge: NONE
+  - **dealer@marketplace.com** | Dealer123!
+    - Account type: DEALER
+    - Subscription: dealer_free (unlimited listings, 20 photos)
+    - Avatar: Unsplash URL (has customBranding)
+    - accountBadge: PREMIUM
+    - Company: Mohammad Auto Trading
+    - Contact phone: +31612345678
+    - businessVerified: true
+  - **business@marketplace.com** | Business123!
+    - Account type: BUSINESS
+    - Subscription: business_free (unlimited listings, 50 photos)
+    - Avatar: Unsplash URL (has customBranding)
+    - accountBadge: PREMIUM
+    - Company: Ali Motors International
+    - Website: https://alimotors.com
+    - KVK: 12345678
+    - Contact phone: +31687654321
+    - businessVerified: true
+- **Files Modified**: `marketplace-backend/src/seeds/seeders/users.seeder.ts`
+
+**3. Improved Seeder Logic**
+- Changed seeder to UPDATE existing users instead of skipping them
+- Prevents "already exists" issue when running `db:seed:refresh`
+- Updates avatar, companyName, businessVerified, kvkNumber, website, contactPhone fields
+- Avatars use Unsplash URLs (same as listings) for consistency
+- **Pattern**: Check if user exists → Update if exists, Create if not
+- **Files Modified**: `marketplace-backend/src/seeds/seeders/users.seeder.ts`
+
+**4. Listings Distribution by Account Type**
+- Modified listings seeder to assign listings based on account type:
+  - First 5 listings → individual user (tests 5 listing limit)
+  - Next 10 listings → dealer user
+  - Next 10 listings → business user
+  - Remaining → distributed among other users
+- **Files Modified**: `marketplace-backend/src/seeds/seeders/listings.seeder.ts`
+
+**5. Bug Fixes**
+- Fixed `getUserTransactions` relation name from "package" to "userSubscription"
+- **Files Modified**: `marketplace-backend/src/user-subscriptions/user-subscriptions.service.ts`
+
+#### Frontend
+
+**1. Avatar Field Integration**
+- Added `avatar` field to ME_QUERY GraphQL query
+- Added `avatar: string | null` to PublicUser TypeScript interface
+- Avatar now fetched and stored in user state after login
+- **Files Modified**:
+  - `stores/userAuthStore/userAuth.gql.ts`
+  - `stores/userAuthStore/types.ts`
+
+**2. Authentication Guards**
+- Added authentication guard to dashboard layout
+- Redirects to home page if user is not authenticated
+- Prevents access to `/dashboard/*` routes when logged out
+- Shows nothing while checking authentication (no flash of content)
+- **Implementation**: useEffect checks `user` and `isLoading`, redirects if not authenticated
+- **Files Modified**: `app/dashboard/layout.tsx`
+
+**3. Account Type Test Users in Login Selector**
+- Updated login dropdown to include account type test users:
+  - 👨 Individual (5 listings, no avatar)
+  - 🚗 Dealer (unlimited, avatar)
+  - 🏢 Business (unlimited, avatar)
+  - User 1 (Legacy)
+  - User 2 (Legacy)
+  - Custom Login
+- Makes it easy to test different account types and subscription features
+- **Files Modified**: `components/AuthModal/LoginForm.tsx`
+
+**4. Business User Profile Fields**
+- Added display fields for business/dealer users in dashboard:
+  - **Website** (الموقع الإلكتروني) - clickable link, opens in new tab
+  - **KVK Number** (رقم التسجيل التجاري) - business only
+  - **Contact Phone** (هاتف العمل) - dealer and business
+- Fields use conditional rendering (only show if user has them)
+- **Files Modified**: `app/dashboard/page.tsx`
+
+**5. GraphQL Query Fixes**
+- Fixed `MY_LISTINGS_QUERY` to use correct Price type fields:
+  - Changed from: `prices { usd, eur, sar, syp, aed }`
+  - Changed to: `prices { currency, value }`
+- This matches the backend Price GraphQL type structure
+- **Root Cause**: Backend returns array of `{currency, value}` objects, not individual currency fields
+- **Files Modified**: `stores/userListingsStore/userListingsStore.gql.ts`
+
+**6. Session Storage Extension**
+- Extended session storage expiration to 30 days
+- Users stay logged in for longer without needing to re-authenticate
+- **Files Modified**: `stores/userAuthStore/index.ts`
+
+### Technical Details
+
+**Avatar Field Schema**
+```typescript
+// Backend (User entity)
+@Field(() => String, { nullable: true })
+@Column({ type: "varchar", nullable: true })
+avatar!: string | null;
+
+// Frontend (PublicUser interface)
+avatar: string | null;
+
+// GraphQL Query
+avatar
+```
+
+**Account Type to Subscription Mapping**
+- Individual → individual_free (customBranding: false, no avatar)
+- Dealer → dealer_free (customBranding: true, has avatar)
+- Business → business_free (customBranding: true, has avatar)
+
+**Avatar URLs (Using Unsplash)**
+```javascript
+const SAMPLE_AVATARS = [
+  "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&h=600&fit=crop",
+  // ... more Unsplash URLs
+];
+```
+
+**Seeder Update Pattern**
+```typescript
+if (existing) {
+  // Update existing user with new data
+  await sb.from("users").update({
+    avatar: testUser.avatar || null,
+    companyName: testUser.companyName || null,
+    // ... other fields
+  }).eq("email", testUser.email);
+  console.log(`   ↳ ✅ ${testUser.accountType}: ${testUser.email} (updated)`);
+  continue;
 }
+// ... create new user
 ```
 
-#### **Global Attributes (Shared Across All Categories):**
-1. **search** - Text search in title/description
-2. **title** - Listing title (required)
-3. **description** - Listing description
-4. **price** - Price with currency (required)
-5. **location** - Syrian provinces/cities selector
-6. **sellerType** - Private/Dealer/Business selector
+### Testing Scenarios Available
 
-#### **GraphQL API Structure:**
+1. **Individual User Limits**
+   - Login as individual@marketplace.com
+   - Try creating 6th listing (should fail or warn)
+   - Verify no avatar displayed
+   - Max 5 photos per listing
+
+2. **Dealer Premium Features**
+   - Login as dealer@marketplace.com
+   - Avatar should be displayed in dashboard
+   - Unlimited listings
+   - Company name visible
+   - Contact phone displayed
+   - 20 photos per listing allowed
+
+3. **Business Premium Features**
+   - Login as business@marketplace.com
+   - Avatar displayed
+   - Website link displayed and clickable
+   - KVK number displayed
+   - Company name visible
+   - Contact phone displayed
+   - Unlimited listings
+   - 50 photos per listing allowed
+
+4. **Authentication Guard**
+   - Login with any user
+   - Visit `/dashboard/payments` or any dashboard route
+   - Logout
+   - You should be redirected to home page
+   - Cannot access dashboard routes when logged out
+
+### Known Issues / Notes
+
+- Seeder doesn't clear users by design (avoids Supabase auth conflicts)
+- Users are now updated in place instead of deleted/recreated
+- All test users have valid Supabase auth accounts
+- Avatar field returns NULL for individual users (correct behavior)
+
+---
+
+## Previous Session: 2025-01-13
+
+### Completed
+
+#### Backend
+
+**Fixed GraphQL DateTime Serialization Error from Redis Cache**
+- **Issue**: GraphQL error "Expected `DateTime.serialize()` to return non-nullable value, returned: null" when serving listings from Redis cache
+- **Root Cause**: Redis stores Date objects as ISO strings, but GraphQL's `GraphQLISODateTime` scalar expects JavaScript Date instances
+- **Solution**: Transform cached listings by converting ISO string dates back to Date objects before returning
+- **File Modified**: `marketplace-backend/src/listings/listings.service.ts` (lines 407-417)
+- **Impact**: Fixed all listing searches served from cache
+
+#### Frontend
+
+**1. Skeleton Loading System**
+- Created reusable `Skeleton` component with pulse animation (opacity-based, CSS variable compatible)
+- Added `skeleton` prop to `Text` component with variant-specific heights
+- Added `skeleton` prop to `ImageGallery` component
+- Added `isLoading` prop to `ListingCard` to cascade skeleton state to children
+- **Files Created**:
+  - `components/slices/Skeleton/Skeleton.tsx`
+  - `components/slices/Skeleton/Skeleton.module.scss`
+  - `components/slices/Skeleton/index.ts`
+- **Files Modified**:
+  - `components/slices/Text/Text.tsx`
+  - `components/slices/ImageGallery/ImageGallery.tsx`
+  - `components/slices/ListingCard/ListingCard.tsx`
+  - `components/slices/index.ts`
+
+**2. Listing Card UX Improvements**
+- **Compact Specs Display** (AutoScout24 style):
+  - Grid view now shows specs as single line with `|` separator
+  - Shows only values without labels (e.g., "2020 | 50,000 km | بنزين | أوتوماتيك")
+  - Truncates to 2 lines max with ellipsis (1 line on mobile)
+- **Seller Type Deduplication**:
+  - Removed seller type from specs display (was showing twice)
+  - Moved seller section to bottom with border-top separator
+  - Ready for future seller name/badge additions
+- **Image Optimization**:
+  - Changed aspect ratio from `4/3` to `3/2` for better mobile fit
+  - Updated `sizes` attribute for proper mobile optimization
+- **Files Modified**:
+  - `components/slices/ListingCard/ListingCard.tsx`
+  - `components/slices/ListingCard/ListingCard.module.scss`
+
+**3. User-Friendly Error Handling**
+- Listing detail page now shows Arabic error message instead of technical errors
+- Error message: "هذه الصفحة غير موجودة" (This page does not exist)
+- Added navigation buttons: "العودة للصفحة السابقة" and "العودة للرئيسية"
+- Technical errors logged to console only
+- **Files Modified**:
+  - `app/listing/[id]/ListingDetailClient.tsx`
+  - `app/listing/[id]/ListingDetail.module.scss`
+
+**4. Pagination Refactor**
+- Replaced ~100 lines of duplicate pagination code with `Pagination` slice component
+- Removed unused pagination styles (`.pageNumbers`, `.pageButton`, `.ellipsis`)
+- Pagination component handles all logic and styling
+- **Files Modified**:
+  - `components/ListingArea/ListingArea.tsx` (reduced from 439 to 345 lines)
+  - `components/ListingArea/ListingArea.module.scss`
+
+**5. Mobile Grid Optimization**
+- Fixed grid to show exactly 2 equal-width cards: `grid-template-columns: 1fr 1fr !important`
+- Reduced gap to `$space-xs` on mobile
+- Limited specs to 1 line on mobile (down from 2)
+- **Files Modified**:
+  - `components/ListingArea/ListingArea.module.scss`
+  - `components/slices/ListingCard/ListingCard.module.scss`
+
+### Technical Details
+
+**CSS Variable Compatibility Issue (Solved)**
+- SASS functions like `lighten()` don't work with CSS variables
+- Solution: Use opacity-based animations instead of color manipulation
+- Example: Changed from `lighten($border, 5%)` to opacity pulse animation
+
+**Text Truncation Pattern**
+```scss
+display: -webkit-box;
+-webkit-line-clamp: 2; // or 1 on mobile
+-webkit-box-orient: vertical;
+overflow: hidden;
+text-overflow: ellipsis;
+```
+
+**Date Transformation Pattern (Redis Cache)**
 ```typescript
-// SINGLE QUERY - Gets both global + category attributes
-query GetAttributesByCategory($categorySlug: String!) {
-  getAttributesByCategorySlug(categorySlug: $categorySlug) {
-    id, key, name, type, validation, sortOrder, group
-    isGlobal, isSystemCore, canBeDeleted
-    showInGrid, showInList, showInDetail, showInFilter
-    options { id, key, value, sortOrder }
-  }
-}
-
-// ADMIN CRUD with RBAC Protection
-mutation CreateAttribute($input: CreateAttributeInput) {
-  createAttribute(input: $input) { ... }
-}
+const transformedListings = cached.map(listing => ({
+  ...listing,
+  createdAt: new Date(listing.createdAt),
+  updatedAt: new Date(listing.updatedAt),
+}));
 ```
 
 ---
 
-### **🎨 Frontend Architecture (Progressive Loading System)**
+## Git Commits
 
-#### **Core Store Architecture:**
-
-```typescript
-// THREE-STORE PATTERN (Enhanced)
-1. useSearchStore()              // User filter selections
-2. useFiltersStore()             // Dynamic attributes from backend
-3. useListingsStore()            // Filtered results with pagination
-
-// NEW: PROGRESSIVE STORES
-4. useProgressiveListingsStore() // Smart caching + progressive loading
-5. useProgressiveFiltersStore()  // Essential-first filter loading
+### Backend
+```
+41ddd8c - Add account type test users with avatar support and improve seeding
+5b0b894 - Fix GraphQL DateTime serialization error from Redis cache
 ```
 
-#### **Progressive Loading Phases:**
-
-```typescript
-Phase 1: IMMEDIATE (< 3KB)    → Show featured listings instantly
-Phase 2: GRID (< 5KB)         → Load main listings grid
-Phase 3: LIST (< 10KB)        → Enhanced list view data
-Phase 4: DETAIL (< 20KB)      → Full details on-demand
-Phase 5: FILTERS (< 2KB)      → Filter count updates
+### Frontend
+```
+ab65c24 - Add avatar support, auth guards, and business user profile fields
+eeed430 - Improve listing card UX and mobile responsiveness
 ```
 
-#### **Frontend Listing & Attributes Flow:**
-
-```typescript
-// PROGRESSIVE DATA LOADING
-1. User visits /car
-   ↓
-2. loadCategoryPageProgressive(categorySlug)
-   ↓
-3. Phase 1: Load 6 featured listings (< 3KB)
-   ↓
-4. Phase 2: Load grid listings + aggregations (< 5KB)
-   ↓
-5. Background: Load essential filters (brandId, price, location)
-   ↓
-6. Background: Load secondary filters (fuel_type, transmission, etc.)
-
-// SMART CACHING STRATEGY
-- Attributes: 30min cache (rarely change)
-- Listings: 5min cache (change frequently)
-- Aggregations: 2min cache (filter counts)
-- Details: 10min cache (individual listings)
-```
 
 ---
 
-## ✅ **Implementation Completed (2025-01-18)**
+## Session: 2025-01-30 (AI Moderation System Completion + Cleanup)
 
-### **🔧 Backend Enhancements:**
+### Completed Today
 
-#### **1. Hybrid Attribute System Migration:**
-- ✅ **Database Migration**: Added hybrid system columns to attributes table
-- ✅ **Global Attributes Seeder**: 6 core attributes for all categories
-- ✅ **RBAC Integration**: Added 'system' feature for core business logic
-- ✅ **Admin CRUD API**: Complete GraphQL mutations with permission checks
+#### AI Content Moderation - Create Listing ✅
 
-#### **2. Progressive GraphQL Queries:**
-```typescript
-// NEW: Connection-optimized queries
-LISTINGS_GRID_MINIMAL_QUERY     // < 5KB payload
-LISTINGS_LIST_OPTIMIZED_QUERY   // < 10KB payload
-LISTING_DETAIL_FULL_QUERY       // < 20KB payload
-CATEGORY_INITIAL_LOAD_QUERY     // < 3KB payload
-AGGREGATIONS_ONLY_QUERY         // < 2KB payload
-```
+**1. Backend Implementation**
+- ✅ AI moderation service using OpenAI + Cloudflare AI
+- ✅ Text moderation (OpenAI Moderation API)
+- ✅ Image moderation (Cloudflare Image-to-Text + OpenAI)
+- ✅ 3-tier scoring system (90+ auto-approve, 50-89 review, <50 reject)
+- ✅ Rejection reasons enum with Arabic labels
+- ✅ Admin can reject with custom messages
+- ✅ RBAC integration (any role with `listings.modify` permission)
 
-### **🎨 Frontend Progressive System:**
+**2. Frontend Implementation**
+- ✅ Rejection alert in user edit modal
+- ✅ Case-insensitive enum label matching (MISSING_INFO → معلومات ناقصة)
+- ✅ Compact, styled rejection alert with border-radius
+- ✅ No emojis in rejection messages
+- ✅ Admin can set rejection reason + custom message
 
-#### **1. Enhanced Store System:**
-```typescript
-// NEW FILES CREATED:
-/stores/listingsStore/listingsStore.progressive.ts
-/stores/listingsStore/listingsStore.progressive.gql.ts
-/stores/filtersStore/filtersStore.progressive.ts
-```
+**3. Database Cleanup**
+- ✅ Deleted `app-settings` module (unused, AI always enabled)
+- ✅ Deleted violation tracking fields from `user.entity.ts` (never implemented)
+- ✅ Created and ran 3 migrations:
+  - `AddTimestampsToAppSettings` (pending from before)
+  - `RemoveViolationTrackingFromUsers` (dropped columns + enum)
+  - `DropAppSettingsTable` (dropped table)
 
-#### **2. Progressive UI Components:**
-```typescript
-// NEW COMPONENTS CREATED:
-/components/CategoryPage/CategoryPageProgressive.tsx
-/components/Skeletons/ListingSkeleton.tsx
-/components/Skeletons/FilterSkeleton.tsx
-/components/UI/ProgressiveLoader.tsx
-/components/UI/ConnectionIndicator.tsx
-```
+**Files Modified:**
 
-#### **3. Connection Optimization Features:**
-- ✅ **Auto Connection Detection**: Detects slow/medium/fast connections
-- ✅ **Syrian Internet Optimization**: Default slow connection settings
-- ✅ **Data Usage Monitoring**: Tracks data consumption
-- ✅ **Smart Image Loading**: Reduces quality on slow connections
-- ✅ **Skeleton Loading States**: Immediate visual feedback
+**Backend (5 files):**
+- `src/app.module.ts` - Removed AppSettingsModule import
+- `src/listings/listings.module.ts` - Removed AppSettingsModule import
+- `src/listings/services/ai-moderation.service.ts` - Removed AppSettingsService, AI always enabled
+- `src/users/user.entity.ts` - Removed violation tracking fields
+- `src/listings/listings.service.ts` - RBAC integration (previous session)
 
----
+**Frontend (4 files):**
+- `constants/metadata-labels.ts` - Case-insensitive getLabel() function
+- `components/dashboard/ListingsPanel/modals/EditListingModal.tsx` - Rejection alert styling + emoji removal
+- `components/dashboard/ListingsPanel/modals/EditListingModal.module.scss` - Compact rejection alert
+- `components/dashboard/ListingsPanel/index.tsx` - Removed emoji from draft warning
 
-## 📊 **System Performance Status - PRODUCTION READY**
+**Migrations (3 new):**
+- `1761760658184-AddTimestampsToAppSettings.ts` (ran successfully)
+- `1761794920856-RemoveViolationTrackingFromUsers.ts` (ran successfully)
+- `1761795000000-DropAppSettingsTable.ts` (ran successfully)
 
-| Metric | **Before Fixes** | **After All Fixes** | **Status** |
-|--------|------------|-----------|-----------------|
-| **GraphQL Errors** | 400 Bad Request | ✅ No errors | **FIXED** |
-| **Body Type System** | Array storage error | ✅ Single values | **FIXED** |
-| **Province Filters** | Not working | ✅ Perfect aggregations | **FIXED** |
-| **Arabic Display** | Broken specs | ✅ Perfect Arabic | **FIXED** |
-| **Initial Load Time** | 8-15 seconds | 2-4 seconds | **70% faster** |
-| **Data Usage** | 50-100KB | 15-30KB | **60% less** |
-| **API Calls per Page** | 6+ calls | 1-2 calls | **75% fewer** |
-| **Cache Hit Rate** | 0% | 80%+ | **Much faster** |
-| **User Experience** | Broken/Slow | ✅ Excellent | **PRODUCTION READY** |
+**Total: 12 files modified/deleted, 3 migrations created**
 
 ---
 
-## 🗂️ **Files Created/Modified in This Session**
+### Pending Decisions (for tomorrow)
 
-### **Backend Files:**
-1. **Database Migration**: Added hybrid system columns (isGlobal, isSystemCore, etc.)
-2. **Global Attributes Seeder**: `/seeds/seeders/global-attributes.seeder.ts`
-3. **RBAC Integration**: Added 'system' feature permissions
-4. **Admin CRUD DTOs**: Complete input/output types for attribute management
+**listing.entity.ts Moderation Fields:**
+- `moderationFlags` - Likely DELETE (technical debug data, never displayed)
+- `moderationStatus` - KEEP (shows what AI decided vs current status)
+- `moderationScore` - KEEP (essential for AI threshold logic)
+- `reviewedBy` + `reviewedAt` - KEEP (distinguish human vs AI decisions)
 
-### **Frontend Files:**
-
-#### **Progressive GraphQL Queries:**
-1. **`/stores/listingsStore/listingsStore.progressive.gql.ts`**
-   - Ultra-minimal queries optimized for Syrian internet
-   - Progressive loading phases with size limits
-   - Connection-aware query selection
-
-#### **Enhanced Stores:**
-2. **`/stores/listingsStore/listingsStore.progressive.ts`**
-   - Smart caching with TTL management
-   - Multi-phase loading coordination
-   - Connection speed detection and optimization
-   - Performance monitoring
-
-3. **`/stores/filtersStore/filtersStore.progressive.ts`**
-   - Essential-first filter loading
-   - Progressive filter option expansion
-   - Syrian internet optimizations
-
-#### **Progressive UI Components:**
-4. **`/components/CategoryPage/CategoryPageProgressive.tsx`**
-   - Main progressive loading coordinator
-   - Multi-phase rendering logic
-   - Connection-aware layout adjustments
-   - Real-time loading state management
-
-#### **Loading State Components:**
-5. **`/components/Skeletons/ListingSkeleton.tsx`**
-   - Grid and list layout skeletons
-   - Connection-optimized skeleton density
-   - Shimmer animations for visual feedback
-
-6. **`/components/Skeletons/FilterSkeleton.tsx`**
-   - Progressive filter loading states
-   - Essential vs secondary filter distinction
-   - Compact mode for slow connections
-
-#### **User Experience Components:**
-7. **`/components/UI/ProgressiveLoader.tsx`**
-   - Multi-phase loading progress indicator
-   - Arabic messages for loading states
-   - Syrian user guidance and tips
-
-8. **`/components/UI/ConnectionIndicator.tsx`**
-   - Connection speed detection display
-   - Optimization tips for slow connections
-   - Data usage monitoring
-   - Syrian-specific guidance
-
-#### **Documentation:**
-9. **`/PROGRESSIVE_LOADING_GUIDE.md`**
-   - Complete implementation guide
-   - Performance optimization strategies
-   - Migration instructions
-   - Testing guidelines
+**Next Session Plan:**
+1. Finalize moderation fields decision
+2. Test edit listing AI re-moderation
+3. Implement bidding system
+4. Add view count tracking
+5. Start wishlist or chat system (time permitting)
 
 ---
 
-## 🎯 **Current System Capabilities**
-
-### **✅ Fully Functional Backend:**
-- **Hybrid Attribute System**: Global + category-specific attributes
-- **Dynamic RBAC**: Feature-based permissions with admin controls
-- **Progressive GraphQL**: Connection-optimized query selection
-- **Smart Aggregations**: Efficient filter count calculations
-- **Arabic-first i18n**: All error messages in Arabic
-
-### **✅ Fully Functional Frontend:**
-- **Progressive Loading**: 5-phase loading strategy
-- **Smart Caching**: TTL-based with intelligent invalidation
-- **Connection Optimization**: Auto-detection and adaptation
-- **Syrian UX**: Optimized for local internet conditions
-- **Complete Filter System**: All filter types working perfectly
-
-### **✅ Performance Optimizations:**
-- **Skeleton Loading**: Immediate visual feedback
-- **Image Optimization**: Quality adjustment based on connection
-- **Data Monitoring**: Real-time usage tracking
-- **Cache Management**: Intelligent TTL and cleanup
-- **Connection Tips**: User guidance for optimization
-
----
-
-## 🎉 **Achievement Summary**
-
-### **Backend Achievements:**
-- ✅ **Hybrid Attribute System**: Complete implementation with RBAC
-- ✅ **Progressive Queries**: Connection-optimized GraphQL endpoints
-- ✅ **Database Migration**: Successfully ran and tested
-- ✅ **Global Attributes**: 6 core attributes seeded and working
-- ✅ **Admin CRUD**: Full management system with permissions
-
-### **Frontend Achievements:**
-- ✅ **Progressive Loading**: 70% faster page loads for Syrian users
-- ✅ **Smart Stores**: Intelligent caching and progressive data fetching
-- ✅ **Syrian UX**: Connection detection and optimization features
-- ✅ **Loading States**: Complete skeleton and progress components
-- ✅ **Backward Compatible**: Works alongside existing filter system
-
-### **Performance Achievements:**
-- ✅ **70% Faster Initial Load**: 2-4 seconds vs 8-15 seconds
-- ✅ **60% Less Data Usage**: 15-30KB vs 50-100KB per page
-- ✅ **75% Fewer API Calls**: 1-2 calls vs 6+ calls per page
-- ✅ **Excellent UX**: Progressive loading vs blank screen waiting
-
----
-
-## 🔮 **Integration Strategy**
-
-### **Ready for Implementation:**
-```typescript
-// Replace existing category page:
-// OLD:
-import { CategoryPageClient } from './CategoryPageClient';
-
-// NEW:
-import { CategoryPageProgressive } from './CategoryPageProgressive';
-
-// Usage:
-<CategoryPageProgressive categorySlug={categorySlug} />
-```
-
-### **Gradual Migration Path:**
-1. **Phase 1**: A/B test progressive vs standard loading
-2. **Phase 2**: Enable for slow connection users first
-3. **Phase 3**: Full rollout based on performance metrics
-4. **Phase 4**: Retire old system once validated
-
----
-
-## 🎯 **Next Development Priorities**
-
-### **High Priority:**
-1. **Integration Testing**: Test progressive system with real Syrian connections
-2. **Performance Monitoring**: Add analytics for load time tracking
-3. **A/B Testing**: Compare old vs new system performance
-4. **Mobile Optimization**: Enhance progressive loading for mobile devices
-
-### **Medium Priority:**
-1. **URL Parameter Persistence**: Implement filter state in URL
-2. **Advanced Caching**: Add service worker for offline support
-3. **Image Optimization**: Implement WebP and responsive images
-4. **Connection Coaching**: Add user education for optimization
-
-### **Future Enhancements:**
-1. **Predictive Loading**: Preload likely next pages
-2. **Offline Support**: Cache critical data for offline browsing
-3. **Connection Analytics**: Track real-world performance metrics
-4. **Smart Recommendations**: Suggest connection optimizations
-
----
-
-## 🎯 **Admin Dashboard Architecture & Design (2025-01-20)**
-
-### **🏗️ Admin Dashboard System Overview**
-
-The Syrian Marketplace admin dashboard implements a **hybrid control grid + contextual sidebar** approach, optimized for efficient admin workflows and comprehensive backend feature management.
-
-#### **Backend Admin Capabilities Analysis:**
-
-Based on comprehensive backend analysis, the admin system supports:
-
-### **✅ Fully Implemented Backend Features:**
-
-#### **1. RBAC Management System**
-- **Dynamic Permissions**: Feature-based access control (e.g., `roles.manage`, `listings.modify`)
-- **Role Hierarchy**: SUPER_ADMIN → ADMIN → EDITOR → ADS_MANAGER → USER
-- **Permission Matrix**: 20+ features with create/read/update/delete granularity
-- **Audit Integration**: All role changes tracked in audit logs
-
-#### **2. User & Subscription Management**
-- **User CRUD**: Complete user management with role assignments
-- **Subscription System**: Partial implementation with billing integration points
-- **Profile Management**: Account types (individual/dealer/business) with seller badges
-
-#### **3. Category & Attribute Management**
-- **Hybrid Attribute System**: Global + category-specific attributes
-- **Dynamic Specs**: JSONB storage for flexible listing attributes
-- **Validation Rules**: Configurable field requirements per category
-- **Display Controls**: Show/hide attributes in grid/list/detail/filter views
-
-#### **4. Listing Management & Moderation**
-- **Status Management**: Draft/Active/Sold/Suspended/Rejected states
-- **Bulk Operations**: Mass status updates with permission checks
-- **Content Moderation**: Title/description validation and review workflows
-
-#### **5. Advertisement Management System**
-- **Ad Packages**: CRUD for pricing tiers (basic/premium/featured)
-- **Client Management**: Advertiser companies (Samsung, Audi, etc.)
-- **Campaign Management**: Multi-client campaign creation and tracking
-- **Payment Integration**: Auto-activation hooks for successful payments
-- **Performance Analytics**: Campaign metrics and ROI tracking
-
-#### **6. Analytics & Reporting**
-- **Business Metrics**: Revenue, user growth, listing trends
-- **Platform Analytics**: Performance monitoring and engagement stats
-- **Custom Reports**: Excel/PDF export functionality
-- **Real-time Dashboards**: Live data updates with caching
-
-#### **7. Audit & Security System**
-- **Action Tracking**: All admin actions logged with user attribution
-- **Security Monitoring**: Failed login attempts and permission violations
-- **Data Integrity**: Change tracking for critical business entities
-
-### **🎨 Frontend Admin Dashboard Design**
-
-#### **Main Dashboard Layout: Control Grid Approach**
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ Admin Header: User Info | Notifications | Quick Actions │
-├─────────────────────────────────────────────────────────┤
-│ Stats Bar: 📊 Users: 1.2K | 📝 Listings: 5.4K | 💰 Revenue: $12K │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │    🛡️ RBAC   │  │  👥 Users   │  │  📊 Analytics│     │
-│  │  Management │  │Subscriptions│  │  & Reports  │     │
-│  │             │  │             │  │             │     │
-│  │• Create Role│  │• User List  │  │• Dashboards │     │
-│  │• Permissions│  │• Billing    │  │• Custom RPT │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │  🏷️ Category │  │  📋 Listing │  │  📢 Ad      │     │
-│  │ Management  │  │ Management  │  │ Management  │     │
-│  │             │  │             │  │             │     │
-│  │• Categories │  │• Moderation │  │• Packages   │     │
-│  │• Attributes │  │• Bulk Ops   │  │• Campaigns  │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │  📧 Email   │  │  🔍 Audit   │  │  ⚙️ Settings│     │
-│  │  Templates  │  │    Logs     │  │ & Config    │     │
-│  │             │  │             │  │             │     │
-│  │• Templates  │  │• Actions    │  │• System     │     │
-│  │• Campaigns  │  │• Security   │  │• Locales    │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### **Contextual Section Layout: Focused Sidebar Navigation**
-
-When entering any control grid section (e.g., Ad Management):
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ ← Dashboard | Ad Management | Current: Campaign Editor  │
-├───────────────┬─────────────────────────────────────────┤
-│ Section Nav   │ Main Content Area                       │
-│               │                                         │
-│ 📦 Packages   │ ┌─────────────────────────────────────┐ │
-│ 🏢 Clients    │ │ Samsung Q1 2025 Campaign            │ │
-│ 🎯 Campaigns  │ │                                     │ │
-│ 📊 Reports    │ │ Budget: $5,000                      │ │
-│ 📈 Analytics  │ │ Duration: Jan 1 - Mar 31           │ │
-│               │ │ Target: Premium Car Listings        │ │
-│               │ │                                     │ │
-│               │ │ [Save Campaign] [Preview] [Cancel]  │ │
-│               │ └─────────────────────────────────────┘ │
-│               │                                         │
-│               │ Recent Activities:                      │
-│               │ • Payment received: $1,250              │
-│               │ • Campaign activated: Premium Boost     │
-│               │ • Report generated: Week 3 Analytics    │
-└───────────────┴─────────────────────────────────────────┘
-```
-
-### **🔄 Workflow Optimization Features**
-
-#### **1. Permission-Based Grid Display**
-- Control grid items show/hide based on user permissions
-- Role-specific dashboards (ADS_MANAGER only sees ad controls)
-- Contextual actions available per permission level
-
-#### **2. Efficient Task Flows**
-- **Role Management**: Create → Assign Permissions → Add Users (single workflow)
-- **Campaign Creation**: Client → Package → Campaign → Payment → Activation
-- **Category Setup**: Create → Add Attributes → Configure Display → Test Filters
-
-#### **3. Arabic-First UX**
-- All admin interfaces fully translated with Arabic/English toggle
-- RTL-optimized layouts for Arabic admin users
-- Cultural workflow adaptations for Syrian business practices
-
-#### **4. Performance Optimizations**
-- Lazy-loaded sections to reduce initial dashboard load time
-- Smart caching for frequently accessed admin data
-- Progressive enhancement for mobile admin access
-
-### **📋 Implementation Roadmap**
-
-#### **Phase 1: Core Admin Functions (Week 1-2)**
-1. **Dashboard Grid Layout** with permission-based visibility
-2. **RBAC Management Interface** leveraging existing backend APIs
-3. **User Management** with role assignment workflows
-4. **Basic Analytics Dashboard** showing key metrics
-
-#### **Phase 2: Content Management (Week 3-4)**
-1. **Category & Attribute Editor** with hybrid system support
-2. **Listing Moderation Tools** with bulk operations
-3. **Audit Log Viewer** with filtering and search
-
-#### **Phase 3: Business Features (Week 5-6)**
-1. **Ad Package Management** with pricing configuration
-2. **Client & Campaign Management** with workflow automation
-3. **Analytics & Reporting** with export capabilities
-
-#### **Phase 4: Advanced Features (Future)**
-1. **Email Template Editor** with rich text support
-2. **Advanced Analytics** with custom dashboards
-3. **System Configuration** with feature flags
-
-### **🎯 Key Design Decisions**
-
-#### **✅ Hybrid Approach Benefits:**
-- **Workflow Efficiency**: Complete admin tasks without constant navigation
-- **Visual Organization**: Related functions logically grouped
-- **Scalability**: New features easily added to appropriate sections
-- **Mobile Responsive**: Grid → stacked cards, sidebar → drawer
-- **Permission Integration**: Natural hide/show based on user access
-
-#### **✅ Arabic Admin UX Considerations:**
-- **Cultural Workflow Alignment**: Matches Syrian business practices
-- **RTL Layout Support**: Proper Arabic text flow and navigation
-- **Local Business Logic**: Syrian-specific features (provinces, business types)
-- **Performance Optimization**: Designed for Syrian internet conditions
-
----
-
-**🎯 Current Status**: **CENTRALIZED METADATA SYSTEM COMPLETE** ✅
-**📅 Last Updated**: 2025-10-08
-**🚀 Ready For**: SubscriptionDashboardPanel implementation with centralized metadata
-**👨‍💻 Next Focus**: Complete subscription management system with accountType-based plans
-**🌐 Target**: Phase 1 - Universal "Free Starter" plan for all users (accountType = "all")
-
----
-
-## 🏆 **Final Achievement Summary**
-
-### **✅ All Critical Issues Resolved:**
-1. **GraphQL 400 Errors** → Fixed Float→Int type mismatches
-2. **Body Type Storage** → Fixed multi_selector→selector conversion
-3. **Province Aggregations** → Fixed global attribute joins
-4. **Arabic Display** → Fixed specs→specsDisplay mapping
-5. **Performance** → 70% faster loading with progressive system
-
-### **✅ Production-Ready Features:**
-- **Hybrid Attribute System**: Global + category-specific attributes
-- **Smart Caching**: 5-minute TTL with request deduplication
-- **Progressive Loading**: Optimized for Syrian internet conditions
-- **Arabic-First UI**: All content properly localized
-- **RBAC Security**: Dynamic permissions for all operations
-- **Admin Dashboard Design**: Hybrid control grid + contextual sidebar approach
-
-### **🚀 System Architecture Strengths:**
-- **Maintainable**: Clean separation of global vs category attributes
-- **Scalable**: JSONB storage for dynamic specs without schema changes
-- **Performant**: Single API calls with smart caching
-- **User-Friendly**: Progressive loading prevents blank screen waits
-- **Secure**: Feature-based RBAC with proper Arabic error messages
-- **Admin-Optimized**: Workflow-efficient dashboard design with comprehensive backend support
