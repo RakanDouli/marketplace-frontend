@@ -45,6 +45,9 @@ export const UPDATE_LISTING_MUTATION = `
       status
       imageKeys
       updatedAt
+      rejectionReason
+      rejectionMessage
+      moderationStatus
       category {
         name
       }

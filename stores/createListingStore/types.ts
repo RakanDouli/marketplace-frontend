@@ -30,6 +30,8 @@ export interface Attribute {
   sortOrder: number;
   group: string | null;
   groupOrder: number;
+  storageType: string; // "column" | "specs" | "location" - where the value is stored
+  columnName: string | null; // Column name if storageType is "column"
   isActive: boolean;
   isGlobal: boolean;
   isSystemCore: boolean;
@@ -40,7 +42,6 @@ export interface Attribute {
   showInList: boolean;
   showInDetail: boolean;
   showInFilter: boolean;
-  storageType?: string; // "column" | "specs" - where the value is stored
   options: AttributeOption[];
   maxSelections?: number; // For MULTI_SELECTOR
 }

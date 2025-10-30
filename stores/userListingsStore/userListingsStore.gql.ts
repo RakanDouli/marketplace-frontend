@@ -8,6 +8,9 @@ export const MY_LISTINGS_QUERY = `
       imageKeys
       createdAt
       updatedAt
+      rejectionReason
+      rejectionMessage
+      moderationStatus
       category {
         id
         name
@@ -48,6 +51,9 @@ export const MY_LISTING_BY_ID_QUERY = `
       }
       allowBidding
       biddingStartPrice
+      rejectionReason
+      rejectionMessage
+      moderationStatus
       createdAt
       updatedAt
       category {

@@ -111,6 +111,23 @@
   }
 }
 
+// Draft Message (shown below card when status is DRAFT)
+.draftMessage {
+  padding: $space-sm;
+  background: $warning-bg;
+  border: 1px solid $warning;
+  border-radius: $radius-sm;
+  text-align: center;
+  margin-top: -$space-xs; // Overlap slightly with card
+  margin-bottom: $space-xs;
+
+  .draftText {
+    color: $warning;
+    font-weight: $weight-semibold;
+    margin: 0;
+  }
+}
+
 // Card Actions (Edit/Delete buttons below card)
 .cardActions {
   display: flex;

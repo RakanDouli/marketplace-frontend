@@ -60,6 +60,19 @@ export const LISTING_STATUS_LABELS: Record<string, string> = {
   hidden: "مخفي",
 };
 
+export const REJECTION_REASON_LABELS: Record<string, string> = {
+  unclear_images: "صور غير واضحة",
+  missing_info: "معلومات ناقصة",
+  prohibited_content: "محتوى مخالف",
+  unrealistic_price: "سعر غير واقعي",
+  inappropriate_images: "صور مخالفة",
+  profanity: "ألفاظ نابية",
+  contact_info: "معلومات اتصال في الوصف",
+  scam_suspected: "اشتباه في احتيال",
+  duplicate: "إعلان مكرر",
+  other: "سبب آخر",
+};
+
 // ===== SUBSCRIPTION METADATA LABELS =====
 
 export const BILLING_CYCLE_LABELS: Record<string, string> = {
@@ -159,5 +172,13 @@ export function getLabel(
   value: string,
   labelMap: Record<string, string>
 ): string {
-  return labelMap[value] || value;
+  // Try exact match first
+  if (labelMap[value]) return labelMap[value];
+
+  // Try lowercase match (backend returns uppercase enum keys like MISSING_INFO)
+  const lowercaseValue = value.toLowerCase();
+  if (labelMap[lowercaseValue]) return labelMap[lowercaseValue];
+
+  // Fallback to original value
+  return value;
 }

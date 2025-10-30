@@ -322,10 +322,12 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     set({ isSubmitting: true, error: null });
 
     try {
-      // Get auth token from Supabase session
-      const { supabase } = await import('@/lib/supabase');
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
+      // Get auth token from user auth store (not Supabase session)
+      const authData = localStorage.getItem('user-auth-storage');
+      if (!authData) throw new Error("يرجى تسجيل الدخول أولاً");
+
+      const { state } = JSON.parse(authData);
+      const token = state?.user?.token;
 
       if (!token) throw new Error("يرجى تسجيل الدخول أولاً");
 

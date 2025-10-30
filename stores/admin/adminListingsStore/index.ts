@@ -284,16 +284,16 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
     }
   },
 
-  updateListingStatus: async (id: string, status: string) => {
+  updateListingStatus: async (id: string, updateData: any) => {
     set({ loading: true, error: null });
 
     try {
-      const data = await makeGraphQLCall(MODERATE_LISTING_STATUS_MUTATION, {
+      const data = await makeGraphQLCall(UPDATE_LISTING_MUTATION, {
         id,
-        status,
+        input: updateData,
       });
 
-      const updatedListing = data.moderateListingStatus;
+      const updatedListing = data.updateListing;
 
       // Update the listing in the local state
       const { listings } = get();

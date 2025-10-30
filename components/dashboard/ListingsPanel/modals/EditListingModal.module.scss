@@ -1,5 +1,53 @@
 @import '../../../../styles/variables.scss';
 
+// Rejection Alert (shown at top when listing is rejected)
+.rejectionAlert {
+  padding: $space-md;
+  background: $error-bg;
+  border: 1px solid $error;
+  border-radius: $radius-md;
+  margin-bottom: $space-lg;
+}
+
+.rejectionHeader {
+  margin-bottom: $space-sm;
+}
+
+.rejectionTitle {
+  color: $error;
+  font-weight: $weight-bold;
+  margin: 0;
+}
+
+.rejectionReason,
+.rejectionMessage {
+  margin-bottom: $space-sm;
+}
+
+.rejectionLabel {
+  color: $text-muted;
+  font-weight: $weight-semibold;
+  margin-bottom: 2px;
+  display: inline;
+}
+
+.rejectionValue,
+.rejectionMessageText {
+  color: $text;
+  font-weight: $weight-medium;
+  line-height: $line-relaxed;
+  display: inline;
+  margin-right: $space-xs;
+}
+
+.rejectionHint {
+  color: $text-muted;
+  font-weight: $weight-medium;
+  margin-top: $space-sm;
+  padding-top: $space-sm;
+  border-top: 1px solid rgba($error, 0.2);
+}
+
 .loadingContainer {
   display: flex;
   justify-content: center;

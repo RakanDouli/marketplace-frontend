@@ -8,7 +8,7 @@ import { Listing } from '@/types/listing';
 import { validateListingStatusForm, createListingFieldValidator, type ListingFormData, type ValidationErrors } from '@/lib/admin/validation/listingValidation';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
+import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { ConfirmBlockUserModal } from './ConfirmBlockUserModal';
 import styles from './EditListingModal.module.scss';
 
@@ -26,6 +26,8 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
   const [formData, setFormData] = useState<ListingFormData>({
     status: listing.status,
   });
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [rejectionMessage, setRejectionMessage] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,10 +79,17 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSave({
-        status: formData.status as Listing['status'],
-        // TODO: Add moderation notes field to Listing type and backend
-      });
+      const updateData: any = {
+        status: formData.status.toUpperCase() as Listing['status'],
+      };
+
+      // If status is DRAFT, include rejection reason and message
+      if (formData.status === 'draft' && rejectionReason) {
+        updateData.rejectionReason = rejectionReason.toUpperCase();
+        updateData.rejectionMessage = rejectionMessage || null;
+      }
+
+      await onSave(updateData);
     } catch (err) {
       console.error('Save error:', err);
       setError(err instanceof Error ? err.message : 'فشل في حفظ التغييرات');
@@ -103,7 +112,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
   };
 
   // Fetch listing metadata
-  const { listingStatuses } = useMetadataStore();
+  const { listingStatuses, rejectionReasons } = useMetadataStore();
 
   useEffect(() => {
     const metadataStore = useMetadataStore.getState();
@@ -114,6 +123,9 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
 
   // Status options from metadata store
   const statusOptions = mapToOptions(listingStatuses, LISTING_STATUS_LABELS);
+
+  // Rejection reason options
+  const rejectionReasonOptions = mapToOptions(rejectionReasons, REJECTION_REASON_LABELS);
 
   // Get current status label
   const getCurrentStatusLabel = () => {
@@ -369,6 +381,35 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
       )}
 
       <Form onSubmit={handleSubmit} error={error || undefined}>
+        {/* Display existing rejection information (if any) */}
+        {detailedListing?.status?.toLowerCase() === 'draft' && (detailedListing.rejectionReason || detailedListing.rejectionMessage) && (
+          <div className={styles.infoBox} style={{ borderColor: 'var(--error)', background: 'var(--error-bg)' }}>
+            <Text variant="paragraph" style={{ color: 'var(--error)', fontWeight: 600, marginBottom: '8px' }}>
+              ❌ معلومات الرفض الحالية
+            </Text>
+            {detailedListing.rejectionReason && (
+              <div style={{ marginBottom: '8px' }}>
+                <Text variant="small" style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                  السبب:
+                </Text>
+                <Text variant="paragraph" style={{ marginTop: '4px' }}>
+                  {getLabel(detailedListing.rejectionReason, REJECTION_REASON_LABELS)}
+                </Text>
+              </div>
+            )}
+            {detailedListing.rejectionMessage && (
+              <div>
+                <Text variant="small" style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                  رسالة المراجع:
+                </Text>
+                <Text variant="paragraph" style={{ marginTop: '4px' }}>
+                  {detailedListing.rejectionMessage}
+                </Text>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Status Selection */}
         <Input
           type="select"
@@ -380,6 +421,38 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
           validate={createFieldValidator('status')}
           error={validationErrors.status}
         />
+
+        {/* Info box when DRAFT is selected */}
+        {formData.status === 'draft' && (
+          <div className={styles.infoBox}>
+            <Text variant="paragraph" className={styles.infoText}>
+              ℹ️ لرفض الإعلان أو طلب تعديل من صاحب الإعلان، اختر "مسودة" وحدد سبب الرفض. سيتم إرسال إشعار للمستخدم.
+            </Text>
+          </div>
+        )}
+
+        {/* Rejection fields (only shown when status is DRAFT) */}
+        {formData.status === 'draft' && (
+          <>
+            <Input
+              type="select"
+              label="سبب الرفض *"
+              placeholder="اختر سبب الرفض"
+              options={rejectionReasonOptions}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+
+            <Input
+              type="textarea"
+              label="رسالة إضافية (اختياري)"
+              placeholder="اكتب رسالة توضيحية للمستخدم (اختياري)"
+              value={rejectionMessage}
+              onChange={(e) => setRejectionMessage(e.target.value)}
+              rows={4}
+            />
+          </>
+        )}
 
         <div className={styles.formActions}>
           <Button

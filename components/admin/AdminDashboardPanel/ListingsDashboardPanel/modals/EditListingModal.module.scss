@@ -299,6 +299,20 @@
   min-width: 120px;
 }
 
+.infoBox {
+  padding: $space-md;
+  background: $info-bg;
+  border: 1px solid $info;
+  border-radius: $radius-sm;
+  margin-bottom: $space-lg;
+
+  .infoText {
+    color: $info;
+    font-weight: $weight-medium;
+    line-height: $line-relaxed;
+  }
+}
+
 .formActions {
   display: flex;
   gap: $space-sm;

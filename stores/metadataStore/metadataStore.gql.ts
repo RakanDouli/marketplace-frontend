@@ -34,6 +34,12 @@ export const GET_LISTING_STATUSES_QUERY = `
   }
 `;
 
+export const GET_REJECTION_REASONS_QUERY = `
+  query GetRejectionReasons {
+    getRejectionReasons
+  }
+`;
+
 // ===== SUBSCRIPTION METADATA =====
 
 export const GET_BILLING_CYCLES_QUERY = `

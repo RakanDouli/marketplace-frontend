@@ -8,7 +8,7 @@ import { EditListingModal, DeleteListingModal } from './modals';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
+import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { RefreshCw, Edit, Trash2, Eye, Plus } from 'lucide-react';
 import { Listing } from '@/types/listing';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
@@ -269,6 +269,15 @@ export const ListingsPanel: React.FC = () => {
                   {...getListingCardProps(listing)}
                   onClick={() => router.push(`/listing/${listing.id}`)}
                 />
+
+                {/* Draft Message - Show when status is DRAFT */}
+                {listing.status?.toLowerCase() === 'draft' && (
+                  <div className={styles.draftMessage}>
+                    <Text variant="small" className={styles.draftText}>
+                      يرجى تعديل إعلانك لنشره
+                    </Text>
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className={styles.cardActions}>

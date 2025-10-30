@@ -131,7 +131,7 @@ class GraphQLCache {
       process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
       "http://localhost:4000/graphql";
 
-    // Get auth token from Supabase
+    // Get auth token from the correct auth store based on current route
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -139,11 +139,19 @@ class GraphQLCache {
     // Try to get the auth token if user is logged in
     if (typeof window !== 'undefined') {
       try {
-        const { supabase } = await import('../lib/supabase');
-        const { data: { session } } = await supabase.auth.getSession();
+        // Determine which auth store to use based on current path
+        const isAdminRoute = window.location.pathname.startsWith('/admin');
+        const storageKey = isAdminRoute ? 'admin-auth-storage' : 'user-auth-storage';
 
-        if (session?.access_token) {
-          headers['Authorization'] = `Bearer ${session.access_token}`;
+        // Get token from the appropriate auth store
+        const authData = localStorage.getItem(storageKey);
+        if (authData) {
+          const { state } = JSON.parse(authData);
+          const token = state?.user?.token;
+
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
         }
       } catch (error) {
         // Ignore errors - public queries will still work without auth

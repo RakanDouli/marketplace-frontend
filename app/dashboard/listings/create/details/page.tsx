@@ -75,11 +75,16 @@ export default function CreateListingDetailsPage() {
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [success, setSuccess] = useState<string>('');
-  
+  const [validationError, setValidationError] = useState<string>('');
+
   // Get subscription limits
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
-  
+
+  // Find brand and model attributes from fetched attributes
+  const brandAttribute = attributes.find(attr => attr.key === 'brandId');
+  const modelAttribute = attributes.find(attr => attr.key === 'modelId');
+
   console.log('🔍 Subscription limits:', { maxImagesAllowed, videoAllowed, userPackage });
 
 
@@ -162,16 +167,122 @@ export default function CreateListingDetailsPage() {
     return touched[field] ? errorMessage : undefined;
   };
 
+  // Comprehensive validation function
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // 1. Validate basic fields
+    console.log('🔍 Checking title:', formData.title, 'trimmed:', formData.title.trim(), 'isEmpty:', !formData.title.trim());
+    if (!formData.title.trim()) {
+      errors.push('عنوان الإعلان مطلوب');
+    }
+    console.log('🔍 Checking price:', formData.priceMinor, 'isEmpty:', formData.priceMinor <= 0);
+    if (formData.priceMinor <= 0) {
+      errors.push('السعر مطلوب');
+    }
+    if (formData.allowBidding && (!formData.biddingStartPrice || formData.biddingStartPrice <= 0)) {
+      errors.push('سعر البداية للمزايدة مطلوب');
+    }
+
+    // 2. Validate images
+    if (formData.images.length < 1) {
+      errors.push('يجب إضافة صورة واحدة على الأقل');
+    }
+
+    // 3. Validate location
+    if (!formData.location.province) {
+      errors.push('المحافظة مطلوبة');
+    }
+
+    // 4. Validate all required attributes (specs only, not column-based attributes)
+    attributes.forEach(attr => {
+      console.log('🔍 Checking attribute:', attr.key, 'storageType:', attr.storageType, 'validation:', attr.validation);
+
+      // Skip attributes stored as columns (title, price, accountType) - they're validated above
+      if (attr.storageType === 'column') {
+        console.log('  ↳ Skipping (column-based)');
+        return;
+      }
+
+      if (attr.validation === 'REQUIRED') {
+        const value = formData.specs[attr.key];
+        // Check if value is empty (covers: undefined, null, '', empty array)
+        const isEmpty = value === undefined ||
+          value === null ||
+          value === '' ||
+          (Array.isArray(value) && value.length === 0);
+
+        console.log('  ↳ Value:', value, 'isEmpty:', isEmpty);
+        if (isEmpty) {
+          console.log('  ↳ ❌ Adding error:', `${attr.name} مطلوب`);
+          errors.push(`${attr.name} مطلوب`);
+        }
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚨🚨🚨 HANDLESUBMIT CALLED!!! 🚨🚨🚨');
     e.preventDefault();
+    e.stopPropagation();
+
+    console.log('🔍 Form submitted - starting validation...');
+    console.log('📊 Form data:', {
+      title: formData.title,
+      priceMinor: formData.priceMinor,
+      images: formData.images.length,
+      province: formData.location.province,
+      specs: formData.specs,
+    });
+
+    // Mark all fields as touched to show errors
+    const allFields: Record<string, boolean> = {
+      title: true,
+      price: true,
+      images: true,
+      province: true,
+    };
+
+    // Mark all spec fields as touched
+    attributes.forEach(attr => {
+      allFields[attr.key] = true;
+      allFields[`spec_${attr.key}`] = true;
+    });
+
+    setTouched(allFields);
+
+    // Validate form
+    const validation = validateForm();
+
+    console.log('✅ Validation result:', validation);
+
+    if (!validation.isValid) {
+      console.error('❌ Validation FAILED - stopping submission');
+      console.error('❌ Validation errors:', validation.errors);
+      // Show validation errors to user
+      setValidationError(`يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`);
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return; // Stop submission
+    }
+
+    console.log('✅ Validation passed - proceeding with submission');
+
+    // Clear any previous validation errors
+    setValidationError('');
 
     try {
       await submitListing();
-      setSuccess('تم نشر الإعلان بنجاح!');
-      // Wait 1 second to show success message, then redirect
+      setSuccess('✅ تم استلام إعلانك! جاري المراجعة والنشر خلال دقيقتين...');
+      // Wait 2 seconds to show success message, then redirect
       setTimeout(() => {
         router.push('/dashboard/listings');
-      }, 1000);
+      }, 2000);
     } catch (err: any) {
       console.error('❌ Submission error:', err);
       // Error is already set in store, Form component will display it
@@ -244,292 +355,306 @@ export default function CreateListingDetailsPage() {
           <Text variant="h1">أكمل تفاصيل إعلانك</Text>
         </div>
 
-        <Form onSubmit={handleSubmit} error={error || undefined} success={success || undefined}>
-        <div className={styles.formCard}>
-          {/* Section 1: Basic Info */}
-          <div className={styles.formSection}>
-            <div className={styles.sectionHeader}>
-              <Text variant="h3" className={styles.sectionTitle}>
-                معلومات الإعلان
-              </Text>
-            </div>
-
-            <div className={styles.formFields}>
-              {/* Title */}
-              <Input
-                type="text"
-                label="عنوان الإعلان"
-                placeholder="مثال: تويوتا كامري 2020 فل كامل"
-                value={formData.title}
-                onChange={(e) => setFormField('title', e.target.value)}
-                onBlur={() => handleBlur('title')}
-                error={getError('title', !formData.title.trim() ? 'العنوان مطلوب' : undefined)}
-                required
-              />
-
-              {/* Description */}
-              <Input
-                type="textarea"
-                label="الوصف"
-                placeholder="أضف وصفاً تفصيلياً عن المنتج..."
-                value={formData.description}
-                onChange={(e) => setFormField('description', e.target.value)}
-                rows={6}
-              />
-
-              {/* Price & Bidding */}
-              <div className={styles.formRow}>
-                <Input
-                  type="number"
-                  label="السعر (بالدولار)"
-                  placeholder="مثال: 5000"
-                  value={formData.priceMinor > 0 ? formData.priceMinor / 100 : ''}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0;
-                    setFormField('priceMinor', value * 100);
-                  }}
-                  onBlur={() => handleBlur('price')}
-                  error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
-                  required
-                />
-
-                <Input
-                  type="switch"
-                  label="السماح بالمزايدة"
-                  checked={formData.allowBidding}
-                  onChange={(e) => setFormField('allowBidding', e.target.checked)}
-                />
-              </div>
-
-              {/* Bidding Start Price (conditional) */}
-              {formData.allowBidding && (
-                <Input
-                  type="number"
-                  label="سعر البداية للمزايدة (بالدولار)"
-                  placeholder="مثال: 4000"
-                  value={formData.biddingStartPrice ? formData.biddingStartPrice / 100 : ''}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0;
-                    setFormField('biddingStartPrice', value * 100);
-                  }}
-                  onBlur={() => handleBlur('biddingStartPrice')}
-                  error={getError('biddingStartPrice', formData.allowBidding && !formData.biddingStartPrice ? 'سعر البداية مطلوب' : undefined)}
-                  helpText="سعر البداية يجب أن يكون أقل من السعر الأساسي"
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Section 2: Photos & Video */}
-          <div className={styles.formSection}>
-            <div className={styles.sectionHeader}>
-              <Text variant="h3" className={styles.sectionTitle}>
-                الصور {videoAllowed && 'والفيديو'}
-              </Text>
-              <Text variant="small" color="secondary">
-                (الحد الأدنى 3 صور - مطلوب)
-              </Text>
-            </div>
-
-            <div className={styles.formFields}>
-              <ImageUploadGrid
-                images={formData.images}
-                onChange={(images) => {
-                  setFormField('images', images);
-                  setTouched({ ...touched, images: true });
-                }}
-                maxImages={maxImagesAllowed}
-              />
-              {touched.images && formData.images.length < 3 && (
-                <Text variant="small" color="error">
-                  يجب إضافة 3 صور على الأقل
-                </Text>
-              )}
-              
-              {/* Video URL - Only for users with videoAllowed permission */}
-              {videoAllowed && (
-                <Input
-                  type="url"
-                  label="رابط الفيديو (اختياري)"
-                  placeholder="https://youtube.com/watch?v=..."
-                  value={formData.videoUrl || ''}
-                  onChange={(e) => setFormField('videoUrl', e.target.value)}
-                  helpText="أضف رابط فيديو من YouTube أو Vimeo"
-                />
-              )}
-            </div>
-          </div>
-          {/* Section 3: Brand & Model */}
-          {brands.length > 0 && (
+        <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
+          <div className={styles.formCard}>
+            {/* Section 1: Basic Info */}
             <div className={styles.formSection}>
               <div className={styles.sectionHeader}>
                 <Text variant="h3" className={styles.sectionTitle}>
-                  العلامة التجارية والموديل
+                  معلومات الإعلان
+                </Text>
+              </div>
+
+              <div className={styles.formFields}>
+                {/* Title */}
+                <Input
+                  type="text"
+                  label="عنوان الإعلان"
+                  placeholder="مثال: تويوتا كامري 2020 فل كامل"
+                  value={formData.title}
+                  onChange={(e) => setFormField('title', e.target.value)}
+                  onBlur={() => handleBlur('title')}
+                  error={getError('title', !formData.title.trim() ? 'العنوان مطلوب' : undefined)}
+                  required
+                />
+
+                {/* Description */}
+                <Input
+                  type="textarea"
+                  label="الوصف"
+                  placeholder="أضف وصفاً تفصيلياً عن المنتج..."
+                  value={formData.description}
+                  onChange={(e) => setFormField('description', e.target.value)}
+                  rows={6}
+                />
+
+                {/* Price & Bidding */}
+                <div className={styles.formRow}>
+                  <Input
+                    type="number"
+                    label="السعر (بالدولار)"
+                    placeholder="مثال: 5000"
+                    value={formData.priceMinor > 0 ? formData.priceMinor / 100 : ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      setFormField('priceMinor', value * 100);
+                    }}
+                    onBlur={() => handleBlur('price')}
+                    error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
+                    required
+                  />
+
+                  <Input
+                    type="switch"
+                    label="السماح بالمزايدة"
+                    checked={formData.allowBidding}
+                    onChange={(e) => setFormField('allowBidding', (e.target as HTMLInputElement).checked)}
+                  />
+                </div>
+
+                {/* Bidding Start Price (conditional) */}
+                {formData.allowBidding && (
+                  <Input
+                    type="number"
+                    label="سعر البداية للمزايدة (بالدولار)"
+                    placeholder="مثال: 4000"
+                    value={formData.biddingStartPrice ? formData.biddingStartPrice / 100 : ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      setFormField('biddingStartPrice', value * 100);
+                    }}
+                    onBlur={() => handleBlur('biddingStartPrice')}
+                    error={getError('biddingStartPrice', formData.allowBidding && !formData.biddingStartPrice ? 'سعر البداية مطلوب' : undefined)}
+                    helpText="سعر البداية يجب أن يكون أقل من السعر الأساسي"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Section 2: Photos & Video */}
+            <div className={styles.formSection}>
+              <div className={styles.sectionHeader}>
+                <Text variant="h3" className={styles.sectionTitle}>
+                  الصور {videoAllowed && 'والفيديو'}
+                </Text>
+                <Text variant="small" color="secondary">
+                  (الحد الأدنى 3 صور - مطلوب)
+                </Text>
+              </div>
+
+              <div className={styles.formFields}>
+                <ImageUploadGrid
+                  images={formData.images}
+                  onChange={(images) => {
+                    setFormField('images', images);
+                    setTouched({ ...touched, images: true });
+                  }}
+                  maxImages={maxImagesAllowed}
+                />
+                {touched.images && formData.images.length < 1 && (
+                  <Text variant="small" color="error">
+                    يجب إضافة 3 صور على الأقل
+                  </Text>
+                )}
+
+                {/* Video URL - Only for users with videoAllowed permission */}
+                {videoAllowed && (
+                  <Input
+                    type="url"
+                    label="رابط الفيديو (اختياري)"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={formData.videoUrl || ''}
+                    onChange={(e) => setFormField('videoUrl', e.target.value)}
+                    helpText="أضف رابط فيديو من YouTube أو Vimeo"
+                  />
+                )}
+              </div>
+            </div>
+            {/* Section 3: Brand & Model */}
+            {brands.length > 0 && (
+              <div className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <Text variant="h3" className={styles.sectionTitle}>
+                    العلامة التجارية والموديل
+                  </Text>
+                </div>
+
+                <div className={styles.formFields}>
+                  <div className={styles.formRow}>
+                    {/* Brand Selector */}
+                    <Input
+                      type="select"
+                      label="العلامة التجارية"
+                      value={formData.specs.brandId || ''}
+                      onChange={(e) => {
+                        setSpecField('brandId', e.target.value);
+                        // Clear model when brand changes
+                        setSpecField('modelId', '');
+                      }}
+                      onBlur={() => handleBlur('brandId')}
+                      options={[
+                        { value: '', label: '-- اختر العلامة التجارية --' },
+                        ...brands
+                          .filter(b => b.isActive)
+                          .map(brand => ({
+                            value: brand.id,
+                            label: brand.name,
+                          })),
+                      ]}
+                      disabled={isLoadingBrands}
+                      searchable
+                      creatable
+                      isLoading={isLoadingBrands}
+                      onCreateOption={handleCreateBrand}
+                      required={brandAttribute?.validation === 'REQUIRED'}
+                      error={getError('brandId',
+                        brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId
+                          ? `${brandAttribute.name} مطلوب`
+                          : undefined
+                      )}
+                    />
+
+                    {/* Model Selector (appears after brand is selected) */}
+                    {formData.specs.brandId && (
+                      <Input
+                        type="select"
+                        label="الموديل"
+                        value={formData.specs.modelId || ''}
+                        onChange={(e) => setSpecField('modelId', e.target.value)}
+                        onBlur={() => handleBlur('modelId')}
+                        options={[
+                          { value: '', label: '-- اختر الموديل --' },
+                          ...models
+                            .filter(m => m.isActive)
+                            .map(model => ({
+                              value: model.id,
+                              label: model.name,
+                            })),
+                        ]}
+                        disabled={isLoadingModels}
+                        searchable
+                        creatable
+                        isLoading={isLoadingModels}
+                        onCreateOption={handleCreateModel}
+                        required={modelAttribute?.validation === 'REQUIRED'}
+                        error={getError('modelId',
+                          modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
+                            ? `${modelAttribute.name} مطلوب`
+                            : undefined
+                        )}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Section 4: Other Specifications (dynamic attributes) */}
+            {attributeGroups.length > 0 && attributeGroups.map((group, groupIndex) => (
+              <div key={group.name} className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <Text variant="h3" className={styles.sectionTitle}>
+                    {group.name}
+                  </Text>
+                </div>
+
+                <div className={styles.specsGrid}>
+                  {group.attributes.filter(attr => attr.key !== "brandId" && attr.key !== "modelId").map((attribute) => (
+                    <div key={attribute.key}>
+                      {renderAttributeField({
+                        attribute,
+                        value: formData.specs[attribute.key],
+                        onChange: (value) => setSpecField(attribute.key, value),
+                        error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
+                          ? `${attribute.name} مطلوب`
+                          : undefined,
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Section 4: Location */}
+            <div className={styles.formSection}>
+              <div className={styles.sectionHeader}>
+                <Text variant="h3" className={styles.sectionTitle}>
+                  الموقع
                 </Text>
               </div>
 
               <div className={styles.formFields}>
                 <div className={styles.formRow}>
-                  {/* Brand Selector */}
                   <Input
                     type="select"
-                    label="العلامة التجارية"
-                    value={formData.specs.brandId || ''}
-                    onChange={(e) => {
-                      setSpecField('brandId', e.target.value);
-                      // Clear model when brand changes
-                      setSpecField('modelId', '');
-                    }}
+                    label="المحافظة"
+                    value={formData.location.province}
+                    onChange={(e) => setLocationField('province', e.target.value)}
+                    onBlur={() => handleBlur('province')}
                     options={[
-                      { value: '', label: '-- اختر العلامة التجارية --' },
-                      ...brands
-                        .filter(b => b.isActive)
-                        .map(brand => ({
-                          value: brand.id,
-                          label: brand.name,
-                        })),
+                      { value: '', label: '-- اختر المحافظة --' },
+                      ...provinces.map(p => ({ value: p.nameAr, label: p.nameAr })),
                     ]}
-                    disabled={isLoadingBrands}
-                    searchable
-                    creatable
-                    isLoading={isLoadingBrands}
-                    onCreateOption={handleCreateBrand}
+                    error={getError('province', !formData.location.province ? 'المحافظة مطلوبة' : undefined)}
+                    required
                   />
 
-                  {/* Model Selector (appears after brand is selected) */}
-                  {formData.specs.brandId && (
-                    <Input
-                      type="select"
-                      label="الموديل"
-                      value={formData.specs.modelId || ''}
-                      onChange={(e) => setSpecField('modelId', e.target.value)}
-                      options={[
-                        { value: '', label: '-- اختر الموديل --' },
-                        ...models
-                          .filter(m => m.isActive)
-                          .map(model => ({
-                            value: model.id,
-                            label: model.name,
-                          })),
-                      ]}
-                      disabled={isLoadingModels}
-                      searchable
-                      creatable
-                      isLoading={isLoadingModels}
-                      onCreateOption={handleCreateModel}
-                    />
-                  )}
+                  <Input
+                    type="text"
+                    label="المدينة"
+                    placeholder="اختياري"
+                    value={formData.location.city}
+                    onChange={(e) => setLocationField('city', e.target.value)}
+                  />
+                </div>
+
+                <div className={styles.formRow}>
+                  <Input
+                    type="text"
+                    label="المنطقة"
+                    placeholder="اختياري"
+                    value={formData.location.area}
+                    onChange={(e) => setLocationField('area', e.target.value)}
+                  />
+
+                  <Input
+                    type="text"
+                    label="رابط الخريطة"
+                    placeholder="اختياري"
+                    value={formData.location.link}
+                    onChange={(e) => setLocationField('link', e.target.value)}
+                  />
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Section 4: Other Specifications (dynamic attributes) */}
-          {attributeGroups.length > 0 && attributeGroups.map((group, groupIndex) => (
-            <div key={group.name} className={styles.formSection}>
-              <div className={styles.sectionHeader}>
-                <Text variant="h3" className={styles.sectionTitle}>
-                  {group.name}
-                </Text>
-              </div>
-
-              <div className={styles.specsGrid}>
-                {group.attributes.filter(attr => attr.key !== "brandId" && attr.key !== "modelId").map((attribute) => (
-                  <div key={attribute.key}>
-                    {renderAttributeField({
-                      attribute,
-                      value: formData.specs[attribute.key],
-                      onChange: (value) => setSpecField(attribute.key, value),
-                      error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
-                        ? `${attribute.name} مطلوب`
-                        : undefined,
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* Section 4: Location */}
-          <div className={styles.formSection}>
-            <div className={styles.sectionHeader}>
-              <Text variant="h3" className={styles.sectionTitle}>
-                الموقع
-              </Text>
-            </div>
-
-            <div className={styles.formFields}>
-              <div className={styles.formRow}>
-                <Input
-                  type="select"
-                  label="المحافظة"
-                  value={formData.location.province}
-                  onChange={(e) => setLocationField('province', e.target.value)}
-                  onBlur={() => handleBlur('province')}
-                  options={[
-                    { value: '', label: '-- اختر المحافظة --' },
-                    ...provinces.map(p => ({ value: p.nameAr, label: p.nameAr })),
-                  ]}
-                  error={getError('province', !formData.location.province ? 'المحافظة مطلوبة' : undefined)}
-                  required
-                />
-
-                <Input
-                  type="text"
-                  label="المدينة"
-                  placeholder="اختياري"
-                  value={formData.location.city}
-                  onChange={(e) => setLocationField('city', e.target.value)}
-                />
-              </div>
-
-              <div className={styles.formRow}>
-                <Input
-                  type="text"
-                  label="المنطقة"
-                  placeholder="اختياري"
-                  value={formData.location.area}
-                  onChange={(e) => setLocationField('area', e.target.value)}
-                />
-
-                <Input
-                  type="text"
-                  label="رابط الخريطة"
-                  placeholder="اختياري"
-                  value={formData.location.link}
-                  onChange={(e) => setLocationField('link', e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Sticky Actions */}
-        <div className={styles.stickyActions}>
-          <div className={styles.leftActions}>
-            <Button variant="outline" onClick={handleCancel}>
-              إلغاء
-            </Button>
           </div>
 
-          <div className={styles.rightActions}>
-            <Button
-              variant="outline"
-              onClick={() => setShowPreview(true)}
-            >
-              معاينة الإعلان
-            </Button>
-            <SubmitButton
-              type="submit"
-              variant="primary"
-              isLoading={isSubmitting}
-              isSuccess={!!success}
-              isError={!!error}
-            >
-              نشر الإعلان
-            </SubmitButton>
+          {/* Sticky Actions */}
+          <div className={styles.stickyActions}>
+            <div className={styles.leftActions}>
+              <Button variant="outline" onClick={handleCancel}>
+                إلغاء
+              </Button>
+            </div>
+
+            <div className={styles.rightActions}>
+              <Button
+                variant="outline"
+                onClick={() => setShowPreview(true)}
+              >
+                معاينة الإعلان
+              </Button>
+              <SubmitButton
+                type="submit"
+                variant="primary"
+                isLoading={isSubmitting}
+                isSuccess={!!success}
+                isError={!!error}
+              >
+                نشر الإعلان
+              </SubmitButton>
+            </div>
           </div>
-        </div>
         </Form>
       </div>
     </Container>

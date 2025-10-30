@@ -45,6 +45,14 @@ export interface Listing {
   accountLabel?: string;
   accountBadge?: string;
   accountType?: "individual" | "dealer" | "business"; // Lowercase to match backend enum values
+  // AI Moderation fields
+  moderationStatus?: string | null;
+  moderationScore?: number | null;
+  moderationFlags?: string[] | null;
+  rejectionReason?: string | null;
+  rejectionMessage?: string | null;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   user?: {

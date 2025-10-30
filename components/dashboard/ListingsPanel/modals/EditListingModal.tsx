@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Input, ImageUploadGrid, Text } from '@/components/slices';
+import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton } from '@/components/slices';
 import type { Listing } from '@/types/listing';
 import type { ImageItem } from '@/components/slices/ImageUploadGrid/ImageUploadGrid';
 import { useUserListingsStore } from '@/stores/userListingsStore';
@@ -9,7 +9,7 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
-import { LISTING_STATUS_LABELS, mapToOptions } from '@/constants/metadata-labels';
+import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import styles from './EditListingModal.module.scss';
@@ -40,6 +40,8 @@ interface Attribute {
   name: string;
   type: string;
   validation: string;
+  storageType: string;
+  columnName: string | null;
   options?: Array<{ key: string; value: string; sortOrder: number; isActive: boolean }>;
   sortOrder: number;
   group: string;
@@ -77,6 +79,8 @@ const GET_ATTRIBUTES_QUERY = `
       name
       type
       validation
+      storageType
+      columnName
       options { key value sortOrder isActive }
       sortOrder
       group
@@ -93,6 +97,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
+  const [imageOperationSuccess, setImageOperationSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [detailedListing, setDetailedListing] = useState<Listing | null>(null);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
@@ -122,8 +130,32 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data: Listing = await loadMyListingById(listing.id);
+        // Force fresh fetch by bypassing cache (ttl: 0) to ensure we get latest imageKeys
+        const response = await cachedGraphQLRequest(
+          `query GetMyListingById($id: ID!) {
+            myListingById(id: $id) {
+              id title description priceMinor status allowBidding biddingStartPrice
+              videoUrl imageKeys specs
+              location { province city area link }
+              category { id name slug }
+              rejectionReason rejectionMessage
+              moderationStatus moderationScore moderationFlags
+              createdAt updatedAt
+            }
+          }`,
+          { id: listing.id },
+          { ttl: 0 } // Bypass cache to get fresh data
+        );
+        const data: Listing = (response as any).myListingById;
         setDetailedListing(data);
+
+        // Debug: Log rejection data
+        console.log('📋 Detailed Listing Data:', {
+          status: data.status,
+          rejectionReason: data.rejectionReason,
+          rejectionMessage: data.rejectionMessage,
+          moderationStatus: data.moderationStatus,
+        });
 
         // Parse specs from JSON string to object
         const parsedSpecs = data.specs
@@ -302,6 +334,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
 
     setIsUploadingImage(true);
+    setImageOperationSuccess(false);
 
     try {
       const uploadedImageKeys: string[] = [];
@@ -332,14 +365,22 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           throw new Error('Image upload failed');
         }
 
-        uploadedImageKeys.push(assetKey);
+        // Get REAL Cloudflare image ID from response (not the pre-generated assetKey)
+        const cloudflareResult = await uploadResponse.json();
+        const realImageId = cloudflareResult?.result?.id;
+
+        if (!realImageId) {
+          throw new Error('Failed to get image ID from Cloudflare');
+        }
+
+        uploadedImageKeys.push(realImageId);
       }
 
       // Update listing images immediately
       const allImageKeys = [...images.map(img => img.id), ...uploadedImageKeys];
 
       await cachedGraphQLRequest(
-        `mutation UpdateListingImages($id: String!, $imageKeys: [String!]!) {
+        `mutation UpdateListingImages($id: ID!, $imageKeys: [String!]!) {
           updateMyListing(id: $id, input: { imageKeys: $imageKeys }) {
             id
           }
@@ -347,20 +388,34 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         { id: listing.id, imageKeys: allImageKeys }
       );
 
-      // Update local state
-      const newImagesWithUrls: ImageItem[] = uploadedImageKeys.map(key => ({
-        id: key,
-        url: `https://imagedelivery.net/${process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_HASH}/${key}/public`,
+      // Update local state - keep blob URLs temporarily, then update to Cloudflare URLs after a delay
+      const newImagesWithBlobUrls: ImageItem[] = addedImages.map((img, index) => ({
+        id: uploadedImageKeys[index],
+        url: img.url, // Keep blob URL temporarily
+        file: img.file,
       }));
 
-      setImages(prev => [...prev, ...newImagesWithUrls]);
+      setImages(prev => [...prev, ...newImagesWithBlobUrls]);
 
-      addNotification({
-        type: 'success',
-        title: 'تم رفع الصور',
-        message: 'تم رفع الصور بنجاح',
-        duration: 3000,
-      });
+      // After 2 seconds, replace blob URLs with Cloudflare URLs (gives time for processing)
+      setTimeout(() => {
+        setImages(prevImages =>
+          prevImages.map(img => {
+            if (uploadedImageKeys.includes(img.id) && img.url.startsWith('blob:')) {
+              return {
+                ...img,
+                url: optimizeListingImage(img.id, 'public'),
+                file: undefined, // Remove file reference
+              };
+            }
+            return img;
+          })
+        );
+      }, 2000);
+
+      // Show success message inline
+      setImageOperationSuccess(true);
+      setTimeout(() => setImageOperationSuccess(false), 3000);
     } catch (error) {
       console.error('Error uploading images:', error);
       addNotification({
@@ -382,14 +437,15 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       return;
     }
 
-    setIsUploadingImage(true);
+    setIsDeletingImage(true);
+    setImageOperationSuccess(false);
 
     try {
       // Update listing images immediately
       const remainingImageKeys = newImages.map(img => img.id);
 
       await cachedGraphQLRequest(
-        `mutation UpdateListingImages($id: String!, $imageKeys: [String!]!) {
+        `mutation UpdateListingImages($id: ID!, $imageKeys: [String!]!) {
           updateMyListing(id: $id, input: { imageKeys: $imageKeys }) {
             id
           }
@@ -399,12 +455,9 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
       setImages(newImages);
 
-      addNotification({
-        type: 'success',
-        title: 'تم حذف الصورة',
-        message: 'تم حذف الصورة بنجاح',
-        duration: 3000,
-      });
+      // Show success message inline
+      setImageOperationSuccess(true);
+      setTimeout(() => setImageOperationSuccess(false), 3000);
     } catch (error) {
       console.error('Error deleting image:', error);
       addNotification({
@@ -414,31 +467,113 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         duration: 5000,
       });
     } finally {
-      setIsUploadingImage(false);
+      setIsDeletingImage(false);
     }
+  };
+
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // 1. Validate basic fields
+    if (!formData.title.trim()) {
+      errors.push('عنوان الإعلان مطلوب');
+    }
+    if (formData.priceMinor <= 0) {
+      errors.push('السعر مطلوب');
+    }
+    if (formData.allowBidding && (!formData.biddingStartPrice || formData.biddingStartPrice <= 0)) {
+      errors.push('سعر البداية للمزايدة مطلوب');
+    }
+
+    // 2. Validate images
+    if (images.length < 1) {
+      errors.push('يجب إضافة صورة واحدة على الأقل');
+    }
+
+    // 3. Validate location
+    if (!formData.location.province) {
+      errors.push('المحافظة مطلوبة');
+    }
+
+    // 4. Validate all required attributes (specs only, not column-based attributes)
+    attributes.forEach(attr => {
+      // Skip column-based attributes (like title, price, accountType)
+      if (attr.storageType === 'column') {
+        return;
+      }
+
+      // Skip location-based attributes (handled above)
+      if (attr.storageType === 'location') {
+        return;
+      }
+
+      if (attr.validation === 'REQUIRED') {
+        const value = formData.specs[attr.key];
+        const isEmpty = value === undefined ||
+                       value === null ||
+                       value === '' ||
+                       (Array.isArray(value) && value.length === 0);
+
+        if (isEmpty) {
+          errors.push(`${attr.name} مطلوب`);
+        }
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError(false);
+    setSubmitSuccess(false);
+
+    // Validate form
+    const validation = validateForm();
+
+    if (!validation.isValid) {
+      addNotification({
+        type: 'error',
+        title: 'خطأ في التحقق',
+        message: `يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`,
+        duration: 5000,
+      });
+      setSubmitError(true);
+      setIsSubmitting(false);
+      return; // Stop submission
+    }
 
     try {
-      const updateData = {
+      const updateData: any = {
         title: formData.title,
         description: formData.description,
         priceMinor: formData.priceMinor,
         status: formData.status,
         allowBidding: formData.allowBidding,
-        biddingStartPrice: formData.biddingStartPrice,
         videoUrl: formData.videoUrl || undefined,
         specs: formData.specs,
         location: formData.location,
       };
 
+      // Only include biddingStartPrice if bidding is allowed
+      if (formData.allowBidding && formData.biddingStartPrice && formData.biddingStartPrice > 0) {
+        updateData.biddingStartPrice = formData.biddingStartPrice;
+      }
+
       await onSave(updateData);
-      onClose();
+      setSubmitSuccess(true);
+
+      // Close modal after showing success (brief delay)
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (error) {
       console.error('Error updating listing:', error);
+      setSubmitError(true);
       addNotification({
         type: 'error',
         title: 'خطأ',
@@ -462,6 +597,52 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
       <form onSubmit={handleSubmit} className={styles.editForm}>
         <div className={styles.modalContent}>
+          {/* Rejection Alert - Show if listing is DRAFT with rejection reason */}
+          {(() => {
+            const shouldShow = detailedListing?.status?.toLowerCase() === 'draft' &&
+                              (detailedListing.rejectionReason || detailedListing.rejectionMessage);
+            console.log('🚨 Rejection Alert Check:', {
+              detailedListingExists: !!detailedListing,
+              status: detailedListing?.status,
+              statusLowercase: detailedListing?.status?.toLowerCase(),
+              rejectionReason: detailedListing?.rejectionReason,
+              rejectionMessage: detailedListing?.rejectionMessage,
+              shouldShow,
+            });
+            return shouldShow;
+          })() && (
+            <div className={styles.rejectionAlert}>
+              <div className={styles.rejectionHeader}>
+                <Text variant="h4" className={styles.rejectionTitle}>
+                  تم رفض إعلانك
+                </Text>
+              </div>
+              {detailedListing.rejectionReason && (
+                <div className={styles.rejectionReason}>
+                  <Text variant="small" className={styles.rejectionLabel}>
+                    السبب:{' '}
+                  </Text>
+                  <Text variant="paragraph" className={styles.rejectionValue}>
+                    {getLabel(detailedListing.rejectionReason, REJECTION_REASON_LABELS)}
+                  </Text>
+                </div>
+              )}
+              {detailedListing.rejectionMessage && (
+                <div className={styles.rejectionMessage}>
+                  <Text variant="small" className={styles.rejectionLabel}>
+                    رسالة:{' '}
+                  </Text>
+                  <Text variant="paragraph" className={styles.rejectionMessageText}>
+                    {detailedListing.rejectionMessage}
+                  </Text>
+                </div>
+              )}
+              <Text variant="small" className={styles.rejectionHint}>
+                يرجى تعديل إعلانك وفقاً للملاحظات أعلاه
+              </Text>
+            </div>
+          )}
+
           {/* Listing Info Card */}
           {detailedListing && (
             <div className={styles.infoCard}>
@@ -506,6 +687,16 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             {isUploadingImage && (
               <Text variant="small" style={{ marginTop: '8px', color: 'var(--primary)' }}>
                 جاري رفع الصور...
+              </Text>
+            )}
+            {isDeletingImage && (
+              <Text variant="small" style={{ marginTop: '8px', color: 'var(--primary)' }}>
+                جاري حذف الصورة...
+              </Text>
+            )}
+            {imageOperationSuccess && (
+              <Text variant="small" style={{ marginTop: '8px', color: 'var(--success)' }}>
+                ✓ تم حفظ التغييرات بنجاح
               </Text>
             )}
           </div>
@@ -777,13 +968,16 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             >
               إلغاء
             </Button>
-            <Button
+            <SubmitButton
               type="submit"
               variant="primary"
-              disabled={isSubmitting || isUploadingImage}
+              disabled={isUploadingImage}
+              isLoading={isSubmitting}
+              isSuccess={submitSuccess}
+              isError={submitError}
             >
-              {isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-            </Button>
+              حفظ التغييرات
+            </SubmitButton>
           </div>
         </div>
       </form>

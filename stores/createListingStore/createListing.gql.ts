@@ -10,6 +10,8 @@ export const GET_ATTRIBUTES_BY_CATEGORY = `
       sortOrder
       group
       groupOrder
+      storageType
+      columnName
       isActive
       isGlobal
       isSystemCore

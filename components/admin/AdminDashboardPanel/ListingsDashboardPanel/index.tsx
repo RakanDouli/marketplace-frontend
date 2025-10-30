@@ -111,7 +111,7 @@ export const ListingsDashboardPanel: React.FC = () => {
     if (!selectedListing) return;
 
     try {
-      const result = await updateListingStatus(selectedListing.id, updatedData.status as string);
+      const result = await updateListingStatus(selectedListing.id, updatedData);
 
       if (result) {
         addNotification({

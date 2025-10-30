@@ -6,6 +6,7 @@ import {
   GET_ACCOUNT_TYPES_QUERY,
   GET_ACCOUNT_BADGES_QUERY,
   GET_LISTING_STATUSES_QUERY,
+  GET_REJECTION_REASONS_QUERY,
   GET_BILLING_CYCLES_QUERY,
   GET_SUBSCRIPTION_STATUSES_QUERY,
   GET_SUBSCRIPTION_ACCOUNT_TYPES_QUERY,
@@ -41,6 +42,7 @@ interface MetadataState {
 
   // Listing metadata
   listingStatuses: string[];
+  rejectionReasons: string[];
 
   // Subscription metadata
   billingCycles: string[];
@@ -84,6 +86,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   accountTypes: [],
   accountBadges: [],
   listingStatuses: [],
+  rejectionReasons: [],
   billingCycles: [],
   subscriptionStatuses: [],
   subscriptionAccountTypes: [],
@@ -139,12 +142,14 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   fetchListingMetadata: async () => {
     set({ loading: true, error: null });
     try {
-      const [listingStatusesData] = await Promise.all([
+      const [listingStatusesData, rejectionReasonsData] = await Promise.all([
         cachedGraphQLRequest(GET_LISTING_STATUSES_QUERY),
+        cachedGraphQLRequest(GET_REJECTION_REASONS_QUERY),
       ]);
 
       set({
         listingStatuses: (listingStatusesData as any).getListingStatuses || [],
+        rejectionReasons: (rejectionReasonsData as any).getRejectionReasons || [],
         loading: false,
       });
     } catch (error: any) {
