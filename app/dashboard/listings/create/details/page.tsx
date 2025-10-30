@@ -8,8 +8,16 @@ import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
 import { useMetadataStore } from '@/stores/metadataStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
+import {
+  validateListingForm,
+  hasValidationErrors,
+  validateAttribute,
+  ListingValidationConfig,
+  type ValidationErrors,
+} from '@/lib/validation/listingValidation';
 import { ChevronLeft } from 'lucide-react';
 import styles from '../CreateListing.module.scss';
 
@@ -54,6 +62,7 @@ export default function CreateListingDetailsPage() {
   const router = useRouter();
   const { user, userPackage, isLoading: isAuthLoading } = useUserAuthStore();
   const { provinces } = useMetadataStore();
+  const { addNotification } = useNotificationStore();
   const {
     formData,
     attributes,
@@ -167,58 +176,51 @@ export default function CreateListingDetailsPage() {
     return touched[field] ? errorMessage : undefined;
   };
 
-  // Comprehensive validation function
+  // Comprehensive validation function using Zod
   const validateForm = (): { isValid: boolean; errors: string[] } => {
+    console.log('🔍 Starting Zod validation...');
+
+    // 1. Validate core listing fields using Zod
+    const validationErrors = validateListingForm(formData);
+
+    console.log('📊 Zod validation result:', validationErrors);
+
     const errors: string[] = [];
 
-    // 1. Validate basic fields
-    console.log('🔍 Checking title:', formData.title, 'trimmed:', formData.title.trim(), 'isEmpty:', !formData.title.trim());
-    if (!formData.title.trim()) {
-      errors.push('عنوان الإعلان مطلوب');
-    }
-    console.log('🔍 Checking price:', formData.priceMinor, 'isEmpty:', formData.priceMinor <= 0);
-    if (formData.priceMinor <= 0) {
-      errors.push('السعر مطلوب');
-    }
-    if (formData.allowBidding && (!formData.biddingStartPrice || formData.biddingStartPrice <= 0)) {
-      errors.push('سعر البداية للمزايدة مطلوب');
-    }
+    // Convert validation errors object to array of messages
+    Object.entries(validationErrors).forEach(([field, message]) => {
+      if (message) {
+        errors.push(message);
+      }
+    });
 
-    // 2. Validate images
-    if (formData.images.length < 1) {
-      errors.push('يجب إضافة صورة واحدة على الأقل');
-    }
-
-    // 3. Validate location
-    if (!formData.location.province) {
-      errors.push('المحافظة مطلوبة');
-    }
-
-    // 4. Validate all required attributes (specs only, not column-based attributes)
+    // 2. Validate dynamic attributes (specs only, not column-based attributes)
     attributes.forEach(attr => {
       console.log('🔍 Checking attribute:', attr.key, 'storageType:', attr.storageType, 'validation:', attr.validation);
 
-      // Skip attributes stored as columns (title, price, accountType) - they're validated above
+      // Skip attributes stored as columns (title, price, accountType) - they're validated by Zod
       if (attr.storageType === 'column') {
         console.log('  ↳ Skipping (column-based)');
         return;
       }
 
-      if (attr.validation === 'REQUIRED') {
-        const value = formData.specs[attr.key];
-        // Check if value is empty (covers: undefined, null, '', empty array)
-        const isEmpty = value === undefined ||
-          value === null ||
-          value === '' ||
-          (Array.isArray(value) && value.length === 0);
+      // Validate using the attribute validator from listingValidation.ts
+      const value = formData.specs[attr.key];
+      const attrError = validateAttribute(value, {
+        key: attr.key,
+        name: attr.name,
+        validation: attr.validation,
+        type: attr.type,
+        maxSelections: attr.maxSelections,
+      });
 
-        console.log('  ↳ Value:', value, 'isEmpty:', isEmpty);
-        if (isEmpty) {
-          console.log('  ↳ ❌ Adding error:', `${attr.name} مطلوب`);
-          errors.push(`${attr.name} مطلوب`);
-        }
+      if (attrError) {
+        console.log('  ↳ ❌ Attribute error:', attrError);
+        errors.push(attrError);
       }
     });
+
+    console.log('✅ Final validation result:', { isValid: errors.length === 0, errorCount: errors.length });
 
     return {
       isValid: errors.length === 0,
@@ -273,16 +275,27 @@ export default function CreateListingDetailsPage() {
 
     console.log('✅ Validation passed - proceeding with submission');
 
-    // Clear any previous validation errors
+    // Clear any previous errors
     setValidationError('');
+    setSuccess('');
 
     try {
       await submitListing();
-      setSuccess('✅ تم استلام إعلانك! جاري المراجعة والنشر خلال دقيقتين...');
-      // Wait 2 seconds to show success message, then redirect
-      setTimeout(() => {
-        router.push('/dashboard/listings');
-      }, 2000);
+      // Only show success if no error occurred
+      if (!error) {
+        // Show success toast
+        addNotification({
+          type: 'success',
+          title: 'نجح',
+          message: 'تم إنشاء الإعلان بنجاح',
+          duration: 5000,
+        });
+        setSuccess('✅ تم استلام إعلانك! جاري المراجعة والنشر خلال دقيقتين...');
+        // Wait 2 seconds to show success message, then redirect
+        setTimeout(() => {
+          router.push('/dashboard/listings');
+        }, 2000);
+      }
     } catch (err: any) {
       console.error('❌ Submission error:', err);
       // Error is already set in store, Form component will display it
@@ -438,7 +451,7 @@ export default function CreateListingDetailsPage() {
                   الصور {videoAllowed && 'والفيديو'}
                 </Text>
                 <Text variant="small" color="secondary">
-                  (الحد الأدنى 3 صور - مطلوب)
+                  (الحد الأدنى {ListingValidationConfig.images.min} صورة - مطلوب)
                 </Text>
               </div>
 
@@ -451,9 +464,9 @@ export default function CreateListingDetailsPage() {
                   }}
                   maxImages={maxImagesAllowed}
                 />
-                {touched.images && formData.images.length < 1 && (
+                {touched.images && formData.images.length < ListingValidationConfig.images.min && (
                   <Text variant="small" color="error">
-                    يجب إضافة 3 صور على الأقل
+                    يجب إضافة {ListingValidationConfig.images.min} صورة على الأقل
                   </Text>
                 )}
 

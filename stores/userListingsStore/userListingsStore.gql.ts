@@ -96,7 +96,7 @@ export const UPDATE_MY_LISTING_MUTATION = `
 `;
 
 export const DELETE_MY_LISTING_MUTATION = `
-  mutation DeleteMyListing($id: ID!, $soldViaPlatform: Boolean) {
-    deleteMyListing(id: $id, soldViaPlatform: $soldViaPlatform)
+  mutation DeleteMyListing($id: ID!, $archivalReason: ArchivalReason!) {
+    deleteMyListing(id: $id, archivalReason: $archivalReason)
   }
 `;

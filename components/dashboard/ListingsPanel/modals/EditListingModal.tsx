@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton } from '@/components/slices';
+import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton, Loading } from '@/components/slices';
 import type { Listing } from '@/types/listing';
 import type { ImageItem } from '@/components/slices/ImageUploadGrid/ImageUploadGrid';
 import { useUserListingsStore } from '@/stores/userListingsStore';
@@ -12,6 +12,12 @@ import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
+import {
+  validateListingForm,
+  validateAttribute,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/validation/listingValidation';
 import styles from './EditListingModal.module.scss';
 
 interface EditListingModalProps {
@@ -43,6 +49,7 @@ interface Attribute {
   storageType: string;
   columnName: string | null;
   options?: Array<{ key: string; value: string; sortOrder: number; isActive: boolean }>;
+  maxSelections?: number;
   sortOrder: number;
   group: string;
   groupOrder: number;
@@ -109,7 +116,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
-  // Form state - EXACTLY like create page
+  // Form state - Will be populated by loadData useEffect with fresh data from API
   const [formData, setFormData] = useState({
     title: listing.title,
     description: listing.description || '',
@@ -126,11 +133,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
 
-  // Load detailed listing data
+  // Load detailed listing data - runs every time modal opens
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Force fresh fetch by bypassing cache (ttl: 0) to ensure we get latest imageKeys
+        console.log('🔄 Fetching fresh listing data for ID:', listing.id);
+        // Force fresh fetch by bypassing cache (ttl: 0) to ensure we get latest data
         const response = await cachedGraphQLRequest(
           `query GetMyListingById($id: ID!) {
             myListingById(id: $id) {
@@ -149,8 +157,9 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         const data: Listing = (response as any).myListingById;
         setDetailedListing(data);
 
-        // Debug: Log rejection data
+        // Debug: Log listing data
         console.log('📋 Detailed Listing Data:', {
+          id: data.id,
           status: data.status,
           rejectionReason: data.rejectionReason,
           rejectionMessage: data.rejectionMessage,
@@ -195,7 +204,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     };
 
     loadData();
-  }, [listing.id, loadMyListingById]);
+  }, [listing]); // Re-run when listing object changes (not just ID)
 
   // Fetch provinces if not already loaded
   useEffect(() => {
@@ -474,50 +483,41 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    // 1. Validate basic fields
-    if (!formData.title.trim()) {
-      errors.push('عنوان الإعلان مطلوب');
-    }
-    if (formData.priceMinor <= 0) {
-      errors.push('السعر مطلوب');
-    }
-    if (formData.allowBidding && (!formData.biddingStartPrice || formData.biddingStartPrice <= 0)) {
-      errors.push('سعر البداية للمزايدة مطلوب');
-    }
+    // 1. Validate basic fields using Zod (from listingValidation.ts)
+    const validationErrors = validateListingForm({
+      ...formData,
+      images, // Pass images array for validation
+      location: {
+        province: formData.location.province || '',
+        city: formData.location.city,
+        area: formData.location.area,
+        link: formData.location.link,
+      },
+    } as any);
 
-    // 2. Validate images
-    if (images.length < 1) {
-      errors.push('يجب إضافة صورة واحدة على الأقل');
-    }
+    // Convert ValidationErrors object to string array
+    Object.entries(validationErrors).forEach(([field, message]) => {
+      if (message) errors.push(message);
+    });
 
-    // 3. Validate location
-    if (!formData.location.province) {
-      errors.push('المحافظة مطلوبة');
-    }
-
-    // 4. Validate all required attributes (specs only, not column-based attributes)
+    // 2. Validate dynamic attributes (same as create listing page)
     attributes.forEach(attr => {
       // Skip column-based attributes (like title, price, accountType)
-      if (attr.storageType === 'column') {
-        return;
-      }
+      if (attr.storageType === 'column') return;
 
-      // Skip location-based attributes (handled above)
-      if (attr.storageType === 'location') {
-        return;
-      }
+      // Skip location-based attributes (handled by Zod)
+      if (attr.storageType === 'location') return;
 
-      if (attr.validation === 'REQUIRED') {
-        const value = formData.specs[attr.key];
-        const isEmpty = value === undefined ||
-                       value === null ||
-                       value === '' ||
-                       (Array.isArray(value) && value.length === 0);
+      const value = formData.specs[attr.key];
+      const attrError = validateAttribute(value, {
+        key: attr.key,
+        name: attr.name,
+        validation: attr.validation as "REQUIRED" | "OPTIONAL",
+        type: attr.type,
+        maxSelections: attr.maxSelections,
+      });
 
-        if (isEmpty) {
-          errors.push(`${attr.name} مطلوب`);
-        }
-      }
+      if (attrError) errors.push(attrError);
     });
 
     return {
@@ -567,10 +567,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       await onSave(updateData);
       setSubmitSuccess(true);
 
-      // Close modal after showing success (brief delay)
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      // Close modal immediately (parent will show success toast)
+      onClose();
     } catch (error) {
       console.error('Error updating listing:', error);
       setSubmitError(true);
@@ -593,55 +591,56 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     });
   };
 
+  // Don't render form until we have fresh data
+  if (!detailedListing) {
+    return (
+      <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <Loading />
+          <Text variant="paragraph" style={{ marginTop: '16px' }}>جاري تحميل بيانات الإعلان...</Text>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
       <form onSubmit={handleSubmit} className={styles.editForm}>
         <div className={styles.modalContent}>
           {/* Rejection Alert - Show if listing is DRAFT with rejection reason */}
-          {(() => {
-            const shouldShow = detailedListing?.status?.toLowerCase() === 'draft' &&
-                              (detailedListing.rejectionReason || detailedListing.rejectionMessage);
-            console.log('🚨 Rejection Alert Check:', {
-              detailedListingExists: !!detailedListing,
-              status: detailedListing?.status,
-              statusLowercase: detailedListing?.status?.toLowerCase(),
-              rejectionReason: detailedListing?.rejectionReason,
-              rejectionMessage: detailedListing?.rejectionMessage,
-              shouldShow,
-            });
-            return shouldShow;
-          })() && (
-            <div className={styles.rejectionAlert}>
-              <div className={styles.rejectionHeader}>
-                <Text variant="h4" className={styles.rejectionTitle}>
-                  تم رفض إعلانك
+          {detailedListing.status?.toLowerCase() === 'draft' &&
+            (detailedListing.rejectionReason || detailedListing.rejectionMessage) && (
+              <div className={styles.rejectionAlert}>
+                <div className={styles.rejectionHeader}>
+                  <Text variant="h4" className={styles.rejectionTitle}>
+                    تم رفض إعلانك
+                  </Text>
+                </div>
+                {detailedListing.rejectionReason && (
+                  <div className={styles.rejectionReason}>
+                    <Text variant="small" className={styles.rejectionLabel}>
+                      السبب:{' '}
+                    </Text>
+                    <Text variant="paragraph" className={styles.rejectionValue}>
+                      {getLabel(detailedListing.rejectionReason, REJECTION_REASON_LABELS)}
+                    </Text>
+                  </div>
+                )}
+                {detailedListing.rejectionMessage && (
+                  <div className={styles.rejectionMessage}>
+                    <Text variant="small" className={styles.rejectionLabel}>
+                      رسالة:{' '}
+                    </Text>
+                    <Text variant="paragraph" className={styles.rejectionMessageText}>
+                      {detailedListing.rejectionMessage}
+                    </Text>
+                  </div>
+                )}
+                <Text variant="small" className={styles.rejectionHint}>
+                  يرجى تعديل إعلانك وفقاً للملاحظات أعلاه
                 </Text>
               </div>
-              {detailedListing.rejectionReason && (
-                <div className={styles.rejectionReason}>
-                  <Text variant="small" className={styles.rejectionLabel}>
-                    السبب:{' '}
-                  </Text>
-                  <Text variant="paragraph" className={styles.rejectionValue}>
-                    {getLabel(detailedListing.rejectionReason, REJECTION_REASON_LABELS)}
-                  </Text>
-                </div>
-              )}
-              {detailedListing.rejectionMessage && (
-                <div className={styles.rejectionMessage}>
-                  <Text variant="small" className={styles.rejectionLabel}>
-                    رسالة:{' '}
-                  </Text>
-                  <Text variant="paragraph" className={styles.rejectionMessageText}>
-                    {detailedListing.rejectionMessage}
-                  </Text>
-                </div>
-              )}
-              <Text variant="small" className={styles.rejectionHint}>
-                يرجى تعديل إعلانك وفقاً للملاحظات أعلاه
-              </Text>
-            </div>
-          )}
+            )}
 
           {/* Listing Info Card */}
           {detailedListing && (
@@ -753,14 +752,55 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               step={1}
             />
 
-            <Input
-              type="select"
-              label="حالة الإعلان *"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              options={mapToOptions(listingStatuses, LISTING_STATUS_LABELS)}
-              required
-            />
+            {/* Listing Status Actions - Simple UX */}
+            <div className={styles.statusActions}>
+              <Text variant="paragraph" weight="medium" className={styles.statusLabel}>
+                إدارة الإعلان
+              </Text>
+
+              {formData.status === 'ACTIVE' && (
+                <div className={styles.actionButtons}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setFormData({ ...formData, status: 'HIDDEN' })}
+                    type="button"
+                  >
+                    إيقاف الإعلان مؤقتاً
+                  </Button>
+                </div>
+              )}
+
+              {formData.status === 'HIDDEN' && (
+                <div className={styles.actionButtons}>
+                  <Button
+                    variant="primary"
+                    onClick={() => setFormData({ ...formData, status: 'ACTIVE' })}
+                    type="button"
+                  >
+                    اعاده تفعيل الاعلان
+                  </Button>
+                </div>
+              )}
+
+              {(formData.status === 'SOLD' || formData.status === 'SOLD_VIA_PLATFORM') && (
+                <div className={styles.soldNotice}>
+                  <Text variant="small" color="secondary">
+                    ✅ هذا الإعلان تم بيعه
+                  </Text>
+                </div>
+              )}
+
+              {(formData.status === 'DRAFT' || formData.status === 'PENDING_APPROVAL') && (
+                <div className={styles.systemStatus}>
+                  <Text variant="small" color="secondary">
+                    {formData.status === 'DRAFT'
+                      ? '📝 هذا الإعلان في وضع المسودة'
+                      : '⏳ هذا الإعلان قيد المراجعة'
+                    }
+                  </Text>
+                </div>
+              )}
+            </div>
 
             <Input
               type="switch"

@@ -5,6 +5,12 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
+import { useNotificationStore } from '@/stores/notificationStore';
+import {
+  validateCreateAdCampaignForm,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/admin/validation/adCampaignValidation';
 import styles from './AdCampaignModals.module.scss';
 
 interface CreateAdCampaignModalProps {
@@ -50,7 +56,9 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
   isLoading
 }) => {
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const { user } = useAdminAuthStore();
+  const { addNotification } = useNotificationStore();
   const [clients, setClients] = useState<AdClient[]>([]);
   const [packages, setPackages] = useState<AdPackage[]>([]);
   const [loadingData, setLoadingData] = useState(false);
@@ -130,26 +138,27 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (!formData.campaignName) {
-      setError('يجب إدخال اسم الحملة');
-      return;
+    // Validate form using Zod
+    const errors = validateCreateAdCampaignForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Ad Campaign validation failed:', errors);
+      setError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+      return; // STOP - do not submit
     }
-    if (!formData.clientId) {
-      setError('يجب اختيار العميل');
-      return;
-    }
-    if (!formData.packageId) {
-      setError('يجب اختيار الحزمة');
-      return;
-    }
-    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
-      setError('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
-      return;
-    }
+
+    console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
       await onSubmit(formData);
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم إنشاء الحملة الإعلانية بنجاح',
+        duration: 5000,
+      });
       // Reset form
       setFormData({
         campaignName: '',

@@ -42,7 +42,7 @@ interface UserListingsActions {
   updateMyListing: (id: string, input: any) => Promise<void>;
 
   // Delete listing
-  deleteMyListing: (id: string, soldViaPlatform?: boolean) => Promise<void>;
+  deleteMyListing: (id: string, archivalReason: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale') => Promise<void>;
 
   // Refresh listings
   refreshMyListings: () => Promise<void>;
@@ -193,13 +193,13 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
     }
   },
 
-  deleteMyListing: async (id: string, soldViaPlatform: boolean = false) => {
+  deleteMyListing: async (id: string, archivalReason: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale') => {
     set({ loading: true, error: null });
 
     try {
       await cachedGraphQLRequest(DELETE_MY_LISTING_MUTATION, {
         id,
-        soldViaPlatform,
+        archivalReason,
       });
 
       // Invalidate cache and refresh listings

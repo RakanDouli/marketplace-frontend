@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Text, Form } from '@/components/slices';
+import { useNotificationStore } from '@/stores/notificationStore';
+import { validateEmail } from '@/lib/validation/authValidation';
 import styles from './DashboardModals.module.scss';
 
 interface ChangeEmailModalProps {
@@ -13,35 +15,53 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const { addNotification } = useNotificationStore();
   const [newEmail, setNewEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isChanging, setIsChanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<{
+    newEmail?: string;
+    password?: string;
+  }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validation
+    // Validate using Zod
+    const errors: { newEmail?: string; password?: string } = {};
+
+    const emailError = validateEmail(newEmail);
+    if (emailError) errors.newEmail = emailError;
+
+    if (!password) errors.password = 'كلمة المرور مطلوبة للتأكيد';
+
+    // Additional validation: new email must be different from current
     if (newEmail === currentEmail) {
-      setError('البريد الإلكتروني الجديد يجب أن يكون مختلفاً عن الحالي');
-      return;
+      errors.newEmail = 'البريد الإلكتروني الجديد يجب أن يكون مختلفاً عن الحالي';
     }
 
-    if (!newEmail.includes('@')) {
-      setError('يرجى إدخال بريد إلكتروني صحيح');
-      return;
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      console.log('❌ Change email validation failed:', errors);
+      return; // STOP - do not submit
     }
 
-    if (!password) {
-      setError('يرجى إدخال كلمة المرور للتأكيد');
-      return;
-    }
+    console.log('✅ Change email validation passed, submitting...');
 
     setIsChanging(true);
 
     try {
       await onConfirm(newEmail, password);
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم تغيير البريد الإلكتروني بنجاح',
+        duration: 5000,
+      });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ أثناء تغيير البريد الإلكتروني');
@@ -66,6 +86,15 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
             label="البريد الإلكتروني الجديد *"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
+            validate={(value) => {
+              const emailError = validateEmail(value);
+              if (emailError) return emailError;
+              if (value === currentEmail) {
+                return 'البريد الإلكتروني الجديد يجب أن يكون مختلفاً عن الحالي';
+              }
+              return undefined;
+            }}
+            error={validationErrors.newEmail}
             required
             autoComplete="email"
             placeholder="example@email.com"
@@ -76,6 +105,8 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
             label="كلمة المرور للتأكيد *"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            validate={(value) => (!value ? 'كلمة المرور مطلوبة' : undefined)}
+            error={validationErrors.password}
             required
             autoComplete="current-password"
             placeholder="أدخل كلمة المرور الحالية"

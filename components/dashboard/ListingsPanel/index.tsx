@@ -7,6 +7,7 @@ import { Input } from '@/components/slices/Input/Input';
 import { EditListingModal, DeleteListingModal } from './modals';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore';
+import { useArchivedListingStore } from '@/stores/archivedListingStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { RefreshCw, Edit, Trash2, Eye, Plus } from 'lucide-react';
@@ -31,6 +32,9 @@ export const ListingsPanel: React.FC = () => {
     setFilters,
     clearError,
   } = useUserListingsStore();
+
+  // Use archived listing store for archiving
+  const { archiveListing } = useArchivedListingStore();
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -125,28 +129,32 @@ export const ListingsPanel: React.FC = () => {
 
 
   // Handle delete confirmation
-  const handleDeleteConfirm = async () => {
-    if (listingToDelete) {
-      try {
-        await deleteMyListing(listingToDelete.id);
+  const handleDeleteConfirm = async (action: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale' | null) => {
+    if (!listingToDelete || !action) return;
 
-        addNotification({
-          type: 'success',
-          title: 'تم حذف الإعلان بنجاح',
-          message: `تم حذف الإعلان "${listingToDelete.title}" بنجاح`,
-          duration: 3000
-        });
-        setShowDeleteModal(false);
-        setListingToDelete(null);
-      } catch (error) {
-        console.error('Delete listing error:', error);
-        addNotification({
-          type: 'error',
-          title: 'فشل في حذف الإعلان',
-          message: 'حدث خطأ أثناء حذف الإعلان',
-          duration: 5000
-        });
-      }
+    try {
+      // Archive with reason
+      await archiveListing(listingToDelete.id, action);
+      addNotification({
+        type: 'success',
+        title: 'تم أرشفة الإعلان',
+        message: `تم أرشفة الإعلان "${listingToDelete.title}" بنجاح`,
+        duration: 3000
+      });
+
+      setShowDeleteModal(false);
+      setListingToDelete(null);
+
+      // Refresh listings
+      await loadMyListings();
+    } catch (error) {
+      console.error('Archive listing error:', error);
+      addNotification({
+        type: 'error',
+        title: 'فشلت العملية',
+        message: 'حدث خطأ أثناء أرشفة الإعلان',
+        duration: 5000
+      });
     }
   };
 

@@ -1,4 +1,4 @@
-@import '../../../../styles/variables.scss';
+@import "../../../../styles/variables.scss";
 
 // Rejection Alert (shown at top when listing is rejected)
 .rejectionAlert {
@@ -203,6 +203,35 @@
   span {
     color: $text;
     font-weight: $weight-medium;
+  }
+}
+
+.statusActions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding: $space-md;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+
+  .statusLabel {
+    margin-bottom: $space-xs;
+    color: $text;
+  }
+
+  .actionButtons {
+    display: flex;
+    gap: $space-sm;
+    flex-wrap: wrap;
+  }
+
+  .soldNotice,
+  .systemStatus {
+    padding: $space-sm;
+    background: $bg;
+    border-radius: $radius-sm;
+    text-align: center;
   }
 }
 

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { cachedGraphQLRequest } from "../../utils/graphql-cache";
 import { GET_ATTRIBUTES_BY_CATEGORY } from "./createListing.gql";
+import { ListingValidationConfig } from "../../lib/validation/listingValidation";
 import type {
   CreateListingStore,
   CreateListingFormData,
@@ -132,7 +133,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
         break;
 
       case "images":
-        isValid = formData.images.length >= 3;
+        isValid = formData.images.length >= ListingValidationConfig.images.min;
         break;
 
       case "attribute_group":
@@ -311,14 +312,22 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
   submitListing: async () => {
     const { formData, validateStep, steps } = get();
 
+    console.log("🚀 submitListing called - validating steps...");
+    console.log("📊 Steps:", steps.map(s => ({ id: s.id, type: s.type, isValid: s.isValid })));
+
     // Validate all steps
     for (let i = 0; i < steps.length; i++) {
-      if (!validateStep(i)) {
-        set({ error: `يرجى ملء جميع الحقول المطلوبة في الخطوة ${i + 1}` });
+      const isValid = validateStep(i);
+      console.log(`🔍 Step ${i} (${steps[i].type}): ${isValid ? '✅ Valid' : '❌ Invalid'}`);
+      if (!isValid) {
+        const errorMsg = `يرجى ملء جميع الحقول المطلوبة في الخطوة ${i + 1}`;
+        console.error("❌ Step validation failed:", errorMsg);
+        set({ error: errorMsg });
         return;
       }
     }
 
+    console.log("✅ All steps valid - proceeding with submission");
     set({ isSubmitting: true, error: null });
 
     try {
@@ -357,11 +366,24 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       formDataPayload.append('specs', JSON.stringify(specs));
 
       // Add images as files
-      formData.images.forEach((imageItem) => {
+      console.log("🖼️ Images in formData:", formData.images.length);
+      let imagesAdded = 0;
+      formData.images.forEach((imageItem, index) => {
+        console.log(`🖼️ Image ${index}:`, {
+          hasFile: !!imageItem.file,
+          hasPreview: !!imageItem.preview,
+          file: imageItem.file
+        });
         if (imageItem.file) {
           formDataPayload.append('images', imageItem.file);
+          imagesAdded++;
         }
       });
+      console.log(`🖼️ Total images added to FormData: ${imagesAdded}`);
+
+      if (imagesAdded < ListingValidationConfig.images.min) {
+        throw new Error(`يجب إضافة ${ListingValidationConfig.images.min} صورة على الأقل`);
+      }
 
       console.log("📤 Sending REST API request to /api/listings/create");
 

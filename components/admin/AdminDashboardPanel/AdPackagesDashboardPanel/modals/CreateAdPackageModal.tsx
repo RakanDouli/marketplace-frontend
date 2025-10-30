@@ -5,7 +5,13 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useMetadataStore } from '@/stores/metadataStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { AD_MEDIA_TYPE_LABELS, mapToOptions } from '@/constants/metadata-labels';
+import {
+  validateCreateAdPackageForm,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/admin/validation/adPackageValidation';
 import styles from './AdPackageModals.module.scss';
 
 interface CreateAdPackageModalProps {
@@ -22,6 +28,8 @@ export const CreateAdPackageModal: React.FC<CreateAdPackageModalProps> = ({
   isLoading
 }) => {
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const { addNotification } = useNotificationStore();
   const { adMediaTypes, fetchAdMetadata } = useMetadataStore();
 
   const [formData, setFormData] = useState({
@@ -47,14 +55,27 @@ export const CreateAdPackageModal: React.FC<CreateAdPackageModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (!formData.adType) {
-      setError('يجب اختيار نوع إعلان');
-      return;
+    // Validate form using Zod
+    const errors = validateCreateAdPackageForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Ad Package validation failed:', errors);
+      setError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+      return; // STOP - do not submit
     }
+
+    console.log('✅ Ad Package validation passed, submitting...');
 
     try {
       await onSubmit(formData);
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم إنشاء حزمة الإعلان بنجاح',
+        duration: 5000,
+      });
       // Reset form
       setFormData({
         packageName: '',

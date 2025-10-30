@@ -5,6 +5,12 @@ import { Button, Form, Input, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { SocialButtons } from './SocialButtons';
 import { AccountType } from '@/common/enums';
+import {
+  validateLoginForm,
+  createLoginFieldValidator,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/validation/authValidation';
 import styles from './AuthModal.module.scss';
 
 // Development credentials from backend seed
@@ -55,6 +61,7 @@ export const LoginForm: React.FC = () => {
     email: isProduction ? '' : DEV_CREDENTIALS[0].email,
     password: isProduction ? '' : DEV_CREDENTIALS[0].password,
   });
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [formError, setFormError] = useState<string>('');
 
   // Update form when option changes (development only)
@@ -79,13 +86,19 @@ export const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Clear previous error
+    // Clear previous errors
     setFormError('');
 
-    if (!formData.email || !formData.password) {
-      setFormError('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-      return;
+    // Validate form using Zod
+    const errors = validateLoginForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Login validation failed:', errors);
+      return; // STOP - do not submit
     }
+
+    console.log('✅ Login validation passed, submitting...');
 
     try {
       await login(formData.email, formData.password);
@@ -122,35 +135,33 @@ export const LoginForm: React.FC = () => {
 
       {/* Login form */}
       <Form onSubmit={handleSubmit} error={formError} className={styles.formFields}>
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            <Text variant="small">البريد الإلكتروني</Text>
-          </label>
-          <Input
-            type="email"
-            name="email"
-            placeholder="example@email.com"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-            disabled={isLoading}
-          />
-        </div>
+        {/* Email */}
+        <Input
+          type="email"
+          name="email"
+          label="البريد الإلكتروني"
+          placeholder="example@email.com"
+          value={formData.email}
+          onChange={handleInputChange}
+          validate={createLoginFieldValidator('email')}
+          error={validationErrors.email}
+          required
+          disabled={isLoading}
+        />
 
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            <Text variant="small">كلمة المرور</Text>
-          </label>
-          <Input
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={handleInputChange}
-            required
-            disabled={isLoading}
-          />
-        </div>
+        {/* Password */}
+        <Input
+          type="password"
+          name="password"
+          label="كلمة المرور"
+          placeholder="••••••••"
+          value={formData.password}
+          onChange={handleInputChange}
+          validate={createLoginFieldValidator('password')}
+          error={validationErrors.password}
+          required
+          disabled={isLoading}
+        />
 
         {/* Forgot password link */}
         <div className={styles.forgotPassword}>

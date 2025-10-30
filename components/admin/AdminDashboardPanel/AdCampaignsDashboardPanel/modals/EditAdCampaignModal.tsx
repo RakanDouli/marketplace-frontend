@@ -8,6 +8,11 @@ import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useAdminAdCampaignsStore, type AdCampaign } from '@/stores/admin/adminAdCampaignsStore';
 import { Copy, RefreshCw } from 'lucide-react';
+import {
+  validateEditAdCampaignForm,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/admin/validation/adCampaignValidation';
 import styles from './AdCampaignModals.module.scss';
 
 interface EditAdCampaignModalProps {
@@ -55,6 +60,7 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
   isLoading
 }) => {
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const { user } = useAdminAuthStore();
   const { addNotification } = useNotificationStore();
   const { regeneratePublicReportToken } = useAdminAdCampaignsStore();
@@ -147,18 +153,27 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (!formData.campaignName) {
-      setError('يجب إدخال اسم الحملة');
-      return;
+    // Validate form using Zod
+    const errors = validateEditAdCampaignForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Ad Campaign validation failed:', errors);
+      setError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+      return; // STOP - do not submit
     }
-    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
-      setError('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
-      return;
-    }
+
+    console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
       await onSubmit(formData);
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم تحديث الحملة الإعلانية بنجاح',
+        duration: 5000,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'فشل في تحديث الحملة الإعلانية');
     }

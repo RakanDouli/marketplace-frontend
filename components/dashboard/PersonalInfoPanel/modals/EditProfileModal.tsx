@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Text, Form } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
+import {
+  validateProfileForm,
+  createProfileFieldValidator,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/validation/profileValidation';
 import styles from './DashboardModals.module.scss';
 
 interface EditProfileModalProps {
@@ -43,6 +49,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     contactPhone: user.contactPhone || '',
   });
 
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +57,18 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate form using Zod
+    const errors = validateProfileForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Profile validation failed:', errors);
+      return; // STOP - do not submit
+    }
+
+    console.log('✅ Profile validation passed, submitting...');
+
     setIsSaving(true);
 
     try {
@@ -73,6 +92,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       }
 
       await onSave(updateData);
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم تحديث الملف الشخصي بنجاح',
+        duration: 5000,
+      });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ البيانات');
@@ -124,6 +150,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               label="الاسم الكامل *"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              validate={createProfileFieldValidator('name')}
+              error={validationErrors.name}
               required
               placeholder="أدخل اسمك الكامل"
             />
@@ -133,6 +161,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               label="رقم الجوال"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              validate={createProfileFieldValidator('phone')}
+              error={validationErrors.phone}
               placeholder="+31612345678"
             />
 
@@ -141,6 +171,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               label="الجنس"
               value={formData.gender}
               onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+              validate={createProfileFieldValidator('gender')}
+              error={validationErrors.gender}
               options={genderOptions}
             />
 
@@ -149,6 +181,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               label="تاريخ الميلاد"
               value={formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : ''}
               onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+              validate={createProfileFieldValidator('dateOfBirth')}
+              error={validationErrors.dateOfBirth}
             />
           </div>
 
@@ -164,6 +198,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 label="اسم الشركة"
                 value={formData.companyName}
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                validate={createProfileFieldValidator('companyName')}
+                error={validationErrors.companyName}
                 placeholder="اسم شركتك أو متجرك"
               />
 
@@ -172,6 +208,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 label="هاتف الشركة"
                 value={formData.contactPhone}
                 onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                validate={createProfileFieldValidator('contactPhone')}
+                error={validationErrors.contactPhone}
                 placeholder="+31612345678"
               />
 
@@ -180,6 +218,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 label="الموقع الإلكتروني"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                validate={createProfileFieldValidator('website')}
+                error={validationErrors.website}
                 placeholder="https://example.com"
               />
 
@@ -189,6 +229,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   label="رقم التسجيل التجاري (KVK)"
                   value={formData.kvkNumber}
                   onChange={(e) => setFormData({ ...formData, kvkNumber: e.target.value })}
+                  validate={createProfileFieldValidator('kvkNumber')}
+                  error={validationErrors.kvkNumber}
                   placeholder="12345678"
                 />
               )}

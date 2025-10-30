@@ -6,7 +6,13 @@ import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import styles from './SubscriptionModals.module.scss';
 import { useMetadataStore } from '@/stores/metadataStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { mapToOptions, BILLING_CYCLE_LABELS, SUBSCRIPTION_STATUS_LABELS, SUBSCRIPTION_ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
+import {
+  validateCreateSubscriptionForm,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/admin/validation/subscriptionValidation';
 
 interface CreateSubscriptionModalProps {
   isVisible: boolean;
@@ -21,6 +27,8 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
   onSubmit,
   isLoading
 }) => {
+  const { addNotification } = useNotificationStore();
+
   // Fetch metadata from store
   const {
     billingCycles,
@@ -37,6 +45,7 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
   }, [isVisible, billingCycles.length, fetchSubscriptionMetadata]);
 
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -61,8 +70,30 @@ export const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = (
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate form using Zod
+    const errors = validateCreateSubscriptionForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Subscription validation failed:', errors);
+      setError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+      return; // STOP - do not submit
+    }
+
+    console.log('✅ Subscription validation passed, submitting...');
+
     try {
       await onSubmit(formData);
+
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم إنشاء خطة الاشتراك بنجاح',
+        duration: 5000,
+      });
+
       // Reset form
       setFormData({
         name: '',

@@ -44,7 +44,10 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(
         className={`${styles.form} ${className}`.trim()}
         {...props}
       >
-        {/* Form-level error */}
+        {/* Form fields - Input components handle their own validation */}
+        {children}
+
+        {/* Form-level error - shown at bottom above submit button */}
         {error && (
           <div className={styles.formError}>
             <Text variant="small" className={styles.errorText}>
@@ -53,7 +56,7 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(
           </div>
         )}
 
-        {/* Form-level success */}
+        {/* Form-level success - shown at bottom above submit button */}
         {success && (
           <div className={styles.formSuccess}>
             <Text variant="small" className={styles.successText}>
@@ -61,9 +64,6 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(
             </Text>
           </div>
         )}
-
-        {/* Form fields - Input components handle their own validation */}
-        {children}
       </form>
     );
   }

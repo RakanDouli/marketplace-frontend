@@ -5,6 +5,12 @@ import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import type { AdClient } from '@/stores/admin/adminAdClientsStore';
+import { useNotificationStore } from '@/stores/notificationStore';
+import {
+  validateEditAdClientForm,
+  hasValidationErrors,
+  type ValidationErrors,
+} from '@/lib/admin/validation/adClientValidation';
 import styles from './AdClientModals.module.scss';
 
 interface EditAdClientModalProps {
@@ -22,6 +28,10 @@ export const EditAdClientModal: React.FC<EditAdClientModalProps> = ({
   initialData,
   isLoading
 }) => {
+  const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const { addNotification } = useNotificationStore();
+
   const [formData, setFormData] = useState({
     id: '',
     companyName: '',
@@ -58,18 +68,43 @@ export const EditAdClientModal: React.FC<EditAdClientModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit({
-      id: formData.id,
-      companyName: formData.companyName,
-      contactName: formData.contactName,
-      contactEmail: formData.contactEmail,
-      contactPhone: formData.contactPhone || undefined,
-      website: formData.website || undefined,
-      description: formData.description || undefined,
-      industry: formData.industry || undefined,
-      status: formData.status,
-      notes: formData.notes || undefined,
-    });
+    setError(null);
+
+    // Validate form using Zod
+    const errors = validateEditAdClientForm(formData);
+    setValidationErrors(errors);
+
+    if (hasValidationErrors(errors)) {
+      console.log('❌ Ad Client validation failed:', errors);
+      setError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+      return; // STOP - do not submit
+    }
+
+    console.log('✅ Ad Client validation passed, submitting...');
+
+    try {
+      await onSubmit({
+        id: formData.id,
+        companyName: formData.companyName,
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone || undefined,
+        website: formData.website || undefined,
+        description: formData.description || undefined,
+        industry: formData.industry || undefined,
+        status: formData.status,
+        notes: formData.notes || undefined,
+      });
+      // Show success toast
+      addNotification({
+        type: 'success',
+        title: 'نجح',
+        message: 'تم تحديث العميل الإعلاني بنجاح',
+        duration: 5000,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في تحديث العميل');
+    }
   };
 
   if (!initialData) return null;
@@ -81,7 +116,7 @@ export const EditAdClientModal: React.FC<EditAdClientModalProps> = ({
       title="تعديل بيانات العميل"
       description="قم بتحديث معلومات العميل"
     >
-      <Form onSubmit={handleSubmit} className={styles.form}>
+      <Form onSubmit={handleSubmit} error={error || undefined} className={styles.form}>
         {/* Basic Information */}
         <div className={styles.section}>
           <Text variant="h3">المعلومات الأساسية</Text>
