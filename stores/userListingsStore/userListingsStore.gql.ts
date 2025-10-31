@@ -10,7 +10,6 @@ export const MY_LISTINGS_QUERY = `
       updatedAt
       rejectionReason
       rejectionMessage
-      moderationStatus
       category {
         id
         name
@@ -53,7 +52,6 @@ export const MY_LISTING_BY_ID_QUERY = `
       biddingStartPrice
       rejectionReason
       rejectionMessage
-      moderationStatus
       createdAt
       updatedAt
       category {

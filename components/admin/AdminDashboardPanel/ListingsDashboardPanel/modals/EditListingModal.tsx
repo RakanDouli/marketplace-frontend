@@ -8,7 +8,7 @@ import { Listing } from '@/types/listing';
 import { validateListingStatusForm, createListingFieldValidator, type ListingFormData, type ValidationErrors } from '@/lib/admin/validation/listingValidation';
 import { useAdminListingsStore } from '@/stores/admin/adminListingsStore';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
+import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, MODERATION_FLAG_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { ConfirmBlockUserModal } from './ConfirmBlockUserModal';
 import styles from './EditListingModal.module.scss';
 
@@ -375,6 +375,68 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
               >
                 إلغاء الحظر
               </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* AI Moderation Details Section - Admin Only */}
+      {detailedListing && (
+        <div className={styles.moderationSection}>
+          <Text variant="h4" className={styles.moderationTitle}>
+            🤖 تفاصيل المراجعة الآلية
+          </Text>
+
+          <div className={styles.moderationGrid}>
+            {/* AI Score */}
+            <div className={styles.moderationItem}>
+              <span className={styles.label}>درجة الثقة</span>
+              <span className={styles.value}>
+                {detailedListing.moderationScore !== null && detailedListing.moderationScore !== undefined
+                  ? `${detailedListing.moderationScore}/100`
+                  : 'غير متاح'}
+                {detailedListing.moderationScore !== null && detailedListing.moderationScore !== undefined && (
+                  <span className={styles.scoreIndicator}>
+                    {detailedListing.moderationScore >= 90 && ' ✅ آمن'}
+                    {detailedListing.moderationScore >= 50 && detailedListing.moderationScore < 90 && ' ⚠️ يحتاج مراجعة'}
+                    {detailedListing.moderationScore < 50 && ' ❌ مرفوض'}
+                  </span>
+                )}
+              </span>
+            </div>
+
+            {/* AI Detection Flags */}
+            {detailedListing.moderationFlags && detailedListing.moderationFlags.length > 0 && (
+              <div className={styles.moderationItem}>
+                <span className={styles.label}>علامات الكشف</span>
+                <div className={styles.flagsList}>
+                  {detailedListing.moderationFlags.map((flag, index) => (
+                    <span key={index} className={styles.flagBadge}>
+                      {getLabel(flag, MODERATION_FLAG_LABELS)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reviewed By */}
+            <div className={styles.moderationItem}>
+              <span className={styles.label}>تمت المراجعة بواسطة</span>
+              <span className={styles.value}>
+                {detailedListing.reviewedBy
+                  ? `👤 مدير (${detailedListing.reviewedBy.substring(0, 8)}...)`
+                  : '🤖 مراجعة آلية'}
+              </span>
+            </div>
+
+            {/* Reviewed At */}
+            {detailedListing.reviewedAt && (
+              <div className={styles.moderationItem}>
+                <span className={styles.label}>تاريخ المراجعة</span>
+                <span className={styles.value}>
+                  {formatDate(detailedListing.reviewedAt)}
+                </span>
+              </div>
             )}
           </div>
         </div>

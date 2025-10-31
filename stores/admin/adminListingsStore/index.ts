@@ -401,6 +401,12 @@ export const useAdminListingsStore = create<AdminListingsStore>((set, get) => ({
           | "business",
         accountLabel: listingData.accountLabel || "",
         accountBadge: listingData.accountBadge || "",
+        moderationScore: listingData.moderationScore ?? null,
+        moderationFlags: listingData.moderationFlags || null,
+        rejectionReason: listingData.rejectionReason || null,
+        rejectionMessage: listingData.rejectionMessage || null,
+        reviewedBy: listingData.reviewedBy || null,
+        reviewedAt: listingData.reviewedAt || null,
         location: listingData.location
           ? {
               province: listingData.location.province,

@@ -371,7 +371,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       formData.images.forEach((imageItem, index) => {
         console.log(`🖼️ Image ${index}:`, {
           hasFile: !!imageItem.file,
-          hasPreview: !!imageItem.preview,
+          hasUrl: !!imageItem.url,
           file: imageItem.file
         });
         if (imageItem.file) {

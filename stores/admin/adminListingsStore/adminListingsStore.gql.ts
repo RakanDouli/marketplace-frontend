@@ -47,7 +47,6 @@ export const UPDATE_LISTING_MUTATION = `
       updatedAt
       rejectionReason
       rejectionMessage
-      moderationStatus
       category {
         name
       }
@@ -127,6 +126,12 @@ export const GET_LISTING_BY_ID_QUERY = `
         value
         currency
       }
+      moderationScore
+      moderationFlags
+      rejectionReason
+      rejectionMessage
+      reviewedBy
+      reviewedAt
       user {
         id
         name

@@ -18,7 +18,11 @@ interface ArchivedListingStore {
   fetchMyArchivedListings: () => Promise<void>;
   archiveListing: (
     listingId: string,
-    reason: "sold_via_platform" | "sold_externally" | "no_longer_for_sale" | "other"
+    reason:
+      | "sold_via_platform"
+      | "sold_externally"
+      | "no_longer_for_sale"
+      | "other"
   ) => Promise<void>;
   clearArchivedListing: () => void;
 }
@@ -39,9 +43,16 @@ export const useArchivedListingStore = create<ArchivedListingStore>((set) => ({
       );
 
       if (data.archivedListing) {
-        // Parse specsJson and flatten location
+        // Parse specsDisplay (same as listings store)
         const listing = data.archivedListing;
-        listing.specsDisplay = listing.specsJson ? JSON.parse(listing.specsJson) : {};
+        // Check if specsDisplay is already an object or needs parsing
+        if (listing.specsDisplay) {
+          listing.specsDisplay = typeof listing.specsDisplay === 'string'
+            ? JSON.parse(listing.specsDisplay)
+            : listing.specsDisplay;
+        } else {
+          listing.specsDisplay = {};
+        }
 
         // Flatten location for easier access
         if (listing.location) {
@@ -73,8 +84,17 @@ export const useArchivedListingStore = create<ArchivedListingStore>((set) => ({
         { ttl: 2 * 60 * 1000 } // Cache for 2 minutes
       );
 
+      // Flatten location for each listing
+      const listings = data.myArchivedListings.map((listing: any) => {
+        if (listing.location) {
+          listing.province = listing.location.province;
+          listing.city = listing.location.city;
+        }
+        return listing;
+      });
+
       set({
-        myArchivedListings: data.myArchivedListings,
+        myArchivedListings: listings,
         isLoading: false,
       });
     } catch (error: any) {

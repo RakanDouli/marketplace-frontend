@@ -32,7 +32,6 @@ export interface ArchivedListing {
   accountLabel: string | null;
   accountBadge: string;
   status: string;
-  moderationStatus: string | null;
   moderationScore: number | null;
   moderationFlags: string[] | null;
   rejectionReason: string | null;
@@ -71,8 +70,15 @@ export interface ArchivedListingSummary {
   title: string;
   priceMinor: number;
   imageKeys: string[];
-  province: string;
-  city: string | null;
+  location: {
+    province: string;
+    city: string | null;
+    area: string | null;
+    link: string | null;
+  } | null;
+  // Flattened for component access
+  province?: string;
+  city?: string | null;
   viewCount: number;
   prices: Array<{
     currency: string;

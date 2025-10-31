@@ -60,7 +60,7 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
 
       if (attribute) {
         const label = typeof value === 'object' ? value.label : attribute.name;
-        const displayValue = typeof value === 'object' ? value.value : value;
+        let displayValue = typeof value === 'object' ? value.value : value;
 
         if (attribute.group) {
           // Has a group - add to groups

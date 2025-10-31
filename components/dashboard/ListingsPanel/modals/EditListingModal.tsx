@@ -147,7 +147,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               location { province city area link }
               category { id name slug }
               rejectionReason rejectionMessage
-              moderationStatus moderationScore moderationFlags
+             moderationScore moderationFlags
               createdAt updatedAt
             }
           }`,
@@ -163,7 +163,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           status: data.status,
           rejectionReason: data.rejectionReason,
           rejectionMessage: data.rejectionMessage,
-          moderationStatus: data.moderationStatus,
+
         });
 
         // Parse specs from JSON string to object

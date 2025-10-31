@@ -73,6 +73,24 @@ export const REJECTION_REASON_LABELS: Record<string, string> = {
   other: "سبب آخر",
 };
 
+export const MODERATION_FLAG_LABELS: Record<string, string> = {
+  harassment: "تحرش",
+  "harassment/threatening": "تحرش مع تهديد",
+  hate: "خطاب كراهية",
+  "hate/threatening": "خطاب كراهية مع تهديد",
+  "self-harm": "إيذاء النفس",
+  "self-harm/intent": "نية إيذاء النفس",
+  "self-harm/instructions": "تعليمات إيذاء النفس",
+  sexual: "محتوى جنسي",
+  "sexual/minors": "محتوى جنسي - قاصرين",
+  violence: "عنف",
+  "violence/graphic": "عنف صريح",
+  nsfw: "محتوى غير لائق",
+  gore: "محتوى دموي",
+  spam: "رسائل مزعجة",
+  profanity: "ألفاظ نابية",
+};
+
 // ===== SUBSCRIPTION METADATA LABELS =====
 
 export const BILLING_CYCLE_LABELS: Record<string, string> = {

@@ -13,6 +13,7 @@ export const GET_ARCHIVED_LISTING_QUERY = `
       title
       description
       priceMinor
+      specsDisplay
       specsJson
       videoUrl
       imageKeys
@@ -28,7 +29,6 @@ export const GET_ARCHIVED_LISTING_QUERY = `
       accountLabel
       accountBadge
       status
-      moderationStatus
       moderationScore
       moderationFlags
       rejectionReason
@@ -71,8 +71,12 @@ export const GET_MY_ARCHIVED_LISTINGS_QUERY = `
       title
       priceMinor
       imageKeys
-      province
-      city
+      location {
+        province
+        city
+        area
+        link
+      }
       viewCount
       prices {
         currency

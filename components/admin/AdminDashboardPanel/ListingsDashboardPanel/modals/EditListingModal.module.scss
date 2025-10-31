@@ -313,6 +313,69 @@
   }
 }
 
+.moderationSection {
+  margin-bottom: $space-xl;
+  padding: $space-lg;
+  background: $bg;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+}
+
+.moderationTitle {
+  margin-bottom: $space-md;
+  color: $text;
+  font-weight: $weight-semibold;
+}
+
+.moderationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: $space-md;
+}
+
+.moderationItem {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+
+  .label {
+    font-size: $font-sm;
+    font-weight: $weight-semibold;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .value {
+    font-size: $font-base;
+    color: $text;
+    font-weight: $weight-medium;
+  }
+}
+
+.scoreIndicator {
+  margin-left: $space-xs;
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+}
+
+.flagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+}
+
+.flagBadge {
+  padding: $space-xs $space-sm;
+  background: $error-bg;
+  color: $error;
+  border-radius: $radius-sm;
+  font-size: $font-sm;
+  font-family: $font-mono;
+  font-weight: $weight-medium;
+  border: 1px solid $error;
+}
+
 .formActions {
   display: flex;
   gap: $space-sm;
