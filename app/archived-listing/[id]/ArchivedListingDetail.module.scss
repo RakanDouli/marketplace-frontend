@@ -20,7 +20,7 @@
   position: relative;
   filter: grayscale(1);
   &::before {
-    content: "ss";
+    content: "";
     width: 100%;
     height: 100%;
     display: block;

@@ -1,24 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import styles from './FavoriteButton.module.scss';
 
 interface FavoriteButtonProps {
   listingId: string;
   initialFavorited?: boolean;
-
-  onToggle?: (listingId: string, isFavorited: boolean) => void;
+  onToggle?: () => void;
 }
 
 export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   listingId,
   initialFavorited = false,
-
   onToggle,
 }) => {
-  const [isFavorited, setIsFavorited] = useState(initialFavorited);
+  const { isInWishlist, toggleWishlist } = useWishlistStore();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use wishlist store state as source of truth
+  const isFavorited = isInWishlist(listingId);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -27,12 +29,8 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     setIsLoading(true);
 
     try {
-      // TODO: Add API call to toggle favorite
-      // const response = await toggleFavorite(listingId);
-
-      const newState = !isFavorited;
-      setIsFavorited(newState);
-      onToggle?.(listingId, newState);
+      await toggleWishlist(listingId);
+      onToggle?.();
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
     } finally {

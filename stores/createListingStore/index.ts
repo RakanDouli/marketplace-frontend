@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { cachedGraphQLRequest } from "../../utils/graphql-cache";
+import { cachedGraphQLRequest, invalidateGraphQLCache } from "../../utils/graphql-cache";
 import { GET_ATTRIBUTES_BY_CATEGORY } from "./createListing.gql";
 import { ListingValidationConfig } from "../../lib/validation/listingValidation";
 import type {
@@ -403,6 +403,10 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
 
       const result = await response.json();
       console.log("✅ Backend response:", result);
+
+      // Invalidate user listings cache so the dashboard refreshes
+      invalidateGraphQLCache('MyListings');
+      console.log("🗑️ Invalidated MyListings cache");
 
       set({ isSubmitting: false });
       console.log("✅ Listing created successfully");

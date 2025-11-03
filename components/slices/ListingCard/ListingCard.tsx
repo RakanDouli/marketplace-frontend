@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { MapPin, User } from "lucide-react";
 import { ImageGallery, Text, ShareButton, FavoriteButton } from "../";
+import { useWishlistStore } from "@/stores/wishlistStore";
 import styles from "./ListingCard.module.scss";
 
 export interface ListingCardProps {
@@ -16,13 +17,12 @@ export interface ListingCardProps {
   specs?: Record<string, any>; // Dynamic specs from backend
   images?: string[];
   description?: string;
-  isLiked?: boolean;
-  onLike?: (id: string, liked: boolean) => void;
   onClick?: (id: string) => void;
   viewMode?: "grid" | "list";
   className?: string;
   priority?: boolean; // For LCP optimization
   isLoading?: boolean; // Skeleton loading state
+  // Deprecated: isLiked and onLike - now using wishlist store directly
 }
 
 export const ListingCard: React.FC<ListingCardProps> = ({
@@ -35,14 +35,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   specs = {},
   images,
   description = "",
-  isLiked = false,
-  onLike,
   onClick,
   viewMode = "grid",
   className = "",
   priority = false,
   isLoading = false,
 }) => {
+  const { isInWishlist, toggleWishlist } = useWishlistStore();
+
   const handleCardClick = () => {
     onClick?.(id);
   };
@@ -98,8 +98,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             <div className={styles.favorite}>
               <FavoriteButton
                 listingId={id}
-                initialFavorited={isLiked}
-                onToggle={onLike}
+                initialFavorited={isInWishlist(id)}
+                onToggle={() => toggleWishlist(id)}
               />
             </div>
           )}
