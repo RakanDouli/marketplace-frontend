@@ -1,0 +1,92 @@
+@import '@/styles/variables';
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $space-xl;
+
+  @media (max-width: 768px) {
+    padding: $space-md;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-bottom: $space-xl;
+
+  svg {
+    color: var(--color-error);
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: $space-lg;
+  }
+}
+
+.count {
+  color: var(--color-text-light);
+  margin-right: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $space-lg;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-sm;
+  }
+}
+
+.cardWrapper {
+  position: relative;
+}
+
+.removeButton {
+  position: absolute;
+  top: $space-sm;
+  right: $space-sm;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--color-border);
+  padding: $space-xs;
+  min-width: auto;
+
+  &:hover {
+    background: var(--color-error);
+    color: white;
+    border-color: var(--color-error);
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: $space-3xl 0;
+  gap: $space-md;
+
+  @media (max-width: 768px) {
+    padding: $space-2xl 0;
+  }
+}
+
+.emptyIcon {
+  color: var(--color-text-light);
+  opacity: 0.3;
+}
+
+.emptyDescription {
+  color: var(--color-text-light);
+  max-width: 400px;
+}
+
+.errorText {
+  color: var(--color-error);
+}
