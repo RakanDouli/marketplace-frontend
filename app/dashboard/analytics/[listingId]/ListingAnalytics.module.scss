@@ -1,7 +1,7 @@
-@import "../../../styles/variables";
+@import "../../../../styles/variables";
 
 // ===================================
-// Analytics Dashboard - Standardized Layout
+// Individual Listing Analytics - Standardized Layout
 // ===================================
 
 // Main Container (matches admin dashboard)
@@ -59,6 +59,11 @@
   text-align: center;
 }
 
+.backButton {
+  width: max-content;
+  margin: 0 auto 0 0;
+}
+
 // ===================================
 // Date Range Selector
 // ===================================
@@ -69,62 +74,7 @@
 }
 
 // ===================================
-// Section Container
-// ===================================
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: $space-lg;
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: $space-sm;
-}
-
-// ===================================
-// Back Button
-// ===================================
-
-.backButton {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-sm;
-  padding: $space-sm $space-md;
-  background: transparent;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  color: $text-secondary;
-  font-size: $font-sm;
-  font-weight: $weight-medium;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba($primary, 0.05);
-    border-color: $primary;
-    color: $primary;
-
-    svg {
-      transform: translateX(4px);
-    }
-  }
-
-  svg {
-    transition: transform 0.2s ease;
-  }
-
-  p {
-    margin: 0;
-  }
-}
-
-// ===================================
-// Stats Grid (Summary Cards)
+// Stats Grid
 // ===================================
 
 .statsGrid {
@@ -169,76 +119,6 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-}
-
-// ===================================
-// Listings Grid (Selector Cards)
-// ===================================
-
-.listingsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: $space-md;
-
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.listingCard {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-  padding: $space-lg;
-  background: $surface;
-  border-radius: $radius-lg;
-  border: 1px solid $border;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-  text-align: right;
-
-  &:hover {
-    border-color: $primary;
-  }
-}
-
-.listingHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: $space-sm;
-}
-
-
-.listingStats {
-  display: flex;
-  gap: $space-lg;
-  padding-top: $space-xs;
-  border-top: 1px solid $border;
-}
-
-.listingStat {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: $text-secondary;
-
-  svg {
-    flex-shrink: 0;
-  }
-}
-
-.performanceBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border-radius: $radius-full;
-  font-size: $font-xs;
-  font-weight: $weight-semibold;
-  color: white;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 // ===================================
