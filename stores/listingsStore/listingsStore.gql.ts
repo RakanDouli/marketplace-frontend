@@ -21,6 +21,9 @@ export const LISTINGS_GRID_QUERY = `
         value
         currency
       }
+      user {
+        id
+      }
     }
     listingsAggregations(filter: $filter) {
       totalResults
@@ -49,6 +52,9 @@ export const LISTINGS_LIST_QUERY = `
       prices {
         value
         currency
+      }
+      user {
+        id
       }
     }
     listingsAggregations(filter: $filter) {
@@ -164,6 +170,8 @@ export const LISTING_BY_ID_QUERY = `
         value
         currency
       }
+      viewCount
+      wishlistCount
       user {
         id
         name

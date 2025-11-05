@@ -287,6 +287,14 @@ export const ListingsPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* View Count */}
+                {listing.viewCount !== undefined && (
+                  <div className={styles.viewCount}>
+                    <Eye size={14} />
+                    <Text variant="xs">{listing.viewCount} مشاهدة</Text>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className={styles.cardActions}>
                   <Button

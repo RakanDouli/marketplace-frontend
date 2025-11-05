@@ -143,6 +143,14 @@ export const useUserAuthStore = create<UserAuthStore>()(
               showAuthModal: false,
             });
 
+            // Load user's wishlist after successful login
+            try {
+              const { useWishlistStore } = await import('@/stores/wishlistStore');
+              useWishlistStore.getState().loadMyWishlist();
+            } catch (wishlistError) {
+              console.warn('Failed to load wishlist on login:', wishlistError);
+            }
+
             // Show force modal for INACTIVE users
             if (isInactive) {
               useForceModalStore.getState().showForceModal(

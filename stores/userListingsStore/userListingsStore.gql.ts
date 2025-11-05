@@ -6,6 +6,7 @@ export const MY_LISTINGS_QUERY = `
       priceMinor
       status
       imageKeys
+      viewCount
       createdAt
       updatedAt
       rejectionReason

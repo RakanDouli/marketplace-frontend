@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
+import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, CollapsibleSection, Container } from '@/components/slices';
-import { Phone, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Phone, MessageCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
 import { ShareButton, FavoriteButton } from '@/components/slices/Button';
 import { AdContainer } from '@/components/ads';
@@ -36,6 +37,13 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     }
   }, [currentListing?.category?.slug, fetchFilterData]);
 
+  // Track listing view when listing is loaded
+  useEffect(() => {
+    if (currentListing?.id) {
+      trackListingView(currentListing.id);
+    }
+  }, [currentListing?.id]);
+  console.log(currentListing);
   // Separate grouped and ungrouped specifications
   const { groupedSpecs, ungroupedSpecs } = useMemo(() => {
     if (!currentListing?.specsDisplay || attributes.length === 0) {
@@ -175,6 +183,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     province: listing.location?.province,
     city: listing.location?.city,
     area: listing.location?.area,
+    viewCount: listing.viewCount
   });
 
   const hasLocation = listing.location && (
@@ -226,6 +235,13 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               priority
             />
 
+            {/* View Count */}
+            {listing.viewCount !== undefined && (
+              <div className={styles.viewCount}>
+                <Eye size={16} />
+                <Text variant="small">{listing.viewCount} مشاهدة</Text>
+              </div>
+            )}
 
             {/* Title */}
             <Text variant="h2" className={styles.title}>
@@ -326,7 +342,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                     availability: listing.status === 'ACTIVE' ? 'in stock' : 'out of stock',
                   }}
                 />
-                <FavoriteButton listingId={listing.id} />
+                <FavoriteButton
+                  listingId={listing.id}
+                  listingUserId={listing.user?.id}
+                />
               </div>
 
               {/* Price */}
@@ -369,6 +388,15 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                     </span>
                   </div>
                 )}
+                {/* {listing.viewCount !== undefined && (
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>المشاهدات</span>
+                    <span className={styles.value}>
+                      <Eye size={16} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
+                      {listing.viewCount.toLocaleString('ar')}
+                    </span>
+                  </div>
+                )} */}
               </div>
             </div>
           </aside>

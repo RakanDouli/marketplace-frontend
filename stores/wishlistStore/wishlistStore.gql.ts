@@ -27,10 +27,6 @@ export const MY_WISHLIST_QUERY = `
         nameAr
         slug
       }
-      prices {
-        currency
-        value
-      }
       user {
         id
         name

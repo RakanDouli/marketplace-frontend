@@ -16,6 +16,6 @@
   &.favorited {
     color: $error;
     border-color: $error;
-    background: $bg;
+    background: rgba(239, 68, 68, 0.1); // Light red background when favorited
   }
 }

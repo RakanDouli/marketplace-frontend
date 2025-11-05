@@ -300,6 +300,20 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             accountType: item.accountType as "individual" | "dealer" | "business",
             createdAt: item.createdAt,
             updatedAt: item.createdAt,
+            user: item.user ? {
+              id: item.user.id,
+              name: '',
+              email: '',
+              role: '',
+              status: 'active' as const,
+              accountType: item.accountType as "individual" | "dealer" | "business",
+              companyName: undefined,
+              accountBadge: 'none' as const,
+              businessVerified: false,
+              phone: undefined,
+              createdAt: item.createdAt,
+              updatedAt: item.createdAt,
+            } : undefined,
           };
         }
       );
@@ -439,6 +453,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         createdAt: item.createdAt,
         updatedAt: item.createdAt,
         location: item.location,
+        viewCount: item.viewCount,
+        wishlistCount: item.wishlistCount,
         category: item.category ? {
           id: item.category.id,
           name: item.category.name,

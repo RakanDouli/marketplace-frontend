@@ -213,6 +213,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       accountType: listing.accountType as "individual" | "dealer" | "business",
       specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags
       images: listing.imageKeys || [],
+      userId: listing.user?.id, // Pass user ID for favorite button ownership check
       isLiked: false, // TODO: Get from user favorites
     };
   });

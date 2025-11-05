@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { MapPin, User } from "lucide-react";
 import { ImageGallery, Text, ShareButton, FavoriteButton } from "../";
-import { useWishlistStore } from "@/stores/wishlistStore";
 import styles from "./ListingCard.module.scss";
 
 export interface ListingCardProps {
@@ -22,6 +21,7 @@ export interface ListingCardProps {
   className?: string;
   priority?: boolean; // For LCP optimization
   isLoading?: boolean; // Skeleton loading state
+  userId?: string; // NEW: ID of the user who owns the listing
   // Deprecated: isLiked and onLike - now using wishlist store directly
 }
 
@@ -40,9 +40,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   className = "",
   priority = false,
   isLoading = false,
+  userId,
 }) => {
-  const { isInWishlist, toggleWishlist } = useWishlistStore();
-
   const handleCardClick = () => {
     onClick?.(id);
   };
@@ -96,11 +95,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           {/* Favorite Button */}
           {!isLoading && (
             <div className={styles.favorite}>
-              <FavoriteButton
-                listingId={id}
-                initialFavorited={isInWishlist(id)}
-                onToggle={() => toggleWishlist(id)}
-              />
+              <FavoriteButton listingId={id} listingUserId={userId} />
             </div>
           )}
         </div>

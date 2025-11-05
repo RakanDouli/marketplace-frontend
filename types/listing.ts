@@ -52,6 +52,9 @@ export interface Listing {
   rejectionMessage?: string | null;
   reviewedBy?: string | null;
   reviewedAt?: string | null;
+  // Analytics fields
+  viewCount?: number;
+  wishlistCount?: number;
   createdAt: string;
   updatedAt: string;
   user?: {

@@ -99,6 +99,26 @@
   width: 100%;
 }
 
+// View Count
+.viewCount {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  color: $text-muted;
+  width: max-content;
+  border: 1px solid $primary;
+  border-radius: $radius-sm;
+  margin: 0 auto 0 0;
+  padding: $space-sm;
+  color: $primary;
+  span {
+    color: $primary;
+  }
+  svg {
+    flex-shrink: 0;
+  }
+}
+
 // Action Buttons (Share & Favorite)
 .actionButtons {
   display: flex;
