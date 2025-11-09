@@ -26,7 +26,8 @@ import {
   UserCircle,
   MessageCircle,
   Eye,
-  Mail
+  Mail,
+  AlertTriangle
 } from 'lucide-react';
 import styles from './AdminDashboard.module.scss';
 
@@ -62,7 +63,8 @@ const getModuleIcon = (iconString: string) => {
     'UserCircle': <UserCircle size={32} />,
     'MessageCircle': <MessageCircle size={32} />,
     'Eye': <Eye size={32} />,
-    'Mail': <Mail size={32} />
+    'Mail': <Mail size={32} />,
+    'AlertTriangle': <AlertTriangle size={32} />
   };
 
   return icons[iconString] || <LayoutDashboard size={32} />;

@@ -1,0 +1,116 @@
+@import '../../styles/variables.scss';
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  max-width: 500px;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.warningIcon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.dangerIcon {
+  color: $error;
+  flex-shrink: 0;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.description {
+  line-height: 1.6;
+
+  strong {
+    font-weight: $weight-bold;
+    color: $text;
+  }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.label {
+  font-weight: $weight-medium;
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding: $space-sm 0;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: $primary;
+  }
+
+  &:has(input:checked) {
+    background: rgba(var(--primary-rgb), 0.05);
+    border-color: $primary;
+  }
+}
+
+.textarea {
+  width: 100%;
+  padding: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  font-family: inherit;
+  font-size: $font-base;
+  color: $text;
+  background: $bg;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+
+  &::placeholder {
+    color: $text-secondary;
+    opacity: 0.6;
+  }
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}

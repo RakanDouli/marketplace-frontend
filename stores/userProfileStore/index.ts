@@ -9,6 +9,7 @@ import {
   CREATE_AVATAR_UPLOAD_URL_MUTATION,
   DELETE_AVATAR_MUTATION
 } from './userProfile.gql';
+import { uploadToCloudflare } from '@/utils/cloudflare-upload';
 
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
@@ -151,37 +152,15 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
     }
   },
 
-  // Upload avatar image
+  // Upload avatar image (using unified utility)
   uploadAvatar: async (token: string, file: File) => {
     set({ loading: true, error: null });
 
     try {
-      // Step 1: Get Cloudflare upload URL
-      const uploadData = await makeGraphQLCall(CREATE_AVATAR_UPLOAD_URL_MUTATION, {}, token);
-      const { uploadUrl } = uploadData.createAvatarUploadUrl;
+      // Step 1: Upload to Cloudflare using unified utility
+      const realImageId = await uploadToCloudflare(file, 'avatar');
 
-      // Step 2: Upload to Cloudflare
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('فشل رفع الصورة');
-      }
-
-      // Step 3: Get REAL Cloudflare image ID from response
-      const cloudflareResult = await uploadResponse.json();
-      const realImageId = cloudflareResult?.result?.id;
-
-      if (!realImageId) {
-        throw new Error('لم يتم الحصول على معرف الصورة من Cloudflare');
-      }
-
-      // Step 4: Save REAL Cloudflare ID to database
+      // Step 2: Save REAL Cloudflare ID to database
       await makeGraphQLCall(
         UPDATE_ME_MUTATION,
         { input: { avatar: realImageId } },

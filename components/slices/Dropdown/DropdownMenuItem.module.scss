@@ -1,0 +1,37 @@
+@import "../../../styles/variables";
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  width: 100%;
+  padding: $space-sm $space-md;
+  border: none;
+  background: $bg;
+  color: $text;
+  font-size: $font-base;
+  text-align: right;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  span {
+    margin-bottom: 0;
+  }
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  // &.danger {
+  //   color: $danger;
+  // }
+}
+
+.icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}

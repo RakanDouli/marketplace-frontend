@@ -3,10 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { MessageCircle } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { ThemeToggle, Spacer } from "@/components/slices";
 import { UserMenu } from "@/components/UserMenu";
+import { useChatStore } from "@/stores/chatStore";
+import { useUserAuthStore } from "@/stores/userAuthStore";
 import styles from "./Header.module.scss";
 import { Container } from "../slices";
 
@@ -14,6 +17,20 @@ export const Header: React.FC = () => {
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const { user } = useUserAuthStore();
+  const { unreadCount, fetchUnreadCount } = useChatStore();
+
+  // Fetch unread count when user is logged in
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+      // Poll every 30 seconds for new messages
+      const interval = setInterval(() => {
+        fetchUnreadCount();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchUnreadCount]);
 
   // Handle scroll behavior - hide when scrolling down, show when scrolling up
   useEffect(() => {
@@ -56,6 +73,14 @@ export const Header: React.FC = () => {
 
             {/* Desktop Actions */}
             <div className={styles.actions}>
+              {user && (
+                <Link href="/messages" className={styles.messagesIcon}>
+                  <MessageCircle size={20} />
+                  {unreadCount > 0 && (
+                    <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
+                  )}
+                </Link>
+              )}
               <UserMenu />
               <ThemeToggle />
             </div>

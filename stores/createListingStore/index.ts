@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { cachedGraphQLRequest, invalidateGraphQLCache } from "../../utils/graphql-cache";
 import { GET_ATTRIBUTES_BY_CATEGORY } from "./createListing.gql";
 import { ListingValidationConfig } from "../../lib/validation/listingValidation";
+import { uploadMultipleToCloudflare } from "@/utils/cloudflare-upload";
 import type {
   CreateListingStore,
   CreateListingFormData,
@@ -260,52 +261,27 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     set({ steps, attributeGroups });
   },
 
-  // ===== UPLOAD IMAGES TO CLOUDFLARE =====
+  // ===== UPLOAD IMAGES TO CLOUDFLARE (using unified utility) =====
   uploadImages: async (): Promise<string[]> => {
     const { formData } = get();
-    const imageKeys: string[] = [];
 
-    for (const imageItem of formData.images) {
-      // Skip images that don't have a file (already uploaded images with URLs)
-      if (!imageItem.file) {
-        continue;
-      }
+    // Filter out images that are already uploaded (no file, just URL)
+    const filesToUpload = formData.images
+      .filter(imageItem => imageItem.file)
+      .map(imageItem => imageItem.file!);
 
-      try {
-        // Step 1: Get Cloudflare upload URL (cachedGraphQLRequest gets token automatically)
-        const uploadData = await cachedGraphQLRequest(
-          `mutation { createImageUploadUrl { uploadUrl assetKey } }`
-        );
-        const { uploadUrl } = (uploadData as any).createImageUploadUrl;
-
-        // Step 2: Upload to Cloudflare
-        const formDataUpload = new FormData();
-        formDataUpload.append("file", imageItem.file);
-
-        const uploadResponse = await fetch(uploadUrl, {
-          method: "POST",
-          body: formDataUpload,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error(`فشل رفع الصورة: ${uploadResponse.statusText}`);
-        }
-
-        const uploadResult = await uploadResponse.json();
-
-        // Step 3: Extract real image ID from Cloudflare response
-        if (!uploadResult.result?.id) {
-          throw new Error("فشل الحصول على معرف الصورة من Cloudflare");
-        }
-
-        imageKeys.push(uploadResult.result.id);
-      } catch (error: any) {
-        console.error("❌ Error uploading image:", error);
-        throw new Error(`فشل رفع الصورة: ${error.message}`);
-      }
+    if (filesToUpload.length === 0) {
+      return [];
     }
 
-    return imageKeys;
+    try {
+      // Upload all images in parallel using unified utility
+      const imageKeys = await uploadMultipleToCloudflare(filesToUpload, 'image');
+      return imageKeys;
+    } catch (error: any) {
+      console.error("❌ Error uploading images:", error);
+      throw new Error(`فشل رفع الصور: ${error.message}`);
+    }
   },
 
   // ===== SUBMIT LISTING =====

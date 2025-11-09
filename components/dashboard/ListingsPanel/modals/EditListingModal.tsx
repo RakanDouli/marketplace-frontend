@@ -12,6 +12,7 @@ import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
+import { uploadMultipleToCloudflare } from '@/utils/cloudflare-upload';
 import {
   validateListingForm,
   validateAttribute,
@@ -346,44 +347,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setImageOperationSuccess(false);
 
     try {
-      const uploadedImageKeys: string[] = [];
+      // Upload new images using unified utility
+      const filesToUpload = addedImages
+        .filter(img => img.file)
+        .map(img => img.file!);
 
-      for (const imageItem of addedImages) {
-        if (!imageItem.file) continue;
-
-        // Type assertion: file is guaranteed to exist after the guard above
-        const file: File = imageItem.file;
-
-        // Get Cloudflare upload URL
-        const uploadData = await cachedGraphQLRequest(
-          `mutation { createImageUploadUrl { uploadUrl assetKey } }`,
-          {}
-        );
-        const { uploadUrl, assetKey } = (uploadData as any).createImageUploadUrl;
-
-        // Upload to Cloudflare
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-
-        const uploadResponse = await fetch(uploadUrl, {
-          method: 'POST',
-          body: formDataUpload,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error('Image upload failed');
-        }
-
-        // Get REAL Cloudflare image ID from response (not the pre-generated assetKey)
-        const cloudflareResult = await uploadResponse.json();
-        const realImageId = cloudflareResult?.result?.id;
-
-        if (!realImageId) {
-          throw new Error('Failed to get image ID from Cloudflare');
-        }
-
-        uploadedImageKeys.push(realImageId);
-      }
+      const uploadedImageKeys = await uploadMultipleToCloudflare(filesToUpload, 'image');
 
       // Update listing images immediately
       const allImageKeys = [...images.map(img => img.id), ...uploadedImageKeys];

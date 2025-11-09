@@ -177,6 +177,7 @@ export const LISTING_BY_ID_QUERY = `
         name
         phone
         accountType
+        companyName
       }
     }
   }

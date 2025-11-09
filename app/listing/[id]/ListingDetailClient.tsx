@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
+import { useChatStore } from '@/stores/chatStore';
+import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, CollapsibleSection, Container } from '@/components/slices';
@@ -12,6 +15,7 @@ import { Phone, MessageCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-rea
 import { LocationMap } from '@/components/LocationMap';
 import { ShareButton, FavoriteButton } from '@/components/slices/Button';
 import { AdContainer } from '@/components/ads';
+import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -20,8 +24,19 @@ interface ListingDetailClientProps {
 
 export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listingId }) => {
   const router = useRouter();
+  const { user } = useUserAuthStore();
   const { currentListing, isLoading, error, fetchListingById } = useListingsStore();
   const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
+  const { isUserBlocked, fetchBlockedUsers } = useChatStore();
+  const { addNotification } = useNotificationStore();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  // Fetch blocked users when user is logged in
+  useEffect(() => {
+    if (user) {
+      fetchBlockedUsers();
+    }
+  }, [user, fetchBlockedUsers]);
 
   useEffect(() => {
     if (listingId) {
@@ -363,7 +378,25 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                 <Button variant="primary" size="lg" icon={<Phone size={18} />}>
                   {listing.user?.phone || 'اتصل بالبائع'}
                 </Button>
-                <Button variant="outline" size="lg" icon={<MessageCircle size={18} />}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  icon={<MessageCircle size={18} />}
+                  onClick={() => {
+                    // Check if seller is blocked
+                    const sellerId = currentListing?.user?.id;
+                    if (sellerId && isUserBlocked(sellerId)) {
+                      addNotification({
+                        type: 'error',
+                        title: 'لا يمكن التواصل',
+                        message: 'لا يمكنك التواصل مع هذا البائع. لقد قمت بحظره. يمكنك إلغاء الحظر من صفحة المحظورين.',
+                        duration: 7000,
+                      });
+                      return;
+                    }
+                    setIsContactModalOpen(true);
+                  }}
+                >
                   أرسل رسالة
                 </Button>
               </div>
@@ -407,6 +440,17 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
       <div className={styles.adSection}>
         <AdContainer type="BETWEEN_LISTINGS_BANNER" placement="detail-bottom" />
       </div>
+
+      {/* Contact Seller Modal */}
+      {currentListing && (
+        <ContactSellerModal
+          isVisible={isContactModalOpen}
+          onClose={() => setIsContactModalOpen(false)}
+          listingId={currentListing.id}
+          listingTitle={currentListing.title}
+          sellerId={currentListing.user?.id || ''}
+        />
+      )}
     </Container>
   );
 };

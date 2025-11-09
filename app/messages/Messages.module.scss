@@ -1,0 +1,500 @@
+@import "@/styles/variables.scss";
+
+.container {
+  display: flex;
+  height: calc(100vh - $header-height);
+  background: $bg;
+}
+
+// Threads Aside (Left side)
+.threadsAside {
+  width: 100%;
+  max-width: 400px;
+  border-right: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  background: $surface;
+
+  @media (max-width: $breakpoint-lg) {
+    max-width: 100%;
+    border-right: none;
+
+    &.hidden {
+      display: none;
+    }
+  }
+}
+
+.threadsHeader {
+  padding: $space-lg;
+  border-bottom: 1px solid $border;
+}
+
+.threadsList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.threadItem {
+  width: 100%;
+  padding: $space-md $space-lg;
+  border: none;
+  border-bottom: 1px solid $border;
+  background: transparent;
+  text-align: right;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  gap: $space-md;
+  align-items: flex-start;
+
+  &:hover {
+    background: rgba($primary, 0.05);
+  }
+
+  &.active {
+    background: $surface;
+    border-right: 3px solid $primary;
+  }
+}
+
+.threadImage {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.threadInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  min-width: 0; // Allow text truncation
+  span {
+    margin-bottom: 0;
+  }
+}
+
+.threadHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-sm;
+}
+
+.threadTitle {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.threadPrice {
+  flex-shrink: 0;
+}
+
+.sellerName {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  opacity: 0.7;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.lastMessage {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.timestamp {
+  opacity: 0.6;
+}
+
+.emptyState {
+  padding: $space-xl;
+  text-align: center;
+}
+
+// Chat Main (Right side)
+.chatMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: $bg;
+
+  @media (max-width: $breakpoint-lg) {
+    &.hidden {
+      display: none;
+    }
+  }
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid $border;
+  background: $surface;
+  position: relative;
+}
+
+.listingInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  flex: 1;
+}
+
+.listingImage {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.listingDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  min-width: 0;
+}
+
+.listingTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: $weight-medium;
+}
+
+.mobileHeader {
+  display: none;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid $border;
+  background: $surface;
+
+  @media (max-width: $breakpoint-lg) {
+    display: block;
+  }
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  border: none;
+  background: transparent;
+  color: $primary;
+  cursor: pointer;
+  font-size: $font-base;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.chatContent {
+  flex: 1;
+  padding: $space-lg;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.emptyMessages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.message {
+  display: flex;
+  width: 100%;
+
+  // Arabic (RTL) pattern: sent messages on LEFT, received on RIGHT
+  &.sent {
+    justify-content: flex-start;
+  }
+
+  &.received {
+    justify-content: flex-end;
+  }
+}
+.messageArea {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  span {
+    margin-bottom: 0;
+  }
+}
+.messageBubble {
+  max-width: 70%;
+
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  position: relative;
+
+  // Arabic (RTL) pattern: sent messages on LEFT with tail on bottom-left
+  .sent & {
+    padding: $space-sm $space-md $space-sm $space-sm;
+    .messageArea {
+      > span {
+        color: $text-light !important;
+      }
+    }
+    background: $info;
+    border-bottom-left-radius: $space-xs;
+  }
+
+  // Received messages on RIGHT with tail on bottom-right
+  .received & {
+    padding: $space-sm $space-md;
+    background: $surface;
+    border-bottom-right-radius: $space-xs;
+  }
+}
+
+.messageTime {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+// Chat input wrapper
+.chatInputWrapper {
+  background: $surface;
+  border-top: 1px solid $border;
+}
+
+// Image preview
+.imagePreview {
+  position: relative;
+  padding: $space-sm $space-md;
+  border-bottom: 1px solid $border;
+
+  img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: $radius-md;
+    object-fit: cover;
+  }
+
+  .removeImageButton {
+    position: absolute;
+    top: $space-md;
+    right: $space-md;
+    background: $error;
+    color: $text-light;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Image error
+.imageError {
+  padding: $space-xs $space-md;
+  background: $error-bg;
+  border-bottom: 1px solid $border;
+}
+
+// Message image
+.messageImage {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 4/3;
+  margin-bottom: $space-xs;
+  border-radius: $radius-md;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.95;
+  }
+}
+
+.chatInputForm {
+  display: flex;
+  gap: $space-sm;
+  padding: $space-md;
+}
+
+// .attachButton {
+//   background: transparent;
+//   border: none;
+//   color: $primary;
+//   cursor: pointer;
+//   padding: $space-sm;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   border-radius: $radius-md;
+//   transition: all 0.2s;
+
+//   &:hover {
+//     background: rgba($info, 0.1);
+//     color: $info;
+//   }
+
+//   &:disabled {
+//     opacity: 0.5;
+//     cursor: not-allowed;
+//   }
+// }
+
+.input {
+  flex: 1;
+  padding: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: $bg;
+  color: $text;
+  font-family: inherit;
+  font-size: $font-base;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+
+  &::placeholder {
+    color: $text-secondary;
+  }
+}
+
+.emptyChat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+// Dropdown trigger buttons (styling only - dropdown logic handled by Dropdown component)
+.menuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xs;
+  border: none;
+  background: transparent;
+  color: $text-secondary;
+  cursor: pointer;
+  border-radius: $radius-sm;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+// Message menu positioning
+.messageMenu {
+  // position: absolute;
+  // right: $space-xs;
+  // top: $space-xs;
+}
+
+.messageMenuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $bg-light;
+  padding: $space-xs;
+  cursor: pointer;
+  border-radius: $radius-sm;
+  transition: opacity 0.2s ease;
+  &:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Edit Mode
+.editMode {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  width: 100%;
+}
+
+.editTextarea {
+  width: 100%;
+  padding: $space-sm;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: $radius-sm;
+  font-family: inherit;
+  font-size: $font-base;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  resize: vertical;
+  min-height: 60px;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-xs;
+}
+
+.editButton {
+  padding: $space-xs $space-md;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: $radius-sm;
+  background: transparent;
+  color: inherit;
+  font-size: $font-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &.primary {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

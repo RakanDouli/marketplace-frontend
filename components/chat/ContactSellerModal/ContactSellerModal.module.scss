@@ -1,0 +1,39 @@
+@import '@/styles/variables.scss';
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.templates {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  button {
+    width: 100%;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-end;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}

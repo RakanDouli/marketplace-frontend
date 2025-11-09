@@ -11,6 +11,7 @@ import {
   hasValidationErrors,
   type ValidationErrors,
 } from '@/lib/admin/validation/adCampaignValidation';
+import { uploadToCloudflare, validateImageFile } from '@/utils/cloudflare-upload';
 import styles from './AdCampaignModals.module.scss';
 
 interface CreateAdCampaignModalProps {
@@ -30,6 +31,8 @@ interface AdPackage {
   packageName: string;
   basePrice: number;
   currency: string;
+  adType: string;
+  mediaRequirements: string[];
 }
 
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
@@ -75,7 +78,14 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     totalPrice: 0,
     currency: 'USD',
     notes: '',
+    desktopMediaFile: null as File | null,
+    mobileMediaFile: null as File | null,
+    clickUrl: '',
+    openInNewTab: true,
   });
+
+  const [selectedPackage, setSelectedPackage] = useState<AdPackage | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   // Fetch clients and packages
   useEffect(() => {
@@ -107,6 +117,8 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
             packageName
             basePrice
             currency
+            adType
+            mediaRequirements
           }
         }
       `;
@@ -120,17 +132,22 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     }
   };
 
-  // Auto-calculate price when package is selected
+  // Auto-calculate price and set selected package when package is selected
   useEffect(() => {
-    if (formData.packageId && !formData.isCustomPackage) {
-      const selectedPackage = packages.find(p => p.id === formData.packageId);
-      if (selectedPackage) {
-        setFormData(prev => ({
-          ...prev,
-          totalPrice: selectedPackage.basePrice,
-          currency: selectedPackage.currency
-        }));
+    if (formData.packageId) {
+      const pkg = packages.find(p => p.id === formData.packageId);
+      if (pkg) {
+        setSelectedPackage(pkg);
+        if (!formData.isCustomPackage) {
+          setFormData(prev => ({
+            ...prev,
+            totalPrice: pkg.basePrice,
+            currency: pkg.currency
+          }));
+        }
       }
+    } else {
+      setSelectedPackage(null);
     }
   }, [formData.packageId, formData.isCustomPackage, packages]);
 
@@ -148,10 +165,49 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       return; // STOP - do not submit
     }
 
+    // Validate media files are uploaded
+    if (!formData.desktopMediaFile) {
+      setError('يرجى رفع وسائط الإعلان');
+      return;
+    }
+
+    if (selectedPackage?.adType === 'video' && !formData.mobileMediaFile) {
+      setError('يرجى رفع فيديو الموبايل (مطلوب لإعلانات الفيديو)');
+      return;
+    }
+
     console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
-      await onSubmit(formData);
+      setIsUploadingMedia(true);
+
+      // Upload media files to Cloudflare
+      let desktopMediaUrl = '';
+      let mobileMediaUrl = '';
+
+      if (formData.desktopMediaFile) {
+        console.log('📤 Uploading desktop media...');
+        desktopMediaUrl = await uploadToCloudflare(formData.desktopMediaFile, 'image');
+        console.log('✅ Desktop media uploaded:', desktopMediaUrl);
+      }
+
+      if (formData.mobileMediaFile) {
+        console.log('📤 Uploading mobile media...');
+        mobileMediaUrl = await uploadToCloudflare(formData.mobileMediaFile, 'image');
+        console.log('✅ Mobile media uploaded:', mobileMediaUrl);
+      }
+
+      setIsUploadingMedia(false);
+
+      // Submit campaign with media URLs
+      await onSubmit({
+        ...formData,
+        desktopMediaUrl,
+        mobileMediaUrl,
+        clickUrl: formData.clickUrl,
+        openInNewTab: formData.openInNewTab,
+      });
+
       // Show success toast
       addNotification({
         type: 'success',
@@ -159,6 +215,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         message: 'تم إنشاء الحملة الإعلانية بنجاح',
         duration: 5000,
       });
+
       // Reset form
       setFormData({
         campaignName: '',
@@ -172,8 +229,14 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         totalPrice: 0,
         currency: 'USD',
         notes: '',
+        desktopMediaFile: null,
+        mobileMediaFile: null,
+        clickUrl: '',
+        openInNewTab: true,
       });
+      setSelectedPackage(null);
     } catch (err) {
+      setIsUploadingMedia(false);
       setError(err instanceof Error ? err.message : 'فشل في إنشاء الحملة الإعلانية');
     }
   };
@@ -328,6 +391,63 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           />
         </div>
 
+        {/* Media Upload Section - Show only if package is selected */}
+        {selectedPackage && (
+          <div className={styles.section}>
+            <Text variant="h4">وسائط الإعلان</Text>
+
+            {/* Show media requirements */}
+            <div className={styles.requirements}>
+              <Text variant="small" style={{ fontWeight: 600 }}>المتطلبات:</Text>
+              <ul style={{ marginTop: '0.5rem', paddingRight: '1.5rem' }}>
+                {selectedPackage.mediaRequirements.map((req, i) => (
+                  <li key={i} style={{ marginBottom: '0.25rem' }}>{req}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Desktop media upload */}
+            <Input
+              label={selectedPackage.adType === 'video' ? 'فيديو سطح المكتب (16:9) *' : 'صورة الإعلان *'}
+              type="file"
+              accept={selectedPackage.adType === 'video' ? 'video/mp4' : 'image/jpeg,image/png,image/webp'}
+              onChange={(e) => handleChange('desktopMediaFile', e.target.files?.[0] || null)}
+              required
+            />
+
+            {/* Mobile media upload (VIDEO ads only) */}
+            {selectedPackage.adType === 'video' && (
+              <Input
+                label="فيديو الموبايل (1:1) *"
+                type="file"
+                accept="video/mp4"
+                onChange={(e) => handleChange('mobileMediaFile', e.target.files?.[0] || null)}
+                required
+              />
+            )}
+
+            {/* Click URL */}
+            <Input
+              label="رابط الإعلان (URL) *"
+              type="url"
+              value={formData.clickUrl}
+              onChange={(e) => handleChange('clickUrl', e.target.value)}
+              placeholder="https://example.com/promotion"
+              required
+            />
+
+            {/* Open in new tab */}
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.openInNewTab}
+                onChange={(e) => handleChange('openInNewTab', e.target.checked)}
+              />
+              <span>فتح في نافذة جديدة</span>
+            </label>
+          </div>
+        )}
+
         {/* Submit Buttons */}
         <div className={styles.modalActions}>
           <Button
@@ -341,9 +461,9 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           <Button
             type="submit"
             variant="primary"
-            loading={isLoading || loadingData}
+            loading={isLoading || loadingData || isUploadingMedia}
           >
-            إنشاء الحملة
+            {isUploadingMedia ? 'جاري رفع الوسائط...' : 'إنشاء الحملة'}
           </Button>
         </div>
       </Form>

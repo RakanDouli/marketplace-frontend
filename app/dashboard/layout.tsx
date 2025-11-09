@@ -7,7 +7,7 @@ import { Container, Aside, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import type { AccountType } from '@/stores/userAuthStore/types';
-import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown, Heart } from 'lucide-react';
+import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown, Heart, Ban } from 'lucide-react';
 import styles from './Dashboard.module.scss';
 
 export default function DashboardLayout({
@@ -58,6 +58,11 @@ export default function DashboardLayout({
       icon: <Heart size={20} />,
       label: 'المفضلة',
       href: '/dashboard/wishlist',
+    },
+    {
+      icon: <Ban size={20} />,
+      label: 'قائمه الحظر',
+      href: '/dashboard/blocked-users',
     },
     {
       icon: <Crown size={20} />,
