@@ -1,4 +1,712 @@
+## 🚀 SESSION: Unified Image Upload System & Ad Campaign Media Upload (2025-11-09)
+
+### ✅ COMPLETED: Unified Cloudflare Upload System
+
+**Purpose:** Create single source of truth for all image uploads and implement ad campaign media upload.
+
+#### Backend Implementation ✅
+
+**1. Edit Listing Image Deletion Fix**
+- **Problem:** Edit listing was not deleting removed images from Cloudflare, creating orphaned files
+- **Solution:** Added ImagesService injection to ListingsService
+- **File Modified:** [listings.service.ts](marketplace-backend/src/listings/listings.service.ts:471-497)
+- **Logic:**
+  - Compare old `imageKeys` with new `imageKeys`
+  - Find removed images
+  - Delete from Cloudflare using `this.images.deleteFromCloudflare(imageKey)`
+  - Non-blocking (continues even if deletion fails)
+
+#### Frontend Implementation ✅
+
+**1. Unified Upload Utility** - [cloudflare-upload.ts](marketplace-frontend/utils/cloudflare-upload.ts)
+- **Created:** Single source of truth for all Cloudflare uploads
+- **Functions:**
+  - `uploadToCloudflare(file, type)` - Upload single image/video
+  - `uploadMultipleToCloudflare(files, type)` - Batch parallel uploads
+  - `validateImageFile(file, maxSizeMB)` - Validate before upload
+- **Key Feature:** Returns ACTUAL Cloudflare image ID (not pre-upload assetKey)
+
+**2. Refactored Components to Use Unified Utility** (87% code reduction)
+- [MessagesClient.tsx](app/messages/MessagesClient.tsx) - Chat image upload (40 lines → 2 lines)
+- [createListingStore/index.ts](stores/createListingStore/index.ts) - Listing images (manual loop → parallel batch upload)
+- [EditListingModal.tsx](components/dashboard/ListingsPanel/modals/EditListingModal.tsx) - Edit listing images
+- [userProfileStore/index.ts](stores/userProfileStore/index.ts) - Avatar upload (92% reduction)
+
+**3. Ad Campaign Media Upload** - [CreateAdCampaignModal.tsx](components/admin/AdminDashboardPanel/AdCampaignsDashboardPanel/modals/CreateAdCampaignModal.tsx)
+- ✅ Added media upload state (`desktopMediaFile`, `mobileMediaFile`)
+- ✅ Updated GraphQL query to fetch `adType` and `mediaRequirements` from packages
+- ✅ Added package tracking to show media requirements
+- ✅ Implemented upload logic in `handleSubmit`:
+  - Uploads files to Cloudflare
+  - Sends Cloudflare URLs to backend
+  - Shows upload progress ("جاري رفع الوسائط...")
+- ✅ Added UI fields:
+  - Desktop media upload (image/video based on adType)
+  - Mobile media upload (conditionally for VIDEO ads)
+  - Click URL input
+  - Open in new tab checkbox
+  - Media requirements display
+
+**Bug Fix:**
+- Fixed `validateImageFile()` usage in MessagesClient (was treating return as object, now correctly handles `string | undefined`)
+
+**Files Created (1):**
+- `utils/cloudflare-upload.ts` (Unified upload utility)
+
+**Files Modified (6):**
+- Backend: `listings.service.ts` (image deletion on edit)
+- Frontend: `MessagesClient.tsx`, `createListingStore/index.ts`, `EditListingModal.tsx`, `userProfileStore/index.ts`, `CreateAdCampaignModal.tsx`, `cloudflare-upload.ts`
+
+**Result:**
+- ✅ All image operations use single utility
+- ✅ Consistent Cloudflare ID extraction
+- ✅ Edit listing now deletes orphaned images
+- ✅ Ad campaigns ready for media upload
+- ✅ 87% reduction in duplicate upload code
+
+---
+
+## 🚧 NEXT SESSION PLAN: Ad Dimensions System Refactor
+
+### Overview
+Refactor ad packages system to use structured fields instead of long descriptive names, and add dynamic dimensions support.
+
+### Problems Identified:
+1. ❌ Ad packages use long `packageName` field (not scalable)
+2. ❌ Dimensions hardcoded in frontend (970x90, 970x250, etc.)
+3. ❌ Dashboard shows very long package names
+4. ❌ Ad placements not optimized (detail page, listings page)
+
+### Recommended Solutions:
+
+#### **1. Ad Packages Table Refactor**
+**Current Structure (Wrong):**
+```typescript
+packageName: "بانر علوي - قياسي (30 يوم)"  // Long descriptive name
+description: "إعلان بانر ..."
+adType: "banner"
+durationDays: 30
+basePrice: 150
+```
+
+**New Structure (Professional):**
+```typescript
+adType: "banner"                    // BANNER, VIDEO, BETWEEN_LISTINGS_CARD, etc.
+placement: "homepage_top"           // homepage_top, detail_after_gallery, etc.
+format: "billboard"                 // billboard, leaderboard, super_leaderboard
+durationDays: 30
+impressionLimit: 25000
+basePrice: 150
+dimensions: {                       // NEW FIELD (JSON)
+  desktop: { width: 970, height: 250 },
+  mobile: { width: 300, height: 250 }
+}
+features: ["premium_placement", "responsive"]  // Array of features
+```
+
+**Benefits:**
+- ✅ Frontend can build display name from structured fields
+- ✅ Dimensions fetched dynamically (no hardcoding)
+- ✅ Easy to filter packages by placement/format
+- ✅ Dashboard shows clean data in table columns
+
+#### **2. IAB Standard Dimensions to Support**
+
+**IMAGE BANNERS:**
+- **970 x 250** (Billboard) ← Premium placement (like Kia)
+- **970 x 90** (Super Leaderboard) ← Standard top/bottom
+- **728 x 90** (Leaderboard) ← Alternative smaller
+- **300 x 250** (Medium Rectangle) ← Mobile + cards
+
+**VIDEOS:**
+- **1280 x 720** (16:9 HD) ← Full video player
+- **970 x 250** (In-Banner Video) ← Video in banner (like Kia)
+- **720 x 720** (1:1 Square) ← Mobile video
+
+#### **3. Ad Placement Optimization**
+
+| Page | Position | Ad Type | Size (Desktop) | Size (Mobile) | Priority |
+|------|----------|---------|---------------|---------------|----------|
+| **Homepage** | Top (after hero) | VIDEO or BANNER | 970x250 | 300x250 | 🔥 HIGH |
+| **Listings** | Top (before grid) | BANNER | 970x250 | 300x250 | 🔥 HIGH |
+| **Listings** | Between results | BANNER | 970x90 | 300x250 | 🔥 HIGH |
+| **Detail** | After gallery | BANNER or VIDEO | 970x250 | 300x250 | 🔥🔥 HIGHEST |
+| **Detail** | Bottom | BANNER | 970x90 | 320x50 | LOW |
+
+**Changes Needed:**
+- ✅ Move detail page top ad to **after gallery, before description** (most visible!)
+- ✅ Add top banner to listings page
+- ✅ Add homepage video placement (1280x720 or 970x250)
+
+#### **4. Recommended Ad Packages (Seeder)**
+
+```typescript
+[
+  {
+    adType: 'video',
+    placement: 'homepage_top',
+    format: 'hd_player',
+    dimensions: { desktop: { width: 1280, height: 720 }, mobile: { width: 720, height: 720 } },
+    durationDays: 30,
+    impressionLimit: 10000,
+    basePrice: 500
+  },
+  {
+    adType: 'banner',
+    placement: 'homepage_top',
+    format: 'billboard',
+    dimensions: { desktop: { width: 970, height: 250 }, mobile: { width: 300, height: 250 } },
+    durationDays: 30,
+    impressionLimit: 25000,
+    basePrice: 300
+  },
+  {
+    adType: 'banner',
+    placement: 'detail_after_gallery',
+    format: 'billboard',
+    dimensions: { desktop: { width: 970, height: 250 }, mobile: { width: 300, height: 250 } },
+    durationDays: 30,
+    impressionLimit: 20000,
+    basePrice: 400  // Highest price - best placement!
+  },
+  {
+    adType: 'banner',
+    placement: 'listings_top',
+    format: 'super_leaderboard',
+    dimensions: { desktop: { width: 970, height: 90 }, mobile: { width: 300, height: 250 } },
+    durationDays: 30,
+    impressionLimit: 15000,
+    basePrice: 200
+  },
+  {
+    adType: 'banner',
+    placement: 'between_listings',
+    format: 'super_leaderboard',
+    dimensions: { desktop: { width: 970, height: 90 }, mobile: { width: 300, height: 250 } },
+    durationDays: 30,
+    impressionLimit: 30000,
+    basePrice: 150
+  },
+  {
+    adType: 'video',
+    placement: 'detail_after_gallery',
+    format: 'in_banner',
+    dimensions: { desktop: { width: 970, height: 250 }, mobile: { width: 300, height: 250 } },
+    durationDays: 30,
+    impressionLimit: 15000,
+    basePrice: 350
+  }
+]
+```
+
+#### **5. Implementation Tasks**
+
+**Backend:**
+1. Create migration to add `placement`, `format`, `dimensions` fields to `ad_packages`
+2. Create migration to remove `packageName` field (or make it computed)
+3. Update `AdPackage` entity with new fields
+4. Update seeder with structured packages
+5. Update DTOs to include new fields
+
+**Frontend:**
+1. Update `AdPackagesDashboardPanel` table to show structured fields:
+   - Columns: Type | Placement | Format | Dimensions | Duration | Price | Status | Actions
+2. Update `CreateAdCampaignModal` to:
+   - Fetch dimensions from selected package
+   - Show dimensions in media requirements
+   - Validate uploaded media matches dimensions
+3. Update ad components to use dynamic dimensions from backend
+4. Add new ad placements:
+   - Homepage video/billboard
+   - Listings page top banner
+   - Move detail page ad to after gallery
+
+**Google AdSense Compatibility:**
+- All dimensions are IAB standard (Google AdSense supported)
+- Fallback system already in place (custom ads → Google AdSense → nothing)
+
+---
 # Claude Development Log
+
+---
+
+## 🚀 SESSION: Chat Reports & Block System with AI Moderation (2025-11-07)
+
+### ✅ PHASE 1 COMPLETED: Reports System with AI Moderation
+
+**Purpose:** Implement simple reports + block + AI moderation system for chat/messaging, similar to Marktplaats but with AI enhancement.
+
+#### Backend Implementation ✅
+
+**1. Database Migration** (`CreateReportsTable1762462283000`)
+- Created `reports` table with AI moderation fields
+- 3 enum types: `reports_entity_type_enum`, `reports_reason_enum`, `reports_status_enum`
+- 5 indexes for performance (status, entityType, createdAt, reporterId, reportedUserId)
+- Migration executed successfully ✅
+
+**2. Report Enums** ([report-reason.enum.ts](marketplace-backend/src/common/enums/report-reason.enum.ts))
+```typescript
+ReportReason: scam, harassment, inappropriate, spam, fake_listing,
+              fake_account, impersonation, repeat_offender, other
+
+ReportStatus: pending, reviewed, resolved, dismissed
+
+ReportEntityType: thread, user
+```
+
+**3. Report Entity** ([report.entity.ts](marketplace-backend/src/reports/report.entity.ts))
+- Full TypeORM entity with GraphQL schema
+- Relations: reporter (User), reportedUser (User), reviewer (User)
+- AI fields: aiConfidence (0-100), aiRecommendedAction, aiReasoning, aiAnalyzedAt
+
+**4. AI Report Moderation Service** ([ai-report-moderation.service.ts](marketplace-backend/src/reports/services/ai-report-moderation.service.ts))
+- Uses OpenAI GPT-4 for analysis
+- Analyzes conversation context (last 50 messages)
+- Considers user history (previous reports, account age)
+- Returns confidence score + recommended action
+
+**5. Reports Service** ([reports.service.ts](marketplace-backend/src/reports/reports.service.ts))
+- **AI Decision Logic:**
+  - 90%+ confidence + ban recommendation → **Auto-ban user**
+  - 50-89% confidence → **Flag for human review (PENDING)**
+  - <50% confidence → **Auto-dismiss**
+- Admin actions: dismissReport, banReportedUser, addAdminNotes, deleteReportedThread
+
+**6. Reports Resolver** ([reports.resolver.ts](marketplace-backend/src/reports/reports.resolver.ts))
+- `createReport` mutation (authenticated users)
+- `reports` query (admin, requires `reports.view`)
+- `report(id)` query (admin, requires `reports.view`)
+- `dismissReport`, `banReportedUser`, `addReportNotes`, `deleteReportedThread` (admin, requires `reports.modify`)
+
+**7. RBAC Integration**
+- Added "reports" feature to RBAC seeder
+- Permissions assigned:
+  - EDITOR: view + modify
+  - ADMIN: view + modify + delete
+  - SUPER_ADMIN: view + create + modify + delete
+
+**8. Bug Fixes**
+- Fixed `@RequireFeaturePermission` decorator (needed 2 args: feature + action)
+- Fixed ChatMessage sender relation (fetched users separately using `findByIds()`)
+- Fixed Listing entity references (`imageKeys` not `images`, hardcoded `currency: 'USD'`)
+- Added AuthModule and UsersModule imports to ReportsModule
+
+**Files Created (7 backend files):**
+- `src/common/enums/report-reason.enum.ts`
+- `src/migrations/1762462283000-CreateReportsTable.ts`
+- `src/reports/report.entity.ts`
+- `src/reports/services/ai-report-moderation.service.ts`
+- `src/reports/reports.service.ts`
+- `src/reports/reports.resolver.ts`
+- `src/reports/reports.module.ts`
+
+**Files Modified (5 backend files):**
+- `src/common/enums/index.ts` (exported report enums)
+- `src/app.module.ts` (imported ReportsModule)
+- `src/seeds/seeders/rbac.seeder.ts` (added reports feature)
+- `src/chats/chats.resolver.ts` (fixed Listing field references)
+- `src/reports/reports.module.ts` (added AuthModule + UsersModule imports)
+
+**Backend Status:**
+✅ Compiles with 0 errors
+✅ NestJS app running on port 4000
+✅ GraphQL endpoint responding
+✅ ReportsModule loaded successfully
+✅ AI services initialized
+
+---
+
+### ✅ PHASE 2 COMPLETED: Block Users System
+
+**Purpose:** Allow users to block other users, preventing them from seeing each other's threads.
+
+#### Backend Implementation ✅
+
+**1. Database Migration** (`CreateBlockedUsersTable1762600000000`)
+- Created `blocked_users` table
+- Composite unique constraint on (blockerId, blockedUserId)
+- Foreign keys with CASCADE delete
+- 2 indexes for performance
+- Migration executed successfully ✅
+
+**2. BlockedUser Entity** ([blocked-user.entity.ts](marketplace-backend/src/chats/blocked-user.entity.ts))
+- Full TypeORM entity with GraphQL schema
+- Relations: blocker (User), blockedUser (User)
+- `blockedAt` timestamp
+
+**3. BlockedUsersService** ([blocked-users.service.ts](marketplace-backend/src/chats/blocked-users.service.ts))
+- `blockUser(blockerId, blockedUserId)` - Create block (prevents self-block, checks duplicates)
+- `unblockUser(blockerId, blockedUserId)` - Remove block
+- `getMyBlockedUsers(blockerId)` - Get list of blocked users
+- `isBlocked(blockerId, blockedUserId)` - Check if blocked
+- `isBlockedBidirectional(userA, userB)` - Check if either user blocked the other
+- `getBlockedUserIds(blockerId)` - Get array of blocked IDs (for filtering queries)
+
+**4. BlockedUsersResolver** ([blocked-users.resolver.ts](marketplace-backend/src/chats/blocked-users.resolver.ts))
+- `blockUser` mutation (authenticated)
+- `unblockUser` mutation (authenticated)
+- `myBlockedUsers` query (authenticated)
+- `isUserBlocked` query (authenticated)
+
+**5. ChatsModule Integration**
+- Added BlockedUser entity to TypeORM
+- Registered BlockedUsersService and BlockedUsersResolver
+- Exported BlockedUsersService for use in other modules
+
+**Files Created (3 backend files):**
+- `src/chats/blocked-user.entity.ts`
+- `src/chats/blocked-users.service.ts`
+- `src/chats/blocked-users.resolver.ts`
+- `src/migrations/1762600000000-CreateBlockedUsersTable.ts`
+
+**Files Modified (1 backend file):**
+- `src/chats/chats.module.ts` (added BlockedUser, BlockedUsersService, BlockedUsersResolver)
+
+**Backend Status:**
+✅ Compiles with 0 errors
+✅ NestJS app running on port 4000
+✅ GraphQL endpoint responding
+✅ BlockedUsersModule loaded successfully
+✅ blocked_users table created
+
+---
+
+### ✅ PHASE 3 COMPLETED: ChatsService Integration with Blocking
+
+**Purpose:** Integrate blocked users functionality into chat system to prevent blocked users from interacting.
+
+#### Backend Implementation ✅
+
+**1. Updated ChatsService** ([chats.service.ts](marketplace-backend/src/chats/chats.service.ts))
+- Injected `BlockedUsersService` dependency
+- Added `ForbiddenException` import
+
+**2. Updated getOrCreateThread Method**
+- Added bidirectional block check before creating threads
+- Throws `ForbiddenException` if either user has blocked the other
+- Error message: `'errors.CANNOT_MESSAGE_BLOCKED_USER'`
+
+**3. Updated myThreads Method**
+- Fetches list of blocked user IDs
+- Filters out threads where other participant is blocked
+- SQL WHERE clause excludes blocked users from thread list
+- Maintains existing deletion flag logic
+
+**Files Modified (1 backend file):**
+- `src/chats/chats.service.ts` (added blocking logic to 2 methods)
+
+**How It Works:**
+1. **Creating Threads:** When user A tries to message user B, system checks if either has blocked the other → If yes, throws error
+2. **Viewing Threads:** When user A views their thread list, system fetches their blocked user IDs → Filters out any threads with those users
+3. **Result:** Blocked users effectively "disappear" from each other's chat interfaces
+
+**Backend Status:**
+✅ Compiles with 0 errors
+✅ NestJS app running on port 4000
+✅ Hot reload successful
+✅ ChatsService integrated with BlockedUsersService
+
+---
+
+### 📋 PHASE 4: Message Edit/Delete Time Window (TODO - FUTURE)
+
+**User Requirement:** 5-minute edit/delete window + only if other person hasn't replied yet
+
+**Implementation Plan:**
+1. Add validation to `editMessage()` - Check message age (<5min) + no replies after
+2. Add validation to `deleteMessage()` - Same logic
+3. Add `canEdit` and `canDelete` helper methods in ChatsService
+4. Return validation status to frontend for UI state
+
+**Not Critical:** Can be added later after core reports/block functionality is tested.
+
+---
+
+### 🎯 BACKEND SYSTEM COMPLETE - Ready for Frontend Integration
+
+**What's Been Built:**
+
+✅ **Phase 1: Reports System with AI Moderation**
+- Full CRUD for reports (create, view, dismiss, ban, add notes, delete thread)
+- AI-powered analysis using OpenAI GPT-4
+- 3-tier decision system (auto-ban 90%+, human review 50-89%, auto-dismiss <50%)
+- RBAC integration with feature permissions
+
+✅ **Phase 2: Block Users System**
+- Block/unblock user mutations
+- Query blocked users list
+- Check if user is blocked
+- Bidirectional blocking support
+
+✅ **Phase 3: ChatsService Integration**
+- Blocked users can't create threads together
+- Blocked users don't see each other's threads
+- Seamless integration with existing chat system
+
+**GraphQL Endpoints Available:**
+
+**Reports:**
+- `createReport(reportedUserId, entityType, entityId, reason, details)` - Create report
+- `reports(status, entityType, reason)` - Get all reports (admin)
+- `report(id)` - Get single report (admin)
+- `dismissReport(reportId, adminNotes)` - Dismiss report (admin)
+- `banReportedUser(reportId, adminNotes)` - Ban reported user (admin)
+- `addReportNotes(reportId, notes)` - Add admin notes (admin)
+- `deleteReportedThread(reportId)` - Delete reported thread (admin)
+
+**Blocking:**
+- `blockUser(blockedUserId)` - Block a user
+- `unblockUser(blockedUserId)` - Unblock a user
+- `myBlockedUsers` - Get list of blocked users
+- `isUserBlocked(blockedUserId)` - Check if user is blocked
+
+**Database Tables:**
+- `reports` (id, reporterId, reportedUserId, entityType, entityId, reason, details, status, AI fields, admin fields)
+- `blocked_users` (id, blockerId, blockedUserId, blockedAt)
+
+**Next Steps for Production:**
+1. Frontend integration (stores, modals, UI components)
+2. Add Arabic error messages to i18n
+3. Admin dashboard for reports review
+4. Testing with real scenarios
+5. Optional: Message edit/delete time window
+
+---
+
+## 🚀 SESSION: Analytics Dashboard Standardization + UX Fixes (2025-11-05)
+
+### ✅ COMPLETED: Analytics Dashboard Refactor
+
+**Purpose:** Standardize user analytics dashboard with admin panel layout patterns, improve UX, and fix technical issues.
+
+#### Backend Fixes ✅
+- **Date Serialization Fix** ([listing-views.service.ts](marketplace-backend/src/listings/listing-views.service.ts:150))
+  - Fixed PostgreSQL DATE() returning timestamps instead of YYYY-MM-DD strings
+  - Added conversion: `r.date instanceof Date ? r.date.toISOString().split('T')[0] : r.date`
+  - Applied to both `getViewsByDateRange` and `getViewsByDateRangeForUser` methods
+  - **Result:** Charts now receive proper date strings ("2025-11-01" instead of timestamps)
+
+#### Frontend Refactor ✅
+
+**1. Component Standardization**
+- **Replaced native buttons** with Button component from slices
+- **Removed manual styling** from Text components (no className, weight, or size props)
+- **Standardized header structure:**
+  - `.dashboardPanel` → `.header` → `.headerContent` + `.headerActions`
+  - Consistent with admin dashboard pattern
+  - Added border-bottom separator
+  - Increased spacing from `$space-sm` to `$space-lg`
+
+**2. Files Modified:**
+
+**Analytics Main Page** ([/app/dashboard/analytics/page.tsx](marketplace-frontend/app/dashboard/analytics/page.tsx)):
+- Imported Button component
+- Replaced all native `<button>` with Button (primary/outline variants)
+- Removed className props from all Text components
+- Changed date selector to use Button components
+- Changed listing cards from `<button>` to `<div>`
+- Used Text `color="success"` instead of custom className
+
+**Analytics Detail Page** ([/app/dashboard/analytics/[listingId]/page.tsx](marketplace-frontend/app/dashboard/analytics/[listingId]/page.tsx)):
+- Fixed back button to use Button component with ArrowRight icon (RTL correct)
+- Replaced date selector buttons with Button components
+- Removed all className props from Text
+- **Added formatChartDate function** for X-axis labels (handles both timestamps and YYYY-MM-DD strings)
+- **Added formatYAxis function** for Y-axis labels (whole numbers + "k" notation for thousands)
+- Fixed XAxis with `tickFormatter={formatChartDate}`
+- Fixed YAxis with `tickFormatter={formatYAxis}` and `allowDecimals={false}`
+
+**SCSS Files** ([Analytics.module.scss](marketplace-frontend/app/dashboard/analytics/Analytics.module.scss), [ListingAnalytics.module.scss](marketplace-frontend/app/dashboard/analytics/[listingId]/ListingAnalytics.module.scss)):
+- Removed `.dateButton` styles (handled by Button component)
+- Removed `.statValue` styles (handled by Text variant)
+- Removed `.statToday` styles (handled by Text color prop)
+- Removed `.listingTitle` styles (handled by Text component)
+- Simplified header spacing with better gaps and border-bottom
+- **Removed stat card hover effects** (not clickable, wasted hover)
+- **Simplified listing card hover** to just border-color change (no thick border, no transform/shadow)
+
+**Store Fix** ([listingAnalyticsStore/index.ts](marketplace-frontend/stores/listingAnalyticsStore/index.ts)):
+- Line 35: Changed `0` to `{ ttl: 0 }` (CacheOptions type)
+- Line 59: Same fix for fetchAnalyticsSummary
+
+#### UX Improvements ✅
+
+**Before:**
+- Cramped header (title, subtitle, date selector too tight)
+- Stat cards had hover effects but weren't clickable
+- Listing cards had thick 2px border with transform/shadow on hover
+- Chart showed timestamps ("1762297200000") instead of dates
+- Y-axis showed decimal values (0.25, 0.75) for view counts
+- Manual styling scattered across components
+
+**After:**
+- Spacious header with clear separation (border-bottom, increased gap)
+- Stat cards have no hover (correctly non-interactive)
+- Listing cards have simple primary border on hover
+- Chart shows readable dates ("Jan 5", "Jan 6")
+- Y-axis shows whole numbers (1, 2, 3) and "k" notation (1k, 2k)
+- All styling centralized in slice components
+
+#### Chart Formatting ✅
+
+**Date Formatter (X-axis):**
+```typescript
+const formatChartDate = (dateString: string | number) => {
+  const date = typeof dateString === 'number'
+    ? new Date(dateString)
+    : new Date(dateString + 'T00:00:00'); // Avoid timezone issues
+
+  if (isNaN(date.getTime())) {
+    console.error('Invalid date:', dateString);
+    return String(dateString);
+  }
+
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const day = date.getDate();
+  return `${month} ${day}`;
+};
+```
+
+**Y-Axis Formatter (whole numbers + k notation):**
+```typescript
+const formatYAxis = (value: number) => {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
+  }
+  return value.toString();
+};
+```
+
+#### Files Modified (Total: 7)
+
+**Backend (1 file):**
+- [listing-views.service.ts](marketplace-backend/src/listings/listing-views.service.ts) - Date serialization fix
+
+**Frontend (6 files):**
+- [app/dashboard/analytics/page.tsx](marketplace-frontend/app/dashboard/analytics/page.tsx) - Component refactor
+- [app/dashboard/analytics/[listingId]/page.tsx](marketplace-frontend/app/dashboard/analytics/[listingId]/page.tsx) - Component refactor + chart fixes
+- [app/dashboard/analytics/Analytics.module.scss](marketplace-frontend/app/dashboard/analytics/Analytics.module.scss) - Simplified styles
+- [app/dashboard/analytics/[listingId]/ListingAnalytics.module.scss](marketplace-frontend/app/dashboard/analytics/[listingId]/ListingAnalytics.module.scss) - Simplified styles
+- [stores/listingAnalyticsStore/index.ts](marketplace-frontend/stores/listingAnalyticsStore/index.ts) - Cache options fix
+- [components/slices/Text/Text.tsx](marketplace-frontend/components/slices/Text/Text.tsx) - (no changes, just used correctly)
+
+#### Errors Fixed ✅
+
+1. **TypeScript Cache Options Error** - `{ ttl: 0 }` instead of `0`
+2. **Chart Timestamp Error** - Backend date serialization fixed
+3. **Decimal Y-Axis Values** - `allowDecimals={false}` + custom formatter
+4. **Component Pattern Violations** - Replaced native buttons, removed manual Text styling
+5. **Wasted Hover Effects** - Removed from non-clickable stat cards
+6. **Cramped Header** - Increased spacing, added separator
+7. **Thick Border Hover** - Simplified to just primary color change
+
+#### Key Patterns Established ✅
+
+**Header Structure (Standard):**
+```tsx
+<div className={styles.dashboardPanel}>
+  <div className={styles.header}>
+    <div className={styles.headerContent}>
+      <Text variant="h2">Title</Text>
+      <Text variant="paragraph" color="secondary">Description</Text>
+    </div>
+    <div className={styles.headerActions}>
+      {/* Action buttons */}
+    </div>
+  </div>
+  {/* Content */}
+</div>
+```
+
+**Component Usage Rules:**
+- ✅ Use Button component (never native `<button>`)
+- ✅ Use Text variants (never custom className/weight/size)
+- ✅ Use Text color prop (never custom color classes)
+- ✅ Remove hover from non-clickable elements
+- ✅ Simplify interactive hover to border-color only
+
+**Git Commits:**
+- Backend: `16230f7` - "Fix analytics date serialization to return YYYY-MM-DD strings"
+- Frontend: `c17a2b7` - "Standardize analytics dashboard with admin panel layout + UX fixes"
+
+---
+
+## 🚀 SESSION: Wishlist & View Tracking System (2025-11-03)
+
+### ✅ PHASE 1 COMPLETED: Wishlist System
+
+**Purpose:** Allow users to bookmark favorite listings, track wishlist count for analytics, and support archived listings.
+
+#### Backend Implementation ✅
+- **Migration:** `CreateWishlistTable` (1762008200000)
+  - Junction table with composite PK (userId, listingId)
+  - Support for active + archived listings
+  - Price tracking (`priceWhenAdded`) for future price drop alerts
+  - CHECK constraint: either `listingId` OR `archivedListingId` (not both)
+- **Cached Count System:**
+  - Added `wishlistCount` column to listings table
+  - PostgreSQL trigger `update_listing_wishlist_count()` auto-updates count
+  - Fast display without JOINs
+- **WishlistItem Entity:** GraphQL type with relations (User, Listing, ArchivedListing)
+- **WishlistService:** CRUD methods + `getMyWishlistWithArchived()`
+- **WishlistResolver:** 2 mutations, 2 queries (all authenticated)
+- **Listing Resolver:** Added `wishlistCount` field resolver
+
+#### Frontend Implementation ✅
+- **Wishlist Store** (`stores/wishlistStore/`)
+  - Zustand store with localStorage persistence
+  - Fast O(1) lookup using Set for `wishlistIds`
+  - Optimistic updates for instant UI feedback
+  - GraphQL cache invalidation
+  - Toggle functionality
+- **FavoriteButton Component:**
+  - Integrated with wishlist store
+  - Removed local state management
+  - Async toggle with error handling
+- **ListingCard Component:**
+  - Removed deprecated `isLiked`/`onLike` props
+  - Automatic sync across all cards
+  - Uses wishlist store for state
+- **Wishlist Dashboard Page** (`/dashboard/wishlist`)
+  - Grid layout with responsive design (2 columns mobile)
+  - Remove button on each card
+  - Empty state with call-to-action
+  - Loading skeleton state
+  - Success/error notifications
+
+#### Files Created
+**Backend (4 files):**
+- `src/migrations/1762008200000-CreateWishlistTable.ts`
+- `src/listings/wishlist-item.entity.ts`
+- `src/listings/wishlist.service.ts`
+- `src/listings/wishlist.resolver.ts`
+
+**Backend Modified (3 files):**
+- `src/listings/listing.entity.ts` (added wishlistCount column)
+- `src/listings/listings.resolver.ts` (added wishlistCount field resolver)
+- `src/listings/listings.module.ts` (registered WishlistItem, WishlistService, WishlistResolver)
+
+**Frontend (4 files created, 2 modified):**
+- `stores/wishlistStore/index.ts` (Zustand store)
+- `stores/wishlistStore/wishlistStore.gql.ts` (GraphQL queries)
+- `app/dashboard/wishlist/page.tsx` (Dashboard page)
+- `app/dashboard/wishlist/wishlist.module.scss` (Styles)
+- `components/slices/Button/FavoriteButton.tsx` (Modified: integrated store)
+- `components/slices/ListingCard/ListingCard.tsx` (Modified: removed props)
+
+---
+
+### 🚧 PHASE 2: View Tracking System (TODO)
+
+**Next Steps:**
+1. Create migration `CreateListingViewsTable`
+2. Create `ListingView` entity
+3. Create `ListingViewsService` with deduplication logic
+4. Add `trackListingView` mutation to GraphQL
+5. Add `viewCount` field resolver to Listing
+6. Track view on listing detail page mount
+7. Display view count with eye icon
+8. Session-based deduplication (prevent multiple counts per user per session)
 
 ---
 
@@ -593,33 +1301,22 @@ export const hasValidationErrors = (errors: ValidationErrors): boolean => {
 
 ### 📋 TODO List - Next Tasks
 
-**Priority 1: Finish AI Moderation System**
-- [ ] **Finalize listing.entity.ts fields** (delete moderationFlags?)
-- [ ] **Test edit listing with AI re-moderation** (does AI re-run on edit?)
-- [ ] **Admin edit listing workflow** (manual approval/rejection)
+**Priority 1: Wishlist & View Tracking System** (CURRENT - START HERE)
+- [ ] **Phase 1: Wishlist System** (3-4 hours)
+  - Backend: Create wishlist_items table + cached counts
+  - Backend: Wishlist service + GraphQL resolver
+  - Frontend: Wishlist store + wire up FavoriteButton
+  - Frontend: Dashboard wishlist page
+  - See detailed plan below ⬇️
 
-**Priority 2: Bidding System**
-- [ ] **Implement bidding logic on listing detail page**
-  - Show bidding UI if `allowBidding` is true
-  - Allow users to place bids
-  - Display current highest bid
-  - Real-time bid updates
-  - Bidding history
-  - Notifications for bid changes
+- [ ] **Phase 2: View Tracking** (2-3 hours)
+  - Backend: Create listing_views table + cached counts
+  - Backend: View tracking mutation
+  - Frontend: Track view on listing detail page mount
+  - Frontend: Display view count
+  - See detailed plan below ⬇️
 
-**Priority 3: View Count / Review Analytics**
-- [ ] **Track listing view count**
-  - Increment counter when user views listing detail page
-  - Display view count on listing cards
-  - Analytics for seller dashboard
-
-**Priority 4: User Dashboard Features**
-- [ ] **Wishlist/Favorites System**
-  - Dashboard page: `/dashboard/wishlist`
-  - Show all listings user has liked
-  - Quick actions: remove from wishlist, view listing
-  - Empty state when no favorites
-
+**Priority 2: Chat/Messaging System**
 - [ ] **Chat/Messaging System**
   - Dashboard page: `/dashboard/messages`
   - Show all chat threads
@@ -628,6 +1325,443 @@ export const hasValidationErrors = (errors: ValidationErrors): boolean => {
   - Real-time messaging
   - Unread message indicators
   - Thread preview with last message
+
+**Priority 3: Analytics Dashboard**
+- [x] **Phase 1: Wishlist System** - COMPLETED ✅
+- [x] **Phase 2: View Tracking** - COMPLETED ✅
+- [x] **Phase 3: User Analytics Dashboard** - COMPLETED ✅
+  - Backend: Analytics GraphQL queries + service methods
+  - Frontend: Dashboard page + chart component
+  - Per-listing analytics on detail page
+  - Gated by `user.subscription.analyticsAccess` flag
+  - **Latest:** Standardized with admin panel layout, fixed UX issues, improved chart formatting (2025-11-05)
+
+**Priority 4: Bidding System (FUTURE)**
+- [ ] **Implement bidding logic on listing detail page**
+  - Show bidding UI if `allowBidding` is true
+  - Allow users to place bids
+  - Display current highest bid
+  - Real-time bid updates
+  - Bidding history
+  - Notifications for bid changes
+
+---
+
+## 🎯 DETAILED PLAN: Wishlist & View Tracking (2025-01-31)
+
+### 📊 Business Context
+
+**Subscription Tiers:**
+- **Individual** ($0): No analytics, no custom branding, no priority placement
+- **Dealer** ($0→$29): ✅ analyticsAccess, ✅ priorityPlacement, ✅ customBranding
+- **Business** ($0→$99): ✅ analyticsAccess, ✅ priorityPlacement, ✅ featuredListings
+
+**Key Features:**
+- Wishlist: Free for everyone (bookmarks/favorites)
+- View Count: Public (everyone sees total views)
+- Analytics Dashboard: Premium only (if `user.subscription.analyticsAccess === true`)
+
+---
+
+### 🗄️ Database Architecture
+
+#### **Wishlist System**
+
+```sql
+-- Junction table (standard many-to-many)
+CREATE TABLE wishlist_items (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
+  archived_listing_id UUID REFERENCES archived_listings(id) ON DELETE CASCADE,
+  added_at TIMESTAMP DEFAULT NOW(),
+
+  PRIMARY KEY (user_id, listing_id),
+  UNIQUE (user_id, archived_listing_id),
+
+  -- One of listing_id or archived_listing_id must be set
+  CHECK (
+    (listing_id IS NOT NULL AND archived_listing_id IS NULL) OR
+    (listing_id IS NULL AND archived_listing_id IS NOT NULL)
+  ),
+
+  INDEX idx_wishlist_user_added (user_id, added_at DESC),
+  INDEX idx_wishlist_listing (listing_id),
+  INDEX idx_wishlist_archived (archived_listing_id)
+);
+
+-- Cached count for fast display
+ALTER TABLE listings ADD COLUMN wishlist_count INT DEFAULT 0;
+
+-- Trigger to update cached count
+CREATE OR REPLACE FUNCTION update_listing_wishlist_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE listings SET wishlist_count = wishlist_count + 1 WHERE id = NEW.listing_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE listings SET wishlist_count = wishlist_count - 1 WHERE id = OLD.listing_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER wishlist_count_trigger
+AFTER INSERT OR DELETE ON wishlist_items
+FOR EACH ROW EXECUTE FUNCTION update_listing_wishlist_count();
+```
+
+#### **View Tracking System**
+
+```sql
+-- Individual view records (for analytics)
+CREATE TABLE listing_views (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL, -- NULL = anonymous
+  viewed_at TIMESTAMP DEFAULT NOW(),
+
+  INDEX idx_views_listing_date (listing_id, viewed_at DESC),
+  INDEX idx_views_user_date (user_id, viewed_at DESC)
+);
+
+-- Cached count for fast display
+ALTER TABLE listings ADD COLUMN view_count INT DEFAULT 0;
+
+-- Trigger to update cached count
+CREATE OR REPLACE FUNCTION update_listing_view_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE listings SET view_count = view_count + 1 WHERE id = NEW.listing_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER view_count_trigger
+AFTER INSERT ON listing_views
+FOR EACH ROW EXECUTE FUNCTION update_listing_view_count();
+```
+
+**Why both table + cached count:**
+- Cached count (`view_count`, `wishlist_count`) = Fast display, no JOINs
+- Separate table = Analytics, charts, trending algorithm
+- Triggers keep them in sync automatically
+
+---
+
+### 🔨 Phase 1: Wishlist System (3-4 hours)
+
+#### **Backend Tasks**
+
+**1.1 Create Migration** - `CreateWishlistTable` (30 min)
+```typescript
+// File: src/migrations/[timestamp]-CreateWishlistTable.ts
+- Create wishlist_items table
+- Add wishlist_count column to listings table
+- Create trigger for auto-updating cached count
+```
+
+**1.2 Create Wishlist Entity** - `wishlist-item.entity.ts` (20 min)
+```typescript
+// File: src/listings/wishlist-item.entity.ts
+@Entity('wishlist_items')
+export class WishlistItem {
+  @PrimaryColumn('uuid')
+  userId!: string;
+
+  @Column('uuid', { nullable: true })
+  listingId!: string | null;
+
+  @Column('uuid', { nullable: true })
+  archivedListingId!: string | null;
+
+  @CreateDateColumn()
+  addedAt!: Date;
+
+  @ManyToOne(() => User)
+  user!: User;
+
+  @ManyToOne(() => Listing)
+  listing!: Listing | null;
+
+  @ManyToOne(() => ArchivedListing)
+  archivedListing!: ArchivedListing | null;
+}
+```
+
+**1.3 Create Wishlist Service** - `wishlist.service.ts` (45 min)
+```typescript
+// File: src/listings/wishlist.service.ts
+export class WishlistService {
+  async addToWishlist(userId: string, listingId: string): Promise<boolean>
+  async removeFromWishlist(userId: string, listingId: string): Promise<boolean>
+  async getMyWishlist(userId: string): Promise<WishlistItem[]>
+  async isInWishlist(userId: string, listingId: string): Promise<boolean>
+}
+```
+
+**1.4 Create Wishlist Resolver** - `wishlist.resolver.ts` (30 min)
+```typescript
+// File: src/listings/wishlist.resolver.ts
+@Resolver()
+export class WishlistResolver {
+  @Mutation(() => Boolean)
+  @UseGuards(SupabaseAuthGuard)
+  async addToWishlist(@Args('listingId') listingId: string, @CurrentUser('sub') userId: string)
+
+  @Mutation(() => Boolean)
+  @UseGuards(SupabaseAuthGuard)
+  async removeFromWishlist(@Args('listingId') listingId: string, @CurrentUser('sub') userId: string)
+
+  @Query(() => [Listing])
+  @UseGuards(SupabaseAuthGuard)
+  async myWishlist(@CurrentUser('sub') userId: string)
+
+  @Query(() => Boolean)
+  @UseGuards(SupabaseAuthGuard)
+  async isInMyWishlist(@Args('listingId') listingId: string, @CurrentUser('sub') userId: string)
+}
+```
+
+**1.5 Add wishlistCount to Listing Resolver** (15 min)
+```typescript
+// File: src/listings/listing.resolver.ts
+@ResolveField(() => Int)
+async wishlistCount(@Parent() listing: Listing): Promise<number> {
+  return listing.wishlistCount || 0;
+}
+```
+
+#### **Frontend Tasks**
+
+**1.6 Create Wishlist Store** - `stores/wishlistStore/` (45 min)
+```typescript
+// File: stores/wishlistStore/index.ts
+interface WishlistStore {
+  wishlistIds: Set<string>; // Fast lookup
+  isLoading: boolean;
+
+  loadMyWishlist: () => Promise<void>;
+  addToWishlist: (listingId: string) => Promise<void>;
+  removeFromWishlist: (listingId: string) => Promise<void>;
+  isInWishlist: (listingId: string) => boolean;
+  toggleWishlist: (listingId: string) => Promise<void>;
+}
+```
+
+**1.7 Wire up FavoriteButton in ListingCard** (20 min)
+```typescript
+// File: components/slices/ListingCard/ListingCard.tsx
+const { isInWishlist, toggleWishlist } = useWishlistStore();
+
+<FavoriteButton
+  isLiked={isInWishlist(id)}
+  onToggle={() => toggleWishlist(id)}
+/>
+```
+
+**1.8 Create Wishlist Dashboard Page** (1 hour)
+```typescript
+// File: app/dashboard/wishlist/page.tsx
+- Fetch user's wishlist on mount
+- Display grid of wishlisted listings
+- Show status badges for archived listings ("مباع", "لم يعد متاحاً")
+- Remove from wishlist button
+- Empty state: "لم تقم بإضافة أي إعلانات إلى المفضلة"
+- Link to listing detail (or archived detail)
+```
+
+**1.9 Add Price Drop Badge** (30 min)
+```typescript
+// File: components/slices/ListingCard/ListingCard.tsx
+// Show badge if current price < price when wishlisted
+{priceDrop && (
+  <Badge variant="success">
+    انخفض السعر {priceDrop}%
+  </Badge>
+)}
+```
+
+---
+
+### 🔨 Phase 2: View Tracking (2-3 hours)
+
+#### **Backend Tasks**
+
+**2.1 Create Migration** - `CreateListingViewsTable` (30 min)
+```typescript
+// File: src/migrations/[timestamp]-CreateListingViewsTable.ts
+- Create listing_views table
+- Add view_count column to listings table
+- Create trigger for auto-updating cached count
+```
+
+**2.2 Create ListingView Entity** - `listing-view.entity.ts` (15 min)
+```typescript
+// File: src/listings/listing-view.entity.ts
+@Entity('listing_views')
+export class ListingView {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column('uuid')
+  listingId!: string;
+
+  @Column('uuid', { nullable: true })
+  userId!: string | null;
+
+  @CreateDateColumn()
+  viewedAt!: Date;
+}
+```
+
+**2.3 Create Listing Views Service** - `listing-views.service.ts` (30 min)
+```typescript
+// File: src/listings/listing-views.service.ts
+export class ListingViewsService {
+  async trackView(listingId: string, userId?: string): Promise<void>
+  async getViewCount(listingId: string): Promise<number>
+  async getRecentViews(listingId: string, days: number): Promise<number>
+}
+```
+
+**2.4 Create View Tracking Mutation** (20 min)
+```typescript
+// File: src/listings/listings.resolver.ts
+@Mutation(() => Boolean)
+async trackListingView(
+  @Args('listingId') listingId: string,
+  @CurrentUser('sub', { optional: true }) userId?: string
+): Promise<boolean>
+```
+
+**2.5 Add viewCount to Listing Resolver** (10 min)
+```typescript
+// File: src/listings/listing.resolver.ts
+@ResolveField(() => Int)
+async viewCount(@Parent() listing: Listing): Promise<number> {
+  return listing.viewCount || 0;
+}
+```
+
+#### **Frontend Tasks**
+
+**2.6 Track View on Listing Detail Page** (30 min)
+```typescript
+// File: app/listing/[id]/ListingDetailClient.tsx
+useEffect(() => {
+  // Check if already viewed this session
+  const viewedKey = `viewed_${listingId}`;
+  const alreadyViewed = sessionStorage.getItem(viewedKey);
+
+  if (!alreadyViewed) {
+    // Track view
+    trackListingView({ variables: { listingId } });
+    sessionStorage.setItem(viewedKey, 'true');
+  }
+}, [listingId]);
+```
+
+**2.7 Display View Count** (20 min)
+```typescript
+// File: app/listing/[id]/ListingDetailClient.tsx
+<div className={styles.stats}>
+  <Eye size={16} />
+  <Text variant="small">{viewCount} مشاهدة</Text>
+</div>
+
+// Optional: Show in listing cards (can be overwhelming)
+// File: components/slices/ListingCard/ListingCard.tsx
+```
+
+---
+
+### 🔨 Phase 3: Analytics Dashboard (FUTURE - After Chat)
+
+**Goal:** Show analytics only if `user.subscription.analyticsAccess === true`
+
+#### **Analytics to Show (Dealer/Business Only)**
+
+**Card 1: Overview**
+```
+المشاهدات هذا الأسبوع: 45 (↑ 12%)
+المفضلة: 8 أشخاص
+الاهتمام: 🔥 مرتفع
+```
+
+**Card 2: Views Chart**
+```
+[Bar chart - Last 7 days]
+الاثنين: 5
+الثلاثاء: 8
+الأربعاء: 12 (ذروة)
+...
+```
+
+**Card 3: Performance Indicator**
+```
+أداء إعلانك: متوسط
+- المشاهدات: متوسطة (45/أسبوع)
+- التفاعل: جيد (8 مفضلة)
+- نصيحة: "الإعلانات المشابهة حصلت على 60 مشاهدة - جرب تحسين الصور"
+```
+
+**Admin Control:**
+```typescript
+// Backend: Only return analytics if user has access
+if (!user.subscription?.analyticsAccess) {
+  throw new ForbiddenException('يتطلب اشتراك مميز');
+}
+
+// Frontend: Only show analytics dashboard if flag is true
+{user.subscription?.analyticsAccess && (
+  <AnalyticsDashboard listingId={id} />
+)}
+```
+
+---
+
+### 📝 Implementation Checklist
+
+#### **Phase 1: Wishlist** (Start Here)
+- [ ] Backend: Create migration `CreateWishlistTable`
+- [ ] Backend: Create `WishlistItem` entity
+- [ ] Backend: Create `WishlistService`
+- [ ] Backend: Create `WishlistResolver`
+- [ ] Backend: Add `wishlistCount` field resolver to Listing
+- [ ] Frontend: Create `wishlistStore`
+- [ ] Frontend: Wire up `FavoriteButton` in ListingCard
+- [ ] Frontend: Create wishlist dashboard page `/dashboard/wishlist`
+- [ ] Frontend: Add price drop badge (optional)
+
+#### **Phase 2: View Tracking**
+- [ ] Backend: Create migration `CreateListingViewsTable`
+- [ ] Backend: Create `ListingView` entity
+- [ ] Backend: Create `ListingViewsService`
+- [ ] Backend: Add `trackListingView` mutation
+- [ ] Backend: Add `viewCount` field resolver to Listing
+- [ ] Frontend: Track view on listing detail page mount
+- [ ] Frontend: Display view count with eye icon
+
+#### **Phase 3: Analytics Dashboard** (After Chat - Future)
+- [ ] Backend: Create analytics queries (views by date, engagement metrics)
+- [ ] Backend: Add permission check (`analyticsAccess` flag)
+- [ ] Frontend: Create analytics dashboard component
+- [ ] Frontend: 7-day views chart
+- [ ] Frontend: Performance indicators
+- [ ] Frontend: Only show if `user.subscription.analyticsAccess === true`
+
+---
+
+### ⏱️ Time Estimates
+
+**Phase 1 (Wishlist):** 3-4 hours
+**Phase 2 (View Tracking):** 2-3 hours
+**Phase 3 (Analytics):** 4-5 hours (later)
+
+**Total for Wishlist + Views:** 5-7 hours
+**Total with Analytics:** 9-12 hours
 
 ---
 
@@ -2318,6 +3452,869 @@ const transformedListings = cached.map(listing => ({
   updatedAt: new Date(listing.updatedAt),
 }));
 ```
+
+---
+
+## 🎯 DETAILED PLAN: User Analytics Dashboard (2025-11-05)
+
+### 📊 Strategic Goal
+
+Build analytics dashboard for **Dealer** and **Business** subscribers to justify premium pricing and increase retention.
+
+**Marketing Strategy:**
+- Show Individual users what they're missing (locked preview)
+- Provide visual, actionable insights (not just numbers)
+- Compare performance to similar listings (social proof)
+
+---
+
+### ⚡ Key Principle: **NO NEW DATABASE FIELDS**
+
+**Rule:** Don't store what you can calculate!
+
+**What We Already Have:**
+```sql
+-- listings table (CACHED - instant)
+viewCount INT          ✅ Already exists
+wishlistCount INT      ✅ Already exists
+createdAt TIMESTAMP    ✅ Already exists
+categoryId UUID        ✅ Already exists
+specs JSONB            ✅ Already exists (has brandId, modelId, year)
+
+-- listing_views table (DETAILED - for charts)
+viewedAt TIMESTAMP     ✅ Already exists
+
+-- NO NEW FIELDS NEEDED! Everything is calculated on-the-fly
+```
+
+**What We Calculate (NO storage):**
+- `daysOnMarket` = NOW() - createdAt
+- `engagementRate` = (wishlistCount / viewCount) * 100
+- `viewsToday` = COUNT WHERE viewedAt >= TODAY
+- `performanceIndicator` = compare to category+brand+model average
+- `viewsByDate` = GROUP BY DATE(viewedAt)
+
+---
+
+### 🎨 Features Overview
+
+#### **1. Dashboard Page (`/dashboard/analytics`)**
+
+```
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│  📊 إجمالي       │  ❤️ المفضلة     │  📈 معدل الاهتمام│  📦 الإعلانات    │
+│  المشاهدات      │                 │                 │  النشطة         │
+│  12,450         │    1,284        │     10.3%       │       8         │
+│  ↑ +156 اليوم   │  ↑ +23 اليوم    │  ↑ +1.2%        │                 │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
+
+📊 المشاهدات - آخر 30 يوم     [7 أيام ▼] [30 يوم] [90 يوم] [الكل]
+[Line chart with recharts]
+
+🏆 أداء الإعلانات
+┌──────────────────┬─────────┬─────────┬──────────┬──────────┐
+│ الإعلان           │ المشاهدات│ المفضلة │ الاهتمام │ الأداء    │
+├──────────────────┼─────────┼─────────┼──────────┼──────────┤
+│ BMW 320i 2020    │   342   │    28   │   8.2%   │ 🔥 ممتاز │
+│ Mercedes C200    │   298   │    19   │   6.4%   │ ✅ جيد   │
+│ Toyota Camry     │    45   │     2   │   4.4%   │ ⚠️ ضعيف │
+└──────────────────┴─────────┴─────────┴──────────┴──────────┘
+```
+
+#### **2. Per-Listing Analytics (on listing detail page)**
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ 📊 إحصائيات الإعلان                  [تحديث تلقائي ✓]   │
+├──────────────────────────────────────────────────────────┤
+│  👁️  المشاهدات: 342    ❤️  المفضلة: 28 (8.2%)          │
+│  📅 منذ: 5 أيام         🔥 الأداء: ممتاز                │
+│                                                          │
+│  [7-day mini bar chart]                                  │
+│                                                          │
+│  💡 إعلانك يحصل على مشاهدات أكثر من 78% من إعلانات     │
+│     BMW 320i (2018-2022) المشابهة                        │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🛠️ Implementation Plan
+
+#### **Phase 1: Backend (3.5-4 hours)**
+
+**File: `marketplace-backend/src/listings/types/listing-analytics.type.ts`** (NEW)
+
+```typescript
+import { ObjectType, Field, Int, Float } from "@nestjs/graphql";
+
+@ObjectType()
+export class DailyViews {
+  @Field()
+  date!: string; // YYYY-MM-DD
+
+  @Field(() => Int)
+  views!: number;
+}
+
+@ObjectType()
+export class ListingPerformance {
+  @Field()
+  id!: string;
+
+  @Field()
+  title!: string;
+
+  @Field(() => Int)
+  viewCount!: number;
+
+  @Field(() => Int)
+  wishlistCount!: number;
+
+  @Field(() => Float)
+  engagementRate!: number; // Calculated: (wishlistCount / viewCount) * 100
+
+  @Field()
+  performanceIndicator!: string; // 'excellent' | 'good' | 'poor' | 'very_poor'
+}
+
+@ObjectType()
+export class ListingAnalytics {
+  @Field(() => Int)
+  viewCount!: number; // From listings.viewCount (cached)
+
+  @Field(() => Int)
+  wishlistCount!: number; // From listings.wishlistCount (cached)
+
+  @Field(() => Int)
+  daysOnMarket!: number; // Calculated: NOW - createdAt
+
+  @Field(() => Float)
+  engagementRate!: number; // Calculated: (wishlistCount / viewCount) * 100
+
+  @Field(() => Int)
+  viewsToday!: number; // COUNT from listing_views WHERE date = TODAY
+
+  @Field()
+  performanceIndicator!: string; // Calculated vs category+brand+model avg
+
+  @Field()
+  comparisonText!: string; // "78% better than similar BMW 320i listings"
+
+  @Field(() => [DailyViews])
+  viewsByDate!: DailyViews[]; // GROUP BY from listing_views
+}
+
+@ObjectType()
+export class AnalyticsSummary {
+  @Field(() => Int)
+  totalViews!: number; // SUM(viewCount) WHERE userId = X
+
+  @Field(() => Int)
+  totalWishlists!: number; // SUM(wishlistCount) WHERE userId = X
+
+  @Field(() => Int)
+  activeListingsCount!: number; // COUNT WHERE status = ACTIVE
+
+  @Field(() => Float)
+  avgEngagementRate!: number; // AVG(wishlistCount / viewCount) * 100
+
+  @Field(() => Int)
+  totalViewsToday!: number; // COUNT from listing_views WHERE date = TODAY
+
+  @Field(() => Int)
+  totalWishlistsToday!: number; // COUNT from wishlist_items WHERE date = TODAY
+
+  @Field(() => [DailyViews])
+  viewsLast30Days!: DailyViews[]; // Aggregated across all user's listings
+
+  @Field(() => [ListingPerformance])
+  topPerformers!: ListingPerformance[]; // ORDER BY viewCount DESC LIMIT 5
+}
+```
+
+---
+
+**File: `marketplace-backend/src/listings/listing-views.service.ts`** (ADD METHODS)
+
+```typescript
+/**
+ * Get views grouped by date for chart
+ * @param listingId - Listing ID
+ * @param days - Number of days (7, 30, 90, or -1 for ALL)
+ */
+async getViewsByDateRange(listingId: string, days: number = 30): Promise<DailyViews[]> {
+  const cutoffDate = days === -1
+    ? new Date(0) // ALL time
+    : new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  const results = await this.listingViewRepo
+    .createQueryBuilder('view')
+    .select('DATE(view.viewedAt)', 'date')
+    .addSelect('COUNT(*)', 'views')
+    .where('view.listingId = :listingId', { listingId })
+    .andWhere('view.viewedAt >= :cutoffDate', { cutoffDate })
+    .groupBy('DATE(view.viewedAt)')
+    .orderBy('date', 'ASC')
+    .getRawMany();
+
+  return results.map(r => ({
+    date: r.date,
+    views: parseInt(r.views)
+  }));
+}
+
+/**
+ * Get today's view count (for "↑ +156 اليوم")
+ */
+async getViewsToday(listingId: string): Promise<number> {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  return await this.listingViewRepo.count({
+    where: {
+      listingId,
+      viewedAt: MoreThan(startOfToday)
+    }
+  });
+}
+
+/**
+ * Get total views today for all user's listings
+ */
+async getTotalViewsTodayForUser(userId: string): Promise<number> {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const result = await this.listingViewRepo
+    .createQueryBuilder('view')
+    .innerJoin('view.listing', 'listing')
+    .where('listing.userId = :userId', { userId })
+    .andWhere('view.viewedAt >= :startOfToday', { startOfToday })
+    .getCount();
+
+  return result;
+}
+
+/**
+ * Get category + brand + model average views
+ * @param categoryId - Category ID
+ * @param brandId - Brand ID from specs
+ * @param modelId - Model ID from specs
+ * @param year - Year from specs (±2 years range)
+ */
+async getCategoryBrandModelAverage(
+  categoryId: string,
+  brandId: string | null,
+  modelId: string | null,
+  year: number | null
+): Promise<{ avgViews: number; avgWishlists: number }> {
+  let query = this.listingRepo
+    .createQueryBuilder('listing')
+    .select('AVG(listing.viewCount)', 'avgViews')
+    .addSelect('AVG(listing.wishlistCount)', 'avgWishlists')
+    .where('listing.categoryId = :categoryId', { categoryId })
+    .andWhere('listing.status = :status', { status: 'ACTIVE' });
+
+  // Add brand filter
+  if (brandId) {
+    query = query.andWhere("listing.specs->>'brandId' = :brandId", { brandId });
+  }
+
+  // Add model filter
+  if (modelId) {
+    query = query.andWhere("listing.specs->>'modelId' = :modelId", { modelId });
+  }
+
+  // Add year range (±2 years)
+  if (year) {
+    query = query.andWhere(
+      "(listing.specs->>'year')::int BETWEEN :minYear AND :maxYear",
+      { minYear: year - 2, maxYear: year + 2 }
+    );
+  }
+
+  const result = await query.getRawOne();
+
+  return {
+    avgViews: parseFloat(result?.avgViews || '0'),
+    avgWishlists: parseFloat(result?.avgWishlists || '0')
+  };
+}
+
+/**
+ * Get performance indicator (excellent/good/poor/very_poor)
+ */
+async getPerformanceIndicator(
+  viewCount: number,
+  avgViews: number
+): Promise<string> {
+  if (avgViews === 0) return 'good'; // No comparison data
+
+  const ratio = viewCount / avgViews;
+
+  if (ratio > 1.5) return 'excellent';  // >150%
+  if (ratio > 0.8) return 'good';       // 80-150%
+  if (ratio > 0.3) return 'poor';       // 30-80%
+  return 'very_poor';                   // <30%
+}
+
+/**
+ * Get comparison text for UI
+ */
+getComparisonText(
+  viewCount: number,
+  avgViews: number,
+  brandName: string | null,
+  modelName: string | null,
+  year: number | null
+): string {
+  if (avgViews === 0) {
+    return 'لا توجد بيانات كافية للمقارنة';
+  }
+
+  const percentDiff = ((viewCount - avgViews) / avgViews) * 100;
+  const absPercent = Math.abs(Math.round(percentDiff));
+
+  let vehicleDesc = 'الإعلانات المشابهة';
+  if (brandName && modelName && year) {
+    vehicleDesc = `إعلانات ${brandName} ${modelName} (${year - 2}-${year + 2}) المشابهة`;
+  } else if (brandName && modelName) {
+    vehicleDesc = `إعلانات ${brandName} ${modelName} المشابهة`;
+  }
+
+  if (percentDiff > 0) {
+    return `إعلانك يحصل على مشاهدات أكثر من ${absPercent}% من ${vehicleDesc}`;
+  } else {
+    return `إعلانك يحصل على مشاهدات أقل من ${absPercent}% من ${vehicleDesc}`;
+  }
+}
+```
+
+---
+
+**File: `marketplace-backend/src/listings/listing-views.resolver.ts`** (ADD QUERIES)
+
+```typescript
+@Query(() => ListingAnalytics)
+@UseGuards(SupabaseAuthGuard)
+async getMyListingAnalytics(
+  @Args('listingId', { type: () => ID }) listingId: string,
+  @Args('days', { type: () => Int, nullable: true, defaultValue: 30 }) days: number,
+  @CurrentUser() jwt: JwtPayload
+): Promise<ListingAnalytics> {
+  const user = await this.usersService.ensureProfile(jwt.sub, jwt.email);
+
+  // 1. Check permission
+  if (!user.subscription?.analyticsAccess) {
+    throw new ForbiddenException(
+      'Analytics feature requires Dealer or Business subscription'
+    );
+  }
+
+  // 2. Verify ownership
+  const listing = await this.listingsService.findById(listingId);
+  if (listing.userId !== user.id) {
+    throw new ForbiddenException('You can only view analytics for your own listings');
+  }
+
+  // 3. Get cached data (NO queries needed!)
+  const viewCount = listing.viewCount;
+  const wishlistCount = listing.wishlistCount;
+
+  // 4. Calculate metrics (NO storage!)
+  const daysOnMarket = Math.floor(
+    (Date.now() - listing.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  const engagementRate = viewCount > 0
+    ? (wishlistCount / viewCount) * 100
+    : 0;
+
+  // 5. Get today's views
+  const viewsToday = await this.listingViewsService.getViewsToday(listingId);
+
+  // 6. Get views by date for chart
+  const viewsByDate = await this.listingViewsService.getViewsByDateRange(listingId, days);
+
+  // 7. Get category+brand+model average for comparison
+  const brandId = listing.specs?.brandId || null;
+  const modelId = listing.specs?.modelId || null;
+  const year = listing.specs?.year || null;
+
+  const { avgViews, avgWishlists } = await this.listingViewsService
+    .getCategoryBrandModelAverage(listing.categoryId, brandId, modelId, year);
+
+  // 8. Get performance indicator
+  const performanceIndicator = await this.listingViewsService
+    .getPerformanceIndicator(viewCount, avgViews);
+
+  // 9. Get comparison text
+  const brandName = listing.specs?.brandName || null; // Assuming you have brand name
+  const modelName = listing.specs?.modelName || null;
+  const comparisonText = this.listingViewsService.getComparisonText(
+    viewCount,
+    avgViews,
+    brandName,
+    modelName,
+    year
+  );
+
+  return {
+    viewCount,
+    wishlistCount,
+    daysOnMarket,
+    engagementRate,
+    viewsToday,
+    performanceIndicator,
+    comparisonText,
+    viewsByDate
+  };
+}
+
+@Query(() => AnalyticsSummary)
+@UseGuards(SupabaseAuthGuard)
+async getMyAnalyticsSummary(
+  @Args('days', { type: () => Int, nullable: true, defaultValue: 30 }) days: number,
+  @CurrentUser() jwt: JwtPayload
+): Promise<AnalyticsSummary> {
+  const user = await this.usersService.ensureProfile(jwt.sub, jwt.email);
+
+  // 1. Check permission
+  if (!user.subscription?.analyticsAccess) {
+    throw new ForbiddenException(
+      'Analytics feature requires Dealer or Business subscription'
+    );
+  }
+
+  // 2. Get totals (ONE query with SUM)
+  const summary = await this.listingRepo
+    .createQueryBuilder('listing')
+    .select('SUM(listing.viewCount)', 'totalViews')
+    .addSelect('SUM(listing.wishlistCount)', 'totalWishlists')
+    .addSelect('COUNT(*)', 'activeListings')
+    .addSelect('AVG(listing.wishlistCount / NULLIF(listing.viewCount, 0)) * 100', 'avgEngagement')
+    .where('listing.userId = :userId', { userId: user.id })
+    .andWhere('listing.status = :status', { status: 'ACTIVE' })
+    .getRawOne();
+
+  // 3. Get today's totals
+  const totalViewsToday = await this.listingViewsService.getTotalViewsTodayForUser(user.id);
+
+  // TODO: Implement getTotalWishlistsTodayForUser in wishlist service
+  const totalWishlistsToday = 0; // Placeholder
+
+  // 4. Get views by date (aggregated across all listings)
+  const viewsLast30Days = await this.listingViewsService
+    .getViewsByDateRangeForUser(user.id, days);
+
+  // 5. Get top performers (ORDER BY viewCount)
+  const topListings = await this.listingRepo.find({
+    where: { userId: user.id, status: 'ACTIVE' },
+    order: { viewCount: 'DESC' },
+    take: 5,
+    select: ['id', 'title', 'viewCount', 'wishlistCount', 'specs', 'categoryId']
+  });
+
+  const topPerformers = topListings.map(listing => ({
+    id: listing.id,
+    title: listing.title,
+    viewCount: listing.viewCount,
+    wishlistCount: listing.wishlistCount,
+    engagementRate: listing.viewCount > 0
+      ? (listing.wishlistCount / listing.viewCount) * 100
+      : 0,
+    performanceIndicator: 'good' // TODO: Calculate if needed
+  }));
+
+  return {
+    totalViews: parseInt(summary.totalViews || '0'),
+    totalWishlists: parseInt(summary.totalWishlists || '0'),
+    activeListingsCount: parseInt(summary.activeListings || '0'),
+    avgEngagementRate: parseFloat(summary.avgEngagement || '0'),
+    totalViewsToday,
+    totalWishlistsToday,
+    viewsLast30Days,
+    topPerformers
+  };
+}
+```
+
+---
+
+#### **Phase 2: Frontend (2.5-3 hours)**
+
+**File: `marketplace-frontend/stores/listingAnalyticsStore/index.ts`** (NEW)
+
+```typescript
+import { create } from 'zustand';
+import { apolloClient } from '@/lib/apollo-client';
+import {
+  GET_MY_LISTING_ANALYTICS_QUERY,
+  GET_MY_ANALYTICS_SUMMARY_QUERY
+} from './listingAnalyticsStore.gql';
+
+interface ListingAnalytics {
+  viewCount: number;
+  wishlistCount: number;
+  daysOnMarket: number;
+  engagementRate: number;
+  viewsToday: number;
+  performanceIndicator: string;
+  comparisonText: string;
+  viewsByDate: { date: string; views: number }[];
+}
+
+interface AnalyticsSummary {
+  totalViews: number;
+  totalWishlists: number;
+  activeListingsCount: number;
+  avgEngagementRate: number;
+  totalViewsToday: number;
+  totalWishlistsToday: number;
+  viewsLast30Days: { date: string; views: number }[];
+  topPerformers: any[];
+}
+
+interface ListingAnalyticsStore {
+  analytics: ListingAnalytics | null;
+  summary: AnalyticsSummary | null;
+  isLoading: boolean;
+  error: string | null;
+
+  fetchListingAnalytics: (listingId: string, days?: number) => Promise<void>;
+  fetchAnalyticsSummary: (days?: number) => Promise<void>;
+  reset: () => void;
+}
+
+export const useListingAnalyticsStore = create<ListingAnalyticsStore>((set) => ({
+  analytics: null,
+  summary: null,
+  isLoading: false,
+  error: null,
+
+  fetchListingAnalytics: async (listingId: string, days = 30) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_MY_LISTING_ANALYTICS_QUERY,
+        variables: { listingId, days },
+        fetchPolicy: 'network-only'
+      });
+      set({ analytics: data.getMyListingAnalytics, isLoading: false });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'Failed to fetch analytics',
+        isLoading: false
+      });
+    }
+  },
+
+  fetchAnalyticsSummary: async (days = 30) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_MY_ANALYTICS_SUMMARY_QUERY,
+        variables: { days },
+        fetchPolicy: 'network-only'
+      });
+      set({ summary: data.getMyAnalyticsSummary, isLoading: false });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'Failed to fetch summary',
+        isLoading: false
+      });
+    }
+  },
+
+  reset: () => set({ analytics: null, summary: null, error: null })
+}));
+```
+
+**File: `marketplace-frontend/stores/listingAnalyticsStore/listingAnalyticsStore.gql.ts`** (NEW)
+
+```typescript
+import { gql } from '@apollo/client';
+
+export const GET_MY_LISTING_ANALYTICS_QUERY = gql`
+  query GetMyListingAnalytics($listingId: ID!, $days: Int) {
+    getMyListingAnalytics(listingId: $listingId, days: $days) {
+      viewCount
+      wishlistCount
+      daysOnMarket
+      engagementRate
+      viewsToday
+      performanceIndicator
+      comparisonText
+      viewsByDate {
+        date
+        views
+      }
+    }
+  }
+`;
+
+export const GET_MY_ANALYTICS_SUMMARY_QUERY = gql`
+  query GetMyAnalyticsSummary($days: Int) {
+    getMyAnalyticsSummary(days: $days) {
+      totalViews
+      totalWishlists
+      activeListingsCount
+      avgEngagementRate
+      totalViewsToday
+      totalWishlistsToday
+      viewsLast30Days {
+        date
+        views
+      }
+      topPerformers {
+        id
+        title
+        viewCount
+        wishlistCount
+        engagementRate
+        performanceIndicator
+      }
+    }
+  }
+`;
+```
+
+**File: `marketplace-frontend/app/dashboard/analytics/page.tsx`** (UPDATE - replace mock data)
+
+```typescript
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Text, Button } from '@/components/slices';
+import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
+import { BarChart3, Eye, Heart, TrendingUp, Package } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import styles from './Analytics.module.scss';
+
+export default function AnalyticsPage() {
+  const router = useRouter();
+  const { user } = useUserAuthStore();
+  const { summary, isLoading, fetchAnalyticsSummary } = useListingAnalyticsStore();
+  const [dateRange, setDateRange] = useState(30);
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/dashboard');
+      return;
+    }
+
+    // Check access
+    if (user.accountType === 'INDIVIDUAL') {
+      router.push('/dashboard');
+      return;
+    }
+
+    // Fetch analytics
+    fetchAnalyticsSummary(dateRange);
+  }, [user, router, dateRange]);
+
+  if (!user || user.accountType === 'INDIVIDUAL' || isLoading) {
+    return null;
+  }
+
+  if (!summary) {
+    return <Text>Loading analytics...</Text>;
+  }
+
+  const stats = [
+    {
+      icon: <Eye size={24} />,
+      label: 'إجمالي المشاهدات',
+      value: summary.totalViews.toLocaleString('ar-EG'),
+      change: `+${summary.totalViewsToday} اليوم`,
+      positive: true,
+    },
+    {
+      icon: <Heart size={24} />,
+      label: 'المفضلة',
+      value: summary.totalWishlists.toLocaleString('ar-EG'),
+      change: `+${summary.totalWishlistsToday} اليوم`,
+      positive: true,
+    },
+    {
+      icon: <TrendingUp size={24} />,
+      label: 'معدل الاهتمام',
+      value: `${summary.avgEngagementRate.toFixed(1)}%`,
+      change: '',
+      positive: true,
+    },
+    {
+      icon: <Package size={24} />,
+      label: 'الإعلانات النشطة',
+      value: summary.activeListingsCount.toString(),
+      change: '',
+      positive: true,
+    },
+  ];
+
+  const performanceBadge = (indicator: string) => {
+    switch (indicator) {
+      case 'excellent': return { text: 'ممتاز', color: styles.excellent };
+      case 'good': return { text: 'جيد', color: styles.good };
+      case 'poor': return { text: 'ضعيف', color: styles.poor };
+      case 'very_poor': return { text: 'ضعيف جداً', color: styles.veryPoor };
+      default: return { text: 'جيد', color: styles.good };
+    }
+  };
+
+  return (
+    <div className={styles.analytics}>
+      <div className={styles.header}>
+        <div>
+          <Text variant="h2">الإحصائيات</Text>
+          <Text variant="small" color="secondary">
+            متاح فقط لحسابات المعارض والتجار
+          </Text>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className={styles.statsGrid}>
+        {stats.map((stat, index) => (
+          <div key={index} className={styles.statCard}>
+            <div className={styles.statIcon}>{stat.icon}</div>
+            <div className={styles.statContent}>
+              <Text variant="small" color="secondary">{stat.label}</Text>
+              <Text variant="h2" className={styles.statValue}>{stat.value}</Text>
+              {stat.change && (
+                <span className={styles.statChange}>{stat.change}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <div className={styles.chartsSection}>
+        <div className={styles.chartCard}>
+          <div className={styles.chartHeader}>
+            <Text variant="h3">المشاهدات - آخر {dateRange} يوم</Text>
+            <div className={styles.dateRangeButtons}>
+              <button
+                onClick={() => setDateRange(7)}
+                className={dateRange === 7 ? styles.active : ''}
+              >
+                7 أيام
+              </button>
+              <button
+                onClick={() => setDateRange(30)}
+                className={dateRange === 30 ? styles.active : ''}
+              >
+                30 يوم
+              </button>
+              <button
+                onClick={() => setDateRange(90)}
+                className={dateRange === 90 ? styles.active : ''}
+              >
+                90 يوم
+              </button>
+              <button
+                onClick={() => setDateRange(-1)}
+                className={dateRange === -1 ? styles.active : ''}
+              >
+                الكل
+              </button>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={summary.viewsLast30Days}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="views" stroke="#8884d8" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Top Performers */}
+      <div className={styles.performanceSection}>
+        <Text variant="h3">🏆 أداء الإعلانات</Text>
+        <table className={styles.performanceTable}>
+          <thead>
+            <tr>
+              <th>الإعلان</th>
+              <th>المشاهدات</th>
+              <th>المفضلة</th>
+              <th>الاهتمام</th>
+              <th>الأداء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summary.topPerformers.map(listing => {
+              const badge = performanceBadge(listing.performanceIndicator);
+              return (
+                <tr key={listing.id}>
+                  <td>{listing.title}</td>
+                  <td>{listing.viewCount}</td>
+                  <td>{listing.wishlistCount}</td>
+                  <td>{listing.engagementRate.toFixed(1)}%</td>
+                  <td>
+                    <span className={badge.color}>{badge.text}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### ⏱️ Time Estimates
+
+**Backend:**
+- GraphQL types: 30 min
+- Service methods: 2 hours
+- Resolvers + permission checks: 1 hour
+**Total Backend: 3.5-4 hours**
+
+**Frontend:**
+- Analytics store: 30 min
+- Dashboard page: 1.5 hours
+- Chart integration (recharts): 30 min
+- Per-listing card: 30 min
+**Total Frontend: 2.5-3 hours**
+
+**Grand Total: 6-7 hours**
+
+---
+
+### ✅ Checklist
+
+**Backend:**
+- [ ] Create GraphQL types (ListingAnalytics, AnalyticsSummary, DailyViews)
+- [ ] Add getViewsByDateRange to listing-views.service.ts
+- [ ] Add getViewsToday to listing-views.service.ts
+- [ ] Add getCategoryBrandModelAverage for smart comparison
+- [ ] Add getPerformanceIndicator method
+- [ ] Add getComparisonText method
+- [ ] Create getMyListingAnalytics query in listing-views.resolver.ts
+- [ ] Create getMyAnalyticsSummary query in listing-views.resolver.ts
+- [ ] Add permission check for analyticsAccess
+
+**Frontend:**
+- [ ] Install recharts: `npm install recharts`
+- [ ] Create analytics store (stores/listingAnalyticsStore/)
+- [ ] Create GraphQL queries file
+- [ ] Update /dashboard/analytics page with real data
+- [ ] Add chart component with date range selector
+- [ ] Add performance badges to table
+- [ ] Add analytics card to listing detail page (owner only)
+- [ ] Test with all 3 account types
 
 ---
 
