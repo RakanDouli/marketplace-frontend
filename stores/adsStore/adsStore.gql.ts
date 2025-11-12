@@ -13,6 +13,12 @@ export const GET_ACTIVE_ADS_BY_TYPE_QUERY = `
       status
       startDate
       endDate
+      package {
+        id
+        dimensions
+        placement
+        format
+      }
     }
   }
 `;

@@ -10,6 +10,10 @@ export interface AdBannerProps {
   imageUrl: string;
   targetUrl: string;
   altText: string;
+  dimensions?: {
+    desktop: { width: number; height: number };
+    mobile: { width: number; height: number };
+  };
   onImpression?: (campaignId: string) => void;
   onClick?: (campaignId: string) => void;
 }
@@ -19,11 +23,20 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   imageUrl,
   targetUrl,
   altText,
+  dimensions,
   onImpression,
   onClick,
 }) => {
   const hasTrackedImpression = useRef(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Default dimensions (970x90 desktop, 300x250 mobile) - IAB Super Leaderboard
+  const defaultDimensions = {
+    desktop: { width: 970, height: 90 },
+    mobile: { width: 300, height: 250 },
+  };
+
+  const adDimensions = dimensions || defaultDimensions;
 
   useEffect(() => {
     // Track impression only once when component mounts
@@ -60,9 +73,9 @@ export const AdBanner: React.FC<AdBannerProps> = ({
         <Image
           src={optimizedImageUrl}
           alt={altText}
-          width={isMobile ? 300 : 970}
-          height={isMobile ? 250 : 90}
-          sizes="(max-width: 768px) 300px, 970px"
+          width={isMobile ? adDimensions.mobile.width : adDimensions.desktop.width}
+          height={isMobile ? adDimensions.mobile.height : adDimensions.desktop.height}
+          sizes={`(max-width: 768px) ${adDimensions.mobile.width}px, ${adDimensions.desktop.width}px`}
           className={styles.adImage}
           priority
           containerClassName={styles.imageWrapper}

@@ -196,6 +196,118 @@
   width: 100%;
 }
 
+// Packages Table Styles
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-md;
+}
+
+.packagesTable {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    overflow: hidden;
+
+    thead {
+      background: $surface;
+
+      th {
+        padding: $space-sm $space-md;
+        text-align: right;
+        font-size: $font-sm;
+        font-weight: 600;
+        color: $text-secondary;
+        border-bottom: 1px solid $border;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $border;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &:hover {
+          background: $surface;
+        }
+
+        td {
+          padding: $space-sm $space-md;
+          text-align: right;
+          font-size: $font-sm;
+          color: $text;
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+}
+
+.packageImage {
+  width: 80px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+}
+
+.tableActions {
+  display: flex;
+  gap: $space-xs;
+  justify-content: flex-end;
+}
+
+.iconButton {
+  background: transparent;
+  border: none;
+  padding: $space-xs;
+  cursor: pointer;
+  color: $text-secondary;
+  border-radius: $radius-sm;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $surface;
+    color: $primary;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.totalPrice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-md;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  font-weight: 600;
+}
+
+.emptyState {
+  padding: $space-xl;
+  text-align: center;
+  border: 1px dashed $border;
+  border-radius: $radius-sm;
+  background: $surface;
+}
+
 @media (max-width: $breakpoint-md) {
   .form {
     gap: $space-md;
@@ -209,5 +321,25 @@
 
   .reportLinkActions {
     flex-direction: column;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-sm;
+  }
+
+  .packagesTable table {
+    font-size: $font-xs;
+
+    thead th,
+    tbody td {
+      padding: $space-xs $space-sm;
+    }
+  }
+
+  .packageImage {
+    width: 60px;
+    height: 40px;
   }
 }

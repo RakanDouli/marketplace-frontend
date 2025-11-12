@@ -7,6 +7,9 @@ export const GET_ALL_AD_PACKAGES_QUERY = `
       packageName
       description
       adType
+      placement
+      format
+      dimensions
       durationDays
       impressionLimit
       basePrice
@@ -28,6 +31,9 @@ export const GET_AD_PACKAGE_BY_ID_QUERY = `
       packageName
       description
       adType
+      placement
+      format
+      dimensions
       durationDays
       impressionLimit
       basePrice
@@ -49,6 +55,9 @@ export const GET_ACTIVE_AD_PACKAGES_QUERY = `
       packageName
       description
       adType
+      placement
+      format
+      dimensions
       durationDays
       impressionLimit
       basePrice
@@ -68,6 +77,9 @@ export const CREATE_AD_PACKAGE_MUTATION = `
       packageName
       description
       adType
+      placement
+      format
+      dimensions
       durationDays
       impressionLimit
       basePrice
@@ -89,6 +101,9 @@ export const UPDATE_AD_PACKAGE_MUTATION = `
       packageName
       description
       adType
+      placement
+      format
+      dimensions
       durationDays
       impressionLimit
       basePrice

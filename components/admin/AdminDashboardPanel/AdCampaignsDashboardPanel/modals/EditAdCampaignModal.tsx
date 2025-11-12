@@ -7,12 +7,13 @@ import { Input } from '@/components/slices/Input/Input';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useAdminAdCampaignsStore, type AdCampaign } from '@/stores/admin/adminAdCampaignsStore';
-import { Copy, RefreshCw } from 'lucide-react';
+import { Copy, RefreshCw, Plus, Edit2, Trash2 } from 'lucide-react';
 import {
   validateEditAdCampaignForm,
   hasValidationErrors,
   type ValidationErrors,
 } from '@/lib/admin/validation/adCampaignValidation';
+import { AddPackageModal, type CampaignPackage } from './AddPackageModal';
 import styles from './AdCampaignModals.module.scss';
 
 interface EditAdCampaignModalProps {
@@ -33,6 +34,14 @@ interface AdPackage {
   packageName: string;
   basePrice: number;
   currency: string;
+  adType: string;
+  placement: string;
+  format: string;
+  dimensions: {
+    desktop: { width: number; height: number };
+    mobile: { width: number; height: number };
+  };
+  mediaRequirements: string[];
 }
 
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
@@ -68,6 +77,9 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
   const [packages, setPackages] = useState<AdPackage[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [regeneratingToken, setRegeneratingToken] = useState(false);
+  const [campaignPackages, setCampaignPackages] = useState<CampaignPackage[]>([]);
+  const [showAddPackageModal, setShowAddPackageModal] = useState(false);
+  const [editingPackageIndex, setEditingPackageIndex] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     id: '',
@@ -103,6 +115,13 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
         notes: initialData.notes || '',
         paymentLink: initialData.paymentLink || '',
       });
+
+      // Parse packageBreakdown if exists
+      if (initialData.packageBreakdown?.packages) {
+        setCampaignPackages(initialData.packageBreakdown.packages);
+      } else {
+        setCampaignPackages([]);
+      }
     }
   }, [initialData]);
 
@@ -136,6 +155,11 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
             packageName
             basePrice
             currency
+            adType
+            placement
+            format
+            dimensions
+            mediaRequirements
           }
         }
       `;
@@ -238,6 +262,37 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     }
   };
 
+  // Package management handlers
+  const handleAddPackage = (pkg: CampaignPackage) => {
+    if (editingPackageIndex !== null) {
+      // Update existing package
+      const updated = [...campaignPackages];
+      updated[editingPackageIndex] = pkg;
+      setCampaignPackages(updated);
+      setEditingPackageIndex(null);
+    } else {
+      // Add new package
+      setCampaignPackages([...campaignPackages, pkg]);
+    }
+    setShowAddPackageModal(false);
+  };
+
+  const handleEditPackage = (index: number) => {
+    setEditingPackageIndex(index);
+    setShowAddPackageModal(true);
+  };
+
+  const handleDeletePackage = (index: number) => {
+    const updated = campaignPackages.filter((_, i) => i !== index);
+    setCampaignPackages(updated);
+  };
+
+  // Calculate total price from all packages
+  const calculateTotalPrice = (): number => {
+    if (campaignPackages.length === 0) return formData.totalPrice;
+    return campaignPackages.reduce((sum, pkg) => sum + (pkg.customPrice || pkg.packageData.basePrice), 0);
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -320,6 +375,102 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
             <span>حزمة مخصصة (سعر مخصص)</span>
           </label>
         </div>
+
+        {/* Packages Table (for custom packages) */}
+        {formData.isCustomPackage && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Text variant="h4">الحزم المضافة</Text>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                icon={<Plus size={16} />}
+                onClick={() => setShowAddPackageModal(true)}
+              >
+                إضافة حزمة
+              </Button>
+            </div>
+
+            {campaignPackages.length > 0 ? (
+              <div className={styles.packagesTable}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>اسم الحزمة</th>
+                      <th>صورة سطح المكتب</th>
+                      <th>صورة الموبايل</th>
+                      <th>السعر</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaignPackages.map((pkg, index) => (
+                      <tr key={index}>
+                        <td>{pkg.packageData.packageName}</td>
+                        <td>
+                          {pkg.desktopMediaUrl ? (
+                            <img
+                              src={pkg.desktopMediaUrl}
+                              alt="Desktop"
+                              className={styles.packageImage}
+                            />
+                          ) : (
+                            <Text variant="small" color="secondary">لم يتم الرفع</Text>
+                          )}
+                        </td>
+                        <td>
+                          {pkg.mobileMediaUrl ? (
+                            <img
+                              src={pkg.mobileMediaUrl}
+                              alt="Mobile"
+                              className={styles.packageImage}
+                            />
+                          ) : (
+                            <Text variant="small" color="secondary">لم يتم الرفع</Text>
+                          )}
+                        </td>
+                        <td>${pkg.customPrice || pkg.packageData.basePrice}</td>
+                        <td>
+                          <div className={styles.tableActions}>
+                            <button
+                              type="button"
+                              onClick={() => handleEditPackage(index)}
+                              className={styles.iconButton}
+                              title="تعديل"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePackage(index)}
+                              className={styles.iconButton}
+                              title="حذف"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Total Price */}
+                <div className={styles.totalPrice}>
+                  <Text variant="h4">السعر الإجمالي:</Text>
+                  <Text variant="h3">${calculateTotalPrice()}</Text>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <Text variant="paragraph" color="secondary">
+                  لم يتم إضافة أي حزم بعد. اضغط على "إضافة حزمة" للبدء.
+                </Text>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Campaign Period */}
         <div className={styles.section}>
@@ -445,6 +596,18 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
           </Button>
         </div>
       </Form>
+
+      {/* Add Package Modal */}
+      <AddPackageModal
+        isVisible={showAddPackageModal}
+        onClose={() => {
+          setShowAddPackageModal(false);
+          setEditingPackageIndex(null);
+        }}
+        onAdd={handleAddPackage}
+        availablePackages={packages}
+        editingPackage={editingPackageIndex !== null ? campaignPackages[editingPackageIndex] : undefined}
+      />
     </Modal>
   );
 };

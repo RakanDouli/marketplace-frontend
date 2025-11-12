@@ -77,6 +77,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
                 imageUrl={mediaUrl}
                 targetUrl={selectedAd.clickUrl}
                 altText={selectedAd.description || selectedAd.campaignName}
+                dimensions={selectedAd.package?.dimensions}
                 onImpression={handleImpression}
                 onClick={handleClick}
               />

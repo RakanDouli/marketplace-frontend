@@ -221,7 +221,8 @@
 .message {
   display: flex;
   width: 100%;
-
+  align-items: flex-start;
+  gap: $space-sm;
   // Arabic (RTL) pattern: sent messages on LEFT, received on RIGHT
   &.sent {
     justify-content: flex-start;
@@ -231,32 +232,32 @@
     justify-content: flex-end;
   }
 }
-.messageArea {
+.messageMenuButton {
   display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-  span {
-    margin-bottom: 0;
-  }
+  align-items: center;
+  justify-content: center;
+  padding: $space-xs;
+  border: 1px solid $border;
+  border-radius: $radius-md;
 }
 .messageBubble {
   max-width: 70%;
-
   border-radius: $radius-lg;
   display: flex;
   align-items: flex-start;
+  flex-direction: column;
   gap: $space-sm;
   position: relative;
 
   // Arabic (RTL) pattern: sent messages on LEFT with tail on bottom-left
   .sent & {
-    padding: $space-sm $space-md $space-sm $space-sm;
+    padding: $space-md;
     .messageArea {
       > span {
         color: $text-light !important;
       }
     }
-    background: $info;
+    background: $info-bg;
     border-bottom-left-radius: $space-xs;
   }
 
@@ -279,25 +280,40 @@
   border-top: 1px solid $border;
 }
 
-// Image preview
-.imagePreview {
-  position: relative;
+// Multiple Image Previews Grid
+.imagePreviewsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: $space-sm;
   padding: $space-sm $space-md;
   border-bottom: 1px solid $border;
+  max-height: 150px;
+  overflow-y: auto;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}
+
+.imagePreviewItem {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: $radius-md;
+  overflow: hidden;
+  background: $surface;
 
   img {
-    max-width: 200px;
-    max-height: 200px;
-    border-radius: $radius-md;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 
   .removeImageButton {
     position: absolute;
-    top: $space-md;
-    right: $space-md;
-    background: $error;
-    color: $text-light;
+    top: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
     border: none;
     border-radius: 50%;
     width: 24px;
@@ -306,16 +322,22 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+    opacity: 0;
 
     &:hover {
-      opacity: 0.8;
+      background: $error;
+      opacity: 1 !important;
     }
 
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
+  }
+
+  &:hover .removeImageButton {
+    opacity: 1;
   }
 }
 
@@ -329,9 +351,8 @@
 // Message image
 .messageImage {
   position: relative;
-  width: 100%;
-  max-width: 400px;
-  aspect-ratio: 4/3;
+  min-width: 140px;
+  max-width: 180px;
   margin-bottom: $space-xs;
   border-radius: $radius-md;
   overflow: hidden;
@@ -347,29 +368,6 @@
   gap: $space-sm;
   padding: $space-md;
 }
-
-// .attachButton {
-//   background: transparent;
-//   border: none;
-//   color: $primary;
-//   cursor: pointer;
-//   padding: $space-sm;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   border-radius: $radius-md;
-//   transition: all 0.2s;
-
-//   &:hover {
-//     background: rgba($info, 0.1);
-//     color: $info;
-//   }
-
-//   &:disabled {
-//     opacity: 0.5;
-//     cursor: not-allowed;
-//   }
-// }
 
 .input {
   flex: 1;
@@ -413,27 +411,6 @@
 
   &:hover {
     background: rgba(0, 0, 0, 0.05);
-  }
-}
-
-// Message menu positioning
-.messageMenu {
-  // position: absolute;
-  // right: $space-xs;
-  // top: $space-xs;
-}
-
-.messageMenuButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $bg-light;
-  padding: $space-xs;
-  cursor: pointer;
-  border-radius: $radius-sm;
-  transition: opacity 0.2s ease;
-  &:hover {
-    background: rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -497,4 +474,19 @@
       cursor: not-allowed;
     }
   }
+}
+
+// More images overlay (+N indicator)
+.moreImagesOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-md;
+  backdrop-filter: blur(4px);
 }

@@ -68,8 +68,12 @@ export interface Listing {
     accountBadge: "none" | "verified" | "premium"; // Lowercase to match backend
     businessVerified: boolean;
     phone?: string;
+    phoneIsWhatsApp?: boolean;
+    showPhone?: boolean;
     contactPhone?: string;
+    showContactPhone?: boolean;
     website?: string;
+    companyRegistrationNumber?: string;
     createdAt: string;
     updatedAt: string;
   };

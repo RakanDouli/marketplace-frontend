@@ -18,8 +18,11 @@ export const ME_QUERY = `
         accountBadge
         avatar
         website
-        kvkNumber
+        companyRegistrationNumber
         contactPhone
+        phoneIsWhatsApp
+        showPhone
+        showContactPhone
         businessVerified
         createdAt
         updatedAt

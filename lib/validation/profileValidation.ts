@@ -8,8 +8,8 @@ export interface ProfileFormData {
   dateOfBirth?: string;
   companyName?: string;
   website?: string;
-  kvkNumber?: string;
-  contactPhone?: string;
+  companyRegistrationNumber?: string;
+  contactPhone?: string; // renamed from contactPhone
 }
 
 export interface ValidationErrors {
@@ -19,8 +19,8 @@ export interface ValidationErrors {
   dateOfBirth?: string;
   companyName?: string;
   website?: string;
-  kvkNumber?: string;
-  contactPhone?: string;
+  companyRegistrationNumber?: string;
+  contactPhone?: string; // renamed from contactPhone
 }
 
 // ===== VALIDATION CONFIG - Single Source of Truth =====
@@ -42,7 +42,7 @@ export const ProfileValidationConfig = {
     maxLength: 255,
     pattern: /^https?:\/\/.+/i, // Must start with http:// or https://
   },
-  kvkNumber: {
+  companyRegistrationNumber: {
     minLength: 8,
     maxLength: 8,
     pattern: /^\d{8}$/, // Exactly 8 digits (Dutch KVK number)
@@ -94,6 +94,7 @@ const companyNameSchema = z
     ProfileValidationConfig.companyName.maxLength,
     `اسم الشركة يجب ألا يتجاوز ${ProfileValidationConfig.companyName.maxLength} حرف`
   )
+  .or(z.literal(''))
   .optional();
 
 const websiteSchema = z
@@ -106,25 +107,28 @@ const websiteSchema = z
     ProfileValidationConfig.website.pattern,
     'الموقع الإلكتروني يجب أن يبدأ بـ http:// أو https://'
   )
+  .or(z.literal(''))
   .optional();
 
-const kvkNumberSchema = z
+const companyRegistrationNumberSchema = z
   .string()
-  .length(ProfileValidationConfig.kvkNumber.minLength, 'رقم التسجيل التجاري يجب أن يكون 8 أرقام')
-  .regex(ProfileValidationConfig.kvkNumber.pattern, 'رقم التسجيل التجاري يجب أن يحتوي على أرقام فقط')
+  .length(ProfileValidationConfig.companyRegistrationNumber.minLength, 'رقم التسجيل التجاري يجب أن يكون 8 أرقام')
+  .regex(ProfileValidationConfig.companyRegistrationNumber.pattern, 'رقم التسجيل التجاري يجب أن يحتوي على أرقام فقط')
+  .or(z.literal(''))
   .optional();
 
 const contactPhoneSchema = z
   .string()
   .min(
     ProfileValidationConfig.contactPhone.minLength,
-    `هاتف الشركة يجب أن يكون ${ProfileValidationConfig.contactPhone.minLength} أرقام على الأقل`
+    `هاتف المكتب يجب أن يكون ${ProfileValidationConfig.contactPhone.minLength} أرقام على الأقل`
   )
   .max(
     ProfileValidationConfig.contactPhone.maxLength,
-    `هاتف الشركة يجب ألا يتجاوز ${ProfileValidationConfig.contactPhone.maxLength} رقم`
+    `هاتف المكتب يجب ألا يتجاوز ${ProfileValidationConfig.contactPhone.maxLength} رقم`
   )
-  .regex(ProfileValidationConfig.contactPhone.pattern, 'هاتف الشركة يجب أن يحتوي على أرقام فقط')
+  .regex(ProfileValidationConfig.contactPhone.pattern, 'هاتف المكتب يجب أن يحتوي على أرقام فقط')
+  .or(z.literal(''))
   .optional();
 
 // Full profile form schema
@@ -135,7 +139,7 @@ const profileSchema = z.object({
   dateOfBirth: dateOfBirthSchema,
   companyName: companyNameSchema,
   website: websiteSchema,
-  kvkNumber: kvkNumberSchema,
+  companyRegistrationNumber: companyRegistrationNumberSchema,
   contactPhone: contactPhoneSchema,
 });
 
@@ -177,11 +181,11 @@ export const validateWebsite = (value: string): string | undefined => {
 
 export const validateKvkNumber = (value: string): string | undefined => {
   if (!value) return undefined; // Optional field
-  const result = kvkNumberSchema.safeParse(value);
+  const result = companyRegistrationNumberSchema.safeParse(value);
   return result.success ? undefined : result.error.issues[0]?.message;
 };
 
-export const validateContactPhone = (value: string): string | undefined => {
+export const validateOfficePhone = (value: string): string | undefined => {
   if (!value) return undefined; // Optional field
   const result = contactPhoneSchema.safeParse(value);
   return result.success ? undefined : result.error.issues[0]?.message;
@@ -224,10 +228,10 @@ export const createProfileFieldValidator = (fieldName: keyof ProfileFormData) =>
         return validateCompanyName(value);
       case 'website':
         return validateWebsite(value);
-      case 'kvkNumber':
+      case 'companyRegistrationNumber':
         return validateKvkNumber(value);
       case 'contactPhone':
-        return validateContactPhone(value);
+        return validateOfficePhone(value);
       default:
         return undefined;
     }

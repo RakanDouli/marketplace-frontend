@@ -8,6 +8,7 @@ import {
   MARK_THREAD_READ_MUTATION,
   UNREAD_COUNT_QUERY,
   DELETE_MESSAGE_MUTATION,
+  DELETE_MESSAGE_IMAGE_MUTATION,
   DELETE_THREAD_MUTATION,
   CREATE_REPORT_MUTATION,
   BLOCK_USER_MUTATION,
@@ -22,6 +23,12 @@ export interface BlockedUser {
   id: string;
   blockedUserId: string;
   blockedAt: string;
+  blockedUser: {
+    id: string;
+    name: string | null;
+    companyName: string | null;
+    email: string;
+  };
 }
 
 interface ChatState {
@@ -38,10 +45,11 @@ interface ChatState {
   fetchMyThreads: () => Promise<void>;
   getOrCreateThread: (listingId: string, sellerId?: string) => Promise<string>;
   fetchThreadMessages: (threadId: string, limit?: number) => Promise<void>;
-  sendMessage: (threadId: string, text?: string, imageKey?: string) => Promise<void>;
+  sendMessage: (threadId: string, text?: string, imageKeys?: string[]) => Promise<void>;
   markThreadRead: (threadId: string, messageId?: string) => Promise<void>;
   fetchUnreadCount: () => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
+  deleteMessageImage: (messageId: string, imageKey: string) => Promise<void>;
   deleteThread: (threadId: string) => Promise<void>;
   editMessage: (messageId: string, newText: string) => Promise<void>;
   reportThread: (reportedUserId: string, threadId: string, reason: string, details?: string) => Promise<void>;
@@ -138,13 +146,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  sendMessage: async (threadId: string, text?: string, imageKey?: string) => {
+  sendMessage: async (threadId: string, text?: string, imageKeys?: string[]) => {
     set({ error: null });
     try {
       const data = await cachedGraphQLRequest<{ sendMessage: ChatMessage }>(
         SEND_MESSAGE_MUTATION,
         {
-          input: { threadId, text, imageKey },
+          input: { threadId, text, imageKeys },
         },
         { ttl: 0 }
       );
@@ -223,6 +231,41 @@ export const useChatStore = create<ChatState>((set, get) => ({
     } catch (error) {
       console.error('Error deleting message:', error);
       set({ error: 'فشل في حذف الرسالة' });
+      throw error;
+    }
+  },
+
+  deleteMessageImage: async (messageId: string, imageKey: string) => {
+    try {
+      const result = await cachedGraphQLRequest<{ deleteMessageImage: ChatMessage | null }>(
+        DELETE_MESSAGE_IMAGE_MUTATION,
+        {
+          messageId,
+          imageKey,
+        },
+        { ttl: 0 }
+      );
+
+      // Update local state with the updated message (or remove if message was deleted)
+      set((state) => {
+        const newMessages = { ...state.messages };
+        Object.keys(newMessages).forEach((threadId) => {
+          const messageIndex = newMessages[threadId].findIndex((m) => m.id === messageId);
+          if (messageIndex !== -1) {
+            if (result.deleteMessageImage) {
+              // Message still exists, update it with new imageKeys
+              newMessages[threadId][messageIndex] = result.deleteMessageImage;
+            } else {
+              // Message was deleted (last image removed, no text)
+              newMessages[threadId] = newMessages[threadId].filter((m) => m.id !== messageId);
+            }
+          }
+        });
+        return { messages: newMessages };
+      });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      set({ error: 'فشل في حذف الصورة' });
       throw error;
     }
   },

@@ -70,10 +70,6 @@ class GraphQLCache {
     const key = this.createKey(query, variables);
     const ttl = options?.ttl || this.defaultTTL;
 
-    // console.log(
-    //   `🔍 GraphQL Cache: Checking cache for key: ${key.substring(0, 100)}...`
-    // );
-
     // Check if we have a valid cached response
     const cached = this.cache.get(key);
     if (cached && !this.isExpired(cached)) {

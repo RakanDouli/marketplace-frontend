@@ -3,8 +3,6 @@
  * Single source of truth for all image uploads in the application
  */
 
-import { cachedGraphQLRequest } from './graphql-cache';
-
 export interface CloudflareUploadResult {
   imageId: string;
   uploadUrl: string;
@@ -31,22 +29,72 @@ export interface CloudflareUploadError {
  * const imageId = await uploadToCloudflare(file, 'avatar');
  * ```
  */
+/**
+ * Make a direct GraphQL request (bypassing cache)
+ * Used for mutations that should never be cached (like upload URL generation)
+ */
+async function directGraphQLRequest(query: string): Promise<any> {
+  const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+
+  // Get auth token
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (typeof window !== 'undefined') {
+    try {
+      const isAdminRoute = window.location.pathname.startsWith('/admin');
+      const storageKey = isAdminRoute ? 'admin-auth-storage' : 'user-auth-storage';
+      const authData = localStorage.getItem(storageKey);
+
+      if (authData) {
+        const { state } = JSON.parse(authData);
+        const token = state?.user?.token;
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+    } catch (error) {
+      console.warn('Could not get auth token:', error);
+    }
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`GraphQL request failed: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+
+  if (result.errors) {
+    throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+  }
+
+  return result.data;
+}
+
 export async function uploadToCloudflare(
   file: File,
   mutationType: 'image' | 'avatar' = 'image'
 ): Promise<string> {
   try {
-    // Step 1: Get Cloudflare upload URL from backend
+    // Step 1: Get fresh Cloudflare upload URL from backend (direct request, no cache!)
     const mutation = mutationType === 'avatar'
       ? 'mutation { createAvatarUploadUrl { uploadUrl assetKey } }'
       : 'mutation { createImageUploadUrl { uploadUrl assetKey } }';
 
-    const uploadData = await cachedGraphQLRequest(mutation);
+    const data = await directGraphQLRequest(mutation);
     const field = mutationType === 'avatar' ? 'createAvatarUploadUrl' : 'createImageUploadUrl';
-    const { uploadUrl, assetKey } = (uploadData as any)[field];
+    const { uploadUrl, assetKey } = data[field];
 
     console.log(`📤 Uploading ${mutationType} to Cloudflare...`);
     console.log(`   Pre-upload assetKey: ${assetKey}`);
+    console.log(`   Upload URL: ${uploadUrl.substring(0, 60)}...`);
 
     // Step 2: Upload file to Cloudflare
     const formData = new FormData();
@@ -120,10 +168,10 @@ export async function uploadMultipleToCloudflare(
  * Validate image file before upload
  *
  * @param file - The file to validate
- * @param maxSizeMB - Maximum file size in megabytes (default: 5MB)
+ * @param maxSizeMB - Maximum file size in megabytes (default: 2MB per image)
  * @returns Error message if invalid, undefined if valid
  */
-export function validateImageFile(file: File, maxSizeMB: number = 5): string | undefined {
+export function validateImageFile(file: File, maxSizeMB: number = 2): string | undefined {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
   if (file.size > maxSizeBytes) {

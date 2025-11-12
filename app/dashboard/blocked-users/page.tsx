@@ -105,7 +105,12 @@ export default function BlockedUsersPage() {
                 <div className={styles.userInfo}>
                   <UserCircle size={48} className={styles.userIcon} />
                   <div className={styles.userDetails}>
-                    <Text variant="h4">مستخدم محظور</Text>
+                    <Text variant="h4">
+                      {blockedUser.blockedUser.companyName || blockedUser.blockedUser.name || blockedUser.blockedUser.email}
+                    </Text>
+                    <Text variant="small" color="secondary">
+                      {blockedUser.blockedUser.email}
+                    </Text>
                     <Text variant="small" color="secondary">
                       تم الحظر: {new Date(blockedUser.blockedAt).toLocaleDateString('ar-EG', {
                         year: 'numeric',

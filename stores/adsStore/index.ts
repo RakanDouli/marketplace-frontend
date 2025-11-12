@@ -20,6 +20,15 @@ export interface AdCampaign {
   status: string;
   startDate: string;
   endDate: string;
+  package?: {
+    id: string;
+    dimensions: {
+      desktop: { width: number; height: number };
+      mobile: { width: number; height: number };
+    };
+    placement: string;
+    format: string;
+  };
 }
 
 // AdSense Settings interfaces

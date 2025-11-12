@@ -1,0 +1,94 @@
+.sellerCard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+  }
+}
+
+// Action Buttons (Share & Favorite)
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+// Price Box
+.priceBox {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.price {
+  color: var(--primary) !important;
+  margin: 0;
+}
+
+// Buttons
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.phoneButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+// Info Card
+.infoCard {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.value {
+  color: var(--text-primary);
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.link {
+  font-size: 0.875rem;
+  color: var(--primary);
+  text-decoration: none;
+  text-align: left;
+  word-break: break-all;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+  }
+}

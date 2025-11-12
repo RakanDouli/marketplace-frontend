@@ -17,7 +17,7 @@ export const SEND_MESSAGE_MUTATION = `
       threadId
       senderId
       text
-      imageKey
+      imageKeys
       status
       createdAt
     }
@@ -43,7 +43,7 @@ export const THREAD_MESSAGES_QUERY = `
       threadId
       senderId
       text
-      imageKey
+      imageKeys
       status
       createdAt
     }
@@ -65,6 +65,20 @@ export const UNREAD_COUNT_QUERY = `
 export const DELETE_MESSAGE_MUTATION = `
   mutation DeleteMessage($input: DeleteMessageInput!) {
     deleteMessage(input: $input)
+  }
+`;
+
+export const DELETE_MESSAGE_IMAGE_MUTATION = `
+  mutation DeleteMessageImage($messageId: ID!, $imageKey: String!) {
+    deleteMessageImage(messageId: $messageId, imageKey: $imageKey) {
+      id
+      threadId
+      senderId
+      text
+      imageKeys
+      status
+      createdAt
+    }
   }
 `;
 
@@ -114,6 +128,12 @@ export const MY_BLOCKED_USERS_QUERY = `
       id
       blockedUserId
       blockedAt
+      blockedUser {
+        id
+        name
+        companyName
+        email
+      }
     }
   }
 `;

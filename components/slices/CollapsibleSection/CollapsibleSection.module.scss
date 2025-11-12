@@ -24,7 +24,7 @@
   user-select: none;
 
   &:hover:not(.disabled) {
-    background-color: $bg-light;
+    background-color: $surface;
   }
 
   &:focus-visible {

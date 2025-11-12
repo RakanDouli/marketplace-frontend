@@ -6,9 +6,12 @@ export const UPDATE_ME_MUTATION = `
       id
       name
       phone
+      phoneIsWhatsApp
+      showPhone
+      showContactPhone
       companyName
       website
-      kvkNumber
+      companyRegistrationNumber
       contactPhone
       updatedAt
     }

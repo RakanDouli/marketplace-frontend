@@ -4,23 +4,23 @@
   position: relative;
 }
 
-.loginButton {
-  display: flex;
-  align-items: center;
-  gap: $space-xs;
-  padding: $space-sm $space-md;
-  background: $primary;
-  color: $text-inverse;
-  border: none;
-  border-radius: $radius-sm;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: $font-base;
+// .loginButton {
+//   display: flex;
+//   align-items: center;
+//   gap: $space-xs;
+//   padding: $space-sm $space-md;
+//   background: $primary;
+//   color: $text-inverse;
+//   border: none;
+//   border-radius: $radius-sm;
+//   cursor: pointer;
+//   transition: all 0.2s ease;
+//   font-size: $font-base;
 
-  &:hover {
-    opacity: 0.9;
-  }
-}
+//   &:hover {
+//     opacity: 0.9;
+//   }
+// }
 
 .userButton {
   display: flex;

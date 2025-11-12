@@ -270,17 +270,21 @@ export const PersonalInfoPanel: React.FC = () => {
           </div>
 
           {/* Phone field - for ALL users (personal/WhatsApp number) */}
-          <div className={styles.infoItem}>
-            <Text variant="small" className={styles.infoLabel}>رقم الجوال</Text>
-            <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
-              {user.phone || 'غير محدد'}
-            </Text>
-          </div>
+          {user.phone && (
+            <div className={styles.infoItem}>
+              <Text variant="small" className={styles.infoLabel}>
+                رقم الجوال {user.phoneIsWhatsApp && '(واتساب)'}
+              </Text>
+              <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
+                {user.phone}
+              </Text>
+            </div>
+          )}
 
-          {/* Contact Phone - additional field for DEALER/BUSINESS only */}
+          {/* Office Phone - additional field for DEALER/BUSINESS only */}
           {(user.accountType === 'DEALER' || user.accountType === 'BUSINESS') && user.contactPhone && (
             <div className={styles.infoItem}>
-              <Text variant="small" className={styles.infoLabel}>هاتف الشركة</Text>
+              <Text variant="small" className={styles.infoLabel}>هاتف المكتب</Text>
               <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
                 {user.contactPhone}
               </Text>
@@ -303,10 +307,10 @@ export const PersonalInfoPanel: React.FC = () => {
             </div>
           )}
 
-          {user.kvkNumber && (
+          {user.companyRegistrationNumber && (
             <div className={styles.infoItem}>
               <Text variant="small" className={styles.infoLabel}>رقم التسجيل التجاري</Text>
-              <Text variant="paragraph">{user.kvkNumber}</Text>
+              <Text variant="paragraph">{user.companyRegistrationNumber}</Text>
             </div>
           )}
         </div>

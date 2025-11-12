@@ -26,7 +26,7 @@ export interface ChatMessage {
   threadId: string;
   senderId: string;
   text: string | null;
-  imageKey: string | null;
+  imageKeys: string[] | null;
   status: 'sent' | 'delivered' | 'read';
   createdAt: string;
 }

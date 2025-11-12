@@ -19,8 +19,11 @@ interface EditProfileModalProps {
     accountType: string;
     companyName?: string | null;
     website?: string | null;
-    kvkNumber?: string | null;
-    contactPhone?: string | null;
+    companyRegistrationNumber?: string | null;
+    contactPhone?: string | null; // renamed from contactPhone
+    phoneIsWhatsApp?: boolean;
+    showPhone?: boolean;
+    showContactPhone?: boolean;
     token?: string;
   };
   onClose: () => void;
@@ -45,8 +48,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     dateOfBirth: user.dateOfBirth || '',
     companyName: user.companyName || '',
     website: user.website || '',
-    kvkNumber: user.kvkNumber || '',
+    companyRegistrationNumber: user.companyRegistrationNumber || '',
     contactPhone: user.contactPhone || '',
+    phoneIsWhatsApp: user.phoneIsWhatsApp ?? false,
+    showPhone: user.showPhone ?? true,
+    showContactPhone: user.showContactPhone ?? true,
   });
 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -80,6 +86,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         dateOfBirth: formData.dateOfBirth || null,
       };
 
+      // Add phone preferences (all users)
+      updateData.phoneIsWhatsApp = formData.phoneIsWhatsApp;
+      updateData.showPhone = formData.showPhone;
+      updateData.showContactPhone = formData.showContactPhone;
+
       // Add business fields for DEALER and BUSINESS
       if (user.accountType === 'DEALER' || user.accountType === 'BUSINESS') {
         updateData.companyName = formData.companyName || null;
@@ -87,7 +98,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         updateData.contactPhone = formData.contactPhone || null;
 
         if (user.accountType === 'BUSINESS') {
-          updateData.kvkNumber = formData.kvkNumber || null;
+          updateData.companyRegistrationNumber = formData.companyRegistrationNumber || null;
         }
       }
 
@@ -163,7 +174,21 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               validate={createProfileFieldValidator('phone')}
               error={validationErrors.phone}
-              placeholder="+31612345678"
+              placeholder="+963944123456"
+            />
+
+            <Input
+              type="checkbox"
+              label="هذا الرقم يدعم واتساب"
+              checked={formData.phoneIsWhatsApp}
+              onChange={(e) => setFormData({ ...formData, phoneIsWhatsApp: e.target.checked })}
+            />
+
+            <Input
+              type="checkbox"
+              label="إظهار رقم الجوال في الإعلانات"
+              checked={formData.showPhone}
+              onChange={(e) => setFormData({ ...formData, showPhone: e.target.checked })}
             />
 
             <Input
@@ -205,12 +230,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
               <Input
                 type="tel"
-                label="هاتف الشركة"
+                label="هاتف المكتب"
                 value={formData.contactPhone}
                 onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                 validate={createProfileFieldValidator('contactPhone')}
                 error={validationErrors.contactPhone}
-                placeholder="+31612345678"
+                placeholder="+963112345678"
+              />
+
+              <Input
+                type="checkbox"
+                label="إظهار هاتف المكتب"
+                checked={formData.showContactPhone}
+                onChange={(e) => setFormData({ ...formData, showContactPhone: e.target.checked })}
               />
 
               <Input
@@ -227,10 +259,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <Input
                   type="text"
                   label="رقم التسجيل التجاري (KVK)"
-                  value={formData.kvkNumber}
-                  onChange={(e) => setFormData({ ...formData, kvkNumber: e.target.value })}
-                  validate={createProfileFieldValidator('kvkNumber')}
-                  error={validationErrors.kvkNumber}
+                  value={formData.companyRegistrationNumber}
+                  onChange={(e) => setFormData({ ...formData, companyRegistrationNumber: e.target.value })}
+                  validate={createProfileFieldValidator('companyRegistrationNumber')}
+                  error={validationErrors.companyRegistrationNumber}
                   placeholder="12345678"
                 />
               )}

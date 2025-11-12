@@ -15,7 +15,6 @@
   align-items: center;
   gap: $space-md;
   margin-bottom: $space-md;
-
   @media (max-width: $breakpoint-md) {
     flex-direction: column;
     align-items: flex-start;
@@ -119,14 +118,6 @@
   }
 }
 
-// Action Buttons (Share & Favorite)
-.actionButtons {
-  display: flex;
-  gap: $space-sm;
-  justify-content: space-between;
-  // justify-content: flex-end;
-}
-
 // Key Specs Chips
 // .keySpecs {
 //   display: flex;
@@ -225,63 +216,5 @@
   }
 }
 
-.sellerCard {
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  padding: $space-md;
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-
-  @media (max-width: $breakpoint-md) {
-    padding: $space-sm;
-  }
-}
-
-// Price Box
-.priceBox {
-  padding-bottom: $space-md;
-  border-bottom: 1px solid $border;
-}
-
-.price {
-  color: $primary !important;
-  margin: 0;
-}
-
-// Buttons
-.buttons {
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-
-  button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-// Seller Info
-.sellerInfo {
-  padding-top: $space-md;
-  border-top: 1px solid $border;
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-}
-
-.infoRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .label {
-    color: $text-muted;
-  }
-
-  .value {
-    color: $text;
-    text-align: left;
-  }
-}
+// Seller Card
+// All seller card styles moved to ListingInfoCard component

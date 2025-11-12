@@ -43,8 +43,11 @@ export interface PublicUser {
   accountBadge: string | null;
   avatar: string | null;
   website: string | null;
-  kvkNumber: string | null;
-  contactPhone: string | null;
+  companyRegistrationNumber: string | null;
+  contactPhone: string | null; // renamed from contactPhone
+  phoneIsWhatsApp: boolean;
+  showPhone: boolean;
+  showContactPhone: boolean;
   businessVerified: boolean;
   createdAt: string;
   updatedAt: string;

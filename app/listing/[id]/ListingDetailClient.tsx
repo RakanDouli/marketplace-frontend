@@ -5,17 +5,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
-import { useChatStore } from '@/stores/chatStore';
-import { useUserAuthStore } from '@/stores/userAuthStore';
-import { useNotificationStore } from '@/stores/notificationStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, CollapsibleSection, Container } from '@/components/slices';
-import { Phone, MessageCircle, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
-import { ShareButton, FavoriteButton } from '@/components/slices/Button';
+
 import { AdContainer } from '@/components/ads';
 import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
+import { ListingInfoCard } from '@/components/listing/ListingInfoCard';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -24,19 +22,10 @@ interface ListingDetailClientProps {
 
 export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listingId }) => {
   const router = useRouter();
-  const { user } = useUserAuthStore();
   const { currentListing, isLoading, error, fetchListingById } = useListingsStore();
   const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
-  const { isUserBlocked, fetchBlockedUsers } = useChatStore();
-  const { addNotification } = useNotificationStore();
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
-  // Fetch blocked users when user is logged in
-  useEffect(() => {
-    if (user) {
-      fetchBlockedUsers();
-    }
-  }, [user, fetchBlockedUsers]);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
     if (listingId) {
@@ -185,7 +174,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   }
 
   const listing = currentListing;
-  const primaryPrice = listing.prices?.[0];
 
   // Debug: Log location data
   console.log('🔍 Listing Location Debug:', {
@@ -206,7 +194,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     listing.location.province ||
     listing.location.coordinates
   );
-
+  console.log('sss', listing);
   return (
     <Container>
       {/* Top Banner Ad (below gallery) */}
@@ -341,97 +329,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
           {/* Right side - Seller Card (Sticky) */}
           <aside className={styles.sidebar}>
-            <div className={styles.sellerCard}>
-              {/* Share and Favorite Buttons */}
-              <div className={styles.actionButtons}>
-                <ShareButton
-                  metadata={{
-                    title: listing.title,
-                    description: listing.description || '',
-                    url: typeof window !== 'undefined' ? window.location.href : '',
-                    image: listing.imageKeys?.[0],
-                    siteName: 'السوق السوري للسيارات',
-                    type: 'product',
-                    price: primaryPrice?.value,
-                    currency: primaryPrice?.currency,
-                    availability: listing.status === 'ACTIVE' ? 'in stock' : 'out of stock',
-                  }}
-                />
-                <FavoriteButton
-                  listingId={listing.id}
-                  listingUserId={listing.user?.id}
-                />
-              </div>
-
-              {/* Price */}
-              <div className={styles.priceBox}>
-                <Text variant="h2" className={styles.title}>
-                  {listing.title}
-                </Text>
-                <Text variant="h3" className={styles.price}>
-                  {primaryPrice ? `${primaryPrice.value} ${primaryPrice.currency}` : 'السعر غير محدد'}
-                </Text>
-              </div>
-
-              {/* Contact Buttons */}
-              <div className={styles.buttons}>
-                <Button variant="primary" size="lg" icon={<Phone size={18} />}>
-                  {listing.user?.phone || 'اتصل بالبائع'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  icon={<MessageCircle size={18} />}
-                  onClick={() => {
-                    // Check if seller is blocked
-                    const sellerId = currentListing?.user?.id;
-                    if (sellerId && isUserBlocked(sellerId)) {
-                      addNotification({
-                        type: 'error',
-                        title: 'لا يمكن التواصل',
-                        message: 'لا يمكنك التواصل مع هذا البائع. لقد قمت بحظره. يمكنك إلغاء الحظر من صفحة المحظورين.',
-                        duration: 7000,
-                      });
-                      return;
-                    }
-                    setIsContactModalOpen(true);
-                  }}
-                >
-                  أرسل رسالة
-                </Button>
-              </div>
-
-              {/* Seller Info */}
-              <div className={styles.sellerInfo}>
-                <div className={styles.infoRow}>
-                  <span className={styles.label}>البائع</span>
-                  <span className={styles.value}>{listing.user?.name || 'غير محدد'}</span>
-                </div>
-                {listing.location?.province && (
-                  <div className={styles.infoRow}>
-                    <span className={styles.label}>الموقع</span>
-                    <span className={styles.value}>{listing.location.province}</span>
-                  </div>
-                )}
-                {listing.createdAt && (
-                  <div className={styles.infoRow}>
-                    <span className={styles.label}>تاريخ النشر</span>
-                    <span className={styles.value}>
-                      {new Date(listing.createdAt).toLocaleDateString('ar')}
-                    </span>
-                  </div>
-                )}
-                {/* {listing.viewCount !== undefined && (
-                  <div className={styles.infoRow}>
-                    <span className={styles.label}>المشاهدات</span>
-                    <span className={styles.value}>
-                      <Eye size={16} style={{ marginLeft: '4px', verticalAlign: 'middle' }} />
-                      {listing.viewCount.toLocaleString('ar')}
-                    </span>
-                  </div>
-                )} */}
-              </div>
-            </div>
+            <ListingInfoCard
+              onContactClick={() => setIsContactModalOpen(true)}
+            />
           </aside>
         </div>
 

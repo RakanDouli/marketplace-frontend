@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { User, LayoutDashboard, LogOut } from 'lucide-react';
-import { Text } from '@/components/slices';
+import { Button, Text } from '@/components/slices';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import styles from './UserMenu.module.scss';
@@ -55,10 +55,10 @@ export const UserMenu: React.FC = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <button onClick={() => openAuthModal('login')} className={styles.loginButton}>
+      <Button onClick={() => openAuthModal('login')} className={styles.loginButton}>
         <User size={20} />
         <span>تسجيل الدخول</span>
-      </button>
+      </Button>
     );
   }
 

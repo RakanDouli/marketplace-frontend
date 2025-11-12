@@ -11,7 +11,8 @@ import {
   hasValidationErrors,
   type ValidationErrors,
 } from '@/lib/admin/validation/adCampaignValidation';
-import { uploadToCloudflare, validateImageFile } from '@/utils/cloudflare-upload';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { AddPackageModal, type CampaignPackage } from './AddPackageModal';
 import styles from './AdCampaignModals.module.scss';
 
 interface CreateAdCampaignModalProps {
@@ -32,6 +33,12 @@ interface AdPackage {
   basePrice: number;
   currency: string;
   adType: string;
+  placement: string;
+  format: string;
+  dimensions: {
+    desktop: { width: number; height: number };
+    mobile: { width: number; height: number };
+  };
   mediaRequirements: string[];
 }
 
@@ -65,6 +72,9 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
   const [clients, setClients] = useState<AdClient[]>([]);
   const [packages, setPackages] = useState<AdPackage[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [campaignPackages, setCampaignPackages] = useState<CampaignPackage[]>([]);
+  const [showAddPackageModal, setShowAddPackageModal] = useState(false);
+  const [editingPackageIndex, setEditingPackageIndex] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     campaignName: '',
@@ -78,14 +88,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     totalPrice: 0,
     currency: 'USD',
     notes: '',
-    desktopMediaFile: null as File | null,
-    mobileMediaFile: null as File | null,
-    clickUrl: '',
-    openInNewTab: true,
   });
-
-  const [selectedPackage, setSelectedPackage] = useState<AdPackage | null>(null);
-  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   // Fetch clients and packages
   useEffect(() => {
@@ -118,6 +121,9 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
             basePrice
             currency
             adType
+            placement
+            format
+            dimensions
             mediaRequirements
           }
         }
@@ -132,24 +138,36 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     }
   };
 
-  // Auto-calculate price and set selected package when package is selected
-  useEffect(() => {
-    if (formData.packageId) {
-      const pkg = packages.find(p => p.id === formData.packageId);
-      if (pkg) {
-        setSelectedPackage(pkg);
-        if (!formData.isCustomPackage) {
-          setFormData(prev => ({
-            ...prev,
-            totalPrice: pkg.basePrice,
-            currency: pkg.currency
-          }));
-        }
-      }
+  // Package management handlers
+  const handleAddPackage = (pkg: CampaignPackage) => {
+    if (editingPackageIndex !== null) {
+      // Update existing package
+      const updated = [...campaignPackages];
+      updated[editingPackageIndex] = pkg;
+      setCampaignPackages(updated);
+      setEditingPackageIndex(null);
     } else {
-      setSelectedPackage(null);
+      // Add new package
+      setCampaignPackages([...campaignPackages, pkg]);
     }
-  }, [formData.packageId, formData.isCustomPackage, packages]);
+    setShowAddPackageModal(false);
+  };
+
+  const handleEditPackage = (index: number) => {
+    setEditingPackageIndex(index);
+    setShowAddPackageModal(true);
+  };
+
+  const handleDeletePackage = (index: number) => {
+    const updated = campaignPackages.filter((_, i) => i !== index);
+    setCampaignPackages(updated);
+  };
+
+  // Calculate total price from all packages
+  const calculateTotalPrice = (): number => {
+    if (campaignPackages.length === 0) return formData.totalPrice;
+    return campaignPackages.reduce((sum, pkg) => sum + (pkg.customPrice || pkg.packageData.basePrice), 0);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,47 +183,36 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       return; // STOP - do not submit
     }
 
-    // Validate media files are uploaded
-    if (!formData.desktopMediaFile) {
-      setError('يرجى رفع وسائط الإعلان');
-      return;
-    }
-
-    if (selectedPackage?.adType === 'video' && !formData.mobileMediaFile) {
-      setError('يرجى رفع فيديو الموبايل (مطلوب لإعلانات الفيديو)');
+    // Validate packages (for custom campaigns)
+    if (formData.isCustomPackage && campaignPackages.length === 0) {
+      setError('يرجى إضافة حزمة واحدة على الأقل');
       return;
     }
 
     console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
-      setIsUploadingMedia(true);
+      // Build packageBreakdown for custom campaigns
+      const packageBreakdown = formData.isCustomPackage ? {
+        packages: campaignPackages.map(pkg => ({
+          packageId: pkg.packageId,
+          packageName: pkg.packageData.packageName,
+          price: pkg.customPrice || pkg.packageData.basePrice,
+          desktopMediaUrl: pkg.desktopMediaUrl,
+          mobileMediaUrl: pkg.mobileMediaUrl,
+        }))
+      } : undefined;
 
-      // Upload media files to Cloudflare
-      let desktopMediaUrl = '';
-      let mobileMediaUrl = '';
+      // Calculate total price
+      const totalPrice = formData.isCustomPackage
+        ? calculateTotalPrice()
+        : formData.totalPrice;
 
-      if (formData.desktopMediaFile) {
-        console.log('📤 Uploading desktop media...');
-        desktopMediaUrl = await uploadToCloudflare(formData.desktopMediaFile, 'image');
-        console.log('✅ Desktop media uploaded:', desktopMediaUrl);
-      }
-
-      if (formData.mobileMediaFile) {
-        console.log('📤 Uploading mobile media...');
-        mobileMediaUrl = await uploadToCloudflare(formData.mobileMediaFile, 'image');
-        console.log('✅ Mobile media uploaded:', mobileMediaUrl);
-      }
-
-      setIsUploadingMedia(false);
-
-      // Submit campaign with media URLs
+      // Submit campaign
       await onSubmit({
         ...formData,
-        desktopMediaUrl,
-        mobileMediaUrl,
-        clickUrl: formData.clickUrl,
-        openInNewTab: formData.openInNewTab,
+        totalPrice,
+        packageBreakdown,
       });
 
       // Show success toast
@@ -229,14 +236,9 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         totalPrice: 0,
         currency: 'USD',
         notes: '',
-        desktopMediaFile: null,
-        mobileMediaFile: null,
-        clickUrl: '',
-        openInNewTab: true,
       });
-      setSelectedPackage(null);
+      setCampaignPackages([]);
     } catch (err) {
-      setIsUploadingMedia(false);
       setError(err instanceof Error ? err.message : 'فشل في إنشاء الحملة الإعلانية');
     }
   };
@@ -328,6 +330,102 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           </label>
         </div>
 
+        {/* Packages Table (for custom packages) */}
+        {formData.isCustomPackage && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Text variant="h4">الحزم المضافة</Text>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                icon={<Plus size={16} />}
+                onClick={() => setShowAddPackageModal(true)}
+              >
+                إضافة حزمة
+              </Button>
+            </div>
+
+            {campaignPackages.length > 0 ? (
+              <div className={styles.packagesTable}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>اسم الحزمة</th>
+                      <th>صورة سطح المكتب</th>
+                      <th>صورة الموبايل</th>
+                      <th>السعر</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaignPackages.map((pkg, index) => (
+                      <tr key={index}>
+                        <td>{pkg.packageData.packageName}</td>
+                        <td>
+                          {pkg.desktopMediaUrl ? (
+                            <img
+                              src={pkg.desktopMediaUrl}
+                              alt="Desktop"
+                              className={styles.packageImage}
+                            />
+                          ) : (
+                            <Text variant="small" color="secondary">لم يتم الرفع</Text>
+                          )}
+                        </td>
+                        <td>
+                          {pkg.mobileMediaUrl ? (
+                            <img
+                              src={pkg.mobileMediaUrl}
+                              alt="Mobile"
+                              className={styles.packageImage}
+                            />
+                          ) : (
+                            <Text variant="small" color="secondary">لم يتم الرفع</Text>
+                          )}
+                        </td>
+                        <td>${pkg.customPrice || pkg.packageData.basePrice}</td>
+                        <td>
+                          <div className={styles.tableActions}>
+                            <button
+                              type="button"
+                              onClick={() => handleEditPackage(index)}
+                              className={styles.iconButton}
+                              title="تعديل"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePackage(index)}
+                              className={styles.iconButton}
+                              title="حذف"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Total Price */}
+                <div className={styles.totalPrice}>
+                  <Text variant="h4">السعر الإجمالي:</Text>
+                  <Text variant="h3">${calculateTotalPrice()}</Text>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <Text variant="paragraph" color="secondary">
+                  لم يتم إضافة أي حزم بعد. اضغط على "إضافة حزمة" للبدء.
+                </Text>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Campaign Period */}
         <div className={styles.section}>
           <Text variant="h4">فترة الحملة</Text>
@@ -391,63 +489,6 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           />
         </div>
 
-        {/* Media Upload Section - Show only if package is selected */}
-        {selectedPackage && (
-          <div className={styles.section}>
-            <Text variant="h4">وسائط الإعلان</Text>
-
-            {/* Show media requirements */}
-            <div className={styles.requirements}>
-              <Text variant="small" style={{ fontWeight: 600 }}>المتطلبات:</Text>
-              <ul style={{ marginTop: '0.5rem', paddingRight: '1.5rem' }}>
-                {selectedPackage.mediaRequirements.map((req, i) => (
-                  <li key={i} style={{ marginBottom: '0.25rem' }}>{req}</li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Desktop media upload */}
-            <Input
-              label={selectedPackage.adType === 'video' ? 'فيديو سطح المكتب (16:9) *' : 'صورة الإعلان *'}
-              type="file"
-              accept={selectedPackage.adType === 'video' ? 'video/mp4' : 'image/jpeg,image/png,image/webp'}
-              onChange={(e) => handleChange('desktopMediaFile', e.target.files?.[0] || null)}
-              required
-            />
-
-            {/* Mobile media upload (VIDEO ads only) */}
-            {selectedPackage.adType === 'video' && (
-              <Input
-                label="فيديو الموبايل (1:1) *"
-                type="file"
-                accept="video/mp4"
-                onChange={(e) => handleChange('mobileMediaFile', e.target.files?.[0] || null)}
-                required
-              />
-            )}
-
-            {/* Click URL */}
-            <Input
-              label="رابط الإعلان (URL) *"
-              type="url"
-              value={formData.clickUrl}
-              onChange={(e) => handleChange('clickUrl', e.target.value)}
-              placeholder="https://example.com/promotion"
-              required
-            />
-
-            {/* Open in new tab */}
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={formData.openInNewTab}
-                onChange={(e) => handleChange('openInNewTab', e.target.checked)}
-              />
-              <span>فتح في نافذة جديدة</span>
-            </label>
-          </div>
-        )}
-
         {/* Submit Buttons */}
         <div className={styles.modalActions}>
           <Button
@@ -461,12 +502,24 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           <Button
             type="submit"
             variant="primary"
-            loading={isLoading || loadingData || isUploadingMedia}
+            loading={isLoading || loadingData}
           >
-            {isUploadingMedia ? 'جاري رفع الوسائط...' : 'إنشاء الحملة'}
+            إنشاء الحملة
           </Button>
         </div>
       </Form>
+
+      {/* Add Package Modal */}
+      <AddPackageModal
+        isVisible={showAddPackageModal}
+        onClose={() => {
+          setShowAddPackageModal(false);
+          setEditingPackageIndex(null);
+        }}
+        onAdd={handleAddPackage}
+        availablePackages={packages}
+        editingPackage={editingPackageIndex !== null ? campaignPackages[editingPackageIndex] : undefined}
+      />
     </Modal>
   );
 };

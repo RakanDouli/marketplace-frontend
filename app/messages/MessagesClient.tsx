@@ -6,12 +6,13 @@ import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle,
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
-import { Text, Button, Image, Dropdown, DropdownMenuItem } from '@/components/slices';
+import { Text, Button, Image, Dropdown, DropdownMenuItem, ImagePreview } from '@/components/slices';
 import { formatPrice } from '@/utils/formatPrice';
 import { createThumbnail, optimizeListingImage } from '@/utils/cloudflare-images';
-import { uploadToCloudflare, validateImageFile } from '@/utils/cloudflare-upload';
+import { validateImageFile } from '@/utils/cloudflare-upload';
 import { ReportThreadModal, BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
 import type { Listing } from '@/stores/types';
+import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
 
 interface ThreadWithListing {
@@ -37,6 +38,7 @@ export const MessagesClient: React.FC = () => {
     setActiveThread,
     deleteThread,
     deleteMessage,
+    deleteMessageImage,
     editMessage,
     reportThread,
     blockUser,
@@ -63,11 +65,15 @@ export const MessagesClient: React.FC = () => {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
 
-  // Image attachment state
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  // Image attachment state (for sending) - Support multiple images (max 8)
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
+
+  // Image preview modal state (for viewing received images)
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -154,31 +160,66 @@ export const MessagesClient: React.FC = () => {
   }, []);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    // Validate file
-    const errorMessage = validateImageFile(file);
-    if (errorMessage) {
-      setImageError(errorMessage);
+    // Check max limit (8 images including already selected)
+    const totalImages = selectedImages.length + files.length;
+    if (totalImages > 8) {
+      setImageError(`يمكنك اختيار ${8 - selectedImages.length} صور فقط (الحد الأقصى 8 صور)`);
       return;
     }
 
-    setImageError(null);
-    setSelectedImage(file);
+    // Validate each file (max 2MB)
+    const validFiles: File[] = [];
+    for (const file of files) {
+      const errorMessage = validateImageFile(file, 2); // 2MB limit
+      if (errorMessage) {
+        setImageError(errorMessage);
+        return;
+      }
+      validFiles.push(file);
+    }
 
-    // Create preview URL
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreviewUrl(previewUrl);
+    setImageError(null);
+
+    // Add new files to existing selection
+    const newSelectedImages = [...selectedImages, ...validFiles];
+    setSelectedImages(newSelectedImages);
+
+    // Create preview URLs for new files
+    const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
+    setImagePreviewUrls([...imagePreviewUrls, ...newPreviewUrls]);
   };
 
-  const handleRemoveImage = () => {
-    if (imagePreviewUrl) {
-      URL.revokeObjectURL(imagePreviewUrl);
+  const handleRemoveImage = (index: number) => {
+    // Revoke the preview URL
+    if (imagePreviewUrls[index]) {
+      URL.revokeObjectURL(imagePreviewUrls[index]);
     }
-    setSelectedImage(null);
-    setImagePreviewUrl(null);
+
+    // Remove from arrays
+    const newSelectedImages = selectedImages.filter((_, i) => i !== index);
+    const newPreviewUrls = imagePreviewUrls.filter((_, i) => i !== index);
+
+    setSelectedImages(newSelectedImages);
+    setImagePreviewUrls(newPreviewUrls);
     setImageError(null);
+
+    // Reset file input if no images left
+    if (newSelectedImages.length === 0 && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClearAllImages = () => {
+    // Revoke all preview URLs
+    imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
+
+    setSelectedImages([]);
+    setImagePreviewUrls([]);
+    setImageError(null);
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -187,7 +228,7 @@ export const MessagesClient: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeThreadId || isSending) return;
-    if (!messageText.trim() && !selectedImage) return;
+    if (!messageText.trim() && selectedImages.length === 0) return;
 
     // Check if the other user is blocked
     const activeThread = threadsWithListings.find(t => t.id === activeThreadId);
@@ -200,35 +241,36 @@ export const MessagesClient: React.FC = () => {
     }
 
     setIsSending(true);
-    setIsUploadingImage(true);
+    setIsUploadingImages(true);
 
     try {
-      let imageKey: string | undefined;
+      let imageKeys: string[] | undefined;
 
-      // Upload image if selected (using unified utility)
-      if (selectedImage) {
-        imageKey = await uploadToCloudflare(selectedImage, 'image');
+      // Upload images if selected (using unified utility)
+      if (selectedImages.length > 0) {
+        const { uploadMultipleToCloudflare } = await import('@/utils/cloudflare-upload');
+        imageKeys = await uploadMultipleToCloudflare(selectedImages, 'image');
       }
 
-      // Send message with optional image
-      await sendMessage(activeThreadId, messageText.trim() || undefined, imageKey);
+      // Send message with optional images
+      await sendMessage(activeThreadId, messageText.trim() || undefined, imageKeys);
 
       // Clear input
       setMessageText('');
-      handleRemoveImage();
+      handleClearAllImages();
     } catch (error) {
       console.error('Failed to send message:', error);
       setImageError('فشل في إرسال الرسالة');
     } finally {
       setIsSending(false);
-      setIsUploadingImage(false);
+      setIsUploadingImages(false);
     }
   };
 
   const handleSelectThread = (threadId: string) => {
     setActiveThread(threadId);
-    // Clear image when changing threads
-    handleRemoveImage();
+    // Clear images when changing threads
+    handleClearAllImages();
   };
 
   if (authLoading || !user) {
@@ -468,97 +510,125 @@ export const MessagesClient: React.FC = () => {
                         ) : (
                           /* Display Mode */
                           <>
-                            <span className={styles.messageArea}>
-                              {/* Display image if exists */}
-                              {message.imageKey && (
-                                <div className={styles.messageImage}>
-                                  <Image
-                                    src={optimizeListingImage(message.imageKey, 'large')}
-                                    alt="صورة مرفقة"
-                                    aspectRatio="4/3"
-                                  />
-                                </div>
-                              )}
 
-                              {message.text && (
-                                <Text variant="paragraph">{message.text}</Text>
-                              )}
-                              <Text variant="small" color="secondary" className={styles.messageTime}>
-                                {(() => {
-                                  const messageDate = new Date(message.createdAt);
-                                  const now = new Date();
-                                  const diffInDays = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
-                                  const time = messageDate.toLocaleTimeString('ar-EG', {
+                            {/* Display images if exist - clickable for modal preview */}
+                            {message.imageKeys && message.imageKeys.length > 0 && (
+                              <div
+                                className={styles.messageImagesGrid}
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: message.imageKeys.length === 1 ? '1fr' :
+                                    message.imageKeys.length === 2 ? 'repeat(2, 1fr)' :
+                                      'repeat(2, 1fr)',
+                                  gap: '8px',
+                                  marginBottom: message.text ? '8px' : 0
+                                }}
+                              >
+                                {message.imageKeys.slice(0, 4).map((imageKey, index) => (
+                                  <div
+                                    key={`${message.id}-${index}`}
+                                    className={styles.messageImage}
+                                    onClick={() => {
+                                      setPreviewImages(message.imageKeys!);
+                                      setIsPreviewModalOpen(true);
+                                    }}
+                                    style={{ cursor: 'pointer', position: 'relative' }}
+                                    title="اضغط لعرض الصور"
+                                  >
+                                    <Image
+                                      src={optimizeListingImage(imageKey, 'large')}
+                                      alt={`صورة ${index + 1} من ${message.imageKeys!.length}`}
+                                      aspectRatio="1/1"
+                                    />
+                                    {/* Show +N overlay on 4th image if there are more */}
+                                    {index === 3 && message.imageKeys!.length > 4 && (
+                                      <div className={styles.moreImagesOverlay}>
+                                        <Text variant="h3" style={{ color: 'white' }}>
+                                          +{message.imageKeys!.length - 4}
+                                        </Text>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {message.text && (
+                              <Text variant="paragraph">{message.text}</Text>
+                            )}
+                            <Text variant="small" color="secondary" className={styles.messageTime}>
+                              {(() => {
+                                const messageDate = new Date(message.createdAt);
+                                const now = new Date();
+                                const diffInDays = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
+                                const time = messageDate.toLocaleTimeString('ar-EG', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                });
+
+                                if (diffInDays === 0) {
+                                  // Today - show only time
+                                  return time;
+                                } else if (diffInDays === 1) {
+                                  // Yesterday
+                                  return `أمس ${time}`;
+                                } else if (diffInDays < 7) {
+                                  // This week - show day name
+                                  const dayName = messageDate.toLocaleDateString('ar-EG', { weekday: 'long' });
+                                  return `${dayName} ${time}`;
+                                } else {
+                                  // Older - show full date
+                                  return messageDate.toLocaleDateString('ar-EG', {
+                                    day: 'numeric',
+                                    month: 'short',
                                     hour: '2-digit',
                                     minute: '2-digit',
                                   });
-
-                                  if (diffInDays === 0) {
-                                    // Today - show only time
-                                    return time;
-                                  } else if (diffInDays === 1) {
-                                    // Yesterday
-                                    return `أمس ${time}`;
-                                  } else if (diffInDays < 7) {
-                                    // This week - show day name
-                                    const dayName = messageDate.toLocaleDateString('ar-EG', { weekday: 'long' });
-                                    return `${dayName} ${time}`;
-                                  } else {
-                                    // Older - show full date
-                                    return messageDate.toLocaleDateString('ar-EG', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    });
-                                  }
-                                })()}
-                              </Text>
-                            </span>
-
-
-                            {/* Message Actions Dropdown - Only for sent messages */}
-                            {isSentByMe && (
-                              <Dropdown
-                                isOpen={messageMenuOpen === message.id}
-                                onClose={() => setMessageMenuOpen(null)}
-                                trigger={
-                                  <div
-                                    className={styles.messageMenuButton}
-                                    onClick={() => setMessageMenuOpen(messageMenuOpen === message.id ? null : message.id)}
-                                  >
-                                    <ChevronDown size={20} />
-                                  </div>
                                 }
-                                align="right"
-                                className={styles.messageMenu}
-                              >
-                                {/* Only show Edit for text-only messages */}
-                                {!message.imageKey && (
-                                  <DropdownMenuItem
-                                    icon={<Edit2 size={14} />}
-                                    label="تعديل"
-                                    onClick={() => {
-                                      setEditingMessageId(message.id);
-                                      setEditedText(message.text || '');
-                                      setMessageMenuOpen(null);
-                                    }}
-                                  />
-                                )}
-                                <DropdownMenuItem
-                                  icon={<Trash2 size={14} />}
-                                  label="حذف"
-                                  onClick={() => {
-                                    setSelectedMessageId(message.id);
-                                    setDeleteMessageModalOpen(true);
-                                    setMessageMenuOpen(null);
-                                  }}
-                                />
-                              </Dropdown>
-                            )}
+                              })()}
+                            </Text>
                           </>
                         )}
+
                       </div>
+                      {isSentByMe && (
+                        <Dropdown
+                          isOpen={messageMenuOpen === message.id}
+                          onClose={() => setMessageMenuOpen(null)}
+                          trigger={
+                            <div
+                              className={styles.messageMenuButton}
+                              onClick={() => setMessageMenuOpen(messageMenuOpen === message.id ? null : message.id)}
+                            >
+                              <ChevronDown size={20} />
+                            </div>
+                          }
+                          align="right"
+                          className={styles.messageMenu}
+                        >
+                          {/* Only show Edit for text-only messages */}
+                          {(!message.imageKeys || message.imageKeys.length === 0) && (
+                            <DropdownMenuItem
+                              icon={<Edit2 size={14} />}
+                              label="تعديل"
+                              onClick={() => {
+                                setEditingMessageId(message.id);
+                                setEditedText(message.text || '');
+                                setMessageMenuOpen(null);
+                              }}
+                            />
+                          )}
+                          <DropdownMenuItem
+                            icon={<Trash2 size={14} />}
+                            label="حذف"
+                            onClick={() => {
+                              setSelectedMessageId(message.id);
+                              setDeleteMessageModalOpen(true);
+                              setMessageMenuOpen(null);
+                            }}
+                          />
+                        </Dropdown>
+                      )}
                     </div>
                   );
                 })
@@ -568,18 +638,23 @@ export const MessagesClient: React.FC = () => {
 
             {/* Input */}
             <div className={styles.chatInputWrapper}>
-              {/* Image Preview */}
-              {imagePreviewUrl && (
-                <div className={styles.imagePreview}>
-                  <img src={imagePreviewUrl} alt="معاينة" />
-                  <button
-                    type="button"
-                    className={styles.removeImageButton}
-                    onClick={handleRemoveImage}
-                    disabled={isSending}
-                  >
-                    <X size={16} />
-                  </button>
+              {/* Multiple Image Previews */}
+              {imagePreviewUrls.length > 0 && (
+                <div className={styles.imagePreviewsGrid}>
+                  {imagePreviewUrls.map((url, index) => (
+                    <div key={index} className={styles.imagePreviewItem}>
+                      <img src={url} alt={`معاينة ${index + 1}`} />
+                      <button
+                        type="button"
+                        className={styles.removeImageButton}
+                        onClick={() => handleRemoveImage(index)}
+                        disabled={isSending}
+                        title="حذف الصورة"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -591,24 +666,29 @@ export const MessagesClient: React.FC = () => {
               )}
 
               <form className={styles.chatInputForm} onSubmit={handleSendMessage}>
-                {/* Hidden file input */}
+                {/* Hidden file input - support multiple selection */}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
+                  multiple
                   style={{ display: 'none' }}
                   onChange={handleImageSelect}
                 />
 
                 {/* Attach button */}
                 <Button
-                  // type="button"
+                  type="button"
                   variant='outline'
                   className={styles.attachButton}
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isSending || isUploadingImage}
+                  disabled={isSending || isUploadingImages || selectedImages.length >= 8}
+                  title={selectedImages.length >= 8 ? 'الحد الأقصى 8 صور' : 'إرفاق صور'}
                 >
                   <Paperclip size={20} />
+                  {selectedImages.length > 0 && (
+                    <span className={styles.imageCount}>{selectedImages.length}</span>
+                  )}
                 </Button>
 
                 <input
@@ -623,7 +703,7 @@ export const MessagesClient: React.FC = () => {
                 <Button
                   type="submit"
                   variant="primary"
-                  disabled={(!messageText.trim() && !selectedImage) || isSending}
+                  disabled={(!messageText.trim() && selectedImages.length === 0) || isSending}
                   className={styles.sendButton}
                 >
                   {isSending ? 'جاري الإرسال...' : <Send size={20} />}
@@ -699,6 +779,55 @@ export const MessagesClient: React.FC = () => {
           await deleteMessage(selectedMessageId);
         }}
       />
+
+      {/* Image Preview */}
+      {isPreviewModalOpen && previewImages.length > 0 && (
+        <ImagePreview
+          images={previewImages.map(imageKey => ({
+            url: optimizeListingImage(imageKey, 'public'),
+            id: imageKey
+          }))}
+          onClose={() => setIsPreviewModalOpen(false)}
+          showActions={true}
+          onDownload={async (imageUrl: string, index: number) => {
+            try {
+              const response = await fetch(imageUrl);
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `image-${index + 1}.jpg`;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+            } catch (error) {
+              console.error('Failed to download image:', error);
+            }
+          }}
+          onDelete={async (imageId: string) => {
+            // Find the message that contains this image
+            const threadMessages = activeThreadId ? messages[activeThreadId] || [] : [];
+            const messageWithImage = threadMessages.find((msg: ChatMessage) =>
+              msg.imageKeys?.includes(imageId)
+            );
+
+            if (messageWithImage) {
+              // Delete only this image from the message
+              await deleteMessageImage(messageWithImage.id, imageId);
+
+              // Update preview images - remove the deleted one
+              const updatedImages = previewImages.filter(key => key !== imageId);
+              setPreviewImages(updatedImages);
+
+              // Close modal if no images left
+              if (updatedImages.length === 0) {
+                setIsPreviewModalOpen(false);
+              }
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

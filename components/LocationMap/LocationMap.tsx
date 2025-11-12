@@ -6,6 +6,7 @@ import { OpenStreetMapProvider, PROVINCE_ARABIC_NAMES } from './providers/OpenSt
 import { GoogleMapsProvider } from './providers/GoogleMapsProvider';
 import { ExternalLink } from 'lucide-react';
 import styles from './LocationMap.module.scss';
+import { Button } from '../slices';
 
 interface LocationMapProps {
   location: LocationData;
@@ -104,15 +105,15 @@ export const LocationMap: React.FC<LocationMapProps> = ({
 
       {/* Open in Maps link */}
       {showOpenInMapsLink && mapsLink && (
-        <a
+        <Button
           href={mapsLink}
           target="_blank"
           rel="noopener noreferrer"
-          className={styles.openInMaps}
+          variant='outline'
         >
           <ExternalLink size={16} />
           فتح في خرائط جوجل
-        </a>
+        </Button>
       )}
     </div>
   );

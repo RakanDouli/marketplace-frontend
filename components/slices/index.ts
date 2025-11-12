@@ -48,3 +48,5 @@ export { Dropdown } from "./Dropdown";
 export type { DropdownProps } from "./Dropdown";
 export { DropdownMenuItem } from './Dropdown';
 export type { DropdownMenuItemProps } from './Dropdown';
+export { ImagePreview } from './ImagePreview';
+export type { ImagePreviewProps, ImagePreviewImage } from './ImagePreview';

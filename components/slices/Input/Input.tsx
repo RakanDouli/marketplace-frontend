@@ -2,6 +2,8 @@
 import React, { forwardRef, useState, useId, useRef, useEffect } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 import { formatNumberWithCommas, parseFormattedNumber } from "@/utils/formatNumber";
 import styles from "./Input.module.scss";
 
@@ -299,6 +301,36 @@ export const Input = forwardRef<
             loadingMessage={() => "جاري التحميل..."}
             formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
             styles={customStyles}
+          />
+        );
+      }
+
+      // Phone input with international formatting
+      if (type === "tel") {
+        const phoneProps = props as React.InputHTMLAttributes<HTMLInputElement>;
+
+        const handlePhoneChange = (value: string | undefined) => {
+          const syntheticEvent = {
+            target: {
+              value: value || '',
+              name: phoneProps.name || phoneProps.id || generatedId
+            }
+          } as any;
+          handleChange(syntheticEvent);
+        };
+
+        return (
+          <PhoneInput
+            defaultCountry="SY"
+            international
+            value={phoneProps.value as string || ''}
+            onChange={handlePhoneChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            disabled={phoneProps.disabled}
+            className={inputClasses}
+            id={phoneProps.id || phoneProps.name || generatedId}
+            name={phoneProps.name || phoneProps.id || generatedId}
           />
         );
       }

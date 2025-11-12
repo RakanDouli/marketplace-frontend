@@ -415,6 +415,15 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
       const item = data.listing;
 
+      // DEBUG: Log raw GraphQL response for business user fields
+      console.log('🔍 FRONTEND: Raw GraphQL response user data:', {
+        id: item.user?.id,
+        name: item.user?.name,
+        companyName: item.user?.companyName,
+        website: item.user?.website,
+        companyRegistrationNumber: item.user?.companyRegistrationNumber
+      });
+
       // Parse specs JSON string from backend
       let specs = {};
       try {
@@ -467,10 +476,13 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           role: '',
           status: 'active' as const,
           accountType: item.user.accountType as "individual" | "dealer" | "business",
-          companyName: undefined,
+          companyName: item.user.companyName,
+          website: item.user.website,
+          companyRegistrationNumber: item.user.companyRegistrationNumber,
           accountBadge: 'none' as const,
           businessVerified: false,
           phone: item.user.phone,
+          contactPhone: item.user.contactPhone,
           createdAt: item.createdAt,
           updatedAt: item.createdAt,
         } : undefined,

@@ -14,6 +14,12 @@ export interface AdPackage {
   packageName: string;
   description: string;
   adType: string; // "BANNER" | "VIDEO" | "BETWEEN_LISTINGS_BANNER"
+  placement: string; // "homepage_top" | "listings_top" | etc.
+  format: string; // "billboard" | "super_leaderboard" | etc.
+  dimensions: {
+    desktop: { width: number; height: number };
+    mobile: { width: number; height: number };
+  };
   durationDays: number;
   impressionLimit: number;
   basePrice: number;
@@ -30,6 +36,12 @@ interface CreateAdPackageInput {
   packageName: string;
   description: string;
   adType: string;
+  placement: string;
+  format: string;
+  dimensions: {
+    desktop: { width: number; height: number };
+    mobile: { width: number; height: number };
+  };
   durationDays: number;
   impressionLimit: number;
   basePrice: number;
@@ -45,6 +57,12 @@ interface UpdateAdPackageInput {
   packageName?: string;
   description?: string;
   adType?: string;
+  placement?: string;
+  format?: string;
+  dimensions?: {
+    desktop: { width: number; height: number };
+    mobile: { width: number; height: number };
+  };
   durationDays?: number;
   impressionLimit?: number;
   basePrice?: number;

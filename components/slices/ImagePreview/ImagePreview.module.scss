@@ -1,0 +1,205 @@
+@import "@/styles/variables";
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-md;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.counter {
+  span {
+    color: $text-light !important;
+  }
+  position: relative;
+  z-index: $z-dropdown;
+}
+
+.headerActions {
+  display: flex;
+  gap: $space-xs;
+  width: 100%;
+  justify-content: space-between;
+}
+.previewbuttons {
+  padding: $space-sm;
+  border: $border 1px solid;
+  border-radius: $radius-md;
+  color: $text-light !important;
+  // min-width: 40px;
+  // height: 40px;
+  display: block;
+}
+
+.imageContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xl $space-lg;
+  overflow: hidden;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-lg $space-sm;
+  }
+}
+
+.image {
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: $radius-sm;
+  user-select: none;
+
+  @media (max-width: $breakpoint-sm) {
+    max-height: 70vh;
+  }
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.navButtonLeft {
+  left: $space-lg;
+
+  @media (max-width: $breakpoint-sm) {
+    left: $space-sm;
+  }
+}
+
+.navButtonRight {
+  right: $space-lg;
+
+  @media (max-width: $breakpoint-sm) {
+    right: $space-sm;
+  }
+}
+
+.thumbnails {
+  display: flex;
+  gap: $space-xs;
+  padding: $space-md;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  justify-content: center;
+  z-index: 10;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-sm;
+    justify-content: flex-start;
+  }
+}
+
+.thumbnail {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+  }
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+.thumbnailActive {
+  border-color: white;
+  box-shadow: 0 0 0 1px white;
+}

@@ -176,8 +176,14 @@ export const LISTING_BY_ID_QUERY = `
         id
         name
         phone
+        contactPhone
+        phoneIsWhatsApp
+        showPhone
+        showContactPhone
         accountType
         companyName
+        website
+        companyRegistrationNumber
       }
     }
   }

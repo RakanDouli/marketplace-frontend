@@ -2,7 +2,7 @@
 
 import React, { forwardRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Target } from "lucide-react";
 import Loading from "../Loading/Loading";
 import styles from "./Button.module.scss";
 
@@ -15,6 +15,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   arrow?: boolean | string;
   href?: string;
   margin?: boolean;
+  target?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -27,6 +28,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       icon,
       children,
       arrow,
+      target,
       href,
       margin = false,
       className = "",
@@ -94,10 +96,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     if (href && !isDisabled) {
       return (
         <Link
+          target={target}
           href={href}
-          className={`${styles.btn} ${children ? styles.btnPadding : ""} ${
-            styles[`btn--${variant}`]
-          } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
+          className={`${styles.btn} ${children ? styles.btnPadding : ""} ${styles[`btn--${variant}`]
+            } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
         >
           {buttonContent}
         </Link>
@@ -109,9 +111,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={isDisabled}
-        className={`${styles.btn} ${children ? styles.btnPadding : ""} ${
-          styles[`btn--${variant}`]
-        } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
+        className={`${styles.btn} ${children ? styles.btnPadding : ""} ${styles[`btn--${variant}`]
+          } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
         onMouseEnter={handleMouseEnter}
         aria-label={
           loading ? "Loading..." : children ? String(children) : "Button"
