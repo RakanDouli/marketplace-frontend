@@ -1,7 +1,8 @@
 // User authentication types
+import { AccountType } from '@/common/enums';
 
-// AccountType definition (matches backend enum)
-export type AccountType = 'INDIVIDUAL' | 'DEALER' | 'BUSINESS';
+// Re-export AccountType for backwards compatibility
+export type { AccountType };
 
 export interface UserSubscriptionPlan {
   id: string;

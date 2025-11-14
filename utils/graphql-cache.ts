@@ -68,7 +68,14 @@ class GraphQLCache {
 
   async request(query: string, variables: any = {}, options?: CacheOptions): Promise<any> {
     const key = this.createKey(query, variables);
-    const ttl = options?.ttl || this.defaultTTL;
+    // ✅ FIX: If ttl is explicitly 0, bypass cache completely
+    const ttl = options?.ttl !== undefined ? options.ttl : this.defaultTTL;
+
+    // If TTL is 0, bypass cache entirely (for user-specific data)
+    if (ttl === 0) {
+      console.log(`⚡ GraphQL Cache: BYPASSING cache (ttl=0) for ${key.substring(0, 80)}...`);
+      return this.makeRequest(query, variables);
+    }
 
     // Check if we have a valid cached response
     const cached = this.cache.get(key);

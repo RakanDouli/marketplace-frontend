@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useArchivedListingStore } from '@/stores/archivedListingStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import type { Attribute } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, CollapsibleSection, Container } from '@/components/slices';
+import { Text, Loading, Button, ImageGallery, Collapsible, Container } from '@/components/slices';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
 import styles from './ArchivedListingDetail.module.scss';
@@ -248,10 +248,11 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
               {!attributesLoading && sortedGroups.length > 0 && (
                 <>
                   {sortedGroups.map(([groupName, groupData]) => (
-                    <CollapsibleSection
+                    <Collapsible
                       key={groupName}
                       title={groupName}
-                      defaultExpanded={true}
+                      defaultOpen={true}
+                      variant="bordered"
                       className={styles.specGroup}
                     >
                       <div className={styles.specsList}>
@@ -262,7 +263,7 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
                           </div>
                         ))}
                       </div>
-                    </CollapsibleSection>
+                    </Collapsible>
                   ))}
                 </>
               )}

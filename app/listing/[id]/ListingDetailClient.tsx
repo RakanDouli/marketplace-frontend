@@ -7,8 +7,8 @@ import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, CollapsibleSection, Container } from '@/components/slices';
-import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Text, Loading, Button, ImageGallery, Container, Collapsible } from '@/components/slices';
+import { ChevronLeft, Eye } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
 
 import { AdContainer } from '@/components/ads';
@@ -204,14 +204,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
       <div className={styles.listingDetail}>
         {/* Breadcrumbs with Back Button */}
         <div className={styles.breadcrumbsContainer}>
-          <Button
-            variant="link"
-            onClick={() => router.back()}
-            className={styles.backButton}
-          >
-            <ChevronRight />
-            العودة
-          </Button>
+
           <nav className={styles.breadcrumbs}>
             <Link href="/">الرئيسية</Link>
             <ChevronLeft size={16} />
@@ -223,6 +216,14 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             )}
             <span>{listing.title}</span>
           </nav>
+          <Button
+            variant="link"
+            onClick={() => router.back()}
+            className={styles.backButton}
+          >  العودة
+            <ChevronLeft />
+
+          </Button>
         </div>
 
 
@@ -282,10 +283,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             {!attributesLoading && sortedGroups.length > 0 && (
               <>
                 {sortedGroups.map(([groupName, groupData]) => (
-                  <CollapsibleSection
+                  <Collapsible
                     key={groupName}
                     title={groupName}
-                    defaultExpanded={true}
                     className={styles.specGroup}
                   >
                     <div className={styles.specsList}>
@@ -296,7 +296,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                         </div>
                       ))}
                     </div>
-                  </CollapsibleSection>
+                  </Collapsible>
                 ))}
               </>
             )}

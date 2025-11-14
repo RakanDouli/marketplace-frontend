@@ -32,6 +32,7 @@ export const MY_THREADS_QUERY = `
       buyerId
       sellerId
       lastMessageAt
+      unreadCount
     }
   }
 `;
@@ -57,8 +58,8 @@ export const MARK_THREAD_READ_MUTATION = `
 `;
 
 export const UNREAD_COUNT_QUERY = `
-  query UnreadCount {
-    unreadCount
+  query MyUnreadCount {
+    myUnreadCount
   }
 `;
 

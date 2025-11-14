@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter, usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -15,10 +16,12 @@ import { Container } from "../slices";
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
+  const router = useRouter();
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { user } = useUserAuthStore();
-  const { unreadCount, fetchUnreadCount } = useChatStore();
+  const { unreadCount, fetchUnreadCount, fetchMyThreads } = useChatStore();
 
   // Fetch unread count when user is logged in
   useEffect(() => {
@@ -53,6 +56,18 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  // Handle message icon click - always refresh threads
+  const handleMessagesClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('📬 Message icon clicked - refreshing threads');
+
+    // Always refresh threads
+    fetchMyThreads();
+
+    // Navigate to messages page (even if already there, will trigger re-render)
+    router.push('/messages');
+  };
+
   return (
     <>
       <Spacer />
@@ -74,12 +89,16 @@ export const Header: React.FC = () => {
             {/* Desktop Actions */}
             <div className={styles.actions}>
               {user && (
-                <Link href="/messages" className={styles.messagesIcon}>
+                <button
+                  onClick={handleMessagesClick}
+                  className={styles.messagesIcon}
+                  aria-label="Messages"
+                >
                   <MessageCircle size={20} />
                   {unreadCount > 0 && (
                     <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
                   )}
-                </Link>
+                </button>
               )}
               <UserMenu />
               <ThemeToggle />

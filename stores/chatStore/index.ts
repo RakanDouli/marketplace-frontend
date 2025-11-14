@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
+import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
   GET_OR_CREATE_THREAD_MUTATION,
   SEND_MESSAGE_MUTATION,
@@ -40,6 +42,9 @@ interface ChatState {
   error: string | null;
   blockedUserIds: Set<string>; // Set of blocked user IDs for fast lookup
   blockedUsers: BlockedUser[]; // Full blocked user data
+  realtimeChannel: RealtimeChannel | null; // Per-thread realtime subscription (typing, messages in active thread)
+  globalRealtimeChannel: RealtimeChannel | null; // Global subscription (all messages for user)
+  typingUsers: Record<string, string>; // threadId -> typing user name
 
   // Actions
   fetchMyThreads: () => Promise<void>;
@@ -60,6 +65,12 @@ interface ChatState {
   createImageUploadUrl: () => Promise<{ uploadUrl: string; assetKey: string }>;
   setActiveThread: (threadId: string | null) => void;
   clearError: () => void;
+  // Realtime methods
+  subscribeToThread: (threadId: string, userId: string) => void;
+  unsubscribeFromThread: () => void;
+  subscribeGlobal: (userId: string) => void;
+  unsubscribeGlobal: () => void;
+  broadcastTyping: (threadId: string, userName: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -70,7 +81,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoading: false,
   error: null,
   blockedUserIds: new Set<string>(),
+  globalRealtimeChannel: null,
   blockedUsers: [],
+  realtimeChannel: null,
+  typingUsers: {},
 
   fetchMyThreads: async () => {
     set({ isLoading: true, error: null });
@@ -190,6 +204,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
         { ttl: 0 }
       );
 
+      // ✅ Update local threads state to reset unreadCount
+      set((state) => ({
+        threads: state.threads.map(thread =>
+          thread.id === threadId
+            ? { ...thread, unreadCount: 0 }
+            : thread
+        ),
+      }));
+
       // Refresh unread count
       get().fetchUnreadCount();
     } catch (error) {
@@ -199,12 +222,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   fetchUnreadCount: async () => {
     try {
-      const data = await cachedGraphQLRequest<{ unreadCount: number }>(
+      const data = await cachedGraphQLRequest<{ myUnreadCount: number }>(
         UNREAD_COUNT_QUERY,
         {},
         { ttl: 0 }
       );
-      set({ unreadCount: data.unreadCount });
+      set({ unreadCount: data.myUnreadCount });
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
@@ -442,5 +465,355 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
+  },
+
+  // Realtime Subscriptions
+  subscribeToThread: (threadId: string, userId: string) => {
+    const { realtimeChannel } = get();
+
+    // Unsubscribe from previous channel if exists
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel);
+    }
+
+    console.log('🔴 Subscribing to realtime for thread:', threadId);
+
+    // Create new channel for this thread
+    const channel = supabase
+      .channel(`thread:${threadId}`)
+      // Listen for new messages
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `threadId=eq.${threadId}`,
+        },
+        (payload) => {
+          console.log('📨 New message received:', payload.new);
+          const newMessage = payload.new as ChatMessage;
+
+          // Add message to store if it's not from current user
+          if (newMessage.senderId !== userId) {
+            set((state) => ({
+              messages: {
+                ...state.messages,
+                [threadId]: [...(state.messages[threadId] || []), newMessage],
+              },
+              // Update thread's lastMessageAt and increment unreadCount
+              threads: state.threads.map(thread =>
+                thread.id === threadId
+                  ? {
+                      ...thread,
+                      lastMessageAt: newMessage.createdAt,
+                      unreadCount: (thread.unreadCount || 0) + 1,
+                    }
+                  : thread
+              ),
+            }));
+
+            // Auto-mark as read if thread is currently active (user is viewing it)
+            const currentActiveThread = get().activeThreadId;
+            if (currentActiveThread === threadId) {
+              console.log('🔵 Auto-marking message as read (thread is active)');
+              get().markThreadRead(threadId, newMessage.id);
+            }
+
+            // Refresh unread count
+            get().fetchUnreadCount();
+          }
+        }
+      )
+      // Listen for message updates (status changes)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `threadId=eq.${threadId}`,
+        },
+        (payload) => {
+          console.log('✏️ Message updated:', payload.new);
+          const updatedMessage = payload.new as ChatMessage;
+
+          set((state) => ({
+            messages: {
+              ...state.messages,
+              [threadId]: (state.messages[threadId] || []).map((msg) =>
+                msg.id === updatedMessage.id ? updatedMessage : msg
+              ),
+            },
+          }));
+
+          // Refresh unread count when message status changes
+          get().fetchUnreadCount();
+        }
+      )
+      // Listen for participant updates (read status)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_participants',
+          filter: `threadId=eq.${threadId}`,
+        },
+        (payload) => {
+          console.log('👁️ Read status updated:', payload.new);
+          // When other user reads messages, update message statuses to READ
+          const participant = payload.new as any;
+
+          if (participant.userId !== userId && participant.lastReadAt) {
+            const lastReadAt = new Date(participant.lastReadAt);
+
+            set((state) => ({
+              messages: {
+                ...state.messages,
+                [threadId]: (state.messages[threadId] || []).map((msg) => {
+                  // If message is from current user and was created before lastReadAt, mark as READ
+                  if (
+                    msg.senderId === userId &&
+                    new Date(msg.createdAt) <= lastReadAt &&
+                    msg.status !== 'read'
+                  ) {
+                    return { ...msg, status: 'read' as const };
+                  }
+                  return msg;
+                }),
+              },
+            }));
+
+            // Refresh unread count when participant reads messages
+            get().fetchUnreadCount();
+          }
+
+          // Also refresh unread count when current user reads (participant.userId === userId)
+          if (participant.userId === userId) {
+            get().fetchUnreadCount();
+          }
+        }
+      )
+      // Typing indicator using Presence
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        console.log('👥 Presence sync:', state);
+
+        // Get typing users (exclude current user)
+        const typingUser = Object.values(state).find(
+          (presences: any) => presences[0]?.typing && presences[0]?.userId !== userId
+        );
+
+        if (typingUser) {
+          set((state) => ({
+            typingUsers: {
+              ...state.typingUsers,
+              [threadId]: (typingUser as any)[0].userName,
+            },
+          }));
+
+          // Clear typing indicator after 3 seconds
+          setTimeout(() => {
+            set((state) => {
+              const { [threadId]: _, ...rest } = state.typingUsers;
+              return { typingUsers: rest };
+            });
+          }, 3000);
+        } else {
+          set((state) => {
+            const { [threadId]: _, ...rest } = state.typingUsers;
+            return { typingUsers: rest };
+          });
+        }
+      })
+      .subscribe();
+
+    set({ realtimeChannel: channel });
+  },
+
+  unsubscribeFromThread: () => {
+    const { realtimeChannel } = get();
+    if (realtimeChannel) {
+      console.log('🔴 Unsubscribing from realtime');
+      supabase.removeChannel(realtimeChannel);
+      set({ realtimeChannel: null, typingUsers: {} });
+    }
+  },
+
+  broadcastTyping: (threadId: string, userName: string) => {
+    const { realtimeChannel } = get();
+    if (realtimeChannel) {
+      realtimeChannel.track({
+        typing: true,
+        userName,
+        userId: userName, // Will be replaced with actual userId
+      });
+
+      // Stop broadcasting after 2 seconds
+      setTimeout(() => {
+        if (realtimeChannel) {
+          realtimeChannel.track({ typing: false });
+        }
+      }, 2000);
+    }
+  },
+
+  // Global realtime subscription (listens to ALL threads for this user)
+  subscribeGlobal: (userId: string) => {
+    const { globalRealtimeChannel, threads } = get();
+
+    // Don't subscribe if already subscribed
+    if (globalRealtimeChannel) {
+      console.log('🌍 Already subscribed to global realtime');
+      return;
+    }
+
+    console.log('🌍 Subscribing to global realtime for user:', userId);
+
+    // Get all thread IDs for this user
+    const threadIds = threads.map(t => t.id);
+
+    // Create global channel that listens to ALL chat messages where user is participant
+    const channel = supabase
+      .channel(`global:${userId}`)
+      // Listen for ALL new messages in user's threads
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+
+          // Only process if message is in one of user's threads
+          const thread = threads.find(t => t.id === newMessage.threadId);
+          if (!thread) return;
+
+          console.log('🌍 Global: New message received:', newMessage);
+
+          // If message is from another user (not current user)
+          if (newMessage.senderId !== userId) {
+            // Update threads state: increment unreadCount and update lastMessageAt
+            // ALSO add message to messages array if we have that thread loaded
+            set((state) => ({
+              threads: state.threads.map(t =>
+                t.id === newMessage.threadId
+                  ? {
+                      ...t,
+                      lastMessageAt: newMessage.createdAt,
+                      unreadCount: (t.unreadCount || 0) + 1,
+                    }
+                  : t
+              ),
+              // ✅ Add message to local messages state
+              messages: {
+                ...state.messages,
+                [newMessage.threadId]: [
+                  ...(state.messages[newMessage.threadId] || []),
+                  newMessage
+                ],
+              },
+            }));
+
+            // Refresh unread count badge
+            get().fetchUnreadCount();
+          }
+        }
+      )
+      // Listen for ALL message updates (status changes: sent → read)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_messages',
+        },
+        (payload) => {
+          const updatedMessage = payload.new as ChatMessage;
+
+          // Only process if message is in one of user's threads
+          const thread = threads.find(t => t.id === updatedMessage.threadId);
+          if (!thread) return;
+
+          console.log('🌍 Global: Message status updated:', updatedMessage);
+
+          // Update message in local state if we have it loaded
+          set((state) => {
+            const threadMessages = state.messages[updatedMessage.threadId];
+            if (!threadMessages) return state;
+
+            return {
+              messages: {
+                ...state.messages,
+                [updatedMessage.threadId]: threadMessages.map((msg) =>
+                  msg.id === updatedMessage.id ? updatedMessage : msg
+                ),
+              },
+            };
+          });
+        }
+      )
+      // Listen for participant updates (read status)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_participants',
+        },
+        (payload) => {
+          const participant = payload.new as any;
+
+          // Only process if participant is in one of user's threads
+          const thread = threads.find(t => t.id === participant.threadId);
+          if (!thread) return;
+
+          console.log('🌍 Global: Participant read status updated:', participant);
+
+          // If OTHER user read messages, update message statuses to READ
+          if (participant.userId !== userId && participant.lastReadAt) {
+            const lastReadAt = new Date(participant.lastReadAt);
+
+            set((state) => {
+              const threadMessages = state.messages[participant.threadId];
+              if (!threadMessages) return state;
+
+              return {
+                messages: {
+                  ...state.messages,
+                  [participant.threadId]: threadMessages.map((msg) => {
+                    if (
+                      msg.senderId === userId &&
+                      new Date(msg.createdAt) <= lastReadAt &&
+                      msg.status !== 'read'
+                    ) {
+                      return { ...msg, status: 'read' as const };
+                    }
+                    return msg;
+                  }),
+                },
+              };
+            });
+          }
+
+          // Refresh unread count when anyone reads
+          get().fetchUnreadCount();
+        }
+      )
+      .subscribe();
+
+    set({ globalRealtimeChannel: channel });
+  },
+
+  unsubscribeGlobal: () => {
+    const { globalRealtimeChannel } = get();
+    if (globalRealtimeChannel) {
+      console.log('🌍 Unsubscribing from global realtime');
+      supabase.removeChannel(globalRealtimeChannel);
+      set({ globalRealtimeChannel: null });
+    }
   },
 }));

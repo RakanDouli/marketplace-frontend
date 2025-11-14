@@ -2,6 +2,7 @@
 
 .collapsible {
   width: 100%;
+  background-color: $bg;
 }
 
 .trigger {
@@ -17,12 +18,7 @@
   text-align: left;
 
   &:hover {
-    background: $bg;
-  }
-
-  &:focus {
-    outline: none;
-    background: $bg;
+    background: $surface;
   }
 }
 
@@ -72,7 +68,7 @@
 }
 
 .contentInner {
-  padding: 0 $space-md $space-md $space-md;
+  padding: $space-md;
 }
 
 // Variants

@@ -1,0 +1,41 @@
+@import "@/styles/variables";
+
+.PricingPage {
+  background-color: $bg !important;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-lg;
+  margin-bottom: $space-xl;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: calc($breakpoint-sm + 1px)) and (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.faq {
+  margin-top: $space-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  width: 100%;
+}

@@ -87,22 +87,24 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
       const currentPage = page ?? state.pagination.page;
       const offset = (currentPage - 1) * state.pagination.limit;
 
-      // Fetch listings
+      // Fetch listings (user-specific, don't cache)
       const listingsData = await cachedGraphQLRequest(
         MY_LISTINGS_QUERY,
         {
           status: currentFilters.status || null,
           limit: state.pagination.limit,
           offset,
-        }
+        },
+        { ttl: 0 }
       );
 
-      // Fetch total count
+      // Fetch total count (user-specific, don't cache)
       const countData = await cachedGraphQLRequest(
         MY_LISTINGS_COUNT_QUERY,
         {
           status: currentFilters.status || null,
-        }
+        },
+        { ttl: 0 }
       );
 
       set({
@@ -129,7 +131,8 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
     try {
       const data = await cachedGraphQLRequest(
         MY_LISTING_BY_ID_QUERY,
-        { id }
+        { id },
+        { ttl: 0 }
       );
 
       set({
@@ -151,9 +154,11 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const data = await cachedGraphQLRequest(CREATE_MY_LISTING_MUTATION, {
-        input,
-      });
+      const data = await cachedGraphQLRequest(
+        CREATE_MY_LISTING_MUTATION,
+        { input },
+        { ttl: 0 }
+      );
 
       // Invalidate cache and refresh listings
       invalidateGraphQLCache('myListings');
@@ -174,10 +179,11 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      await cachedGraphQLRequest(UPDATE_MY_LISTING_MUTATION, {
-        id,
-        input,
-      });
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id, input },
+        { ttl: 0 }
+      );
 
       // Invalidate cache and refresh listings
       invalidateGraphQLCache('myListings');
@@ -197,10 +203,11 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      await cachedGraphQLRequest(DELETE_MY_LISTING_MUTATION, {
-        id,
-        archivalReason,
-      });
+      await cachedGraphQLRequest(
+        DELETE_MY_LISTING_MUTATION,
+        { id, archivalReason },
+        { ttl: 0 }
+      );
 
       // Invalidate cache and refresh listings
       invalidateGraphQLCache('myListings');

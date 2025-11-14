@@ -17,6 +17,7 @@ export interface ChatThread {
   buyerId: string;
   sellerId: string;
   lastMessageAt: string | null;
+  unreadCount?: number; // ✅ Added: Per-thread unread count
   listing?: ThreadListing | null;
   lastMessage?: ThreadLastMessage | null;
 }

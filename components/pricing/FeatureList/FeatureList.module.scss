@@ -1,0 +1,43 @@
+@import '@/styles/variables';
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.item {
+  display: flex;
+  gap: $space-sm;
+  align-items: flex-start;
+  transition: opacity 0.2s ease;
+
+  &.notIncluded {
+    opacity: 0.5;
+  }
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+
+  .check {
+    color: $success;
+  }
+
+  .x {
+    color: $text-secondary;
+  }
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

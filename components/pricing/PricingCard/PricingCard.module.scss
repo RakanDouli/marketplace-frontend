@@ -1,0 +1,126 @@
+@import "@/styles/variables";
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  padding: $space-xl $space-lg $space-lg $space-lg;
+  transition: all 0.3s ease;
+  height: 100%;
+  gap: $space-md;
+  &:hover {
+    border-color: $primary;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  &.highlighted {
+    border: 2px solid $primary;
+    box-shadow: 0 8px 24px rgba($primary, 0.15);
+    transform: scale(1.02);
+
+    @media (max-width: $breakpoint-md) {
+      transform: none;
+    }
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.badge {
+  position: absolute;
+  top: $space-md;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $surface;
+  border-radius: $radius-md;
+  margin-bottom: $space-sm;
+}
+
+.price {
+  display: flex;
+
+  align-items: baseline;
+  gap: $space-xs;
+  h1,
+  h2 {
+    margin-bottom: 0;
+  }
+  padding: $space-sm 0;
+  border-top: 1px solid $border;
+  border-bottom: 1px solid $border;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  padding: $space-sm 0;
+  border-bottom: 1px solid $border;
+  mar &.notIncluded {
+    opacity: 0.5;
+  }
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .checkIcon {
+    color: $success;
+  }
+
+  .xIcon {
+    color: $text-secondary;
+  }
+}
+
+.featureContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 2px;
+  span {
+    margin-bottom: 0;
+  }
+}
+
+.metadata {
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+}
+
+.action {
+  margin-top: auto;
+}

@@ -143,12 +143,20 @@ export const useUserAuthStore = create<UserAuthStore>()(
               showAuthModal: false,
             });
 
-            // Load user's wishlist after successful login
+            // ✅ Load user data after successful login
             try {
               const { useWishlistStore } = await import('@/stores/wishlistStore');
               useWishlistStore.getState().loadMyWishlist();
             } catch (wishlistError) {
               console.warn('Failed to load wishlist on login:', wishlistError);
+            }
+
+            // ✅ Fetch unread message count on login
+            try {
+              const { useChatStore } = await import('@/stores/chatStore');
+              useChatStore.getState().fetchUnreadCount();
+            } catch (chatError) {
+              console.warn('Failed to fetch unread count on login:', chatError);
             }
 
             // Show force modal for INACTIVE users
@@ -321,6 +329,53 @@ export const useUserAuthStore = create<UserAuthStore>()(
           await supabase.auth.signOut();
         } catch (error) {
           console.error('Logout error:', error);
+        }
+
+        // ✅ Clear GraphQL cache on logout
+        const { clearGraphQLCache } = await import('@/utils/graphql-cache');
+        clearGraphQLCache();
+        console.log('🧹 GraphQL Cache: Cleared on logout');
+
+        // ✅ Reset all user-specific stores
+        try {
+          const { useChatStore } = await import('@/stores/chatStore');
+          useChatStore.getState().unsubscribeFromThread(); // Clean up realtime subscription
+          useChatStore.setState({
+            threads: [],
+            activeThreadId: null,
+            messages: {},
+            unreadCount: 0,
+            isLoading: false,
+            error: null,
+            blockedUserIds: new Set<string>(),
+            blockedUsers: [],
+            realtimeChannel: null,
+            typingUsers: {},
+          });
+          console.log('🧹 ChatStore: Reset on logout');
+        } catch (err) {
+          console.warn('Failed to reset chatStore:', err);
+        }
+
+        try {
+          const { useWishlistStore } = await import('@/stores/wishlistStore');
+          useWishlistStore.setState({
+            wishlistIds: new Set<string>(),
+            listings: [],
+            isLoading: false,
+            error: null,
+          });
+          console.log('🧹 WishlistStore: Reset on logout');
+        } catch (err) {
+          console.warn('Failed to reset wishlistStore:', err);
+        }
+
+        try {
+          const { useUserListingsStore } = await import('@/stores/userListingsStore');
+          useUserListingsStore.getState().reset(); // Use existing reset method
+          console.log('🧹 UserListingsStore: Reset on logout');
+        } catch (err) {
+          console.warn('Failed to reset userListingsStore:', err);
         }
 
         set({

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X } from 'lucide-react';
+import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck } from 'lucide-react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
@@ -21,6 +21,7 @@ interface ThreadWithListing {
   buyerId: string;
   sellerId: string;
   lastMessageAt: string | null;
+  unreadCount?: number; // ✅ Added: Per-thread unread count
   listing: Listing | null;
 }
 
@@ -32,6 +33,7 @@ export const MessagesClient: React.FC = () => {
     activeThreadId,
     messages,
     isLoading,
+    unreadCount,
     fetchMyThreads,
     fetchThreadMessages,
     sendMessage,
@@ -44,6 +46,11 @@ export const MessagesClient: React.FC = () => {
     blockUser,
     fetchBlockedUsers,
     isUserBlocked,
+    subscribeToThread,
+    unsubscribeFromThread,
+    broadcastTyping,
+    typingUsers,
+    markThreadRead,
   } = useChatStore();
   const { fetchListingById } = useListingsStore();
 
@@ -92,6 +99,39 @@ export const MessagesClient: React.FC = () => {
       fetchMyThreads();
     }
   }, [user, fetchMyThreads, fetchBlockedUsers]);
+
+  // Auto-refresh threads when unread count changes (indicates new message)
+  useEffect(() => {
+    if (!user) return;
+
+    // When unread count increases, refresh thread list to show updated threads
+    if (unreadCount > 0) {
+      console.log('📬 Unread count changed to', unreadCount, '- refreshing threads');
+      fetchMyThreads();
+    }
+  }, [unreadCount, user, fetchMyThreads]);
+
+  // Auto-refresh threads when going back to thread list
+  useEffect(() => {
+    if (!user) return;
+
+    // Refresh when activeThreadId becomes null (user closed a thread)
+    if (activeThreadId === null) {
+      console.log('📬 Back to thread list - refreshing threads');
+      fetchMyThreads();
+    }
+
+    // Also refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('📬 Page became visible - refreshing threads');
+        fetchMyThreads();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user, fetchMyThreads, activeThreadId]);
 
   // Fetch listing details for each thread and filter out blocked users
   useEffect(() => {
@@ -158,6 +198,36 @@ export const MessagesClient: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Subscribe to realtime updates when thread is active
+  useEffect(() => {
+    console.log('🔍 useEffect triggered - activeThreadId:', activeThreadId, 'user.id:', user?.id);
+    if (activeThreadId && user?.id) {
+      console.log('🔴 Setting up realtime for thread:', activeThreadId);
+      subscribeToThread(activeThreadId, user.id);
+
+      // Fetch messages for this thread
+      fetchThreadMessages(activeThreadId);
+
+      // Mark thread as read when opening it
+      markThreadRead(activeThreadId);
+    }
+
+    // Cleanup: unsubscribe when thread changes or component unmounts
+    return () => {
+      if (activeThreadId) {
+        console.log('🔴 Cleaning up realtime for thread:', activeThreadId);
+        unsubscribeFromThread();
+      }
+    };
+  }, [activeThreadId, user?.id, subscribeToThread, unsubscribeFromThread, fetchThreadMessages, markThreadRead]);
+
+  // Broadcast typing indicator when user types
+  useEffect(() => {
+    if (activeThreadId && messageText.trim() && user?.name) {
+      broadcastTyping(activeThreadId, user.name);
+    }
+  }, [messageText, activeThreadId, user?.name, broadcastTyping]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -268,6 +338,7 @@ export const MessagesClient: React.FC = () => {
   };
 
   const handleSelectThread = (threadId: string) => {
+    console.log('👆 User clicked on thread:', threadId);
     setActiveThread(threadId);
     // Clear images when changing threads
     handleClearAllImages();
@@ -312,10 +383,13 @@ export const MessagesClient: React.FC = () => {
               // Check if listing is inactive (sold or removed)
               const isInactive = listing?.status && listing.status !== 'ACTIVE';
 
+              // ✅ Check if thread has unread messages
+              const hasUnread = thread.unreadCount && thread.unreadCount > 0;
+
               return (
                 <button
                   key={thread.id}
-                  className={`${styles.threadItem} ${activeThreadId === thread.id ? styles.active : ''}`}
+                  className={`${styles.threadItem} ${activeThreadId === thread.id ? styles.active : ''} ${hasUnread && activeThreadId !== thread.id ? styles.unread : ''}`}
                   style={{ opacity: isInactive ? 0.7 : 1 }}
                   onClick={() => handleSelectThread(thread.id)}
                 >
@@ -376,6 +450,7 @@ export const MessagesClient: React.FC = () => {
               const listing = activeThread?.listing;
               const firstImageKey = listing?.imageKeys?.[0];
               const thumbnailUrl = firstImageKey ? createThumbnail(firstImageKey) : null;
+              const typingUserName = activeThreadId ? typingUsers[activeThreadId] : null;
 
               return (
                 <div className={styles.chatHeader}>
@@ -400,11 +475,15 @@ export const MessagesClient: React.FC = () => {
                         <Text variant="paragraph" className={styles.listingTitle}>
                           {listing.title}
                         </Text>
-                        {listing.prices && listing.prices.length > 0 && (
+                        {typingUserName ? (
+                          <Text variant="small" className={styles.typingIndicator}>
+                            {typingUserName} يكتب...
+                          </Text>
+                        ) : listing.prices && listing.prices.length > 0 ? (
                           <Text variant="small" color="secondary">
                             {formatPrice(listing.priceMinor, listing.prices[0].currency)}
                           </Text>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   )}
@@ -556,37 +635,48 @@ export const MessagesClient: React.FC = () => {
                             {message.text && (
                               <Text variant="paragraph">{message.text}</Text>
                             )}
-                            <Text variant="small" color="secondary" className={styles.messageTime}>
-                              {(() => {
-                                const messageDate = new Date(message.createdAt);
-                                const now = new Date();
-                                const diffInDays = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
-                                const time = messageDate.toLocaleTimeString('ar-EG', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                });
-
-                                if (diffInDays === 0) {
-                                  // Today - show only time
-                                  return time;
-                                } else if (diffInDays === 1) {
-                                  // Yesterday
-                                  return `أمس ${time}`;
-                                } else if (diffInDays < 7) {
-                                  // This week - show day name
-                                  const dayName = messageDate.toLocaleDateString('ar-EG', { weekday: 'long' });
-                                  return `${dayName} ${time}`;
-                                } else {
-                                  // Older - show full date
-                                  return messageDate.toLocaleDateString('ar-EG', {
-                                    day: 'numeric',
-                                    month: 'short',
+                            <div className={styles.messageFooter}>
+                              <Text variant="small" color="secondary" className={styles.messageTime}>
+                                {(() => {
+                                  const messageDate = new Date(message.createdAt);
+                                  const now = new Date();
+                                  const diffInDays = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
+                                  const time = messageDate.toLocaleTimeString('ar-EG', {
                                     hour: '2-digit',
                                     minute: '2-digit',
                                   });
-                                }
-                              })()}
-                            </Text>
+
+                                  if (diffInDays === 0) {
+                                    // Today - show only time
+                                    return time;
+                                  } else if (diffInDays === 1) {
+                                    // Yesterday
+                                    return `أمس ${time}`;
+                                  } else if (diffInDays < 7) {
+                                    // This week - show day name
+                                    const dayName = messageDate.toLocaleDateString('ar-EG', { weekday: 'long' });
+                                    return `${dayName} ${time}`;
+                                  } else {
+                                    // Older - show full date
+                                    return messageDate.toLocaleDateString('ar-EG', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    });
+                                  }
+                                })()}
+                              </Text>
+                              {isSentByMe && (
+                                <span className={`${styles.messageStatus} ${message.status === 'read' ? styles.read : styles.sent}`}>
+                                  {message.status === 'read' ? (
+                                    <CheckCheck size={14} />
+                                  ) : (
+                                    <Check size={14} />
+                                  )}
+                                </span>
+                              )}
+                            </div>
                           </>
                         )}
 

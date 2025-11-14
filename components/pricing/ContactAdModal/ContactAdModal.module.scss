@@ -1,0 +1,60 @@
+@import '@/styles/variables';
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.packageInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: $space-xs;
+  margin-top: $space-sm;
+}
+
+.divider {
+  height: 1px;
+  background: $border;
+  margin: $space-sm 0;
+}
+
+.contactOptions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.contactOption {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary;
+    background: $surface;
+  }
+}
+
+.optionHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.actions {
+  margin-top: $space-md;
+}
