@@ -7,6 +7,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { Container, Text, Button } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { formatDate } from '@/utils/formatDate';
 import styles from './blocked-users.module.scss';
 
 export default function BlockedUsersPage() {
@@ -112,11 +113,7 @@ export default function BlockedUsersPage() {
                       {blockedUser.blockedUser.email}
                     </Text>
                     <Text variant="small" color="secondary">
-                      تم الحظر: {new Date(blockedUser.blockedAt).toLocaleDateString('ar-EG', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
+                      تم الحظر: {formatDate(blockedUser.blockedAt)}
                     </Text>
                   </div>
                 </div>

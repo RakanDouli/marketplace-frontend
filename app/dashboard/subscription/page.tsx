@@ -4,6 +4,8 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Text, Button } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
+import { formatPrice } from "@/utils/formatPrice";
+import { formatDate } from "@/utils/formatDate";
 import { Check, X } from "lucide-react";
 import styles from "./Subscription.module.scss";
 
@@ -116,7 +118,7 @@ export default function SubscriptionPage() {
               </Text>
             </div>
             <div className={styles.price}>
-              <Text variant="h1">${subscription?.price || 0}</Text>
+              <Text variant="h1">{formatPrice(subscription?.price || 0)}</Text>
               <Text variant="paragraph" className={styles.billingCycle}>
                 {subscription?.billingCycle === "monthly" ? "/ شهرياً" : "مجاناً"}
               </Text>
@@ -170,13 +172,7 @@ export default function SubscriptionPage() {
             <div className={styles.billingInfo}>
               <Text variant="paragraph">التجديد التالي</Text>
               <Text variant="paragraph">
-                {new Date(
-                  Date.now() + 30 * 24 * 60 * 60 * 1000
-                ).toLocaleDateString("ar-SY", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {formatDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}
               </Text>
             </div>
           )}

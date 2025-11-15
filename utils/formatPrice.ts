@@ -1,27 +1,42 @@
+import { useCurrencyStore, CURRENCY_SYMBOLS, type Currency } from '@/stores/currencyStore';
+
 /**
- * Format price from minor units (cents) to readable currency format
- * @param priceMinor - Price in minor units (e.g., 50000 for $500.00)
- * @param currency - Currency code (e.g., 'USD', 'EUR', 'SYP')
- * @returns Formatted price string (e.g., '$500' or '500,000 ل.س')
+ * Format price from USD minor units (cents) to user's preferred currency
+ * @param priceMinorUSD - Price in USD minor units (e.g., 50000 for $500.00)
+ * @param toCurrency - Target currency (optional, uses preferredCurrency from store)
+ * @returns Formatted price string (e.g., '$500' or '6,500,000 S£')
  */
-export function formatPrice(priceMinor: number, currency: string): string {
-  const priceInMajor = priceMinor / 100;
+export function formatPrice(priceMinorUSD: number, toCurrency?: Currency): string {
+  const { preferredCurrency, convertPrice } = useCurrencyStore.getState();
+  const targetCurrency = toCurrency || preferredCurrency;
 
-  // Currency symbols and formatting
-  const currencyConfig: Record<string, { symbol: string; position: 'before' | 'after' }> = {
-    USD: { symbol: '$', position: 'before' },
-    EUR: { symbol: '€', position: 'before' },
-    SYP: { symbol: 'ل.س', position: 'after' },
-    SAR: { symbol: 'ر.س', position: 'after' },
-    AED: { symbol: 'د.إ', position: 'after' },
-  };
+  // Convert USD cents to USD dollars
+  const usdDollars = priceMinorUSD / 100;
 
-  const config = currencyConfig[currency] || { symbol: currency, position: 'after' };
-  const formattedAmount = Math.round(priceInMajor).toLocaleString('en-US');
+  // Convert to target currency
+  const convertedAmount = targetCurrency === 'USD'
+    ? usdDollars
+    : convertPrice(usdDollars, targetCurrency);
 
-  if (config.position === 'before') {
-    return `${config.symbol}${formattedAmount}`;
+  // Format with commas
+  const formattedAmount = Math.round(convertedAmount).toLocaleString('en-US');
+
+  // Get symbol
+  const symbol = CURRENCY_SYMBOLS[targetCurrency];
+
+  // USD and EUR symbols go before, SYP goes after
+  if (targetCurrency === 'USD' || targetCurrency === 'EUR') {
+    return `${symbol}${formattedAmount}`;
   } else {
-    return `${formattedAmount} ${config.symbol}`;
+    return `${formattedAmount} ${symbol}`;
   }
+}
+
+/**
+ * Format price range (min-max)
+ */
+export function formatPriceRange(minMinorUSD: number, maxMinorUSD: number, toCurrency?: Currency): string {
+  const min = formatPrice(minMinorUSD, toCurrency);
+  const max = formatPrice(maxMinorUSD, toCurrency);
+  return `${min} - ${max}`;
 }

@@ -140,9 +140,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             <Text variant="h4" className={styles.priceValue} skeleton={isLoading} skeletonWidth="60%">
               {price}
             </Text>
-            <Text variant="xs" className={styles.currency} skeleton={isLoading} skeletonWidth="20%">
-              {currency}
-            </Text>
           </div>
 
           {/* Location - Always show */}

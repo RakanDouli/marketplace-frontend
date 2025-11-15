@@ -1,4 +1,5 @@
 'use client';
+import { formatPrice } from '@/utils/formatPrice';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';

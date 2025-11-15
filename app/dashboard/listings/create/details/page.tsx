@@ -404,15 +404,10 @@ export default function CreateListingDetailsPage() {
                 {/* Price & Bidding */}
                 <div className={styles.formRow}>
                   <Input
-                    type="number"
-                    label="السعر (بالدولار)"
-                    placeholder="مثال: 5000"
-                    value={formData.priceMinor > 0 ? formData.priceMinor / 100 : ''}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      setFormField('priceMinor', value * 100);
-                    }}
-                    onBlur={() => handleBlur('price')}
+                    type="price"
+                    label="السعر"
+                    value={formData.priceMinor}
+                    onChange={(e) => setFormField('priceMinor', parseInt(e.target.value) || 0)}
                     error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
                     required
                   />
@@ -430,15 +425,15 @@ export default function CreateListingDetailsPage() {
                   <Input
                     type="number"
                     label="سعر البداية للمزايدة (بالدولار)"
-                    placeholder="مثال: 4000"
-                    value={formData.biddingStartPrice ? formData.biddingStartPrice / 100 : ''}
+                    placeholder="0 = مجاني"
+                    value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice / 100 : ''}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
+                      const value = e.target.value === '' ? 0 : parseInt(e.target.value);
                       setFormField('biddingStartPrice', value * 100);
                     }}
                     onBlur={() => handleBlur('biddingStartPrice')}
-                    error={getError('biddingStartPrice', formData.allowBidding && !formData.biddingStartPrice ? 'سعر البداية مطلوب' : undefined)}
-                    helpText="سعر البداية يجب أن يكون أقل من السعر الأساسي"
+                    error={validationErrors.biddingStartPrice}
+                    helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
                   />
                 )}
               </div>

@@ -146,8 +146,11 @@ export const LISTING_BY_ID_QUERY = `
       priceMinor
       status
       imageKeys
+      videoUrl
       createdAt
       categoryId
+      allowBidding
+      biddingStartPrice
       category {
         id
         name

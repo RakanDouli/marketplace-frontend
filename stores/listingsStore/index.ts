@@ -409,6 +409,11 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         { ttl: 0 } // Bypass cache temporarily to test location fix
       );
 
+      // DEBUG: Log the full GraphQL response
+      console.log('🔍 FRONTEND: Full GraphQL response for listing:', data);
+      console.log('🔍 FRONTEND: Listing ID requested:', id);
+      console.log('🔍 FRONTEND: Has listing field?', !!data.listing);
+
       if (!data.listing) {
         throw new Error("Listing not found");
       }
@@ -454,10 +459,12 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         ],
         city,
         status: item.status as any,
-        allowBidding: false,
+        allowBidding: item.allowBidding || false,
+        biddingStartPrice: item.biddingStartPrice || null,
         specs,
         specsDisplay,
         imageKeys: item.imageKeys || [],
+        videoUrl: item.videoUrl || null,
         accountType: item.accountType as "individual" | "dealer" | "business",
         createdAt: item.createdAt,
         updatedAt: item.createdAt,
@@ -492,6 +499,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         id: listing.id,
         title: listing.title,
         seller: listing.user?.name,
+        allowBidding: listing.allowBidding,
+        biddingStartPrice: listing.biddingStartPrice,
       });
 
       set({

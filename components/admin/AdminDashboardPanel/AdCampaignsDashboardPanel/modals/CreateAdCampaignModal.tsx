@@ -123,7 +123,16 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
             adType
             placement
             format
-            dimensions
+            dimensions {
+              desktop {
+                width
+                height
+              }
+              mobile {
+                width
+                height
+              }
+            }
             mediaRequirements
           }
         }
@@ -442,6 +451,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
               type="date"
               value={formData.endDate}
               onChange={(e) => handleChange('endDate', e.target.value)}
+              min={formData.startDate}
               required
             />
           </div>
@@ -453,11 +463,9 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           <div className={styles.formGrid}>
             <Input
               label="السعر الإجمالي"
-              type="number"
+              type="price"
               value={formData.totalPrice}
               onChange={(e) => handleChange('totalPrice', parseFloat(e.target.value) || 0)}
-              min="0"
-              step="0.01"
               required
               disabled={!formData.isCustomPackage}
             />

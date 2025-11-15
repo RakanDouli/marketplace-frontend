@@ -9,6 +9,7 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit, Trash2, Check, X } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
+import { formatPrice } from '@/utils/formatPrice';
 import styles from '../SharedDashboardPanel.module.scss';
 
 interface Subscription {
@@ -90,9 +91,10 @@ export const SubscriptionsDashboardPanel: React.FC = () => {
     return labels[status] || status;
   };
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return 'مجاني';
-    return `$${price}`;
+  // Format price with special handling for free plans
+  const displayPrice = (priceMinorUSD: number) => {
+    if (priceMinorUSD === 0) return 'مجاني';
+    return formatPrice(priceMinorUSD);
   };
 
   // Action handlers
@@ -222,7 +224,7 @@ export const SubscriptionsDashboardPanel: React.FC = () => {
                       <Text variant="small" color="secondary"> (افتراضي)</Text>
                     )}
                   </TableCell>
-                  <TableCell>{formatPrice(subscription.price)}</TableCell>
+                  <TableCell>{displayPrice(subscription.price)}</TableCell>
                   <TableCell>{getBillingCycleLabel(subscription.billingCycle)}</TableCell>
                   <TableCell>
                     {subscription.maxListings === 0 ? 'غير محدود' : subscription.maxListings}

@@ -1,4 +1,5 @@
 'use client';
+import { formatDateTime } from '@/utils/formatDate';
 
 import React from 'react';
 import { Modal, Text } from '@/components/slices';
@@ -49,7 +50,7 @@ export const PreviewAuditModal: React.FC<PreviewAuditModalProps> = ({
           </div>
           <div className={styles.infoRow}>
             <Text variant="small" weight="bold" color="secondary">تاريخ الإنشاء:</Text>
-            <Text variant="small">{new Date(audit.createdAt).toLocaleString('ar-EG')}</Text>
+            <Text variant="small">{formatDateTime(audit.createdAt)}</Text>
           </div>
         </div>
 

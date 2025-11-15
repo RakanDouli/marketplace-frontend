@@ -1,8 +1,10 @@
 .spacer {
   width: 100%;
   flex-shrink: 0;
-  height: $header-height;
+  // Height = header + preheader (when both visible at top)
+  height: calc(#{$header-height} + #{$pre-header-height});
+
   @media (max-width: $breakpoint-md) {
-    height: $header-height-mobile;
+    height: calc(#{$header-height-mobile} + #{$pre-header-height});
   }
 }

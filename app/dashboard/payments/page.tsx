@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Text, Button } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { usePayments } from '@/hooks/usePayments';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDate } from '@/utils/formatDate';
 import { CreditCard } from 'lucide-react';
 import styles from './Payments.module.scss';
 
@@ -70,9 +72,7 @@ export default function PaymentsPage() {
                 تاريخ التجديد
               </Text>
               <Text variant="paragraph">
-                {new Date(user.subscription.currentPeriodEnd).toLocaleDateString(
-                  'ar'
-                )}
+                {formatDate(user.subscription.currentPeriodEnd)}
               </Text>
             </div>
           </div>
@@ -103,12 +103,12 @@ export default function PaymentsPage() {
                 <div className={styles.paymentInfo}>
                   <Text variant="paragraph">{payment.description}</Text>
                   <Text variant="small" color="secondary">
-                    {new Date(payment.createdAt).toLocaleDateString('ar')}
+                    {formatDate(payment.createdAt)}
                   </Text>
                 </div>
                 <div className={styles.paymentDetails}>
                   <Text variant="paragraph">
-                    {payment.amount} {payment.currency}
+                    {formatPrice(payment.amount)}
                   </Text>
                   <span
                     className={`${styles.status} ${

@@ -1,4 +1,6 @@
 'use client';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Container } from '@/components/slices/Container/Container';
@@ -183,10 +185,6 @@ export const ListingsDashboardPanel: React.FC = () => {
     }).format(priceMinor / 100);
   };
 
-  // Format date - using English dates for consistency
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US');
-  };
 
   return (
     <>
@@ -279,7 +277,7 @@ export const ListingsDashboardPanel: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>غير محدد</TableCell>
-                  <TableCell>{formatDate(listing.createdAt)}</TableCell>
+                  <TableCell>{formatDateShort(listing.createdAt)}</TableCell>
                   {(canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>

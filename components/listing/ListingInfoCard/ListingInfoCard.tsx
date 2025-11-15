@@ -9,6 +9,9 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useListingsStore } from '@/stores/listingsStore';
+import { useCurrencyStore } from '@/stores/currencyStore';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDate } from '@/utils/formatDate';
 import styles from './ListingInfoCard.module.scss';
 
 interface ListingInfoCardProps {
@@ -23,6 +26,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
   const { isUserBlocked, fetchBlockedUsers } = useChatStore();
   const { addNotification } = useNotificationStore();
   const { currentListing } = useListingsStore();
+  const { preferredCurrency } = useCurrencyStore();
 
   // Fetch blocked users when user is logged in
   useEffect(() => {
@@ -109,7 +113,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           {title}
         </Text>
         <Text variant="h3" className={styles.price}>
-          {primaryPrice ? `${primaryPrice.value} ${primaryPrice.currency}` : 'السعر غير محدد'}
+          {primaryPrice ? formatPrice(primaryPrice.value) : 'السعر غير محدد'}
         </Text>
       </div>
 
@@ -209,7 +213,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           <div className={styles.infoRow}>
             <span className={styles.label}>تاريخ النشر</span>
             <span className={styles.value}>
-              {new Date(createdAt).toLocaleDateString('ar')}
+              {formatDate(createdAt)}
             </span>
           </div>
         )}

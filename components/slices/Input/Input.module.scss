@@ -252,3 +252,102 @@ textarea.input {
 .switchContainer:focus-within .switchTrack {
   box-shadow: 0 0 0 3px rgba($primary, 0.3);
 }
+
+// Price input with currency selector
+.priceInputWrapper {
+  width: 100%;
+}
+
+.priceInputFields {
+  display: flex;
+  gap: $space-sm;
+}
+
+.currencySelect {
+  min-width: 100px;
+  padding: $space-sm;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background-color: $surface;
+  color: $text;
+  font-size: $font-base;
+  font-family: $font-body;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.conversionPreview {
+  margin-top: $space-xs;
+  font-size: $font-sm;
+  color: $text-secondary;
+  text-align: right;
+  padding-right: $space-sm;
+}
+
+// React-select styling with CSS variables
+.selectWrapper {
+  :global(.react-select__control) {
+    min-height: 44px !important;
+    background-color: $bg !important;
+    border-color: $border !important;
+    color: $text !important;
+
+    &:hover {
+      border-color: $primary !important;
+    }
+
+    &.react-select__control--is-focused {
+      border-color: $primary !important;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1) !important;
+    }
+  }
+
+  :global(.react-select__single-value) {
+    color: $text !important;
+  }
+
+  :global(.react-select__input) {
+    color: $text !important;
+  }
+
+  :global(.react-select__menu) {
+    background-color: $bg !important;
+    border: 1px solid $border !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    z-index: 9999 !important;
+  }
+
+  :global(.react-select__menu-list) {
+    background-color: $bg !important;
+  }
+
+  :global(.react-select__option--is-selected) {
+    background-color: $primary !important;
+    color: $text-inverse !important;
+  }
+
+  :global(.react-select__option--is-focused:not(.react-select__option--is-selected)) {
+    background-color: $surface !important;
+    color: $text !important;
+  }
+
+  :global(.react-select__option:not(.react-select__option--is-selected):not(.react-select__option--is-focused)) {
+    background-color: transparent !important;
+    color: $text !important;
+  }
+}

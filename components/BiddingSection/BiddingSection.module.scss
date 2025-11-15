@@ -1,0 +1,111 @@
+@import "../../styles/variables";
+
+.biddingSection {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-md;
+  margin-top: $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  background-color: $bg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  color: $primary;
+}
+
+.bidForm {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  > div {
+    flex: 1;
+  }
+}
+
+.loginPrompt {
+  padding: $space-md;
+  background: $info-bg;
+  border: 1px solid $info;
+  border-radius: $radius-sm;
+  text-align: center;
+  margin-bottom: $space-lg;
+}
+
+.bidsList {
+  > :first-child {
+    margin-bottom: $space-md;
+    padding-bottom: $space-sm;
+    border-bottom: 1px solid $border;
+    display: block;
+  }
+}
+
+.bidsScrollContainer {
+  max-height: 280px; // Shows ~4 bids
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $bg;
+    border-radius: $radius-sm;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border;
+    border-radius: $radius-sm;
+
+    &:hover {
+      background: $text-secondary;
+    }
+  }
+}
+
+.bidRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: $space-md;
+  padding: $space-md;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  align-items: center;
+
+  &:hover {
+    background: $surface;
+  }
+}
+
+@media (max-width: 768px) {
+  .bidForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bidButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bidRow {
+    grid-template-columns: 1fr;
+    gap: $space-xs;
+  }
+
+  .bidAmount,
+  .bidDate {
+    text-align: right;
+  }
+}

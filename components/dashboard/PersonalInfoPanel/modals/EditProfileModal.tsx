@@ -206,7 +206,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               label="تاريخ الميلاد"
               value={formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : ''}
               onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-              validate={createProfileFieldValidator('dateOfBirth')}
               error={validationErrors.dateOfBirth}
             />
           </div>

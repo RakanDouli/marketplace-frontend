@@ -1,4 +1,5 @@
 'use client';
+import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Button, Loading, Text, Input } from '@/components/slices';
@@ -50,15 +51,6 @@ export const AdReportsDashboardPanel: React.FC = () => {
     setSelectedCampaignData(campaign);
     setSelectedAdCampaign(campaign);
     setShowViewModal(true);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SY', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
   };
 
   const getStatusLabel = (status: string) => {
@@ -165,10 +157,10 @@ export const AdReportsDashboardPanel: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Text variant="small">{formatDate(campaign.startDate)}</Text>
+                    <Text variant="small">{formatDateShort(campaign.startDate)}</Text>
                   </TableCell>
                   <TableCell>
-                    <Text variant="small">{formatDate(campaign.endDate)}</Text>
+                    <Text variant="small">{formatDateShort(campaign.endDate)}</Text>
                   </TableCell>
                   {canView && (
                     <TableCell>

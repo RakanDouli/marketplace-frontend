@@ -53,3 +53,4 @@ export type { BadgeProps } from "./Badge";
 export { Slider } from "./Slider";
 export { TextSection } from "./TextSection/TextSection";
 export type { TextSectionProps } from "./TextSection/TextSection";
+export { FxRateTicker } from "./FxRateTicker";

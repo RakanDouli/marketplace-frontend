@@ -1,0 +1,1 @@
+export { FxRateTicker } from './FxRateTicker';

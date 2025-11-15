@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { formatPrice } from '@/utils/formatPrice';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { useWishlistStore } from '@/stores/wishlistStore';
@@ -84,7 +85,7 @@ export default function WishlistPage() {
                 key={listing.id}
                 id={listing.id}
                 title={listing.title}
-                price={`${(listing.priceMinor / 100).toLocaleString()}`}
+                price={formatPrice(listing.priceMinor)}
                 currency="USD"
                 location={listing.category?.nameAr || ''}
                 accountType={(listing.user?.accountType as 'individual' | 'dealer' | 'business') || 'individual'}

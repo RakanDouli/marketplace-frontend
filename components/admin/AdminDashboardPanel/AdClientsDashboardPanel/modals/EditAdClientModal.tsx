@@ -1,4 +1,5 @@
 'use client';
+import { formatDate } from '@/utils/formatDate';
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
@@ -221,7 +222,7 @@ export const EditAdClientModal: React.FC<EditAdClientModalProps> = ({
             تم الإنشاء بواسطة: {initialData.createdByUser.name || initialData.createdByUser.email}
           </Text>
           <Text variant="small" color="secondary">
-            تاريخ الإنشاء: {new Date(initialData.createdAt).toLocaleDateString('ar-SY')}
+            تاريخ الإنشاء: {formatDate(initialData.createdAt)}
           </Text>
         </div>
 

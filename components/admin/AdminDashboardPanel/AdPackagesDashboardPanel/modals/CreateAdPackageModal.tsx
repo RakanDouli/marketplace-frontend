@@ -178,12 +178,10 @@ export const CreateAdPackageModal: React.FC<CreateAdPackageModalProps> = ({
         <div className={styles.section}>
           <Text variant="h4">التسعير</Text>
           <Input
-            label="السعر (بالدولار الأمريكي)"
-            type="number"
+            label="السعر"
+            type="price"
             value={formData.basePrice}
             onChange={(e) => handleChange('basePrice', parseFloat(e.target.value) || 0)}
-            min={0}
-            step={0.01}
             required
           />
           <Text variant="small" color="secondary">

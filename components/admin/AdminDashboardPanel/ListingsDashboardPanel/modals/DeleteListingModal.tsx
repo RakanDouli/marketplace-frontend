@@ -1,4 +1,6 @@
 'use client';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDate } from '@/utils/formatDate';
 
 import React, { useState } from 'react';
 import { Button, Text, Modal, Form } from '@/components/slices';
@@ -54,7 +56,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
             <div className={styles.userDetail}>
               <Text variant="small"><strong>العنوان:</strong> {listing.title}</Text>
               <Text variant="small"><strong>السعر:</strong> {formatPrice(listing.priceMinor)}</Text>
-              <Text variant="small"><strong>التاريخ:</strong> {new Date(listing.createdAt).toLocaleDateString('ar-SY')}</Text>
+              <Text variant="small"><strong>التاريخ:</strong> {formatDate(listing.createdAt)}</Text>
               {listing.description && (
                 <Text variant="small">
                   <strong>الوصف:</strong> {listing.description.length > 100 ? `${listing.description.substring(0, 100)}...` : listing.description}

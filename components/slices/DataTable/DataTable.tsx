@@ -11,6 +11,7 @@ import {
   UserX,
   UserCheck
 } from 'lucide-react';
+import { formatDateShort } from '@/utils/formatDate';
 import styles from './DataTable.module.scss';
 
 export interface TableColumn {
@@ -48,7 +49,7 @@ const formatValue = (value: any, type?: string) => {
     case 'boolean':
       return value ? 'نعم' : 'لا';
     case 'date':
-      return new Date(value).toLocaleDateString('ar-SA');
+      return formatDateShort(value);
     case 'email':
       return value;
     case 'currency':

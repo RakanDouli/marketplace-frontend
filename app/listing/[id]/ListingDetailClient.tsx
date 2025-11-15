@@ -10,6 +10,7 @@ import type { Attribute } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, Container, Collapsible } from '@/components/slices';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
+import { BiddingSection } from '@/components/BiddingSection';
 
 import { AdContainer } from '@/components/ads';
 import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
@@ -324,7 +325,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               </div>
             )}
 
-
           </div>
 
           {/* Right side - Seller Card (Sticky) */}
@@ -332,6 +332,16 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             <ListingInfoCard
               onContactClick={() => setIsContactModalOpen(true)}
             />
+
+            {/* Bidding Section */}
+            {listing.allowBidding && (
+              <BiddingSection
+                listingId={listing.id}
+                listingOwnerId={listing.user?.id || ''}
+                allowBidding={listing.allowBidding}
+                biddingStartPrice={listing.biddingStartPrice || null}
+              />
+            )}
           </aside>
         </div>
 

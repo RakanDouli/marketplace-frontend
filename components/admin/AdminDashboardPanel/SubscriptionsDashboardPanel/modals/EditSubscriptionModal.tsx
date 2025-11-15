@@ -196,12 +196,10 @@ export const EditSubscriptionModal: React.FC<EditSubscriptionModalProps> = ({
           <Text variant="h4">التسعير</Text>
           <div className={styles.formGrid}>
             <Input
-              label="السعر (بالدولار)"
-              type="number"
+              label="السعر"
+              type="price"
               value={formData.price}
               onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
-              min={0}
-              step={0.01}
               required
             />
             <Input

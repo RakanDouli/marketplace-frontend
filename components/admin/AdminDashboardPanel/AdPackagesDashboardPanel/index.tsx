@@ -12,6 +12,7 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
+import { formatPrice } from '@/utils/formatPrice';
 import styles from '../SharedDashboardPanel.module.scss';
 
 export const AdPackagesDashboardPanel: React.FC = () => {
@@ -105,9 +106,6 @@ export const AdPackagesDashboardPanel: React.FC = () => {
     return getLabel(adType.toLowerCase(), AD_MEDIA_TYPE_LABELS);
   };
 
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString('en-US')}`;
-  };
 
   const formatNumber = (num: number) => {
     return num.toLocaleString('en-US');

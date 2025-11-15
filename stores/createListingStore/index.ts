@@ -129,7 +129,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
           formData.categoryId &&
           formData.title.trim() &&
           formData.priceMinor > 0 &&
-          (!formData.allowBidding || formData.biddingStartPrice)
+          (!formData.allowBidding || (formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null && formData.biddingStartPrice >= 0))
         );
         break;
 
@@ -335,7 +335,9 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       if (formData.description) formDataPayload.append('description', formData.description);
       formDataPayload.append('priceMinor', formData.priceMinor.toString());
       formDataPayload.append('allowBidding', formData.allowBidding.toString());
-      if (formData.biddingStartPrice) formDataPayload.append('biddingStartPrice', formData.biddingStartPrice.toString());
+      if (formData.allowBidding && formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null) {
+        formDataPayload.append('biddingStartPrice', formData.biddingStartPrice.toString());
+      }
       if (brandName) formDataPayload.append('brandName', brandName);
       if (modelName) formDataPayload.append('modelName', modelName);
       if (formData.location.province) formDataPayload.append('location', JSON.stringify(formData.location));

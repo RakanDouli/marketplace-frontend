@@ -1,4 +1,5 @@
 'use client';
+import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Button, Loading, Text } from '@/components/slices';
@@ -458,7 +459,7 @@ export const BrandsDashboardPanel: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>{brand.modelsCount || 0}</TableCell>
-                  <TableCell>{new Date(brand.createdAt).toLocaleDateString('en-US')}</TableCell>
+                  <TableCell>{formatDateShort(brand.createdAt)}</TableCell>
                   {(canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>

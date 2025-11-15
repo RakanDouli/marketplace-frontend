@@ -9,6 +9,8 @@ import type { Attribute } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, Collapsible, Container } from '@/components/slices';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDate } from '@/utils/formatDate';
 import styles from './ArchivedListingDetail.module.scss';
 
 interface ArchivedListingDetailClientProps {
@@ -307,7 +309,7 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
                     {archivedListing.title}
                   </Text>
                   <Text variant="h3" className={styles.price}>
-                    {primaryPrice ? `${primaryPrice.value} ${primaryPrice.currency}` : 'السعر غير محدد'}
+                    {primaryPrice ? formatPrice(primaryPrice.value) : 'السعر غير محدد'}
                   </Text>
                 </div>
 
@@ -327,7 +329,7 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
                     <div className={styles.infoRow}>
                       <span className={styles.label}>تاريخ الأرشفة</span>
                       <span className={styles.value}>
-                        {new Date(archivedListing.archivedAt).toLocaleDateString('ar')}
+                        {formatDate(archivedListing.archivedAt)}
                       </span>
                     </div>
                   )}

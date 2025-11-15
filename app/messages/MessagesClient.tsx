@@ -8,6 +8,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
 import { Text, Button, Image, Dropdown, DropdownMenuItem, ImagePreview } from '@/components/slices';
 import { formatPrice } from '@/utils/formatPrice';
+import { formatDateShort, formatDayName, formatDateTime } from '@/utils/formatDate';
 import { createThumbnail, optimizeListingImage } from '@/utils/cloudflare-images';
 import { validateImageFile } from '@/utils/cloudflare-upload';
 import { ReportThreadModal, BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
@@ -426,10 +427,7 @@ export const MessagesClient: React.FC = () => {
                     {/* Timestamp */}
                     {thread.lastMessageAt && (
                       <Text variant="small" color="secondary" className={styles.timestamp}>
-                        {new Date(thread.lastMessageAt).toLocaleString('ar-EG', {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                        {formatDateShort(thread.lastMessageAt)}
                       </Text>
                     )}
                   </div>
@@ -481,7 +479,7 @@ export const MessagesClient: React.FC = () => {
                           </Text>
                         ) : listing.prices && listing.prices.length > 0 ? (
                           <Text variant="small" color="secondary">
-                            {formatPrice(listing.priceMinor, listing.prices[0].currency)}
+                            {formatPrice(listing.priceMinor)}
                           </Text>
                         ) : null}
                       </div>
@@ -654,16 +652,11 @@ export const MessagesClient: React.FC = () => {
                                     return `أمس ${time}`;
                                   } else if (diffInDays < 7) {
                                     // This week - show day name
-                                    const dayName = messageDate.toLocaleDateString('ar-EG', { weekday: 'long' });
+                                    const dayName = formatDayName(messageDate);
                                     return `${dayName} ${time}`;
                                   } else {
-                                    // Older - show full date
-                                    return messageDate.toLocaleDateString('ar-EG', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    });
+                                    // Older - show full date with time
+                                    return formatDateTime(messageDate);
                                   }
                                 })()}
                               </Text>

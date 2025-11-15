@@ -1,4 +1,5 @@
 'use client';
+import { formatDateTime } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Button, Loading, Text, Input, Table, TableHead, TableBody, TableRow, TableCell, Pagination } from '@/components/slices';
@@ -186,7 +187,7 @@ export const AuditDashboardPanel: React.FC = () => {
                 <TableCell>{audit.action}</TableCell>
                 <TableCell>{audit.entity}</TableCell>
                 <TableCell>{audit.entityId}</TableCell>
-                <TableCell>{new Date(audit.createdAt).toLocaleString('ar-EG')}</TableCell>
+                <TableCell>{formatDateTime(audit.createdAt)}</TableCell>
                 <TableCell>
                   <div className={styles.actions}>
                     <Button variant="outline" size="sm" onClick={() => handlePreview(audit)}>

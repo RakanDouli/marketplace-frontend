@@ -13,12 +13,14 @@ import { useChatStore } from "@/stores/chatStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import styles from "./Header.module.scss";
 import { Container } from "../slices";
+import { Preheader } from "../Preheader";
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
+  const [showPreheader, setShowPreheader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { user } = useUserAuthStore();
   const { unreadCount, fetchUnreadCount, fetchMyThreads } = useChatStore();
@@ -39,6 +41,9 @@ export const Header: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+
+      // Show/hide preheader only when at very top
+      setShowPreheader(currentScrollY < 10);
 
       // Show header when at top or scrolling up
       if (currentScrollY < 10 || currentScrollY < lastScrollY) {
@@ -73,9 +78,12 @@ export const Header: React.FC = () => {
       <Spacer />
 
       <header
-        className={`${styles.header} ${isVisible ? styles.visible : styles.hidden
-          }`}
+        className={`${styles.header} ${isVisible ? styles.visible : styles.hidden} ${showPreheader ? styles.withPreheader : styles.compact}`}
       >
+        {/* Preheader - always rendered, positioned at top */}
+        <Preheader />
+
+        {/* Main header content */}
         <Container padding={false}>
           <div className={styles.container}>
             {/* Logo */}

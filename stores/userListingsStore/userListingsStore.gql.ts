@@ -89,6 +89,8 @@ export const UPDATE_MY_LISTING_MUTATION = `
       id
       title
       status
+      allowBidding
+      biddingStartPrice
       updatedAt
     }
   }

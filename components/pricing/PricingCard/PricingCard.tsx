@@ -3,6 +3,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Text, Button, Badge } from '@/components/slices';
+import { formatPrice } from '@/utils/formatPrice';
 import styles from './PricingCard.module.scss';
 
 export interface FeatureItem {
@@ -56,11 +57,12 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       return { main: 'مجاني', period: '' };
     }
 
-    const currencySymbol = currency === 'USD' ? '$' : currency;
+    // Use formatPrice utility for consistent formatting
+    const formattedPrice = formatPrice(price);
 
     if (billingCycle === 'days' && durationDays) {
       return {
-        main: `${currencySymbol}${price}`,
+        main: formattedPrice,
         period: `/ ${durationDays} يوم`,
       };
     }
@@ -73,7 +75,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
     };
 
     return {
-      main: `${currencySymbol}${price}`,
+      main: formattedPrice,
       period: periodMap[billingCycle] || '',
     };
   };

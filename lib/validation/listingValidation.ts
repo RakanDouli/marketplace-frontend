@@ -171,7 +171,8 @@ export const validateListingForm = (formData: Partial<ListingFormData>): Validat
   }
 
   // 7. Validate bidding fields
-  if (formData.allowBidding && (!formData.biddingStartPrice || formData.biddingStartPrice <= 0)) {
+  // biddingStartPrice can be 0 (allow free bidding), so only check if undefined/null
+  if (formData.allowBidding && (formData.biddingStartPrice === undefined || formData.biddingStartPrice === null || formData.biddingStartPrice < 0)) {
     errors.biddingStartPrice = 'سعر البداية للمزايدة مطلوب عند تفعيل المزايدة';
   }
 
@@ -243,13 +244,29 @@ export const validateAttribute = (
         break;
 
       case 'RANGE':
-        // Range should have min/max values
-        if (typeof value !== 'object' || !value.min || !value.max) {
-          return `${attribute.name} غير صحيح`;
+        // RANGE has two use cases:
+        // 1. Listing creation/editing: single value (string or number) - e.g., year: "2018"
+        // 2. Filtering: {min, max} object - e.g., year: {min: 2015, max: 2020}
+
+        // Accept single value (string or number)
+        if (typeof value === 'string' || typeof value === 'number') {
+          // Valid: single value for listing data
+          break;
         }
-        if (parseFloat(value.min) > parseFloat(value.max)) {
-          return `${attribute.name}: القيمة الدنيا يجب أن تكون أصغر من القيمة القصوى`;
+
+        // OR accept {min, max} object (for filter compatibility)
+        if (typeof value === 'object' && value !== null) {
+          if (!value.min && !value.max) {
+            return `${attribute.name} غير صحيح`;
+          }
+          if (value.min && value.max && parseFloat(value.min) > parseFloat(value.max)) {
+            return `${attribute.name}: القيمة الدنيا يجب أن تكون أصغر من القيمة القصوى`;
+          }
+          break;
         }
+
+        // Neither single value nor valid object
+        return `${attribute.name} غير صحيح`;
         break;
 
       case 'NUMBER':

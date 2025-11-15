@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { formatPrice } from "../../utils/formatPrice";
 import { Grid3X3, List } from "lucide-react";
 import { ListingCard, Text, Pagination } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
@@ -13,6 +14,7 @@ import {
   useListingsViewType,
   useCategoriesStore,
 } from "../../stores";
+import { useCurrencyStore } from "../../stores/currencyStore";
 import { AdContainer } from "../ads";
 import styles from "./ListingArea.module.scss";
 
@@ -51,6 +53,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
 
   const viewType = useListingsViewType();
   const { appliedFilters, getStoreFilters, setFilter } = useSearchStore();
+  const { preferredCurrency } = useCurrencyStore(); // Subscribe to currency changes
   const { attributes, isLoading: countLoading } = useFiltersStore();
   const { getCategoryBySlug } = useCategoriesStore();
 
@@ -198,9 +201,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     const viewFilteredSpecs = filterSpecsByViewType(specsWithAccountType, viewType);
 
     // Handle price formatting consistently
-    const displayPrice = listing.prices?.[0]?.value
-      ? listing.prices[0].value.toString()
-      : ((listing.priceMinor || 0) / 100).toString();
+    const displayPrice = formatPrice(listing.priceMinor || 0);
 
     const displayCurrency = listing.prices?.[0]?.currency || "USD";
 

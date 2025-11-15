@@ -1,4 +1,5 @@
 'use client';
+import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
@@ -116,15 +117,6 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
 
   if (!campaign) return null;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('ar').format(num);
   };
@@ -210,7 +202,7 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
                     {formatNumber(campaign.totalPrice)} {campaign.currency}
                   </Text>
                   {campaign.paidAt && (
-                    <Text variant="small" color="success">✓ تم الدفع: {formatDate(campaign.paidAt)}</Text>
+                    <Text variant="small" color="success">✓ تم الدفع: {formatDateShort(campaign.paidAt)}</Text>
                   )}
                   {!campaign.paidAt && campaign.paymentLink && (
                     <Text variant="small" color="warning">⏳ بانتظار الدفع</Text>
@@ -220,10 +212,10 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
                 <div className={styles.infoItem}>
                   <Text variant="small" color="secondary">تواريخ التفعيل</Text>
                   {campaign.activatedAt && (
-                    <Text variant="small">تم التفعيل: {formatDate(campaign.activatedAt)}</Text>
+                    <Text variant="small">تم التفعيل: {formatDateShort(campaign.activatedAt)}</Text>
                   )}
                   {campaign.completedAt && (
-                    <Text variant="small">تم الإكمال: {formatDate(campaign.completedAt)}</Text>
+                    <Text variant="small">تم الإكمال: {formatDateShort(campaign.completedAt)}</Text>
                   )}
                   {!campaign.activatedAt && (
                     <Text variant="small" color="secondary">لم يتم التفعيل بعد</Text>
@@ -240,7 +232,7 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
                 <div className={styles.infoItem}>
                   <Text variant="small" color="secondary">تم الإنشاء بواسطة</Text>
                   <Text variant="small">{campaign.createdByUser.email}</Text>
-                  <Text variant="small" color="secondary">{formatDate(campaign.createdAt)}</Text>
+                  <Text variant="small" color="secondary">{formatDateShort(campaign.createdAt)}</Text>
                 </div>
 
                 {campaign.publicReportToken && (
@@ -287,14 +279,14 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
                 <div className={styles.infoItem}>
                   <Text variant="small" color="secondary">تاريخ البدء</Text>
                   <Text variant="paragraph" weight="medium">
-                    {formatDate(reportData.campaign.startDate)}
+                    {formatDateShort(reportData.campaign.startDate)}
                   </Text>
                 </div>
 
                 <div className={styles.infoItem}>
                   <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
                   <Text variant="paragraph" weight="medium">
-                    {formatDate(reportData.campaign.endDate)}
+                    {formatDateShort(reportData.campaign.endDate)}
                   </Text>
                 </div>
               </div>

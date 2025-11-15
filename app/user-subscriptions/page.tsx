@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Text, Button } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
+import { formatPrice } from "@/utils/formatPrice";
 import { Check } from "lucide-react";
 import styles from "./UserSubscriptions.module.scss";
 
@@ -166,7 +167,7 @@ export default function UserSubscriptionsPage() {
               </div>
 
               <div className={styles.price}>
-                <Text variant="h1">${plan.price}</Text>
+                <Text variant="h1">{formatPrice(plan.price)}</Text>
                 <Text variant="paragraph" className={styles.billingCycle}>
                   / شهرياً
                 </Text>

@@ -5,6 +5,7 @@ import CreatableSelect from "react-select/creatable";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { formatNumberWithCommas, parseFormattedNumber } from "@/utils/formatNumber";
+import { useCurrencyStore, type Currency, CURRENCY_SYMBOLS } from "@/stores/currencyStore";
 import styles from "./Input.module.scss";
 
 
@@ -29,7 +30,8 @@ export interface InputProps
   | "select"
   | "switch"
   | "date"
-  | "file";
+  | "file"
+  | "price";
   /** Input label */
   label?: string;
   /** Error message */
@@ -122,18 +124,6 @@ export const Input = forwardRef<
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       let value = e.target.value;
 
-      // For number inputs, parse and format with commas
-      if (type === 'number') {
-        // Remove existing commas
-        const numericValue = parseFormattedNumber(value);
-
-        // Format back with commas (display value)
-        const formattedValue = numericValue > 0 ? formatNumberWithCommas(numericValue) : '';
-
-        // Update the synthetic event with the numeric value (for parent onChange)
-        e.target.value = String(numericValue);
-      }
-
       // Run validation if provided
       if (validate) {
         const validationResult = validate(value);
@@ -147,6 +137,126 @@ export const Input = forwardRef<
     };
 
     const renderInput = () => {
+      // Price input with currency selector
+      if (type === "price") {
+        const { exchangeRates, getRate } = useCurrencyStore();
+        const [selectedCurrency, setSelectedCurrency] = useState<Currency>("SYP");
+        const [displayValue, setDisplayValue] = useState<string>('');
+
+        // Convert USD cents (from props.value) to display currency
+        useEffect(() => {
+          if (props.value) {
+            const usdCents = Number(props.value);
+            const usdDollars = usdCents / 100;
+
+            if (selectedCurrency === 'USD') {
+              const roundedAmount = Math.round(usdDollars);
+              setDisplayValue(roundedAmount.toLocaleString('en-US'));
+            } else {
+              const rate = getRate('USD', selectedCurrency);
+              const convertedAmount = usdDollars * rate;
+              const roundedAmount = Math.round(convertedAmount);
+              setDisplayValue(roundedAmount.toLocaleString('en-US'));
+            }
+          } else {
+            setDisplayValue('');
+          }
+        }, [props.value, selectedCurrency, getRate]);
+
+        const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const inputValue = e.target.value;
+
+          // Remove commas for parsing
+          const cleanValue = inputValue.replace(/,/g, '');
+
+          // Only allow numbers
+          if (cleanValue && !/^\d+$/.test(cleanValue)) {
+            return; // Ignore invalid input
+          }
+
+          setDisplayValue(inputValue);
+
+          const amount = parseFloat(cleanValue);
+          if (isNaN(amount) || amount <= 0) {
+            // Call onChange with 0 for invalid input
+            if (props.onChange) {
+              const syntheticEvent = {
+                target: { value: '0', name: props.name || generatedId }
+              } as any;
+              props.onChange(syntheticEvent);
+            }
+            return;
+          }
+
+          // Convert to USD cents
+          let usdDollars: number;
+          if (selectedCurrency === 'USD') {
+            usdDollars = amount;
+          } else {
+            const rate = getRate(selectedCurrency, 'USD');
+            usdDollars = amount * rate;
+          }
+
+          const usdCents = Math.round(usdDollars * 100);
+
+          // Call onChange with USD cents
+          if (props.onChange) {
+            const syntheticEvent = {
+              target: { value: String(usdCents), name: props.name || generatedId }
+            } as any;
+            props.onChange(syntheticEvent);
+          }
+        };
+
+        const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+          setSelectedCurrency(e.target.value as Currency);
+        };
+
+        // Show conversion preview
+        const usdCents = Number(props.value) || 0;
+        const usdDollars = usdCents / 100;
+        const roundedUSD = Math.round(usdDollars);
+        const conversionPreview = selectedCurrency !== 'USD'
+          ? `≈ ${CURRENCY_SYMBOLS.USD}${roundedUSD.toLocaleString('en-US')} USD`
+          : '';
+
+        return (
+          <div className={styles.priceInputWrapper}>
+            <div className={styles.priceInputFields}>
+              <select
+                value={selectedCurrency}
+                onChange={handleCurrencyChange}
+                className={styles.currencySelect}
+                disabled={props.disabled}
+              >
+                <option value="SYP">{CURRENCY_SYMBOLS.SYP} SYP</option>
+                <option value="EUR">{CURRENCY_SYMBOLS.EUR} EUR</option>
+                <option value="USD">{CURRENCY_SYMBOLS.USD} USD</option>
+              </select>
+              <input
+                ref={ref as React.RefObject<HTMLInputElement>}
+                type="text"
+                inputMode="numeric"
+                className={inputClasses}
+                value={displayValue}
+                onChange={handlePriceChange}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                disabled={props.disabled}
+                placeholder={props.placeholder}
+                min="0"
+                step="0.01"
+                id={props.id || props.name || generatedId}
+                name={props.name || props.id || generatedId}
+              />
+            </div>
+            {conversionPreview && (
+              <div className={styles.conversionPreview}>{conversionPreview}</div>
+            )}
+          </div>
+        );
+      }
+
       if (type === "boolean") {
         const checkboxProps = props as React.InputHTMLAttributes<HTMLInputElement>;
         return (
@@ -255,53 +365,28 @@ export const Input = forwardRef<
           }
         };
 
-        // Get CSS variables from document
-        const getColor = (varName: string) => {
-          if (typeof window === 'undefined') return undefined;
-          return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-        };
-
-        const primaryColor = getColor('--primary');
-        const borderColor = getColor('--border');
-        const surfaceColor = getColor('--surface');
-
-        const customStyles = {
-          control: (base: any, state: any) => ({
-            ...base,
-            minHeight: '44px',
-            borderColor: state.isFocused ? primaryColor : borderColor,
-            boxShadow: state.isFocused ? `0 0 0 3px ${primaryColor}1a` : 'none',
-            '&:hover': {
-              borderColor: primaryColor,
-            },
-          }),
-          option: (base: any, state: any) => ({
-            ...base,
-            backgroundColor: state.isSelected ? primaryColor : state.isFocused ? surfaceColor : 'transparent',
-            color: state.isSelected ? 'white' : 'inherit',
-          }),
-        };
-
         return (
-          <SelectComponent
-            instanceId={selectProps.id || generatedId}
-            inputId={selectProps.id || generatedId}
-            name={selectProps.name || selectProps.id || generatedId}
-            options={options}
-            value={selectedOption || null}
-            onChange={handleSelectChange}
-            onCreateOption={creatable ? handleCreate : undefined}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            isDisabled={selectProps.disabled}
-            isLoading={isLoading}
-            isSearchable={searchable}
-            placeholder='اختر خيار...'
-            noOptionsMessage={() => "لا توجد نتائج"}
-            loadingMessage={() => "جاري التحميل..."}
-            formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
-            styles={customStyles}
-          />
+          <div className={styles.selectWrapper}>
+            <SelectComponent
+              instanceId={selectProps.id || generatedId}
+              inputId={selectProps.id || generatedId}
+              name={selectProps.name || selectProps.id || generatedId}
+              options={options}
+              value={selectedOption || null}
+              onChange={handleSelectChange}
+              onCreateOption={creatable ? handleCreate : undefined}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              isDisabled={selectProps.disabled}
+              isLoading={isLoading}
+              isSearchable={searchable}
+              placeholder='اختر خيار...'
+              noOptionsMessage={() => "لا توجد نتائج"}
+              loadingMessage={() => "جاري التحميل..."}
+              formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
+              classNamePrefix="react-select"
+            />
+          </div>
         );
       }
 
@@ -338,21 +423,14 @@ export const Input = forwardRef<
       // Default: regular input (text, email, password, etc.)
       const inputProps = props as React.InputHTMLAttributes<HTMLInputElement>;
 
-      // For number inputs, format the displayed value with commas
-      let displayValue: string | number | readonly string[] | undefined = inputProps.value;
-      if (type === 'number' && inputProps.value && !Array.isArray(inputProps.value)) {
-        displayValue = formatNumberWithCommas(inputProps.value as string | number);
-      }
-
       return (
         <input
           ref={ref as React.RefObject<HTMLInputElement>}
-          type={type === 'number' ? 'text' : type} // Use text input for formatted numbers
+          type={type}
           className={inputClasses}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...inputProps}
-          value={displayValue}
           onChange={handleChange}
           id={inputProps.id || inputProps.name || generatedId}
           name={inputProps.name || inputProps.id || generatedId}

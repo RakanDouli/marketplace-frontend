@@ -3,24 +3,31 @@
   top: 0;
   left: 0;
   right: 0;
-  height: $header-height;
+  height: calc($header-height + $pre-header-height);
   z-index: $z-nav;
   background-color: $bg;
   opacity: 0.9;
   border-bottom: 1px solid $border;
   backdrop-filter: blur(8px);
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   @media (max-width: $breakpoint-md) {
-    height: $header-height-mobile;
+    height: calc($header-height-mobile + $pre-header-height);
   }
 
-  &.visible {
+  // Default: hidden completely (scrolled down)
+  &.hidden {
+    transform: translateY(-100%);
+  }
+
+  // Visible with preheader (at very top, scrollY < 10)
+  &.visible.withPreheader {
     transform: translateY(0);
   }
 
-  &.hidden {
-    transform: translateY(-100%);
+  // Visible without preheader (scrolled up but not at top)
+  &.visible.compact {
+    transform: translateY(calc(-1 * #{$pre-header-height}));
   }
 }
 

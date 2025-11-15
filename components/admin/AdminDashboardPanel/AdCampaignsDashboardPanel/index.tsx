@@ -9,6 +9,8 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit, Trash2, Copy, Check } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDateShort } from '@/utils/formatDate';
 import styles from '../SharedDashboardPanel.module.scss';
 
 export const AdCampaignsDashboardPanel: React.FC = () => {
@@ -81,19 +83,6 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
     return colors[status] || 'gray';
   };
 
-  const formatPrice = (price: number, currency: string) => {
-    const symbol = currency === 'USD' ? '$' : currency;
-    return `${symbol}${price.toLocaleString('en-US')}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   // Action handlers
   const handleEdit = (campaign: AdCampaign) => {
@@ -261,12 +250,12 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Text variant="small">{formatDate(campaign.startDate)}</Text>
-                    <Text variant="small" color="secondary">→ {formatDate(campaign.endDate)}</Text>
+                    <Text variant="small">{formatDateShort(campaign.startDate)}</Text>
+                    <Text variant="small" color="secondary">→ {formatDateShort(campaign.endDate)}</Text>
                   </TableCell>
                   <TableCell>
                     <Text variant="paragraph" weight="medium">
-                      {formatPrice(campaign.totalPrice, campaign.currency)}
+                      {formatPrice(campaign.totalPrice)}
                     </Text>
                   </TableCell>
                   <TableCell>

@@ -1,4 +1,6 @@
 'use client';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useState, useEffect } from 'react';
 import { Button, Text, Modal, Loading, Form } from '@/components/slices';
@@ -141,11 +143,6 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
     }).format(priceMinor / 100);
   };
 
-  // Format date - using English dates for consistency
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US');
-  };
-
   return (
     <Modal isVisible onClose={onClose} title="تعديل العرض" maxWidth="lg">
       {loadingDetails ? (
@@ -169,12 +166,12 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.label}>تاريخ الإنشاء</span>
-                <span className={styles.value}>{formatDate(detailedListing.createdAt)}</span>
+                <span className={styles.value}>{formatDateShort(detailedListing.createdAt)}</span>
               </div>
               {detailedListing.updatedAt !== detailedListing.createdAt && (
                 <div className={styles.infoItem}>
                   <span className={styles.label}>آخر تحديث</span>
-                  <span className={styles.value}>{formatDate(detailedListing.updatedAt)}</span>
+                  <span className={styles.value}>{formatDateShort(detailedListing.updatedAt)}</span>
                 </div>
               )}
             </div>
@@ -351,7 +348,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
 
             <div className={styles.userDetailItem}>
               <span className={styles.label}>تاريخ التسجيل</span>
-              <span className={styles.value}>{formatDate(detailedListing.user.createdAt)}</span>
+              <span className={styles.value}>{formatDateShort(detailedListing.user.createdAt)}</span>
             </div>
           </div>
 
@@ -434,7 +431,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
               <div className={styles.moderationItem}>
                 <span className={styles.label}>تاريخ المراجعة</span>
                 <span className={styles.value}>
-                  {formatDate(detailedListing.reviewedAt)}
+                  {formatDateShort(detailedListing.reviewedAt)}
                 </span>
               </div>
             )}

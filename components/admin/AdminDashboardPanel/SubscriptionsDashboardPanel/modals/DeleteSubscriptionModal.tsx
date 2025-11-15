@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Modal, Button, Text, Form } from '@/components/slices';
+import { formatPrice } from '@/utils/formatPrice';
 import styles from './SubscriptionModals.module.scss';
 
 interface Subscription {
@@ -40,9 +41,9 @@ export const DeleteSubscriptionModal: React.FC<DeleteSubscriptionModalProps> = (
     }
   };
 
-  const formatPrice = (price: number) => {
+  const displayPrice = (price: number) => {
     if (price === 0) return 'مجاني';
-    return `$${price}`;
+    return formatPrice(price);
   };
 
   const getBillingCycleLabel = (cycle: string) => {
@@ -72,7 +73,7 @@ export const DeleteSubscriptionModal: React.FC<DeleteSubscriptionModalProps> = (
             <div className={styles.subscriptionDetail}>
               <Text variant="small"><strong>العنوان:</strong> {subscription.title}</Text>
               <Text variant="small"><strong>المعرف:</strong> {subscription.name}</Text>
-              <Text variant="small"><strong>السعر:</strong> {formatPrice(subscription.price)}</Text>
+              <Text variant="small"><strong>السعر:</strong> {displayPrice(subscription.price)}</Text>
               <Text variant="small"><strong>دورة الفوترة:</strong> {getBillingCycleLabel(subscription.billingCycle)}</Text>
             </div>
           </div>

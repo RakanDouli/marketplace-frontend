@@ -158,7 +158,16 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
             adType
             placement
             format
-            dimensions
+            dimensions {
+              desktop {
+                width
+                height
+              }
+              mobile {
+                width
+                height
+              }
+            }
             mediaRequirements
           }
         }
@@ -488,6 +497,7 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
               type="date"
               value={formData.endDate}
               onChange={(e) => handleChange('endDate', e.target.value)}
+              min={formData.startDate}
               required
             />
           </div>

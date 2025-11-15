@@ -1,4 +1,5 @@
 'use client';
+import { formatDateTime } from '@/utils/formatDate';
 
 import React, { useState, useEffect } from 'react';
 import { Button, Form } from '@/components/slices';
@@ -281,13 +282,7 @@ export function EditUserModal({
           <div className={styles.field}>
             <label className={styles.label}>تاريخ الإنشاء</label>
             <div className={styles.readOnlyField}>
-              {new Date(fullUserData.createdAt).toLocaleString('ar-EG', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+              {formatDateTime(fullUserData.createdAt)}
             </div>
           </div>
         )}
@@ -296,13 +291,7 @@ export function EditUserModal({
           <div className={styles.field}>
             <label className={styles.label}>آخر تحديث</label>
             <div className={styles.readOnlyField}>
-              {new Date(fullUserData.updatedAt).toLocaleString('ar-EG', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+              {formatDateTime(fullUserData.updatedAt)}
             </div>
           </div>
         )}

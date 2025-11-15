@@ -9,7 +9,16 @@ export const GET_ALL_AD_PACKAGES_QUERY = `
       adType
       placement
       format
-      dimensions
+      dimensions {
+        desktop {
+          width
+          height
+        }
+        mobile {
+          width
+          height
+        }
+      }
       durationDays
       impressionLimit
       basePrice
@@ -33,7 +42,16 @@ export const GET_AD_PACKAGE_BY_ID_QUERY = `
       adType
       placement
       format
-      dimensions
+      dimensions {
+        desktop {
+          width
+          height
+        }
+        mobile {
+          width
+          height
+        }
+      }
       durationDays
       impressionLimit
       basePrice
@@ -57,7 +75,16 @@ export const GET_ACTIVE_AD_PACKAGES_QUERY = `
       adType
       placement
       format
-      dimensions
+      dimensions {
+        desktop {
+          width
+          height
+        }
+        mobile {
+          width
+          height
+        }
+      }
       durationDays
       impressionLimit
       basePrice
@@ -79,7 +106,16 @@ export const CREATE_AD_PACKAGE_MUTATION = `
       adType
       placement
       format
-      dimensions
+      dimensions {
+        desktop {
+          width
+          height
+        }
+        mobile {
+          width
+          height
+        }
+      }
       durationDays
       impressionLimit
       basePrice
@@ -103,7 +139,16 @@ export const UPDATE_AD_PACKAGE_MUTATION = `
       adType
       placement
       format
-      dimensions
+      dimensions {
+        desktop {
+          width
+          height
+        }
+        mobile {
+          width
+          height
+        }
+      }
       durationDays
       impressionLimit
       basePrice

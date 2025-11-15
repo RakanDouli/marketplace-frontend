@@ -1,4 +1,5 @@
 'use client';
+import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton, Loading } from '@/components/slices';
@@ -478,6 +479,15 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       if (attr.storageType === 'location') return;
 
       const value = formData.specs[attr.key];
+
+      // DEBUG: Log attribute validation details
+      console.log(`🔍 Validating attribute "${attr.name}" (${attr.key}):`, {
+        type: attr.type,
+        validation: attr.validation,
+        value: value,
+        valueType: typeof value,
+      });
+
       const attrError = validateAttribute(value, {
         key: attr.key,
         name: attr.name,
@@ -486,7 +496,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         maxSelections: attr.maxSelections,
       });
 
-      if (attrError) errors.push(attrError);
+      if (attrError) {
+        console.log(`❌ Attribute validation failed for "${attr.name}":`, attrError);
+        errors.push(attrError);
+      }
     });
 
     return {
@@ -501,10 +514,22 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setSubmitError(false);
     setSubmitSuccess(false);
 
+    // DEBUG: Log form data before validation
+    console.log('📝 EditListingModal - Form data before validation:', {
+      allowBidding: formData.allowBidding,
+      biddingStartPrice: formData.biddingStartPrice,
+      title: formData.title,
+      priceMinor: formData.priceMinor,
+    });
+
     // Validate form
     const validation = validateForm();
 
+    // DEBUG: Log validation result
+    console.log('✅ Validation result:', validation);
+
     if (!validation.isValid) {
+      console.log('❌ Validation failed, errors:', validation.errors);
       addNotification({
         type: 'error',
         title: 'خطأ في التحقق',
@@ -524,12 +549,11 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         status: formData.status,
         allowBidding: formData.allowBidding,
         videoUrl: formData.videoUrl || undefined,
-        specs: formData.specs,
         location: formData.location,
       };
 
-      // Only include biddingStartPrice if bidding is allowed
-      if (formData.allowBidding && formData.biddingStartPrice && formData.biddingStartPrice > 0) {
+      // Only include biddingStartPrice if bidding is allowed (0 is valid)
+      if (formData.allowBidding && formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null) {
         updateData.biddingStartPrice = formData.biddingStartPrice;
       }
 
@@ -550,14 +574,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('ar-SY', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
   };
 
   // Don't render form until we have fresh data
@@ -620,12 +636,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>تاريخ الإنشاء</span>
-                  <span className={styles.value}>{formatDate(detailedListing.createdAt)}</span>
+                  <span className={styles.value}>{formatDateShort(detailedListing.createdAt)}</span>
                 </div>
                 {detailedListing.updatedAt !== detailedListing.createdAt && (
                   <div className={styles.infoItem}>
                     <span className={styles.label}>آخر تحديث</span>
-                    <span className={styles.value}>{formatDate(detailedListing.updatedAt)}</span>
+                    <span className={styles.value}>{formatDateShort(detailedListing.updatedAt)}</span>
                   </div>
                 )}
               </div>
@@ -708,17 +724,11 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             />
 
             <Input
-              type="number"
-              label="السعر (بالدولار) *"
-              placeholder="أدخل السعر"
-              value={formData.priceMinor > 0 ? formData.priceMinor / 100 : ''}
-              onChange={(e) => {
-                const value = parseInt(e.target.value) || 0;
-                setFormData({ ...formData, priceMinor: value * 100 });
-              }}
+              type="price"
+              label="السعر"
+              value={formData.priceMinor}
+              onChange={(e) => setFormData({ ...formData, priceMinor: parseInt(e.target.value) || 0 })}
               required
-              min={0}
-              step={1}
             />
 
             {/* Listing Status Actions - Simple UX */}
@@ -781,16 +791,16 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             {formData.allowBidding && (
               <Input
                 type="number"
-                label="سعر البداية للمزايدة *"
-                placeholder="أدخل سعر البداية"
-                value={formData.biddingStartPrice ? formData.biddingStartPrice / 100 : ''}
+                label="سعر البداية للمزايدة"
+                placeholder="0 = مجاني"
+                value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice / 100 : ''}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value) || 0;
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value);
                   setFormData({ ...formData, biddingStartPrice: value * 100 });
                 }}
-                required={formData.allowBidding}
                 min={0}
                 step={1}
+                helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
               />
             )}
           </div>

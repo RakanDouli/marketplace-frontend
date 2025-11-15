@@ -15,7 +15,16 @@ export const GET_ACTIVE_ADS_BY_TYPE_QUERY = `
       endDate
       package {
         id
-        dimensions
+        dimensions {
+          desktop {
+            width
+            height
+          }
+          mobile {
+            width
+            height
+          }
+        }
         placement
         format
       }
