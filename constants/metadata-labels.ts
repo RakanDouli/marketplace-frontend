@@ -147,13 +147,12 @@ export const AD_MEDIA_TYPE_LABELS: Record<string, string> = {
 
 export const AD_CAMPAIGN_STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
-  pending_payment: "بانتظار الدفع",
-  pending_review: "بانتظار المراجعة",
-  scheduled: "مجدولة",
+  payment_sent: "تم إرسال رابط الدفع",
+  paid: "مدفوعة",
   active: "نشطة",
-  paused: "موقفة مؤقتاً",
   completed: "مكتملة",
   cancelled: "ملغاة",
+  paused: "موقفة مؤقتاً",
 };
 
 export const AD_CLIENT_STATUS_LABELS: Record<string, string> = {

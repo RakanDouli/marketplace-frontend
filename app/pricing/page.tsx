@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Package, Image, Video, BarChart, Star, Zap, TrendingUp } from 'lucide-react';
 import { Text, Button, Container, Slider, Collapsible, TextSection } from '@/components/slices';
 import { PricingCard } from '@/components/pricing';
+import { MockPaymentModal } from '@/components/payment';
 import type { FeatureItem } from '@/components/pricing';
 import { useSubscriptionPlansStore } from '@/stores/subscriptionPlansStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
@@ -14,10 +14,12 @@ import { AccountType } from '@/common/enums';
 import styles from './Pricing.module.scss';
 
 export default function PricingPage() {
-  const router = useRouter();
   const { plans, isLoading, fetchPublicPlans } = useSubscriptionPlansStore();
-  const { user } = useUserAuthStore();
+  const { user, openAuthModal } = useUserAuthStore();
   const { addNotification } = useNotificationStore();
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
   useEffect(() => {
     fetchPublicPlans();
@@ -87,7 +89,9 @@ export default function PricingPage() {
   const handleSelectPlan = (plan: SubscriptionPlan) => {
     // Check if user is logged in
     if (!user) {
-      router.push(`/?showAuth=true&selectedPlan=${plan.accountType}`);
+      // Save selected plan and open auth modal
+      setSelectedPlan(plan);
+      openAuthModal('signup'); // Open signup tab by default
       return;
     }
 
@@ -101,13 +105,42 @@ export default function PricingPage() {
       return;
     }
 
-    // For now (Phase 1 - all free), just show info
-    // Later (Phase 2), this will open payment modal
-    addNotification({
-      type: 'info',
-      title: 'قريباً',
-      message: 'تغيير الخطة سيكون متاحاً قريباً',
-    });
+    // Open payment modal
+    setSelectedPlan(plan);
+    setShowPaymentModal(true);
+  };
+
+  // Watch for user login - open payment modal if plan was selected
+  useEffect(() => {
+    if (user && selectedPlan && !showPaymentModal) {
+      // User just logged in and we have a selected plan
+      // Check if it's the same plan
+      if (user.accountType === selectedPlan.accountType) {
+        addNotification({
+          type: 'info',
+          title: 'خطتك الحالية',
+          message: 'أنت مشترك بالفعل في هذه الخطة',
+        });
+        setSelectedPlan(null);
+      } else {
+        // Open payment modal
+        setShowPaymentModal(true);
+      }
+    }
+  }, [user, selectedPlan, showPaymentModal]);
+
+  const handlePaymentConfirm = async () => {
+    if (!selectedPlan || !user) return;
+
+    // TODO: Call actual upgrade mutation when backend is ready
+    // For now, just simulate success
+    console.log('Upgrading to plan:', selectedPlan.accountType);
+
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Success notification will be shown by modal
+    // User will need to refresh or refetch user data to see new plan
   };
 
   const getButtonText = (plan: SubscriptionPlan): string => {
@@ -224,6 +257,30 @@ export default function PricingPage() {
           </div>
         </div>
       </Container>
+
+      {/* Mock Payment Modal */}
+      {selectedPlan && (
+        <MockPaymentModal
+          isVisible={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setSelectedPlan(null);
+          }}
+          paymentData={{
+            amount: selectedPlan.price,
+            currency: 'USD',
+            description: `ترقية إلى خطة ${selectedPlan.title}`,
+            metadata: {
+              userId: user?.id,
+              planId: selectedPlan.id,
+              planName: selectedPlan.name,
+              accountType: selectedPlan.accountType,
+              billingCycle: selectedPlan.billingCycle,
+            },
+            onConfirm: handlePaymentConfirm,
+          }}
+        />
+      )}
     </div>
 
   );

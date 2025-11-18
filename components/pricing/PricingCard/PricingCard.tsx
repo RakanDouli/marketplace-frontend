@@ -3,7 +3,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Text, Button, Badge } from '@/components/slices';
-import { formatPrice } from '@/utils/formatPrice';
+import { formatAdPrice } from '@/utils/formatPrice';
 import styles from './PricingCard.module.scss';
 
 export interface FeatureItem {
@@ -57,8 +57,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       return { main: 'مجاني', period: '' };
     }
 
-    // Use formatPrice utility for consistent formatting
-    const formattedPrice = formatPrice(price);
+    // Use formatAdPrice utility for ad packages (decimal dollars, not minor units)
+    const formattedPrice = formatAdPrice(price, currency);
 
     if (billingCycle === 'days' && durationDays) {
       return {

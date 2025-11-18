@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
-import { Button, Text, Form } from '@/components/slices';
+import { Button, Text, Form, Input, ImageUploadGrid } from '@/components/slices';
+import type { ImageItem } from '@/components/slices/ImageUploadGrid/ImageUploadGrid';
 import { uploadToCloudflare, validateImageFile } from '@/utils/cloudflare-upload';
 import { useNotificationStore } from '@/stores/notificationStore';
 import styles from './AdCampaignModals.module.scss';
 
-interface AdPackage {
+export interface AdPackage {
   id: string;
   packageName: string;
   basePrice: number;
@@ -15,6 +16,7 @@ interface AdPackage {
   adType: string;
   placement: string;
   format: string;
+  durationDays: number;
   dimensions: {
     desktop: { width: number; height: number };
     mobile: { width: number; height: number };
@@ -22,11 +24,13 @@ interface AdPackage {
   mediaRequirements: string[];
 }
 
-interface CampaignPackage {
+export interface CampaignPackage {
   packageId: string;
   packageData: AdPackage;
   desktopMediaUrl: string;
   mobileMediaUrl: string;
+  clickUrl?: string;
+  openInNewTab?: boolean;
   customPrice?: number;
 }
 
@@ -47,63 +51,124 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
 }) => {
   const { addNotification } = useNotificationStore();
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
-  const [desktopFile, setDesktopFile] = useState<File | null>(null);
-  const [mobileFile, setMobileFile] = useState<File | null>(null);
-  const [desktopPreview, setDesktopPreview] = useState<string | null>(null);
-  const [mobilePreview, setMobilePreview] = useState<string | null>(null);
-  const [customPrice, setCustomPrice] = useState<number | undefined>(undefined);
+  const [desktopImages, setDesktopImages] = useState<ImageItem[]>([]);
+  const [mobileImages, setMobileImages] = useState<ImageItem[]>([]);
+  const [clickUrl, setClickUrl] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedPackage = availablePackages.find(p => p.id === selectedPackageId);
 
+  // Convert packages to options format for Input select
+  const packageOptions = availablePackages.map(pkg => ({
+    value: pkg.id,
+    label: `${pkg.packageName} - $${pkg.basePrice}`
+  }));
+
+  // Determine if package requires video or image
+  const isVideoPackage = selectedPackage?.adType === 'video';
+  const mediaTypeLabel = isVideoPackage ? 'فيديو' : 'صورة';
+  const acceptAttribute = isVideoPackage ? 'video/*' : 'image/*,video/*';
+
   // Populate form when editing
   React.useEffect(() => {
     if (editingPackage && isVisible) {
       setSelectedPackageId(editingPackage.packageId);
-      setDesktopPreview(editingPackage.desktopMediaUrl);
-      setMobilePreview(editingPackage.mobileMediaUrl);
-      setCustomPrice(editingPackage.customPrice);
+
+      // Convert URLs to ImageItem format
+      if (editingPackage.desktopMediaUrl) {
+        setDesktopImages([{
+          id: `desktop-${Date.now()}`,
+          url: editingPackage.desktopMediaUrl,
+          file: undefined
+        }]);
+      }
+
+      if (editingPackage.mobileMediaUrl) {
+        setMobileImages([{
+          id: `mobile-${Date.now()}`,
+          url: editingPackage.mobileMediaUrl,
+          file: undefined
+        }]);
+      }
+
+      setClickUrl(editingPackage.clickUrl || '');
     } else if (!isVisible) {
       // Reset form when closing
       setSelectedPackageId('');
-      setDesktopFile(null);
-      setMobileFile(null);
-      setDesktopPreview(null);
-      setMobilePreview(null);
-      setCustomPrice(undefined);
+      setDesktopImages([]);
+      setMobileImages([]);
+      setClickUrl('');
       setError(null);
     }
   }, [editingPackage, isVisible]);
 
-  const handleDesktopFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle desktop image upload (immediate upload when added)
+  const handleDesktopImageAdd = async (newImages: ImageItem[]) => {
+    const addedImages = newImages.filter(img => img.file && img.url.startsWith('blob:'));
 
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      setError(validation.error || 'Invalid desktop image');
-      return;
-    }
+    if (addedImages.length === 0) return;
 
-    setDesktopFile(file);
-    setDesktopPreview(URL.createObjectURL(file));
+    setIsUploading(true);
     setError(null);
+
+    try {
+      for (const imageItem of addedImages) {
+        if (!imageItem.file) continue;
+
+        // Upload to Cloudflare immediately (returns image ID)
+        const imageId = await uploadToCloudflare(imageItem.file, 'image');
+
+        // Update the image with the uploaded ID (Image component will convert it to URL)
+        setDesktopImages([{ id: imageItem.id, url: imageId, file: undefined }]);
+
+        addNotification({
+          type: 'success',
+          title: 'تم الرفع',
+          message: 'تم رفع صورة سطح المكتب بنجاح',
+          duration: 3000,
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في رفع الصورة');
+      setDesktopImages([]); // Clear on error
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleMobileFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle mobile image upload (immediate upload when added)
+  const handleMobileImageAdd = async (newImages: ImageItem[]) => {
+    const addedImages = newImages.filter(img => img.file && img.url.startsWith('blob:'));
 
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      setError(validation.error || 'Invalid mobile image');
-      return;
-    }
+    if (addedImages.length === 0) return;
 
-    setMobileFile(file);
-    setMobilePreview(URL.createObjectURL(file));
+    setIsUploading(true);
     setError(null);
+
+    try {
+      for (const imageItem of addedImages) {
+        if (!imageItem.file) continue;
+
+        // Upload to Cloudflare immediately (returns image ID)
+        const imageId = await uploadToCloudflare(imageItem.file, 'image');
+
+        // Update the image with the uploaded ID (Image component will convert it to URL)
+        setMobileImages([{ id: imageItem.id, url: imageId, file: undefined }]);
+
+        addNotification({
+          type: 'success',
+          title: 'تم الرفع',
+          message: 'تم رفع صورة الموبايل بنجاح',
+          duration: 3000,
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في رفع الصورة');
+      setMobileImages([]); // Clear on error
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,12 +181,12 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       return;
     }
 
-    if (!desktopFile) {
+    if (desktopImages.length === 0 || !desktopImages[0].url) {
       setError('يرجى رفع صورة سطح المكتب');
       return;
     }
 
-    if (!mobileFile) {
+    if (mobileImages.length === 0 || !mobileImages[0].url) {
       setError('يرجى رفع صورة الموبايل');
       return;
     }
@@ -131,47 +196,34 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       return;
     }
 
-    setIsUploading(true);
+    // Create campaign package object (URLs already uploaded)
+    // Note: No custom price - packages use their base price
+    // Note: openInNewTab always true (handled in frontend - 99% of ads open in new tab)
+    const campaignPackage: CampaignPackage = {
+      packageId: selectedPackageId,
+      packageData: selectedPackage,
+      desktopMediaUrl: desktopImages[0].url,
+      mobileMediaUrl: mobileImages[0].url,
+      clickUrl: clickUrl || undefined,
+      openInNewTab: true, // Always true - ads open in new tab
+    };
 
-    try {
-      // Upload desktop image
-      const desktopUrl = await uploadToCloudflare(desktopFile);
+    onAdd(campaignPackage);
 
-      // Upload mobile image
-      const mobileUrl = await uploadToCloudflare(mobileFile);
+    // Reset form
+    setSelectedPackageId('');
+    setDesktopImages([]);
+    setMobileImages([]);
+    setClickUrl('');
 
-      // Create campaign package object
-      const campaignPackage: CampaignPackage = {
-        packageId: selectedPackageId,
-        packageData: selectedPackage,
-        desktopMediaUrl: desktopUrl,
-        mobileMediaUrl: mobileUrl,
-        customPrice,
-      };
+    addNotification({
+      type: 'success',
+      title: 'تم الإضافة',
+      message: 'تمت إضافة الحزمة بنجاح',
+      duration: 3000,
+    });
 
-      onAdd(campaignPackage);
-
-      // Reset form
-      setSelectedPackageId('');
-      setDesktopFile(null);
-      setMobileFile(null);
-      setDesktopPreview(null);
-      setMobilePreview(null);
-      setCustomPrice(undefined);
-
-      addNotification({
-        type: 'success',
-        title: 'تم الإضافة',
-        message: 'تمت إضافة الحزمة بنجاح',
-        duration: 3000,
-      });
-
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل في رفع الصور');
-    } finally {
-      setIsUploading(false);
-    }
+    onClose();
   };
 
   return (
@@ -184,91 +236,100 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
     >
       <Form onSubmit={handleSubmit} error={error || undefined} className={styles.addPackageForm}>
         {/* Package Selection */}
-        <div className={styles.section}>
-          <label className={styles.label}>الحزمة الإعلانية *</label>
-          <select
-            value={selectedPackageId}
-            onChange={(e) => setSelectedPackageId(e.target.value)}
-            className={styles.select}
-            required
-          >
-            <option value="">-- اختر الحزمة --</option>
-            {availablePackages.map(pkg => (
-              <option key={pkg.id} value={pkg.id}>
-                {pkg.packageName} - ${pkg.basePrice}
-              </option>
-            ))}
-          </select>
+        <Input
+          type="select"
+          label="الحزمة الإعلانية"
+          value={selectedPackageId}
+          onChange={(e) => setSelectedPackageId(e.target.value)}
+          options={packageOptions}
+          required
+          placeholder="اختر الحزمة الإعلانية"
+        />
 
-          {selectedPackage && (
-            <div className={styles.packageInfo}>
-              <Text variant="small">
-                النوع: {selectedPackage.adType} | الموضع: {selectedPackage.placement}
-              </Text>
-              <Text variant="small">
-                الأبعاد: {selectedPackage.dimensions.desktop.width}x{selectedPackage.dimensions.desktop.height} (سطح مكتب) | {' '}
-                {selectedPackage.dimensions.mobile.width}x{selectedPackage.dimensions.mobile.height} (موبايل)
-              </Text>
-            </div>
-          )}
-        </div>
+        {selectedPackage && (
+          <div className={styles.packageInfo}>
+            <Text variant="small">
+              النوع: {selectedPackage.adType} | الموضع: {selectedPackage.placement} | نوع الوسائط: {mediaTypeLabel}
+            </Text>
+            <Text variant="small">
+              الأبعاد: {selectedPackage.dimensions.desktop.width}x{selectedPackage.dimensions.desktop.height} (سطح مكتب) | {' '}
+              {selectedPackage.dimensions.mobile.width}x{selectedPackage.dimensions.mobile.height} (موبايل)
+            </Text>
+          </div>
+        )}
 
-        {/* Desktop Image Upload */}
-        <div className={styles.section}>
-          <label className={styles.label}>صورة سطح المكتب *</label>
+        {/* Desktop Media Upload */}
+        <div className={styles.imagesSection}>
+          <Text variant="h4">
+            {mediaTypeLabel} سطح المكتب ({desktopImages.length}/1) *
+          </Text>
           {selectedPackage && (
-            <Text variant="small" className={styles.dimensionHint}>
+            <Text variant="small" color="secondary">
               الأبعاد المطلوبة: {selectedPackage.dimensions.desktop.width}x{selectedPackage.dimensions.desktop.height}
             </Text>
           )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleDesktopFileChange}
-            className={styles.fileInput}
-            required
+          <ImageUploadGrid
+            images={desktopImages}
+            onChange={(newImages) => {
+              // Detect if images were added or removed
+              if (newImages.length > desktopImages.length) {
+                handleDesktopImageAdd(newImages);
+              } else {
+                setDesktopImages(newImages);
+              }
+            }}
+            maxImages={1}
+            disabled={isUploading}
           />
-          {desktopPreview && (
-            <div className={styles.imagePreview}>
-              <img src={desktopPreview} alt="Desktop preview" />
-            </div>
+          {isUploading && desktopImages.length === 0 && (
+            <Text variant="small" style={{ marginTop: '8px', color: 'var(--primary)' }}>
+              جاري رفع الصورة...
+            </Text>
           )}
         </div>
 
-        {/* Mobile Image Upload */}
-        <div className={styles.section}>
-          <label className={styles.label}>صورة الموبايل *</label>
+        {/* Mobile Media Upload */}
+        <div className={styles.imagesSection}>
+          <Text variant="h4">
+            {mediaTypeLabel} الموبايل ({mobileImages.length}/1) *
+          </Text>
           {selectedPackage && (
-            <Text variant="small" className={styles.dimensionHint}>
+            <Text variant="small" color="secondary">
               الأبعاد المطلوبة: {selectedPackage.dimensions.mobile.width}x{selectedPackage.dimensions.mobile.height}
             </Text>
           )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleMobileFileChange}
-            className={styles.fileInput}
-            required
+          <ImageUploadGrid
+            images={mobileImages}
+            onChange={(newImages) => {
+              // Detect if images were added or removed
+              if (newImages.length > mobileImages.length) {
+                handleMobileImageAdd(newImages);
+              } else {
+                setMobileImages(newImages);
+              }
+            }}
+            maxImages={1}
+            disabled={isUploading}
           />
-          {mobilePreview && (
-            <div className={styles.imagePreview}>
-              <img src={mobilePreview} alt="Mobile preview" />
-            </div>
+          {isUploading && mobileImages.length === 0 && (
+            <Text variant="small" style={{ marginTop: '8px', color: 'var(--primary)' }}>
+              جاري رفع الصورة...
+            </Text>
           )}
         </div>
 
-        {/* Custom Price (Optional) */}
+        {/* Click URL */}
         <div className={styles.section}>
-          <label className={styles.label}>سعر مخصص (اختياري)</label>
-          <input
-            type="number"
-            value={customPrice || ''}
-            onChange={(e) => setCustomPrice(e.target.value ? Number(e.target.value) : undefined)}
-            placeholder={`السعر الافتراضي: $${selectedPackage?.basePrice || 0}`}
-            className={styles.input}
-            min="0"
-            step="0.01"
+          <Input
+            label="رابط التوجيه (اختياري)"
+            type="text"
+            value={clickUrl}
+            onChange={(e) => setClickUrl(e.target.value)}
+            placeholder="https://example.com"
           />
+          <Text variant="small" color="secondary" className={styles.description}>
+            سيتم فتح الرابط في تبويب جديد تلقائياً
+          </Text>
         </div>
 
         {/* Actions */}

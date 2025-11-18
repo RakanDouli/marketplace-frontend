@@ -182,7 +182,25 @@ export const CREATE_AD_CAMPAIGN_MUTATION = `
       campaignName
       description
       clientId
+      client {
+        id
+        companyName
+        industry
+        contactName
+        contactEmail
+        contactPhone
+        status
+      }
       packageId
+      package {
+        id
+        packageName
+        adType
+        durationDays
+        impressionLimit
+        basePrice
+        currency
+      }
       isCustomPackage
       packageBreakdown
       status
@@ -197,6 +215,12 @@ export const CREATE_AD_CAMPAIGN_MUTATION = `
       clickUrl
       openInNewTab
       publicReportToken
+      createdByUserId
+      createdByUser {
+        id
+        email
+        name
+      }
       createdAt
       updatedAt
     }
@@ -210,7 +234,25 @@ export const UPDATE_AD_CAMPAIGN_MUTATION = `
       campaignName
       description
       clientId
+      client {
+        id
+        companyName
+        industry
+        contactName
+        contactEmail
+        contactPhone
+        status
+      }
       packageId
+      package {
+        id
+        packageName
+        adType
+        durationDays
+        impressionLimit
+        basePrice
+        currency
+      }
       isCustomPackage
       packageBreakdown
       status
@@ -226,6 +268,12 @@ export const UPDATE_AD_CAMPAIGN_MUTATION = `
       clickUrl
       openInNewTab
       publicReportToken
+      createdByUserId
+      createdByUser {
+        id
+        email
+        name
+      }
       createdAt
       updatedAt
     }

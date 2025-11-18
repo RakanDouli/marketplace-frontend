@@ -1,0 +1,145 @@
+@import "../../../styles/variables";
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-lg;
+}
+
+.card {
+  background: $surface;
+  border-radius: $radius-lg;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 700px;
+  width: 100%;
+  padding: $space-xl;
+
+  @media (max-width: 768px) {
+    padding: $space-lg;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $space-xl;
+
+  svg {
+    color: $primary;
+    margin-bottom: $space-md;
+  }
+}
+
+.section {
+  margin-bottom: $space-xl;
+  padding-bottom: $space-lg;
+  border-bottom: 1px solid $border;
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: $space-lg;
+    padding-bottom: 0;
+  }
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-lg;
+  margin-top: $space-md;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: $space-md;
+  }
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.amount {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  color: $success;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.dateInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+
+  svg {
+    color: $text-secondary;
+    flex-shrink: 0;
+  }
+}
+
+.payloadBox {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-md;
+  margin-top: $space-md;
+  overflow-x: auto;
+
+  pre {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    color: $text;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $space-md;
+  margin-bottom: $space-lg;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+
+  button {
+    flex: 1;
+  }
+}
+
+.disclaimer {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: $radius-md;
+  padding: $space-md;
+  text-align: center;
+}
+
+.successIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $space-lg;
+
+  svg {
+    color: $success;
+  }
+}
+
+.rejectIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $space-lg;
+
+  svg {
+    color: $text;
+  }
+}

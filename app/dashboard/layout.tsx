@@ -70,7 +70,7 @@ export default function DashboardLayout({
       href: '/dashboard/subscription',
     },
     // Analytics only for dealers and business accounts
-    ...(user?.accountType === 'DEALER' || user?.accountType === 'BUSINESS'
+    ...(user?.accountType === 'dealer' || user?.accountType === 'business'
       ? [
         {
           icon: <BarChart3 size={20} />,

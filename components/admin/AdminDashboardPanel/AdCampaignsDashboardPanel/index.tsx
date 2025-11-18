@@ -9,7 +9,7 @@ import { useFeaturePermissions } from '@/hooks/usePermissions';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit, Trash2, Copy, Check } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
-import { formatPrice } from '@/utils/formatPrice';
+import { formatAdPrice } from '@/utils/formatPrice';
 import { formatDateShort } from '@/utils/formatDate';
 import styles from '../SharedDashboardPanel.module.scss';
 
@@ -81,6 +81,30 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
       'CANCELLED': 'red'
     };
     return colors[status] || 'gray';
+  };
+
+  // Get row background class based on payment urgency
+  const getRowBackgroundClass = (campaign: AdCampaign): string => {
+    // Only highlight if status is AWAITING_PAYMENT
+    if (campaign.status !== 'AWAITING_PAYMENT') {
+      return '';
+    }
+
+    const now = new Date();
+    const startDate = new Date(campaign.startDate);
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    // 🔴 ERROR: Start date has passed and still not paid
+    if (startDate < now) {
+      return styles.rowError;
+    }
+
+    // 🟡 WARNING: Start date within 3 days OR ASAP campaign
+    if (startDate <= threeDaysFromNow || campaign.startPreference === 'ASAP') {
+      return styles.rowWarning;
+    }
+
+    return '';
   };
 
 
@@ -171,6 +195,30 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
     }
   };
 
+  // Handle accept payment (mark campaign as paid)
+  const handleAcceptPayment = async (campaign: AdCampaign) => {
+    try {
+      await updateCampaignStatus({
+        id: campaign.id,
+        status: 'PAID'
+      });
+      addNotification({
+        type: 'success',
+        title: 'تم قبول الدفع',
+        message: `تم تأكيد الدفع للحملة ${campaign.campaignName}. تم إرسال بريد إلكتروني للعميل.`,
+        duration: 5000
+      });
+    } catch (error) {
+      console.error('Accept payment error:', error);
+      addNotification({
+        type: 'error',
+        title: 'فشل في قبول الدفع',
+        message: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
+        duration: 5000
+      });
+    }
+  };
+
   return (
     <>
       <div className={styles.dashboardPanel}>
@@ -222,7 +270,7 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
             </TableHead>
             <TableBody>
               {adCampaigns.map(campaign => (
-                <TableRow key={campaign.id}>
+                <TableRow key={campaign.id} className={getRowBackgroundClass(campaign)}>
                   <TableCell>
                     <Text variant="paragraph" weight="medium">{campaign.campaignName}</Text>
                     {campaign.description && (
@@ -255,7 +303,7 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Text variant="paragraph" weight="medium">
-                      {formatPrice(campaign.totalPrice)}
+                      {formatAdPrice(campaign.totalPrice, campaign.currency)}
                     </Text>
                   </TableCell>
                   <TableCell>
@@ -275,6 +323,17 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
                   {(canModify || canDelete) && (
                     <TableCell>
                       <div className={styles.actions}>
+                        {/* Accept Payment button - only for AWAITING_PAYMENT status */}
+                        {canModify && campaign.status === 'AWAITING_PAYMENT' && (
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={() => handleAcceptPayment(campaign)}
+                            title="تأكيد الدفع"
+                          >
+                            <Check size={16} />
+                          </Button>
+                        )}
                         {canModify && (
                           <Button
                             variant="outline"

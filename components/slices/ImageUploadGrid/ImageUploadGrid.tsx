@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, Button } from '@/components/slices';
+import { Text, Button, Image } from '@/components/slices';
 import { Trash2 } from 'lucide-react';
 import styles from './ImageUploadGrid.module.scss';
 
@@ -42,7 +42,12 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
     if (!files || disabled) return;
 
     const newImages: ImageItem[] = [];
-    const remainingSlots = maxImages - images.length;
+
+    // Single image mode: Replace existing image instead of adding
+    const isSingleImageMode = maxImages === 1;
+    const shouldReplace = isSingleImageMode && images.length === 1;
+
+    const remainingSlots = shouldReplace ? 1 : maxImages - images.length;
     const filesToAdd = Math.min(files.length, remainingSlots);
 
     for (let i = 0; i < filesToAdd; i++) {
@@ -55,7 +60,18 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
     }
 
     if (newImages.length > 0) {
-      onChange([...images, ...newImages]);
+      if (shouldReplace) {
+        // Cleanup old blob URL
+        const oldImage = images[0];
+        if (oldImage?.url.startsWith('blob:')) {
+          URL.revokeObjectURL(oldImage.url);
+        }
+        // Replace with new image
+        onChange(newImages);
+      } else {
+        // Normal behavior: Add to existing images
+        onChange([...images, ...newImages]);
+      }
     }
   };
 
@@ -119,10 +135,14 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
       >
         {images.map((image) => (
           <div key={image.id} className={styles.imageCard}>
-            <img
+            <Image
               src={image.url}
-              alt="Listing"
+              alt="صورة"
+              width={200}
+              height={150}
               className={styles.image}
+              showSkeleton={false}
+              variant="public"
             />
             {!disabled && (
               <Button
@@ -138,7 +158,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
         ))}
 
         {!disabled && canAddMore && (
-          <div className={styles.addButton} onClick={handleAddClick}>
+          <div key="add-button" className={styles.addButton} onClick={handleAddClick}>
             <svg
               width="32"
               height="32"

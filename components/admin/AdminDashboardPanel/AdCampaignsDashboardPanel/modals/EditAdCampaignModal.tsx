@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
-import { Button, Text, Form } from '@/components/slices';
+import { Button, Text, Form, Image } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useAdminAdCampaignsStore, type AdCampaign } from '@/stores/admin/adminAdCampaignsStore';
-import { Copy, RefreshCw, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Copy, RefreshCw, Plus, Edit2, Trash2, Mail } from 'lucide-react';
 import {
   validateEditAdCampaignForm,
   hasValidationErrors,
@@ -80,6 +80,13 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
   const [campaignPackages, setCampaignPackages] = useState<CampaignPackage[]>([]);
   const [showAddPackageModal, setShowAddPackageModal] = useState(false);
   const [editingPackageIndex, setEditingPackageIndex] = useState<number | null>(null);
+  const [sendingPaymentLink, setSendingPaymentLink] = useState(false);
+
+  // Convert clients to options format for Input select
+  const clientOptions = clients.map(client => ({
+    value: client.id,
+    label: client.companyName
+  }));
 
   const [formData, setFormData] = useState({
     id: '',
@@ -100,6 +107,9 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
   // Populate form when initialData changes
   useEffect(() => {
     if (initialData) {
+      console.log('🔵 EditAdCampaignModal - initialData:', initialData);
+      console.log('🔵 packageBreakdown:', initialData.packageBreakdown);
+
       setFormData({
         id: initialData.id,
         campaignName: initialData.campaignName,
@@ -117,13 +127,70 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
       });
 
       // Parse packageBreakdown if exists
-      if (initialData.packageBreakdown?.packages) {
-        setCampaignPackages(initialData.packageBreakdown.packages);
+      // Note: packageBreakdown structure from backend is simplified, we need to reconstruct it
+      if (initialData.packageBreakdown?.packages && Array.isArray(initialData.packageBreakdown.packages)) {
+        console.log('✅ Found packages in packageBreakdown:', initialData.packageBreakdown.packages);
+
+        // Transform backend structure to full CampaignPackage structure
+        const transformedPackages: CampaignPackage[] = initialData.packageBreakdown.packages.map((pkg: any) => ({
+          packageId: pkg.packageId,
+          packageData: {
+            id: pkg.packageId,
+            packageName: pkg.packageName || 'Unknown Package',
+            basePrice: pkg.basePrice || pkg.price || 0, // Support both old and new format
+            currency: 'USD',
+            adType: pkg.adType || 'BANNER',
+            placement: pkg.placement || '',
+            format: pkg.format || '',
+            dimensions: pkg.dimensions || {
+              desktop: { width: 970, height: 250 },
+              mobile: { width: 300, height: 250 }
+            },
+            mediaRequirements: pkg.mediaRequirements || []
+          },
+          desktopMediaUrl: pkg.desktopMediaUrl || '',
+          mobileMediaUrl: pkg.mobileMediaUrl || '',
+          clickUrl: pkg.clickUrl,
+          openInNewTab: pkg.openInNewTab,
+          customPrice: pkg.customPrice || pkg.price, // Support both old and new format
+        }));
+
+        console.log('📦 Transformed packages:', transformedPackages);
+        setCampaignPackages(transformedPackages);
       } else {
+        console.log('❌ No packages found in packageBreakdown');
         setCampaignPackages([]);
       }
     }
   }, [initialData]);
+
+  // Auto-update total price when packages change
+  useEffect(() => {
+    if (campaignPackages.length > 0) {
+      const calculatedTotal = calculateTotalPrice();
+      setFormData(prev => ({ ...prev, totalPrice: calculatedTotal }));
+    }
+  }, [campaignPackages]);
+
+  // Auto-calculate end date when start date or packages change
+  useEffect(() => {
+    if (formData.startDate && campaignPackages.length > 0) {
+      // Get the maximum duration from all packages
+      const maxDuration = Math.max(
+        ...campaignPackages.map(pkg => pkg.packageData.durationDays || 30)
+      );
+
+      // Calculate end date
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + maxDuration);
+
+      // Format as YYYY-MM-DD
+      const endDateStr = endDate.toISOString().split('T')[0];
+
+      setFormData(prev => ({ ...prev, endDate: endDateStr }));
+    }
+  }, [formData.startDate, campaignPackages]);
 
   // Fetch clients and packages
   useEffect(() => {
@@ -199,7 +266,50 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
-      await onSubmit(formData);
+      // Build packageBreakdown from current packages (same as Create modal)
+      const hasPackages = campaignPackages.length > 0;
+      const isCustomPackage = campaignPackages.length > 1 || formData.isCustomPackage;
+
+      const packageBreakdown = hasPackages ? {
+        packages: campaignPackages.map(pkg => ({
+          packageId: pkg.packageId,
+          packageName: pkg.packageData.packageName,
+          basePrice: pkg.packageData.basePrice,
+          adType: pkg.packageData.adType,
+          placement: pkg.packageData.placement,
+          format: pkg.packageData.format,
+          dimensions: pkg.packageData.dimensions,
+          mediaRequirements: pkg.packageData.mediaRequirements,
+          desktopMediaUrl: pkg.desktopMediaUrl,
+          mobileMediaUrl: pkg.mobileMediaUrl,
+          clickUrl: pkg.clickUrl,
+          openInNewTab: pkg.openInNewTab,
+        }))
+      } : undefined;
+
+      // Calculate total price from packages
+      const totalPrice = calculateTotalPrice();
+
+      // Get packageId from first package
+      const packageId = campaignPackages.length > 0
+        ? campaignPackages[0].packageId
+        : formData.packageId;
+
+      // Exclude paymentLink from update (not allowed in UpdateAdCampaignInput)
+      const { paymentLink, ...updateFields } = formData;
+
+      const submissionData = {
+        ...updateFields,
+        packageId,
+        isCustomPackage,
+        totalPrice,
+        packageBreakdown,
+      };
+
+      console.log('📦 Full edit submission data:', submissionData);
+
+      await onSubmit(submissionData);
+
       // Show success toast
       addNotification({
         type: 'success',
@@ -271,6 +381,38 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     }
   };
 
+  const handleSendPaymentLink = async () => {
+    if (!initialData?.id) return;
+
+    setSendingPaymentLink(true);
+    try {
+      // Call backend to send payment link email
+      const mutation = `
+        mutation SendPaymentLinkEmail($campaignId: String!) {
+          sendPaymentLinkEmail(campaignId: $campaignId)
+        }
+      `;
+
+      await makeGraphQLCall(mutation, { campaignId: initialData.id }, user?.token);
+
+      addNotification({
+        type: 'success',
+        title: 'تم الإرسال',
+        message: 'تم إرسال رابط الدفع بنجاح إلى العميل',
+        duration: 5000
+      });
+    } catch (err) {
+      addNotification({
+        type: 'error',
+        title: 'خطأ',
+        message: err instanceof Error ? err.message : 'فشل في إرسال رابط الدفع',
+        duration: 5000
+      });
+    } finally {
+      setSendingPaymentLink(false);
+    }
+  };
+
   // Package management handlers
   const handleAddPackage = (pkg: CampaignPackage) => {
     if (editingPackageIndex !== null) {
@@ -296,10 +438,10 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     setCampaignPackages(updated);
   };
 
-  // Calculate total price from all packages
+  // Calculate total price from all packages (uses base price only)
   const calculateTotalPrice = (): number => {
-    if (campaignPackages.length === 0) return formData.totalPrice;
-    return campaignPackages.reduce((sum, pkg) => sum + (pkg.customPrice || pkg.packageData.basePrice), 0);
+    if (campaignPackages.length === 0) return 0;
+    return campaignPackages.reduce((sum, pkg) => sum + pkg.packageData.basePrice, 0);
   };
 
   return (
@@ -334,59 +476,47 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
           />
         </div>
 
-        {/* Client and Package Selection */}
+        {/* Client Selection */}
         <div className={styles.section}>
-          <Text variant="h4">العميل والحزمة</Text>
+          <Text variant="h4">العميل</Text>
           <div className={styles.formGrid}>
-            <div>
-              <label className={styles.label}>العميل *</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => handleChange('clientId', e.target.value)}
-                className={styles.select}
-                required
-                disabled={loadingData}
-              >
-                <option value="">-- اختر العميل --</option>
-                {clients.map(client => (
-                  <option key={client.id} value={client.id}>
-                    {client.companyName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={styles.label}>الحزمة *</label>
-              <select
-                value={formData.packageId}
-                onChange={(e) => handleChange('packageId', e.target.value)}
-                className={styles.select}
-                required
-                disabled={loadingData}
-              >
-                <option value="">-- اختر الحزمة --</option>
-                {packages.map(pkg => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.packageName} - ${pkg.basePrice}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={formData.isCustomPackage}
-              onChange={(e) => handleChange('isCustomPackage', e.target.checked)}
+            <Input
+              type="select"
+              label="العميل"
+              value={formData.clientId}
+              onChange={(e) => handleChange('clientId', e.target.value)}
+              options={clientOptions}
+              required
+              disabled={loadingData}
+              placeholder="اختر العميل"
             />
-            <span>حزمة مخصصة (سعر مخصص)</span>
-          </label>
+          </div>
         </div>
 
-        {/* Packages Table (for custom packages) */}
-        {formData.isCustomPackage && (
+        {/* Custom Package Toggle */}
+        <div className={styles.section}>
+          <Input
+            label="حزمة مخصصة (متعددة)"
+            type="checkbox"
+            checked={formData.isCustomPackage}
+            onChange={(e) => {
+              const target = e.target as HTMLInputElement;
+              handleChange('isCustomPackage', target.checked);
+              // Reset packages when switching modes
+              if (!target.checked && campaignPackages.length > 1) {
+                setCampaignPackages([campaignPackages[0]]);
+              }
+            }}
+          />
+          <Text variant="small" color="secondary" className={styles.description}>
+            {formData.isCustomPackage
+              ? 'يمكنك إضافة عدة حزم في حملة واحدة'
+              : 'يمكنك إضافة حزمة واحدة فقط'}
+          </Text>
+        </div>
+
+        {/* Package Section */}
+        {(
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Text variant="h4">الحزم المضافة</Text>
@@ -396,6 +526,7 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
                 size="sm"
                 icon={<Plus size={16} />}
                 onClick={() => setShowAddPackageModal(true)}
+                disabled={!formData.isCustomPackage && campaignPackages.length >= 1}
               >
                 إضافة حزمة
               </Button>
@@ -409,6 +540,7 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
                       <th>اسم الحزمة</th>
                       <th>صورة سطح المكتب</th>
                       <th>صورة الموبايل</th>
+                      <th>رابط التوجيه</th>
                       <th>السعر</th>
                       <th>الإجراءات</th>
                     </tr>
@@ -419,10 +551,14 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
                         <td>{pkg.packageData.packageName}</td>
                         <td>
                           {pkg.desktopMediaUrl ? (
-                            <img
+                            <Image
                               src={pkg.desktopMediaUrl}
                               alt="Desktop"
+                              width={80}
+                              height={50}
                               className={styles.packageImage}
+                              showSkeleton={false}
+                              variant="public"
                             />
                           ) : (
                             <Text variant="small" color="secondary">لم يتم الرفع</Text>
@@ -430,16 +566,23 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
                         </td>
                         <td>
                           {pkg.mobileMediaUrl ? (
-                            <img
+                            <Image
                               src={pkg.mobileMediaUrl}
                               alt="Mobile"
+                              width={80}
+                              height={50}
                               className={styles.packageImage}
+                              showSkeleton={false}
+                              variant="public"
                             />
                           ) : (
                             <Text variant="small" color="secondary">لم يتم الرفع</Text>
                           )}
                         </td>
-                        <td>${pkg.customPrice || pkg.packageData.basePrice}</td>
+                        <td>
+                          <Text variant="small">{pkg.clickUrl || '-'}</Text>
+                        </td>
+                        <td>${pkg.packageData.basePrice}</td>
                         <td>
                           <div className={styles.tableActions}>
                             <button
@@ -492,45 +635,23 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
               onChange={(e) => handleChange('startDate', e.target.value)}
               required
             />
-            <Input
-              label="تاريخ الانتهاء"
-              type="date"
-              value={formData.endDate}
-              onChange={(e) => handleChange('endDate', e.target.value)}
-              min={formData.startDate}
-              required
-            />
-          </div>
-        </div>
-
-        {/* Pricing */}
-        <div className={styles.section}>
-          <Text variant="h4">التسعير</Text>
-          <div className={styles.formGrid}>
-            <Input
-              label="السعر الإجمالي"
-              type="number"
-              value={formData.totalPrice}
-              onChange={(e) => handleChange('totalPrice', parseFloat(e.target.value) || 0)}
-              min="0"
-              step="0.01"
-              required
-              disabled={!formData.isCustomPackage}
-            />
             <div>
-              <label className={styles.label}>العملة</label>
-              <select
-                value={formData.currency}
-                onChange={(e) => handleChange('currency', e.target.value)}
-                className={styles.select}
-                disabled={!formData.isCustomPackage}
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="SAR">SYR</option>
-              </select>
+              <Text variant="small" color="secondary" style={{ marginBottom: '8px', display: 'block' }}>
+                تاريخ الانتهاء (محسوب تلقائياً)
+              </Text>
+              <Input
+                type="text"
+                value={formData.endDate || '-'}
+                disabled
+                style={{ backgroundColor: 'var(--surface-secondary)' }}
+              />
             </div>
           </div>
+          {campaignPackages.length > 0 && (
+            <Text variant="small" color="secondary" className={styles.description}>
+              يتم حساب تاريخ الانتهاء تلقائياً بناءً على مدة الحزمة ({Math.max(...campaignPackages.map(pkg => pkg.packageData.durationDays || 30))} يوم)
+            </Text>
+          )}
         </div>
 
         {/* Payment Link */}
@@ -574,6 +695,24 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
             </div>
           </div>
         )}
+
+        {/* Payment Actions */}
+        <div className={styles.section}>
+          <Text variant="h4">إرسال رابط الدفع</Text>
+          <Text variant="small" color="secondary" className={styles.description}>
+            إرسال رابط الدفع يدوياً للعميل في حالة عدم وصول البريد الإلكتروني التلقائي
+          </Text>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            icon={<Mail size={16} />}
+            onClick={handleSendPaymentLink}
+            loading={sendingPaymentLink}
+          >
+            إرسال رابط الدفع
+          </Button>
+        </div>
 
         {/* Notes */}
         <div className={styles.section}>

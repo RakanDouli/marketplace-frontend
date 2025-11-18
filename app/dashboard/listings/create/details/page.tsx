@@ -432,7 +432,7 @@ export default function CreateListingDetailsPage() {
                       setFormField('biddingStartPrice', value * 100);
                     }}
                     onBlur={() => handleBlur('biddingStartPrice')}
-                    error={validationErrors.biddingStartPrice}
+                    error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
                     helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
                   />
                 )}

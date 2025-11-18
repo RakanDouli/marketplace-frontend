@@ -2,15 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
-import { Button, Text, Form } from '@/components/slices';
+import { Button, Text, Form, Image } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
-import {
-  validateCreateAdCampaignForm,
-  hasValidationErrors,
-  type ValidationErrors,
-} from '@/lib/admin/validation/adCampaignValidation';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { AddPackageModal, type CampaignPackage } from './AddPackageModal';
 import styles from './AdCampaignModals.module.scss';
@@ -35,6 +30,7 @@ interface AdPackage {
   adType: string;
   placement: string;
   format: string;
+  durationDays: number;
   dimensions: {
     desktop: { width: number; height: number };
     mobile: { width: number; height: number };
@@ -66,7 +62,6 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
   isLoading
 }) => {
   const [error, setError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const { user } = useAdminAuthStore();
   const { addNotification } = useNotificationStore();
   const [clients, setClients] = useState<AdClient[]>([]);
@@ -82,13 +77,36 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     clientId: '',
     packageId: '',
     isCustomPackage: false,
-    startPreference: 'SPECIFIC_DATE',
+    startPreference: 'SPECIFIC_DATE', // 'ASAP' or 'SPECIFIC_DATE'
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     totalPrice: 0,
     currency: 'USD',
     notes: '',
   });
+
+  // Auto-calculate end date when start date, preference, or package changes
+  useEffect(() => {
+    // Get duration from the first selected package
+    const durationDays = campaignPackages.length > 0
+      ? campaignPackages[0].packageData.durationDays
+      : 30; // Default 30 days if no package selected yet
+
+    if (formData.startPreference === 'SPECIFIC_DATE' && formData.startDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(start.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      setFormData(prev => ({ ...prev, endDate: end.toISOString().split('T')[0] }));
+    } else if (formData.startPreference === 'ASAP') {
+      // For ASAP, set placeholder dates (will be adjusted on payment)
+      const now = new Date();
+      const end = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      setFormData(prev => ({
+        ...prev,
+        startDate: now.toISOString().split('T')[0],
+        endDate: end.toISOString().split('T')[0]
+      }));
+    }
+  }, [formData.startPreference, formData.startDate, campaignPackages]);
 
   // Fetch clients and packages
   useEffect(() => {
@@ -123,6 +141,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
             adType
             placement
             format
+            durationDays
             dimensions {
               desktop {
                 width
@@ -182,47 +201,77 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    // Validate form using Zod
-    const errors = validateCreateAdCampaignForm(formData);
-    setValidationErrors(errors);
+    // Custom validation (skip Zod validation since we changed the form structure)
 
-    if (hasValidationErrors(errors)) {
-      console.log('❌ Ad Campaign validation failed:', errors);
-      setError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
-      return; // STOP - do not submit
+    // 1. Validate campaign name
+    if (!formData.campaignName || formData.campaignName.trim().length < 3) {
+      setError('يرجى إدخال اسم الحملة (3 أحرف على الأقل)');
+      return;
     }
 
-    // Validate packages (for custom campaigns)
-    if (formData.isCustomPackage && campaignPackages.length === 0) {
+    // 2. Validate client selection
+    if (!formData.clientId) {
+      setError('يرجى اختيار العميل');
+      return;
+    }
+
+    // 3. Validate packages - must have at least one package added
+    if (campaignPackages.length === 0) {
       setError('يرجى إضافة حزمة واحدة على الأقل');
+      return;
+    }
+
+    // 4. Validate start date for SPECIFIC_DATE preference
+    if (formData.startPreference === 'SPECIFIC_DATE' && !formData.startDate) {
+      setError('يرجى تحديد تاريخ البداية');
       return;
     }
 
     console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
-      // Build packageBreakdown for custom campaigns
-      const packageBreakdown = formData.isCustomPackage ? {
+      // ALWAYS save packageBreakdown when packages are added (regardless of switch)
+      // isCustomPackage = true when multiple packages (or when user explicitly sets it)
+      const hasPackages = campaignPackages.length > 0;
+      const isCustomPackage = campaignPackages.length > 1 || formData.isCustomPackage;
+
+      const packageBreakdown = hasPackages ? {
         packages: campaignPackages.map(pkg => ({
           packageId: pkg.packageId,
           packageName: pkg.packageData.packageName,
-          price: pkg.customPrice || pkg.packageData.basePrice,
+          basePrice: pkg.packageData.basePrice,
+          adType: pkg.packageData.adType,
+          placement: pkg.packageData.placement,
+          format: pkg.packageData.format,
+          dimensions: pkg.packageData.dimensions,
+          mediaRequirements: pkg.packageData.mediaRequirements,
           desktopMediaUrl: pkg.desktopMediaUrl,
           mobileMediaUrl: pkg.mobileMediaUrl,
+          clickUrl: pkg.clickUrl,
+          openInNewTab: pkg.openInNewTab,
         }))
       } : undefined;
 
-      // Calculate total price
-      const totalPrice = formData.isCustomPackage
-        ? calculateTotalPrice()
-        : formData.totalPrice;
+      // Calculate total price from campaign packages
+      const totalPrice = calculateTotalPrice();
 
-      // Submit campaign
-      await onSubmit({
+      // Get packageId from first campaign package (required by backend)
+      const packageId = campaignPackages.length > 0
+        ? campaignPackages[0].packageId
+        : formData.packageId;
+
+      const submissionData = {
         ...formData,
+        packageId,
+        isCustomPackage,
         totalPrice,
         packageBreakdown,
-      });
+      };
+
+      console.log('📦 Full campaign submission data:', submissionData);
+
+      // Submit campaign
+      await onSubmit(submissionData);
 
       // Show success toast
       addNotification({
@@ -256,10 +305,42 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleClose = () => {
+    // Reset form
+    setFormData({
+      campaignName: '',
+      description: '',
+      clientId: '',
+      packageId: '',
+      isCustomPackage: false,
+      startPreference: 'SPECIFIC_DATE',
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      totalPrice: 0,
+      currency: 'USD',
+      notes: '',
+    });
+    setCampaignPackages([]);
+    setError(null);
+    onClose();
+  };
+
+  // Convert clients to options format for Input select
+  const clientOptions = clients.map(client => ({
+    value: client.id,
+    label: client.companyName
+  }));
+
+  // Start preference options
+  const startPreferenceOptions = [
+    { value: 'ASAP', label: 'في أقرب وقت ممكن (عند الدفع)' },
+    { value: 'SPECIFIC_DATE', label: 'تاريخ محدد' }
+  ];
+
   return (
     <Modal
       isVisible={isVisible}
-      onClose={onClose}
+      onClose={handleClose}
       title="إضافة حملة إعلانية جديدة"
       description="أنشئ حملة إعلانية جديدة لأحد العملاء"
       maxWidth="xl"
@@ -288,59 +369,44 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           />
         </div>
 
-        {/* Client and Package Selection */}
+        {/* Client Selection */}
         <div className={styles.section}>
-          <Text variant="h4">العميل والحزمة</Text>
-          <div className={styles.formGrid}>
-            <div>
-              <label className={styles.label}>العميل *</label>
-              <select
-                value={formData.clientId}
-                onChange={(e) => handleChange('clientId', e.target.value)}
-                className={styles.select}
-                required
-                disabled={loadingData}
-              >
-                <option value="">-- اختر العميل --</option>
-                {clients.map(client => (
-                  <option key={client.id} value={client.id}>
-                    {client.companyName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={styles.label}>الحزمة *</label>
-              <select
-                value={formData.packageId}
-                onChange={(e) => handleChange('packageId', e.target.value)}
-                className={styles.select}
-                required
-                disabled={loadingData}
-              >
-                <option value="">-- اختر الحزمة --</option>
-                {packages.map(pkg => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.packageName} - ${pkg.basePrice}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={formData.isCustomPackage}
-              onChange={(e) => handleChange('isCustomPackage', e.target.checked)}
-            />
-            <span>حزمة مخصصة (سعر مخصص)</span>
-          </label>
+          <Text variant="h4">العميل</Text>
+          <Input
+            type="select"
+            label="العميل"
+            value={formData.clientId}
+            onChange={(e) => handleChange('clientId', e.target.value)}
+            options={clientOptions}
+            required
+            disabled={loadingData}
+            placeholder="اختر العميل"
+          />
         </div>
 
-        {/* Packages Table (for custom packages) */}
-        {formData.isCustomPackage && (
+        {/* Custom Package Toggle */}
+        <div className={styles.section}>
+          <Input
+            label="حزمة مخصصة (متعددة)"
+            type="switch"
+            checked={formData.isCustomPackage}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              handleChange('isCustomPackage', e.target.checked);
+              // Reset packages when switching modes
+              if (!e.target.checked && campaignPackages.length > 1) {
+                setCampaignPackages([campaignPackages[0]]);
+              }
+            }}
+          />
+          <Text variant="small" color="secondary" className={styles.description}>
+            {formData.isCustomPackage
+              ? 'يمكنك إضافة عدة حزم في حملة واحدة'
+              : 'يمكنك إضافة حزمة واحدة فقط'}
+          </Text>
+        </div>
+
+        {/* Package Section */}
+        {(
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Text variant="h4">الحزم المضافة</Text>
@@ -350,6 +416,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                 size="sm"
                 icon={<Plus size={16} />}
                 onClick={() => setShowAddPackageModal(true)}
+                disabled={!formData.isCustomPackage && campaignPackages.length >= 1}
               >
                 إضافة حزمة
               </Button>
@@ -363,6 +430,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                       <th>اسم الحزمة</th>
                       <th>صورة سطح المكتب</th>
                       <th>صورة الموبايل</th>
+                      <th>رابط التوجيه</th>
                       <th>السعر</th>
                       <th>الإجراءات</th>
                     </tr>
@@ -373,10 +441,14 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                         <td>{pkg.packageData.packageName}</td>
                         <td>
                           {pkg.desktopMediaUrl ? (
-                            <img
+                            <Image
                               src={pkg.desktopMediaUrl}
                               alt="Desktop"
+                              width={80}
+                              height={50}
                               className={styles.packageImage}
+                              showSkeleton={false}
+                              variant="public"
                             />
                           ) : (
                             <Text variant="small" color="secondary">لم يتم الرفع</Text>
@@ -384,14 +456,21 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                         </td>
                         <td>
                           {pkg.mobileMediaUrl ? (
-                            <img
+                            <Image
                               src={pkg.mobileMediaUrl}
                               alt="Mobile"
+                              width={80}
+                              height={50}
                               className={styles.packageImage}
+                              showSkeleton={false}
+                              variant="public"
                             />
                           ) : (
                             <Text variant="small" color="secondary">لم يتم الرفع</Text>
                           )}
+                        </td>
+                        <td>
+                          <Text variant="small">{pkg.clickUrl || '-'}</Text>
                         </td>
                         <td>${pkg.customPrice || pkg.packageData.basePrice}</td>
                         <td>
@@ -438,51 +517,39 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         {/* Campaign Period */}
         <div className={styles.section}>
           <Text variant="h4">فترة الحملة</Text>
-          <div className={styles.formGrid}>
-            <Input
-              label="تاريخ البداية"
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => handleChange('startDate', e.target.value)}
-              required
-            />
-            <Input
-              label="تاريخ الانتهاء"
-              type="date"
-              value={formData.endDate}
-              onChange={(e) => handleChange('endDate', e.target.value)}
-              min={formData.startDate}
-              required
-            />
-          </div>
-        </div>
 
-        {/* Pricing */}
-        <div className={styles.section}>
-          <Text variant="h4">التسعير</Text>
-          <div className={styles.formGrid}>
-            <Input
-              label="السعر الإجمالي"
-              type="price"
-              value={formData.totalPrice}
-              onChange={(e) => handleChange('totalPrice', parseFloat(e.target.value) || 0)}
-              required
-              disabled={!formData.isCustomPackage}
-            />
-            <div>
-              <label className={styles.label}>العملة</label>
-              <select
-                value={formData.currency}
-                onChange={(e) => handleChange('currency', e.target.value)}
-                className={styles.select}
-                disabled={!formData.isCustomPackage}
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="SAR">SAR</option>
-              </select>
+          {/* Start Preference */}
+          <Input
+            type="select"
+            label="موعد البدء"
+            value={formData.startPreference}
+            onChange={(e) => handleChange('startPreference', e.target.value)}
+            options={startPreferenceOptions}
+            required
+            placeholder="اختر موعد البدء"
+          />
+
+          {/* Conditional Start Date Picker */}
+          {formData.startPreference === 'SPECIFIC_DATE' && (
+            <div className={styles.formGrid}>
+              <Input
+                label="تاريخ البداية"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => handleChange('startDate', e.target.value)}
+                required
+              />
             </div>
-          </div>
+          )}
+
+          {/* Show selected package duration (read-only info) */}
+          {campaignPackages.length > 0 && (
+            <div className={styles.formGrid}>
+              <Text variant="small" color="secondary">
+                مدة الحملة: {campaignPackages[0].packageData.durationDays} يوم (من الحزمة المختارة)
+              </Text>
+            </div>
+          )}
         </div>
 
         {/* Notes */}
@@ -502,7 +569,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isLoading}
           >
             إلغاء

@@ -97,7 +97,7 @@ export default function SubscriptionPage() {
   };
 
   const isFree = subscription?.price === 0;
-  const canUpgrade = user.accountType === "INDIVIDUAL" || user.accountType === "DEALER";
+  const canUpgrade = user.accountType === "individual" || user.accountType === "dealer";
 
   return (
     <div className={styles.container}>
@@ -112,9 +112,9 @@ export default function SubscriptionPage() {
             <div>
               <Text variant="h3">{subscription?.title || "لا يوجد اشتراك"}</Text>
               <Text variant="paragraph" className={styles.planDescription}>
-                {user.accountType === "INDIVIDUAL" && "خطة فردية"}
-                {user.accountType === "DEALER" && "خطة تاجر"}
-                {user.accountType === "BUSINESS" && "خطة أعمال"}
+                {user.accountType === "individual" && "خطة فردية"}
+                {user.accountType === "dealer" && "خطة تاجر"}
+                {user.accountType === "business" && "خطة أعمال"}
               </Text>
             </div>
             <div className={styles.price}>
@@ -202,11 +202,11 @@ export default function SubscriptionPage() {
         {isFree && (
           <div className={styles.infoCard}>
             <Text variant="paragraph">
-              {user.accountType === "INDIVIDUAL" &&
+              {user.accountType === "individual" &&
                 "استمتع بالخطة الفردية المجانية! يمكنك ترقية اشتراكك في أي وقت للحصول على ميزات إضافية."}
-              {user.accountType === "DEALER" &&
+              {user.accountType === "dealer" &&
                 "استمتع بخطة التاجر المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 29$ شهرياً قريباً."}
-              {user.accountType === "BUSINESS" &&
+              {user.accountType === "business" &&
                 "استمتع بخطة الأعمال المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 99$ شهرياً قريباً."}
             </Text>
           </div>

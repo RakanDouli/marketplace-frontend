@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import NextImage, { ImageProps as NextImageProps } from "next/image";
 import Loading from "../Loading/Loading";
+import { optimizeListingImage } from "@/utils/cloudflare-images";
 import styles from "./Image.module.scss";
 
 export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
@@ -11,6 +12,7 @@ export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
   showSkeleton?: boolean;
   aspectRatio?: string; // e.g., "16/9", "4/3", "1/1"
   priority?: boolean; // For LCP optimization
+  variant?: "card" | "small" | "large" | "desktop" | "mobile" | "tablet" | "thumbnail" | "public"; // Cloudflare variant
 }
 
 export const Image: React.FC<ImageProps> = ({
@@ -19,12 +21,37 @@ export const Image: React.FC<ImageProps> = ({
   showSkeleton = true,
   aspectRatio,
   priority = false,
+  variant = "public",
   alt,
   className = "",
+  src,
   ...props
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+
+  // Automatically convert Cloudflare image IDs to full URLs
+  const processedSrc = useMemo(() => {
+    if (!src) return src;
+
+    const srcString = typeof src === 'string' ? src : '';
+
+    // Skip if already a full URL (starts with http/https or blob)
+    if (srcString.startsWith('http') || srcString.startsWith('blob:') || srcString.startsWith('data:')) {
+      return src;
+    }
+
+    // Check if it's a Cloudflare image ID (UUID format)
+    const isCloudflareId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(srcString);
+
+    if (isCloudflareId) {
+      // Convert Cloudflare ID to full URL
+      return optimizeListingImage(srcString, variant);
+    }
+
+    // Return as-is for paths or other formats
+    return src;
+  }, [src, variant]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -62,6 +89,7 @@ export const Image: React.FC<ImageProps> = ({
       {!hasError && (
         <NextImage
           {...props}
+          src={processedSrc}
           alt={alt}
           priority={priority}
           className={`${styles.image} ${className} ${isLoading ? styles.loading : styles.loaded}`.trim()}

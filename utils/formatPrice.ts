@@ -40,3 +40,35 @@ export function formatPriceRange(minMinorUSD: number, maxMinorUSD: number, toCur
   const max = formatPrice(maxMinorUSD, toCurrency);
   return `${min} - ${max}`;
 }
+
+/**
+ * Format price for ad campaigns (stored as decimal dollars, not minor units)
+ * @param price - Price in dollars (e.g., 150.00)
+ * @param currency - Currency code (USD, EUR, SYP)
+ * @returns Formatted price string (e.g., '$150.00' or '150.00 S£')
+ */
+export function formatAdPrice(price: number, currency: string = 'USD'): string {
+  // Format with 2 decimal places and commas
+  const formattedAmount = Number(price).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  // Get symbol
+  const symbols: Record<string, string> = {
+    'USD': '$',
+    'EUR': '€',
+    'SYP': 'S£',
+    'AED': 'د.إ',
+    'SAR': 'ر.س'
+  };
+
+  const symbol = symbols[currency] || currency;
+
+  // USD and EUR symbols go before, others go after
+  if (currency === 'USD' || currency === 'EUR') {
+    return `${symbol}${formattedAmount}`;
+  } else {
+    return `${formattedAmount} ${symbol}`;
+  }
+}

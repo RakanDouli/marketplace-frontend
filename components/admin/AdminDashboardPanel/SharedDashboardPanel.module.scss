@@ -186,6 +186,25 @@
   color: $text-muted;
 }
 
+// Row background warnings (for ad campaigns payment urgency)
+.rowWarning {
+  background-color: $warning-bg !important;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba($warning, 0.12) !important;
+  }
+}
+
+.rowError {
+  background-color: $error-bg !important;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba($error, 0.12) !important;
+  }
+}
+
 // Info Cards
 .infoCards {
   display: grid;

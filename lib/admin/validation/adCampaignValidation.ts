@@ -95,44 +95,44 @@ const notesSchema = z
 // ===== INDIVIDUAL FIELD VALIDATORS =====
 export const validateCampaignName = (value: string): string | undefined => {
   const result = campaignNameSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'اسم الحملة غير صحيح');
 };
 
 export const validateDescription = (value: string): string | undefined => {
   if (!value) return undefined; // Optional field
   const result = descriptionSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'الوصف غير صحيح');
 };
 
 export const validateClientId = (value: string): string | undefined => {
   const result = clientIdSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'يجب اختيار العميل');
 };
 
 export const validatePackageId = (value: string): string | undefined => {
   const result = packageIdSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'يجب اختيار الحزمة');
 };
 
 export const validateStartDate = (value: string): string | undefined => {
   const result = dateStringSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'تاريخ البداية مطلوب');
 };
 
 export const validateEndDate = (value: string): string | undefined => {
   const result = dateStringSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'تاريخ الانتهاء مطلوب');
 };
 
 export const validateTotalPrice = (value: number): string | undefined => {
   const result = totalPriceSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'السعر الإجمالي غير صحيح');
 };
 
 export const validateNotes = (value: string): string | undefined => {
   if (!value) return undefined; // Optional field
   const result = notesSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : (result.error?.errors?.[0]?.message || 'الملاحظات غير صحيحة');
 };
 
 // ===== DATE RANGE VALIDATION =====

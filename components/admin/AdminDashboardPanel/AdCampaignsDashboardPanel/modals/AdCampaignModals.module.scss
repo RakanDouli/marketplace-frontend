@@ -13,6 +13,12 @@
   gap: $space-md;
 }
 
+.imagesSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
 .description {
   margin-top: -$space-xs;
 }
