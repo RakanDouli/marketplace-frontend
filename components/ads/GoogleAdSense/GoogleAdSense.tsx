@@ -31,6 +31,7 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
 
   return (
     <div className={styles.googleAdSense} style={style}>
+      <div className={styles.adLabel}>إعلان</div>
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}

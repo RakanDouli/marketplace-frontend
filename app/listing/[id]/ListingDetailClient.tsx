@@ -302,6 +302,12 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               </>
             )}
             {/* ww */}
+
+            {/* Ad before description */}
+            <div className={styles.adSection}>
+              <AdContainer type="BANNER" placement="detail_before_description" />
+            </div>
+
             {/* Description - Moved after attributes */}
             {listing.description && (
               <div className={styles.section}>
@@ -345,10 +351,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
           </aside>
         </div>
 
-      </div>
-      {/* Bottom Banner Ad (before description) */}
-      <div className={styles.adSection}>
-        <AdContainer type="BANNER" placement="detail_before_description" />
       </div>
 
       {/* Contact Seller Modal */}

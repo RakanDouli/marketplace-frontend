@@ -140,7 +140,7 @@ export const Input = forwardRef<
       // Price input with currency selector
       if (type === "price") {
         const { exchangeRates, getRate } = useCurrencyStore();
-        const [selectedCurrency, setSelectedCurrency] = useState<Currency>("SYP");
+        const [selectedCurrency, setSelectedCurrency] = useState<Currency>("USD");
         const [displayValue, setDisplayValue] = useState<string>('');
 
         // Convert USD cents (from props.value) to display currency
@@ -169,12 +169,18 @@ export const Input = forwardRef<
           // Remove commas for parsing
           const cleanValue = inputValue.replace(/,/g, '');
 
-          // Only allow numbers
-          if (cleanValue && !/^\d+$/.test(cleanValue)) {
-            return; // Ignore invalid input
+          // Only allow numbers and commas
+          if (inputValue && !/^[\d,]*$/.test(inputValue)) {
+            return; // Ignore invalid input (anything except digits and commas)
           }
 
-          setDisplayValue(inputValue);
+          // Update display with formatted value
+          if (cleanValue) {
+            const formattedValue = parseInt(cleanValue).toLocaleString('en-US');
+            setDisplayValue(formattedValue);
+          } else {
+            setDisplayValue('');
+          }
 
           const amount = parseFloat(cleanValue);
           if (isNaN(amount) || amount <= 0) {

@@ -41,8 +41,8 @@ export const AdPackageValidationConfig = {
     max: 10000000, // 10 million impressions max
   },
   basePrice: {
-    min: 0,
-    max: 100000, // Maximum $100,000
+    min: 100, // Minimum $1 (stored as 100 cents)
+    max: 10000000, // Maximum $100,000 (stored as 10,000,000 cents)
   },
 };
 
@@ -99,42 +99,60 @@ const basePriceSchema = z
   .number()
   .min(
     AdPackageValidationConfig.basePrice.min,
-    'السعر يجب أن يكون صفر أو أكثر'
+    `السعر يجب أن يكون $${(AdPackageValidationConfig.basePrice.min / 100).toFixed(2)} على الأقل`
   )
   .max(
     AdPackageValidationConfig.basePrice.max,
-    `السعر يجب ألا يتجاوز ${AdPackageValidationConfig.basePrice.max.toLocaleString()} دولار`
+    `السعر يجب ألا يتجاوز $${(AdPackageValidationConfig.basePrice.max / 100).toLocaleString('en-US')}`
   );
 
 // ===== INDIVIDUAL FIELD VALIDATORS =====
 export const validatePackageName = (value: string): string | undefined => {
   const result = packageNameSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  if (result.success) return undefined;
+
+  // Zod uses 'issues' not 'errors'
+  return result.error?.issues?.[0]?.message || 'خطأ في التحقق من اسم الحزمة';
 };
 
 export const validateDescription = (value: string): string | undefined => {
   const result = descriptionSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  if (result.success) return undefined;
+
+  // Zod uses 'issues' not 'errors'
+  return result.error?.issues?.[0]?.message || 'خطأ في التحقق من الوصف';
 };
 
 export const validateAdType = (value: string): string | undefined => {
   const result = adTypeSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  if (result.success) return undefined;
+
+  // Zod uses 'issues' not 'errors'
+  return result.error?.issues?.[0]?.message || 'خطأ في التحقق من نوع الإعلان';
 };
 
 export const validateDurationDays = (value: number): string | undefined => {
   const result = durationDaysSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  if (result.success) return undefined;
+
+  // Zod uses 'issues' not 'errors'
+  return result.error?.issues?.[0]?.message || 'خطأ في التحقق من المدة';
 };
 
 export const validateImpressionLimit = (value: number): string | undefined => {
   const result = impressionLimitSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  if (result.success) return undefined;
+
+  // Zod uses 'issues' not 'errors'
+  return result.error?.issues?.[0]?.message || 'خطأ في التحقق من حد الظهور';
 };
 
 export const validateBasePrice = (value: number): string | undefined => {
   const result = basePriceSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  if (result.success) return undefined;
+
+  // Zod uses 'issues' not 'errors'
+  return result.error?.issues?.[0]?.message || 'خطأ في التحقق من السعر';
 };
 
 // ===== FULL FORM VALIDATORS =====

@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAdsStore, AdMediaType, AdCampaign, AdSenseSettings } from '@/stores/adsStore';
-import { AdBanner } from '../AdBanner';
-import { AdVideo } from '../AdVideo';
-import { AdCard } from '../AdCard';
+import { CustomAd } from '../CustomAd';
 import { GoogleAdSense } from '../GoogleAdSense';
 
 export interface AdContainerProps {
@@ -20,7 +18,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 }) => {
   const [selectedAd, setSelectedAd] = useState<AdCampaign | null>(null);
   const [adSenseSettings, setAdSenseSettings] = useState<AdSenseSettings | null>(null);
-  const { fetchAdsByType, fetchAdSenseSettings, trackImpression, trackClick } = useAdsStore();
+  const { fetchAllAds, getAdsByPlacement, fetchAdSenseSettings, trackImpression, trackClick } = useAdsStore();
 
   // Helper: Calculate days until campaign ends
   const getDaysUntilEnd = (endDate: string | Date): number => {
@@ -91,8 +89,11 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 
   useEffect(() => {
     const loadAd = async () => {
-      // Step 1: Try to fetch custom ads (backend already filters by pacing)
-      const ads = await fetchAdsByType(type);
+      // Step 1: Fetch all ads once (smart caching)
+      await fetchAllAds();
+
+      // Step 2: Filter by placement locally
+      const ads = getAdsByPlacement(placement);
 
       if (ads.length > 0) {
         // Use priority-based weighted selection
@@ -101,14 +102,14 @@ export const AdContainer: React.FC<AdContainerProps> = ({
         return;
       }
 
-      // Step 2: No custom ads - try Google AdSense fallback
-      console.log(`📢 AdContainer: No custom ads for ${type}, checking AdSense fallback...`);
+      // Step 3: No custom ads - try Google AdSense fallback
+      console.log(`📢 AdContainer: No custom ads for placement "${placement}", checking AdSense fallback...`);
       const settings = await fetchAdSenseSettings();
       setAdSenseSettings(settings);
     };
 
     loadAd();
-  }, [type, placement, fetchAdsByType, fetchAdSenseSettings]);
+  }, [type, placement, fetchAllAds, getAdsByPlacement, fetchAdSenseSettings]);
 
   // Handle impression tracking
   const handleImpression = (campaignId: string) => {
@@ -122,102 +123,26 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 
   // Render custom ad if available
   if (selectedAd) {
-    // Determine if we're on mobile
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-
-    // Extract media URLs from packageBreakdown
-    let desktopMediaUrl: string | null = null;
-    let mobileMediaUrl: string | null = null;
-    let clickUrl: string | null = null;
-    let openInNewTab: boolean = false;
-    let dimensions = selectedAd.package?.dimensions;
-
-    if (selectedAd.packageBreakdown?.packages) {
-      // Find the first active package (within date range)
-      const now = new Date();
-      const activePackage = selectedAd.packageBreakdown.packages.find(pkg => {
-        const start = new Date(pkg.startDate);
-        const end = new Date(pkg.endDate);
-        return now >= start && now <= end;
-      });
-
-      if (activePackage) {
-        desktopMediaUrl = activePackage.desktopMediaUrl;
-        mobileMediaUrl = activePackage.mobileMediaUrl;
-        clickUrl = activePackage.clickUrl || null;
-        openInNewTab = activePackage.openInNewTab || false;
-        dimensions = activePackage.packageData.dimensions;
-      }
-    }
-
-    // Choose the appropriate media URL based on device
-    const mediaUrl = isMobile && mobileMediaUrl
-      ? mobileMediaUrl
-      : desktopMediaUrl;
-
-    // If no media URL, fall through to AdSense fallback
-    if (mediaUrl) {
-      // Render appropriate component based on ad type
-      switch (type) {
-        case 'BANNER':
-        case 'BETWEEN_LISTINGS_BANNER':
-          return (
-            <div className={className}>
-              <AdBanner
-                campaignId={selectedAd.id}
-                imageUrl={mediaUrl}
-                targetUrl={clickUrl}
-                altText={selectedAd.description || selectedAd.campaignName}
-                dimensions={dimensions}
-                onImpression={handleImpression}
-                onClick={handleClick}
-              />
-            </div>
-          );
-
-        case 'VIDEO':
-          return (
-            <div className={className}>
-              <AdVideo
-                campaignId={selectedAd.id}
-                videoUrl={mediaUrl}
-                targetUrl={clickUrl}
-                altText={selectedAd.description || selectedAd.campaignName}
-                onImpression={handleImpression}
-                onClick={handleClick}
-              />
-            </div>
-          );
-
-        default:
-          console.warn(`📢 AdContainer: Unknown ad type: ${type}`);
-          return null;
-      }
-    }
+    return (
+      <div className={className}>
+        <CustomAd
+          campaign={selectedAd}
+          onImpression={handleImpression}
+          onClick={handleClick}
+        />
+      </div>
+    );
   }
 
   // No custom ad - try Google AdSense fallback
   if (adSenseSettings && adSenseSettings.clientId) {
-    // Map ad type to AdSense slot
-    let adSenseSlot = null;
-
-    switch (type) {
-      case 'BANNER':
-        adSenseSlot = adSenseSettings.bannerSlot;
-        break;
-      case 'VIDEO':
-        adSenseSlot = adSenseSettings.videoSlot;
-        break;
-      case 'BETWEEN_LISTINGS_BANNER':
-        adSenseSlot = adSenseSettings.betweenListingsSlot;
-        break;
-      default:
-        console.warn(`📢 AdContainer: Unknown ad type for AdSense: ${type}`);
-    }
+    // Use image slot by default (Google AdSense auto-detects format/dimensions)
+    // Admin can disable image/video slots independently via toggles
+    const adSenseSlot = adSenseSettings.imageSlot;
 
     // Check if slot exists and is enabled
-    if (adSenseSlot && adSenseSlot.enabled) {
-      console.log(`📢 AdContainer: Rendering Google AdSense for ${type}`, {
+    if (adSenseSlot && adSenseSlot.enabled && adSenseSlot.id) {
+      console.log(`📢 AdContainer: Rendering Google AdSense for placement "${placement}"`, {
         clientId: adSenseSettings.clientId,
         slotId: adSenseSlot.id,
       });
@@ -227,13 +152,13 @@ export const AdContainer: React.FC<AdContainerProps> = ({
           <GoogleAdSense
             client={adSenseSettings.clientId}
             slot={adSenseSlot.id}
-            format="auto"
+            format="horizontal"
             responsive={true}
           />
         </div>
       );
     } else {
-      console.log(`📢 AdContainer: AdSense slot for ${type} is disabled or not configured`);
+      console.log(`📢 AdContainer: AdSense slot is disabled or not configured for placement "${placement}"`);
     }
   } else {
     console.log(`📢 AdContainer: No AdSense settings available (clientId missing or settings not loaded)`);

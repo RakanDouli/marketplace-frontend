@@ -1,0 +1,40 @@
+@import "../../../styles/variables";
+
+.customAd {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.adLabel {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.adContent {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.adImage {
+  border-radius: 8px;
+}
+
+.adVideo {
+  border-radius: 8px;
+}

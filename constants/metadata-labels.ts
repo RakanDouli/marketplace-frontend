@@ -140,9 +140,8 @@ export const ATTRIBUTE_STORAGE_TYPE_LABELS: Record<string, string> = {
 // ===== AD SYSTEM METADATA LABELS =====
 
 export const AD_MEDIA_TYPE_LABELS: Record<string, string> = {
-  banner: "بانر علوي",
-  video: "فيديو علوي",
-  between_listings_banner: "بين القوائم - بانر كامل",
+  image: "صورة",
+  video: "فيديو",
 };
 
 export const AD_CAMPAIGN_STATUS_LABELS: Record<string, string> = {
@@ -165,6 +164,24 @@ export const CAMPAIGN_START_PREFERENCE_LABELS: Record<string, string> = {
   immediate: "فوري بعد الدفع",
   scheduled: "تاريخ محدد",
   after_review: "بعد المراجعة",
+};
+
+export const AD_PLACEMENT_LABELS: Record<string, string> = {
+  homepage_top: "الصفحة الرئيسية - أعلى",
+  homepage_mid: "الصفحة الرئيسية - وسط",
+  between_listings: "بين القوائم",
+  detail_top: "صفحة التفاصيل - أعلى",
+  detail_before_description: "صفحة التفاصيل - قبل الوصف",
+};
+
+export const AD_FORMAT_LABELS: Record<string, string> = {
+  billboard: "بيلبورد (970x250)",
+  super_leaderboard: "سوبر ليدربورد (970x90)",
+  leaderboard: "ليدربورد (728x90)",
+  mobile_banner: "بانر موبايل (320x50)",
+  large_mobile_banner: "بانر موبايل كبير (320x100)",
+  hd_player: "فيديو HD (1280x720)",
+  leaderboard_video: "فيديو ليدربورد (970x546)",
 };
 
 // ===== HELPER FUNCTIONS =====

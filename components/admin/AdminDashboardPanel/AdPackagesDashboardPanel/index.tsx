@@ -127,12 +127,7 @@ export const AdPackagesDashboardPanel: React.FC = () => {
   const handleCreateSubmit = async (packageData: any) => {
     try {
       await createAdPackage(packageData);
-      addNotification({
-        type: 'success',
-        title: 'تم إنشاء حزمة الإعلان بنجاح',
-        message: `تم إنشاء الحزمة ${packageData.packageName} بنجاح`,
-        duration: 3000
-      });
+      // Success notification is handled by the modal
       setShowCreateModal(false);
       setSelectedAdPackage(null);
     } catch (error) {
@@ -144,12 +139,7 @@ export const AdPackagesDashboardPanel: React.FC = () => {
   const handleEditSubmit = async (packageData: any) => {
     try {
       await updateAdPackage(packageData);
-      addNotification({
-        type: 'success',
-        title: 'تم تحديث حزمة الإعلان بنجاح',
-        message: 'تم حفظ التغييرات بنجاح',
-        duration: 3000
-      });
+      // Success notification is handled by the modal
       setShowEditModal(false);
       setSelectedAdPackage(null);
     } catch (error) {
@@ -187,29 +177,54 @@ export const AdPackagesDashboardPanel: React.FC = () => {
     }));
   };
 
-  const handleSaveAdsenseSetting = async (key: string) => {
+  const handleSaveAllAdsenseSettings = async () => {
     try {
-      const settingData = adsenseFormData[key];
-      await updateSetting(key, settingData.value, settingData.isActive);
+      // Save all settings sequentially
+      for (const [key, settingData] of Object.entries(adsenseFormData)) {
+        await updateSetting(key, settingData.value, settingData.isActive);
+      }
       addNotification({
         type: 'success',
-        title: 'تم حفظ الإعداد بنجاح',
-        message: 'تم تحديث إعدادات جوجل أدسنس',
+        title: 'تم حفظ الإعدادات بنجاح',
+        message: 'تم تحديث إعدادات Google AdSense بنجاح',
         duration: 3000
       });
     } catch (error) {
-      console.error('Error saving AdSense setting:', error);
+      console.error('Error saving AdSense settings:', error);
+      addNotification({
+        type: 'error',
+        title: 'خطأ في حفظ الإعدادات',
+        message: 'فشل حفظ إعدادات Google AdSense',
+        duration: 5000
+      });
     }
   };
 
   const getSettingLabel = (key: string): string => {
     const labels: Record<string, string> = {
-      'adsense_client_id': 'معرف عميل Google AdSense',
-      'adsense_banner_slot': 'معرف إعلان البانر العلوي',
-      'adsense_between_listings_slot': 'معرف إعلان بين القوائم',
-      'adsense_video_slot': 'معرف إعلان الفيديو'
+      'adsense_client_id': 'معرف العميل (Client ID)',
+      'adsense_image_slot': 'معرف وحدة الإعلانات للصور (Image Slot ID)',
+      'adsense_video_slot': 'معرف وحدة الإعلانات للفيديو (Video Slot ID)'
     };
     return labels[key] || key;
+  };
+
+  const getSettingPlaceholder = (key: string): string => {
+    const placeholders: Record<string, string> = {
+      'adsense_client_id': 'ca-pub-1234567890123456',
+      'adsense_image_slot': '1234567890',
+      'adsense_video_slot': '0987654321'
+    };
+    return placeholders[key] || '';
+  };
+
+  const getSettingHelp = (key: string): string => {
+    const help: Record<string, string> = {
+      'adsense_client_id': 'معرف حساب AdSense الخاص بك (يبدأ بـ ca-pub-)',
+      'adsense_image_slot': 'معرف وحدة الإعلان للصور (Horizontal format)',
+      'adsense_video_slot': 'معرف وحدة الإعلان للفيديو (Video format)'
+    };
+    return help[key] || '';
   };
 
   return (
@@ -351,9 +366,12 @@ export const AdPackagesDashboardPanel: React.FC = () => {
       <div className={styles.settingsSection}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <Text variant="h3">إعدادات Google AdSense</Text>
+            <Text variant="h3">إعدادات Google AdSense (إعلانات احتياطية)</Text>
             <Text variant="paragraph" color="secondary">
-              تكوين إعلانات جوجل الاحتياطية التي تظهر عند انتهاء حملات الإعلانات المدفوعة
+              قم بإعداد حساب Google AdSense لعرض إعلانات احتياطية تلقائياً عندما لا تتوفر حملات مدفوعة
+            </Text>
+            <Text variant="small" color="secondary" style={{ marginTop: '8px' }}>
+              💡 كيفية الحصول على البيانات: سجّل دخول إلى <strong>Google AdSense</strong> → <strong>Ads</strong> → <strong>Ad units</strong> → انسخ المعرّفات
             </Text>
           </div>
         </div>
@@ -368,46 +386,102 @@ export const AdPackagesDashboardPanel: React.FC = () => {
             <Text variant="paragraph" color="secondary">لا توجد إعدادات متاحة</Text>
           </div>
         ) : (
-          <div className={styles.settingsGrid}>
-            {adNetworkSettings.map(setting => (
-              <div key={setting.key} className={styles.settingRow}>
-                <div className={styles.settingField}>
+          <>
+            <div className={styles.settingsForm}>
+              {/* Client ID (always required, no toggle) */}
+              {adNetworkSettings.find(s => s.key === 'adsense_client_id') && (
+                <div className={styles.settingGroup}>
                   <Text variant="paragraph" weight="medium" className={styles.settingLabel}>
-                    {getSettingLabel(setting.key)}
+                    {getSettingLabel('adsense_client_id')}
+                  </Text>
+                  <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
+                    {getSettingHelp('adsense_client_id')}
                   </Text>
                   <Input
                     type="text"
-                    value={adsenseFormData[setting.key]?.value || ''}
-                    onChange={(e) => handleAdsenseChange(setting.key, 'value', e.target.value)}
-                    placeholder={setting.description || ''}
+                    value={adsenseFormData['adsense_client_id']?.value || ''}
+                    onChange={(e) => handleAdsenseChange('adsense_client_id', 'value', e.target.value)}
+                    placeholder={getSettingPlaceholder('adsense_client_id')}
                     disabled={!canModify}
                   />
                 </div>
+              )}
 
-                <label className={styles.settingToggle}>
-                  <input
-                    type="checkbox"
-                    checked={adsenseFormData[setting.key]?.isActive || false}
-                    onChange={(e) => handleAdsenseChange(setting.key, 'isActive', e.target.checked)}
+              {/* Image Slot (with toggle) */}
+              {adNetworkSettings.find(s => s.key === 'adsense_image_slot') && (
+                <div className={styles.settingGroup}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <Text variant="paragraph" weight="medium" className={styles.settingLabel}>
+                      {getSettingLabel('adsense_image_slot')}
+                    </Text>
+                    <label className={styles.settingToggle}>
+                      <input
+                        type="checkbox"
+                        checked={adsenseFormData['adsense_image_slot']?.isActive || false}
+                        onChange={(e) => handleAdsenseChange('adsense_image_slot', 'isActive', e.target.checked)}
+                        disabled={!canModify}
+                      />
+                      <Text variant="small">مفعّل</Text>
+                    </label>
+                  </div>
+                  <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
+                    {getSettingHelp('adsense_image_slot')}
+                  </Text>
+                  <Input
+                    type="text"
+                    value={adsenseFormData['adsense_image_slot']?.value || ''}
+                    onChange={(e) => handleAdsenseChange('adsense_image_slot', 'value', e.target.value)}
+                    placeholder={getSettingPlaceholder('adsense_image_slot')}
                     disabled={!canModify}
                   />
-                  <Text variant="small">مفعّل</Text>
-                </label>
+                </div>
+              )}
 
-                {canModify && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleSaveAdsenseSetting(setting.key)}
-                    icon={<Save size={16} />}
-                    disabled={settingsLoading}
-                  >
-                    حفظ
-                  </Button>
-                )}
+              {/* Video Slot (with toggle) */}
+              {adNetworkSettings.find(s => s.key === 'adsense_video_slot') && (
+                <div className={styles.settingGroup}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <Text variant="paragraph" weight="medium" className={styles.settingLabel}>
+                      {getSettingLabel('adsense_video_slot')}
+                    </Text>
+                    <label className={styles.settingToggle}>
+                      <input
+                        type="checkbox"
+                        checked={adsenseFormData['adsense_video_slot']?.isActive || false}
+                        onChange={(e) => handleAdsenseChange('adsense_video_slot', 'isActive', e.target.checked)}
+                        disabled={!canModify}
+                      />
+                      <Text variant="small">مفعّل</Text>
+                    </label>
+                  </div>
+                  <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
+                    {getSettingHelp('adsense_video_slot')}
+                  </Text>
+                  <Input
+                    type="text"
+                    value={adsenseFormData['adsense_video_slot']?.value || ''}
+                    onChange={(e) => handleAdsenseChange('adsense_video_slot', 'value', e.target.value)}
+                    placeholder={getSettingPlaceholder('adsense_video_slot')}
+                    disabled={!canModify}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Single Save Button */}
+            {canModify && (
+              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="primary"
+                  onClick={handleSaveAllAdsenseSettings}
+                  icon={<Save size={16} />}
+                  disabled={settingsLoading}
+                >
+                  حفظ جميع الإعدادات
+                </Button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </>

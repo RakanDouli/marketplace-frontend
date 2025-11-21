@@ -13,11 +13,21 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Google AdSense Client ID
+  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-8877772671863002';
+
   return (
     <html lang="ar" dir="rtl" data-theme="light">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* Google AdSense Script */}
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+          crossOrigin="anonymous"
+        />
       </head>
       <body>
         <LanguageProvider defaultLanguage="ar">

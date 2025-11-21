@@ -1,12 +1,11 @@
 import { create } from "zustand";
 import { cachedGraphQLRequest } from "../../utils/graphql-cache";
-import { GET_ACTIVE_ADS_BY_TYPE_QUERY, GET_ADSENSE_SETTINGS_QUERY } from "./adsStore.gql";
+import { GET_ALL_ACTIVE_ADS_QUERY, GET_ACTIVE_ADS_BY_TYPE_QUERY, GET_ADSENSE_SETTINGS_QUERY } from "./adsStore.gql";
 
 // Ad types matching backend enum
 export type AdMediaType =
-  | "BANNER"
-  | "VIDEO"
-  | "BETWEEN_LISTINGS_BANNER";
+  | "IMAGE"
+  | "VIDEO";
 
 // Package breakdown interfaces (matches backend)
 export interface CampaignPackage {
@@ -74,20 +73,23 @@ export interface AdSenseSlot {
 
 export interface AdSenseSettings {
   clientId: string | null;
-  bannerSlot: AdSenseSlot | null;
-  betweenListingsSlot: AdSenseSlot | null;
+  imageSlot: AdSenseSlot | null;
   videoSlot: AdSenseSlot | null;
 }
 
 interface AdsState {
   // Data
-  adsByType: Record<AdMediaType, AdCampaign[]>;
+  allAds: AdCampaign[]; // NEW: Smart cache - all active ads loaded once
+  allAdsFetchedAt: number | null; // NEW: Timestamp of last fetch
+  adsByType: Record<AdMediaType, AdCampaign[]>; // DEPRECATED - kept for backward compatibility
   adSenseSettings: AdSenseSettings | null;
   loading: boolean;
   error: string | null;
 
   // Actions
-  fetchAdsByType: (adType: AdMediaType) => Promise<AdCampaign[]>;
+  fetchAllAds: () => Promise<AdCampaign[]>; // NEW: Smart fetch - fetch all ads once
+  getAdsByPlacement: (placement: string) => AdCampaign[]; // NEW: Filter cached ads by placement
+  fetchAdsByType: (adType: AdMediaType) => Promise<AdCampaign[]>; // DEPRECATED - kept for backward compatibility
   fetchAdSenseSettings: () => Promise<AdSenseSettings | null>;
   trackImpression: (campaignId: string) => Promise<void>;
   trackClick: (campaignId: string) => Promise<void>;
@@ -96,6 +98,8 @@ interface AdsState {
 
 export const useAdsStore = create<AdsState>((set, get) => ({
   // Initial state
+  allAds: [], // NEW: Smart cache
+  allAdsFetchedAt: null, // NEW: Track last fetch time
   adsByType: {
     BANNER: [],
     VIDEO: [],
@@ -105,6 +109,82 @@ export const useAdsStore = create<AdsState>((set, get) => ({
   adSenseSettings: null,
   loading: false,
   error: null,
+
+  // NEW: Smart fetch - fetch all active ads once and cache
+  fetchAllAds: async () => {
+    const { allAds, allAdsFetchedAt } = get();
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    // Return cached ads if still fresh
+    if (allAds.length > 0 && allAdsFetchedAt && Date.now() - allAdsFetchedAt < CACHE_TTL) {
+      console.log(`📢 AdsStore: Using cached ads (${allAds.length} campaigns)`);
+      return allAds;
+    }
+
+    console.log(`📢 AdsStore: Fetching all active ads (smart cache)`);
+    set({ loading: true, error: null });
+
+    try {
+      const data = await cachedGraphQLRequest(
+        GET_ALL_ACTIVE_ADS_QUERY,
+        {},
+        { ttl: CACHE_TTL }
+      );
+
+      const ads: AdCampaign[] = data.getAllActiveAds || [];
+
+      console.log(`📢 AdsStore: Fetched ${ads.length} active campaigns`, {
+        campaigns: ads.map((ad) => ({
+          id: ad.id,
+          name: ad.campaignName,
+          placements: ad.packageBreakdown?.packages?.map(pkg => pkg.packageData.placement) || [],
+        })),
+      });
+
+      // Update store with fetched ads
+      set({
+        allAds: ads,
+        allAdsFetchedAt: Date.now(),
+        loading: false,
+        error: null,
+      });
+
+      return ads;
+    } catch (error: any) {
+      console.error(`❌ AdsStore: Failed to fetch ads:`, error);
+      set({
+        loading: false,
+        error: error.message || "Failed to load ads",
+      });
+      return [];
+    }
+  },
+
+  // NEW: Filter cached ads by placement (client-side)
+  getAdsByPlacement: (placement: string) => {
+    const { allAds } = get();
+    const now = new Date();
+
+    // Filter ads that have packages for this placement and are currently active
+    const filtered = allAds.filter(campaign => {
+      if (!campaign.packageBreakdown?.packages) return false;
+
+      // Check if any package matches this placement and is currently active
+      return campaign.packageBreakdown.packages.some(pkg => {
+        const pkgStart = new Date(pkg.startDate);
+        const pkgEnd = new Date(pkg.endDate);
+
+        return (
+          pkg.packageData.placement === placement &&
+          now >= pkgStart &&
+          now <= pkgEnd
+        );
+      });
+    });
+
+    console.log(`📢 AdsStore: Filtered ${filtered.length} ads for placement "${placement}"`);
+    return filtered;
+  },
 
   // Fetch active ads by type
   fetchAdsByType: async (adType: AdMediaType) => {

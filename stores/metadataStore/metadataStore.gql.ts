@@ -106,6 +106,18 @@ export const GET_CAMPAIGN_START_PREFERENCES_QUERY = `
   }
 `;
 
+export const GET_AD_PLACEMENTS_QUERY = `
+  query GetAdPlacements {
+    getAdPlacements
+  }
+`;
+
+export const GET_AD_FORMATS_QUERY = `
+  query GetAdFormats {
+    getAdFormats
+  }
+`;
+
 // ===== LOCATION METADATA =====
 
 export const GET_PROVINCES_QUERY = `

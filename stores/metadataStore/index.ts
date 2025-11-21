@@ -17,6 +17,8 @@ import {
   GET_AD_CAMPAIGN_STATUSES_QUERY,
   GET_AD_CLIENT_STATUSES_QUERY,
   GET_CAMPAIGN_START_PREFERENCES_QUERY,
+  GET_AD_PLACEMENTS_QUERY,
+  GET_AD_FORMATS_QUERY,
   GET_PROVINCES_QUERY,
 } from "./metadataStore.gql";
 
@@ -59,6 +61,8 @@ interface MetadataState {
   adCampaignStatuses: string[];
   adClientStatuses: string[];
   campaignStartPreferences: string[];
+  adPlacements: string[];
+  adFormats: string[];
 
   // Location metadata
   provinces: Province[];
@@ -97,6 +101,8 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   adCampaignStatuses: [],
   adClientStatuses: [],
   campaignStartPreferences: [],
+  adPlacements: [],
+  adFormats: [],
   provinces: [],
   loading: false,
   error: null,
@@ -211,11 +217,15 @@ export const useMetadataStore = create<MetadataState>((set) => ({
         campaignStatusesData,
         clientStatusesData,
         startPreferencesData,
+        placementsData,
+        formatsData,
       ] = await Promise.all([
         cachedGraphQLRequest(GET_AD_MEDIA_TYPES_QUERY),
         cachedGraphQLRequest(GET_AD_CAMPAIGN_STATUSES_QUERY),
         cachedGraphQLRequest(GET_AD_CLIENT_STATUSES_QUERY),
         cachedGraphQLRequest(GET_CAMPAIGN_START_PREFERENCES_QUERY),
+        cachedGraphQLRequest(GET_AD_PLACEMENTS_QUERY),
+        cachedGraphQLRequest(GET_AD_FORMATS_QUERY),
       ]);
 
       set({
@@ -223,6 +233,8 @@ export const useMetadataStore = create<MetadataState>((set) => ({
         adCampaignStatuses: (campaignStatusesData as any).getAdCampaignStatuses || [],
         adClientStatuses: (clientStatusesData as any).getAdClientStatuses || [],
         campaignStartPreferences: (startPreferencesData as any).getCampaignStartPreferences || [],
+        adPlacements: (placementsData as any).getAdPlacements || [],
+        adFormats: (formatsData as any).getAdFormats || [],
         loading: false,
       });
     } catch (error: any) {

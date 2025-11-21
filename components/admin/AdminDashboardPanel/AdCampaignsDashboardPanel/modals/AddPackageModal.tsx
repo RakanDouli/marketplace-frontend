@@ -137,21 +137,24 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       for (const imageItem of addedImages) {
         if (!imageItem.file) continue;
 
-        // Upload to Cloudflare immediately (returns image ID)
-        const imageId = await uploadToCloudflare(imageItem.file, 'image');
+        // Determine media type from package (image or video)
+        const mediaType = selectedPackage?.adType.toLowerCase() === 'video' ? 'video' : 'image';
+
+        // Upload to Cloudflare immediately (returns media ID)
+        const mediaId = await uploadToCloudflare(imageItem.file, mediaType);
 
         // Update the image with the uploaded ID (Image component will convert it to URL)
-        setDesktopImages([{ id: imageItem.id, url: imageId, file: undefined }]);
+        setDesktopImages([{ id: imageItem.id, url: mediaId, file: undefined }]);
 
         addNotification({
           type: 'success',
           title: 'تم الرفع',
-          message: 'تم رفع صورة سطح المكتب بنجاح',
+          message: `تم رفع ${mediaTypeLabel} سطح المكتب بنجاح`,
           duration: 3000,
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل في رفع الصورة');
+      setError(err instanceof Error ? err.message : `فشل في رفع ${mediaTypeLabel}`);
       setDesktopImages([]); // Clear on error
     } finally {
       setIsUploading(false);
@@ -171,21 +174,24 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       for (const imageItem of addedImages) {
         if (!imageItem.file) continue;
 
-        // Upload to Cloudflare immediately (returns image ID)
-        const imageId = await uploadToCloudflare(imageItem.file, 'image');
+        // Determine media type from package (image or video)
+        const mediaType = selectedPackage?.adType.toLowerCase() === 'video' ? 'video' : 'image';
+
+        // Upload to Cloudflare immediately (returns media ID)
+        const mediaId = await uploadToCloudflare(imageItem.file, mediaType);
 
         // Update the image with the uploaded ID (Image component will convert it to URL)
-        setMobileImages([{ id: imageItem.id, url: imageId, file: undefined }]);
+        setMobileImages([{ id: imageItem.id, url: mediaId, file: undefined }]);
 
         addNotification({
           type: 'success',
           title: 'تم الرفع',
-          message: 'تم رفع صورة الموبايل بنجاح',
+          message: `تم رفع ${mediaTypeLabel} الموبايل بنجاح`,
           duration: 3000,
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل في رفع الصورة');
+      setError(err instanceof Error ? err.message : `فشل في رفع ${mediaTypeLabel}`);
       setMobileImages([]); // Clear on error
     } finally {
       setIsUploading(false);
@@ -208,12 +214,12 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
     }
 
     if (desktopImages.length === 0 || !desktopImages[0].url) {
-      setError('يرجى رفع صورة سطح المكتب');
+      setError(`يرجى رفع ${mediaTypeLabel} سطح المكتب`);
       return;
     }
 
     if (mobileImages.length === 0 || !mobileImages[0].url) {
-      setError('يرجى رفع صورة الموبايل');
+      setError(`يرجى رفع ${mediaTypeLabel} الموبايل`);
       return;
     }
 

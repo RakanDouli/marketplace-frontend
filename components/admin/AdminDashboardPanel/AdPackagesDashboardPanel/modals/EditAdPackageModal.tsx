@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Form } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { AD_MEDIA_TYPE_LABELS, mapToOptions } from '@/constants/metadata-labels';
+import { AD_MEDIA_TYPE_LABELS, AD_PLACEMENT_LABELS, AD_FORMAT_LABELS, mapToOptions } from '@/constants/metadata-labels';
 import {
   validateEditAdPackageForm,
   hasValidationErrors,
   type ValidationErrors,
+  validatePackageName,
+  validateDescription,
+  validateDurationDays,
+  validateImpressionLimit,
+  validateBasePrice,
 } from '@/lib/admin/validation/adPackageValidation';
+import { getAllowedFormats, getFormatDimensions } from '@/utils/ad-format-helpers';
 import styles from './AdPackageModals.module.scss';
 
 interface EditAdPackageModalProps {
@@ -32,13 +38,15 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const { addNotification } = useNotificationStore();
-  const { adMediaTypes, fetchAdMetadata } = useMetadataStore();
+  const { adMediaTypes, adPlacements, adFormats, fetchAdMetadata } = useMetadataStore();
 
   const [formData, setFormData] = useState({
     id: '',
     packageName: '',
     description: '',
     adType: '',
+    placement: '',
+    format: '',
     durationDays: 30,
     impressionLimit: 10000,
     basePrice: 0,
@@ -60,10 +68,12 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
         id: initialData.id,
         packageName: initialData.packageName || '',
         description: initialData.description || '',
-        adType: initialData.adType || '',
+        adType: (initialData.adType || '').toLowerCase(), // Convert IMAGE → image for form
+        placement: initialData.placement || '', // Already lowercase from backend
+        format: initialData.format || '', // Already lowercase from backend
         durationDays: initialData.durationDays || 30,
         impressionLimit: initialData.impressionLimit || 10000,
-        basePrice: initialData.basePrice || 0,
+        basePrice: Math.round((initialData.basePrice || 0) * 100), // Convert dollars to cents for price input
         currency: initialData.currency || 'USD',
         isActive: initialData.isActive ?? true,
       });
@@ -87,7 +97,30 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
     console.log('✅ Ad Package validation passed, submitting...');
 
     try {
-      await onSubmit(formData);
+      // Get dimensions for the selected format
+      const dimensions = getFormatDimensions(formData.format);
+
+      if (!dimensions) {
+        setError('لم يتم العثور على أبعاد الصيغة المحددة');
+        return;
+      }
+
+      // Transform data before sending to GraphQL
+      // Backend expects uppercase for adType only: IMAGE, VIDEO (GraphQL enum keys)
+      // Backend expects lowercase with underscores for placement/format: homepage_top, super_leaderboard (enum values)
+      // Backend expects basePrice in dollars (decimal), not cents
+      const submissionData = {
+        ...formData,
+        adType: formData.adType.toUpperCase(), // IMAGE, VIDEO
+        placement: formData.placement, // Keep lowercase: homepage_top
+        format: formData.format, // Keep lowercase: super_leaderboard
+        dimensions, // Add dimensions based on format
+        basePrice: formData.basePrice / 100, // Convert cents to dollars
+      };
+
+      console.log('📤 Submitting ad package update:', JSON.stringify(submissionData, null, 2));
+
+      await onSubmit(submissionData);
       // Show success toast
       addNotification({
         type: 'success',
@@ -101,8 +134,40 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
   };
 
   const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+
+      // Reset format when adType or placement changes
+      if (field === 'adType' || field === 'placement') {
+        updated.format = ''; // Clear format to force user to re-select
+      }
+
+      return updated;
+    });
   };
+
+  // Calculate allowed formats based on selected adType and placement
+  const allowedFormats = useMemo(() => {
+    if (!formData.adType || !formData.placement) {
+      return []; // No formats available until both are selected
+    }
+
+    const formats = getAllowedFormats(formData.adType, formData.placement);
+    console.log(`📋 Allowed formats for ${formData.adType} + ${formData.placement}:`, formats);
+    return formats;
+  }, [formData.adType, formData.placement]);
+
+  // Filter format options to show only allowed formats
+  const formatOptions = useMemo(() => {
+    if (allowedFormats.length === 0) {
+      return [{ value: '', label: '-- اختر نوع الإعلان والموقع أولاً --' }];
+    }
+
+    return [
+      { value: '', label: '-- اختر الصيغة --' },
+      ...mapToOptions(allowedFormats, AD_FORMAT_LABELS)
+    ];
+  }, [allowedFormats]);
 
   return (
     <Modal
@@ -124,6 +189,8 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
               onChange={(e) => handleChange('packageName', e.target.value)}
               placeholder="حزمة البانر المتميزة - 30 يوم"
               required
+              validate={validatePackageName}
+              error={validationErrors.packageName}
             />
           </div>
           <Input
@@ -134,27 +201,50 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
             placeholder="وصف مختصر للحزمة..."
             rows={3}
             required
+            validate={validateDescription}
+            error={validationErrors.description}
           />
         </div>
 
-        {/* Ad Type */}
+        {/* Ad Type, Placement & Format */}
         <div className={styles.section}>
-          <Text variant="h4">نوع الإعلان</Text>
+          <Text variant="h4">نوع الإعلان والموقع</Text>
+          <div className={styles.formGrid}>
+            <Input
+              label="نوع الإعلان"
+              type="select"
+              value={formData.adType}
+              onChange={(e) => handleChange('adType', e.target.value)}
+              options={[
+                { value: '', label: '-- اختر نوع الإعلان --' },
+                ...mapToOptions(adMediaTypes, AD_MEDIA_TYPE_LABELS)
+              ]}
+              required
+            />
+            <Input
+              label="موقع الإعلان"
+              type="select"
+              value={formData.placement}
+              onChange={(e) => handleChange('placement', e.target.value)}
+              options={[
+                { value: '', label: '-- اختر الموقع --' },
+                ...mapToOptions(adPlacements, AD_PLACEMENT_LABELS)
+              ]}
+              required
+            />
+          </div>
           <Input
-            label="نوع الإعلان"
+            label="صيغة الإعلان"
             type="select"
-            value={formData.adType}
-            onChange={(e) => handleChange('adType', e.target.value)}
-            options={[
-              { value: '', label: '-- اختر نوع الإعلان --' },
-              ...mapToOptions(adMediaTypes, AD_MEDIA_TYPE_LABELS)
-            ]}
+            value={formData.format}
+            onChange={(e) => handleChange('format', e.target.value)}
+            options={formatOptions}
             required
+            disabled={!formData.adType || !formData.placement}
           />
           <Text variant="small" color="secondary">
-            {formData.adType === 'VIDEO' && 'يتطلب فيديو بنسبة 16:9 للسطح المكتب و 1:1 للموبايل'}
-            {formData.adType === 'BETWEEN_LISTINGS_BANNER' && 'بانر عريض كامل بين صفوف القوائم'}
-            {formData.adType === 'BANNER' && 'بانر علوي بعرض 1200x200 بكسل'}
+            {formData.adType === 'video' && 'يتطلب فيديو بنسبة 16:9 للسطح المكتب و 1:1 للموبايل'}
+            {formData.adType === 'banner' && 'بانر ثابت بالأبعاد المحددة'}
           </Text>
         </div>
 
@@ -169,6 +259,8 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
               onChange={(e) => handleChange('durationDays', parseInt(e.target.value) || 0)}
               min={1}
               required
+              validate={(value) => validateDurationDays(Number(value))}
+              error={validationErrors.durationDays}
             />
             <Input
               label="حد الظهور (عدد المرات)"
@@ -177,6 +269,8 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
               onChange={(e) => handleChange('impressionLimit', parseInt(e.target.value) || 0)}
               min={0}
               required
+              validate={(value) => validateImpressionLimit(Number(value))}
+              error={validationErrors.impressionLimit}
             />
           </div>
         </div>
@@ -190,6 +284,7 @@ export const EditAdPackageModal: React.FC<EditAdPackageModalProps> = ({
             value={formData.basePrice}
             onChange={(e) => handleChange('basePrice', parseFloat(e.target.value) || 0)}
             required
+            error={validationErrors.basePrice}
           />
           <Text variant="small" color="secondary">
             جميع الأسعار بالدولار الأمريكي (USD). سيتم تحويلها تلقائياً حسب موقع المستخدم.
