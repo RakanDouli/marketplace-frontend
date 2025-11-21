@@ -352,7 +352,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                   <div className={styles.adSlot} style={{ gridColumn: viewMode === 'grid' ? '1 / -1' : 'auto' }}>
                     <AdContainer
                       type="BETWEEN_LISTINGS_BANNER"
-                      placement={`listings-between-${Math.floor(index / adFrequency)}`}
+                      placement="between_listings"
                     />
                   </div>
                 )}

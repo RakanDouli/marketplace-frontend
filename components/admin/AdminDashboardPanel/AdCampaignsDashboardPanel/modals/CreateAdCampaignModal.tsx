@@ -8,6 +8,7 @@ import { useAdminAuthStore } from '@/stores/admin/adminAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { AddPackageModal, type CampaignPackage } from './AddPackageModal';
+import { formatAdPrice } from '@/utils/formatPrice';
 import styles from './AdCampaignModals.module.scss';
 
 interface CreateAdCampaignModalProps {
@@ -83,6 +84,10 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     totalPrice: 0,
     currency: 'USD',
     notes: '',
+    pacingMode: 'EVEN',     // NEW: Pacing mode (EVEN, ASAP, MANUAL)
+    priority: 3,            // NEW: Priority 1-5 (default 3)
+    discountPercentage: 0,  // NEW: Campaign-level discount (0-100)
+    discountReason: '',     // NEW: Why discount was applied
   });
 
   // Auto-calculate end date when start date, preference, or package changes
@@ -191,10 +196,16 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     setCampaignPackages(updated);
   };
 
-  // Calculate total price from all packages
-  const calculateTotalPrice = (): number => {
+  // Calculate total price from all packages with campaign-level discount
+  const calculateTotalBeforeDiscount = (): number => {
     if (campaignPackages.length === 0) return formData.totalPrice;
     return campaignPackages.reduce((sum, pkg) => sum + (pkg.customPrice || pkg.packageData.basePrice), 0);
+  };
+
+  const calculateTotalPrice = (): number => {
+    const beforeDiscount = calculateTotalBeforeDiscount();
+    const discountAmount = beforeDiscount * (formData.discountPercentage / 100);
+    return beforeDiscount - discountAmount;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -227,6 +238,12 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       return;
     }
 
+    // 5. Validate discount reason if discount is applied
+    if (formData.discountPercentage > 0 && !formData.discountReason.trim()) {
+      setError('يرجى إدخال سبب الخصم عند تطبيق خصم');
+      return;
+    }
+
     console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
@@ -245,11 +262,19 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           format: pkg.packageData.format,
           dimensions: pkg.packageData.dimensions,
           mediaRequirements: pkg.packageData.mediaRequirements,
+          startDate: pkg.startDate,         // NEW: Per-package start date
+          endDate: pkg.endDate,             // NEW: Per-package end date
           desktopMediaUrl: pkg.desktopMediaUrl,
           mobileMediaUrl: pkg.mobileMediaUrl,
           clickUrl: pkg.clickUrl,
           openInNewTab: pkg.openInNewTab,
-        }))
+          customPrice: pkg.customPrice,     // Include discount price
+          discountReason: pkg.discountReason, // NEW: Discount reason
+        })),
+        discountPercentage: formData.discountPercentage,  // Campaign-level discount
+        discountReason: formData.discountReason,          // Campaign-level discount reason
+        totalBeforeDiscount: calculateTotalBeforeDiscount(),
+        totalAfterDiscount: calculateTotalPrice(),
       } : undefined;
 
       // Calculate total price from campaign packages
@@ -260,11 +285,25 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         ? campaignPackages[0].packageId
         : formData.packageId;
 
+      // Calculate campaign-level dates as MIN/MAX from all packages
+      let campaignStartDate = formData.startDate;
+      let campaignEndDate = formData.endDate;
+
+      if (campaignPackages.length > 0) {
+        const allStartDates = campaignPackages.map(pkg => new Date(pkg.startDate));
+        const allEndDates = campaignPackages.map(pkg => new Date(pkg.endDate));
+
+        campaignStartDate = new Date(Math.min(...allStartDates.map(d => d.getTime()))).toISOString().split('T')[0];
+        campaignEndDate = new Date(Math.max(...allEndDates.map(d => d.getTime()))).toISOString().split('T')[0];
+      }
+
       const submissionData = {
         ...formData,
         packageId,
         isCustomPackage,
         totalPrice,
+        startDate: campaignStartDate,  // Campaign-level start (min of all packages)
+        endDate: campaignEndDate,      // Campaign-level end (max of all packages)
         packageBreakdown,
       };
 
@@ -294,6 +333,10 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         totalPrice: 0,
         currency: 'USD',
         notes: '',
+        pacingMode: 'EVEN',
+        priority: 3,
+        discountPercentage: 0,
+        discountReason: '',
       });
       setCampaignPackages([]);
     } catch (err) {
@@ -319,6 +362,10 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       totalPrice: 0,
       currency: 'USD',
       notes: '',
+      pacingMode: 'EVEN',
+      priority: 3,
+      discountPercentage: 0,
+      discountReason: '',
     });
     setCampaignPackages([]);
     setError(null);
@@ -336,6 +383,22 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     { value: 'ASAP', label: 'في أقرب وقت ممكن (عند الدفع)' },
     { value: 'SPECIFIC_DATE', label: 'تاريخ محدد' }
   ];
+
+  // Pacing mode options
+  const pacingModeOptions = [
+    { value: 'EVEN', label: 'توزيع متساوي (مُوصى به)' },
+    { value: 'ASAP', label: 'أسرع ما يمكن' },
+    { value: 'MANUAL', label: 'يدوي (تحكم الإدارة)' }
+  ];
+
+  // Priority labels for slider
+  const priorityLabels: { [key: number]: string } = {
+    1: 'منخفض جداً',
+    2: 'منخفض',
+    3: 'متوسط (افتراضي)',
+    4: 'عالي',
+    5: 'عالي جداً'
+  };
 
   return (
     <Modal
@@ -428,9 +491,10 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                   <thead>
                     <tr>
                       <th>اسم الحزمة</th>
+                      <th>تاريخ البدء</th>
+                      <th>تاريخ الانتهاء</th>
                       <th>صورة سطح المكتب</th>
                       <th>صورة الموبايل</th>
-                      <th>رابط التوجيه</th>
                       <th>السعر</th>
                       <th>الإجراءات</th>
                     </tr>
@@ -439,6 +503,12 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                     {campaignPackages.map((pkg, index) => (
                       <tr key={index}>
                         <td>{pkg.packageData.packageName}</td>
+                        <td>
+                          <Text variant="small">{new Date(pkg.startDate).toLocaleDateString('ar-EG')}</Text>
+                        </td>
+                        <td>
+                          <Text variant="small">{new Date(pkg.endDate).toLocaleDateString('ar-EG')}</Text>
+                        </td>
                         <td>
                           {pkg.desktopMediaUrl ? (
                             <Image
@@ -470,9 +540,15 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                           )}
                         </td>
                         <td>
-                          <Text variant="small">{pkg.clickUrl || '-'}</Text>
+                          <div>
+                            {formatAdPrice(pkg.customPrice || pkg.packageData.basePrice, 'USD')}
+                            {pkg.customPrice && (
+                              <Text variant="small" color="secondary" style={{ display: 'block' }}>
+                                خصم: {pkg.discountReason}
+                              </Text>
+                            )}
+                          </div>
                         </td>
-                        <td>${pkg.customPrice || pkg.packageData.basePrice}</td>
                         <td>
                           <div className={styles.tableActions}>
                             <button
@@ -498,10 +574,37 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                   </tbody>
                 </table>
 
-                {/* Total Price */}
-                <div className={styles.totalPrice}>
-                  <Text variant="h4">السعر الإجمالي:</Text>
-                  <Text variant="h3">${calculateTotalPrice()}</Text>
+                {/* Pricing Breakdown */}
+                <div className={styles.pricingBreakdown}>
+                  <div className={styles.priceRow}>
+                    <Text variant="paragraph">إجمالي الحزم:</Text>
+                    <Text variant="paragraph">{formatAdPrice(calculateTotalBeforeDiscount(), 'USD')}</Text>
+                  </div>
+
+                  {formData.discountPercentage > 0 && (
+                    <>
+                      <div className={styles.priceRow}>
+                        <Text variant="small" color="secondary">
+                          خصم ({formData.discountPercentage}%):
+                        </Text>
+                        <Text variant="small" color="secondary">
+                          -{formatAdPrice(calculateTotalBeforeDiscount() * (formData.discountPercentage / 100), 'USD')}
+                        </Text>
+                      </div>
+                      {formData.discountReason && (
+                        <div className={styles.priceRow}>
+                          <Text variant="small" color="secondary" style={{ fontStyle: 'italic' }}>
+                            سبب الخصم: {formData.discountReason}
+                          </Text>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className={styles.totalPrice}>
+                    <Text variant="h4">السعر الإجمالي النهائي:</Text>
+                    <Text variant="h3">{formatAdPrice(calculateTotalPrice(), 'USD')}</Text>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -510,6 +613,51 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
                   لم يتم إضافة أي حزم بعد. اضغط على "إضافة حزمة" للبدء.
                 </Text>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Campaign-Level Discount Section */}
+        {campaignPackages.length > 0 && (
+          <div className={styles.section}>
+            <Text variant="h4">خصم على مستوى الحملة (اختياري)</Text>
+            <Text variant="small" color="secondary" className={styles.description}>
+              يطبق الخصم على إجمالي سعر جميع الحزم في الحملة
+            </Text>
+
+            <div className={styles.formGrid}>
+              <Input
+                label="نسبة الخصم (%)"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={formData.discountPercentage}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  handleChange('discountPercentage', Math.max(0, Math.min(100, value)));
+                }}
+                placeholder="0"
+              />
+            </div>
+
+            {formData.discountPercentage > 0 && (
+              <>
+                <Input
+                  label="سبب الخصم"
+                  type="textarea"
+                  value={formData.discountReason}
+                  onChange={(e) => handleChange('discountReason', e.target.value)}
+                  placeholder="عميل دائم / عرض خاص / حملة متعددة / شراكة استراتيجية..."
+                  required
+                  rows={2}
+                />
+                <Text variant="small" color="secondary">
+                  السعر قبل الخصم: {formatAdPrice(calculateTotalBeforeDiscount(), 'USD')} |
+                  مبلغ الخصم: {formatAdPrice(calculateTotalBeforeDiscount() * (formData.discountPercentage / 100), 'USD')} |
+                  السعر بعد الخصم: {formatAdPrice(calculateTotalPrice(), 'USD')}
+                </Text>
+              </>
             )}
           </div>
         )}
@@ -550,6 +698,52 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
               </Text>
             </div>
           )}
+        </div>
+
+        {/* Pacing & Priority Section */}
+        <div className={styles.section}>
+          <Text variant="h4">إعدادات الأداء</Text>
+
+          {/* Pacing Mode */}
+          <Input
+            type="select"
+            label="نظام التوزيع (Pacing)"
+            value={formData.pacingMode}
+            onChange={(e) => handleChange('pacingMode', e.target.value)}
+            options={pacingModeOptions}
+            required
+          />
+          <Text variant="small" color="secondary" className={styles.description}>
+            {formData.pacingMode === 'EVEN' && 'يوزع مرات الظهور بالتساوي طوال فترة الحملة (مُوصى به)'}
+            {formData.pacingMode === 'ASAP' && 'يعرض الإعلان بأسرع ما يمكن حتى نفاذ مرات الظهور'}
+            {formData.pacingMode === 'MANUAL' && 'تحكم يدوي من الإدارة بمعدل العرض'}
+          </Text>
+
+          {/* Priority Slider */}
+          <div className={styles.prioritySection}>
+            <label className={styles.label}>
+              الأولوية (Priority): {formData.priority} - {priorityLabels[formData.priority]}
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="5"
+              step="1"
+              value={formData.priority}
+              onChange={(e) => handleChange('priority', parseInt(e.target.value))}
+              className={styles.prioritySlider}
+            />
+            <div className={styles.priorityMarks}>
+              <span>1</span>
+              <span>2</span>
+              <span>3</span>
+              <span>4</span>
+              <span>5</span>
+            </div>
+            <Text variant="small" color="secondary" className={styles.description}>
+              الأولوية الأعلى تزيد فرص ظهور الإعلان عند وجود إعلانات متعددة
+            </Text>
+          </div>
         </div>
 
         {/* Notes */}

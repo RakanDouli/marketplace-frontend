@@ -376,6 +376,7 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
                       <TableCell isHeader>الظهورات</TableCell>
                       <TableCell isHeader>النقرات</TableCell>
                       <TableCell isHeader>معدل النقر</TableCell>
+                      <TableCell isHeader>الحالة</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -392,6 +393,17 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
                         </TableCell>
                         <TableCell>
                           <Text variant="small">{(daily.ctr * 100).toFixed(2)}%</Text>
+                        </TableCell>
+                        <TableCell>
+                          {daily.dailyTarget ? (
+                            daily.impressions >= daily.dailyTarget ? (
+                              <Text variant="small" color="success">On track ✅</Text>
+                            ) : (
+                              <Text variant="small" color="warning">Behind ⚠️</Text>
+                            )
+                          ) : (
+                            <Text variant="small" color="secondary">-</Text>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

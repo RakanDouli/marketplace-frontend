@@ -54,7 +54,7 @@ export default function HomePage() {
 
       {/* Top Banner Ad */}
       <Container size="lg" padding>
-        <AdContainer type="BANNER" placement="homepage-top" />
+        <AdContainer type="BANNER" placement="homepage_top" />
       </Container>
       {/* Features Section */}
       <Container size="lg" padding>
@@ -87,6 +87,11 @@ export default function HomePage() {
             align="center"
           />
         </div>
+      </Container>
+
+      {/* Mid-Page Banner Ad */}
+      <Container size="lg" padding>
+        <AdContainer type="BANNER" placement="homepage_mid" />
       </Container>
 
       <SubmitButton onClick={handleBrowseCars} variant="primary" type="submit">

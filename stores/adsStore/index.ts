@@ -8,18 +8,53 @@ export type AdMediaType =
   | "VIDEO"
   | "BETWEEN_LISTINGS_BANNER";
 
+// Package breakdown interfaces (matches backend)
+export interface CampaignPackage {
+  packageId: string;
+  packageData: {
+    packageName: string;
+    adType: string;
+    placement: string;
+    format: string;
+    dimensions: {
+      desktop: { width: number; height: number };
+      mobile: { width: number; height: number };
+    };
+    basePrice: number;
+    durationDays: number;
+  };
+  startDate: string;
+  endDate: string;
+  isAsap: boolean;
+  desktopMediaUrl: string;
+  mobileMediaUrl: string;
+  clickUrl?: string;
+  openInNewTab?: boolean;
+  customPrice?: number;
+  discountReason?: string;
+}
+
+export interface PackageBreakdown {
+  packages: CampaignPackage[];
+  discountPercentage?: number;
+  discountReason?: string;
+  totalBeforeDiscount: number;
+  totalAfterDiscount: number;
+}
+
 // Ad Campaign interface
 export interface AdCampaign {
   id: string;
   campaignName: string;
   description: string;
-  desktopMediaUrl: string | null;
-  mobileMediaUrl: string | null;
-  clickUrl: string;
-  openInNewTab: boolean;
   status: string;
   startDate: string;
   endDate: string;
+  priority?: number; // Priority 1-5 for weighted selection
+  pacingMode?: string; // EVEN, ASAP, MANUAL
+  impressionsPurchased?: number; // Total impressions bought
+  impressionsDelivered?: number; // Impressions already shown
+  packageBreakdown?: PackageBreakdown; // NEW: Per-package configuration
   package?: {
     id: string;
     dimensions: {
@@ -167,21 +202,18 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     console.log(`👁️ AdsStore: Tracking impression for campaign:`, campaignId);
 
     try {
-      // POST to backend tracking endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/ads/track`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          campaignId,
-          eventType: "impression",
-        }),
-      });
+      // Use GraphQL mutation (public, no auth required)
+      const TRACK_IMPRESSION_MUTATION = `
+        mutation TrackCampaignImpression($campaignId: String!) {
+          trackCampaignImpression(campaignId: $campaignId)
+        }
+      `;
 
-      if (!response.ok) {
-        throw new Error("Failed to track impression");
-      }
+      await cachedGraphQLRequest(
+        TRACK_IMPRESSION_MUTATION,
+        { campaignId },
+        { ttl: 0 } // No caching for tracking
+      );
 
       console.log(`✅ AdsStore: Impression tracked for campaign:`, campaignId);
     } catch (error) {
@@ -195,21 +227,18 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     console.log(`🖱️ AdsStore: Tracking click for campaign:`, campaignId);
 
     try {
-      // POST to backend tracking endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/ads/track`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          campaignId,
-          eventType: "click",
-        }),
-      });
+      // Use GraphQL mutation (public, no auth required)
+      const TRACK_CLICK_MUTATION = `
+        mutation TrackCampaignClick($campaignId: String!) {
+          trackCampaignClick(campaignId: $campaignId)
+        }
+      `;
 
-      if (!response.ok) {
-        throw new Error("Failed to track click");
-      }
+      await cachedGraphQLRequest(
+        TRACK_CLICK_MUTATION,
+        { campaignId },
+        { ttl: 0 } // No caching for tracking
+      );
 
       console.log(`✅ AdsStore: Click tracked for campaign:`, campaignId);
     } catch (error) {

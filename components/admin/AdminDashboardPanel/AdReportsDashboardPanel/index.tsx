@@ -79,6 +79,10 @@ export const AdReportsDashboardPanel: React.FC = () => {
     return classes[status.toUpperCase()] || 'draft';
   };
 
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('ar');
+  };
+
   // Filter campaigns based on search term
   const filteredCampaigns = adCampaigns.filter(campaign => {
     if (!searchTerm) return true;
@@ -133,6 +137,7 @@ export const AdReportsDashboardPanel: React.FC = () => {
                 <TableCell isHeader>اسم الحملة</TableCell>
                 <TableCell isHeader>العميل</TableCell>
                 <TableCell isHeader>نوع الإعلان</TableCell>
+                <TableCell isHeader>تقدم الظهورات</TableCell>
                 <TableCell isHeader>الحالة</TableCell>
                 <TableCell isHeader>تاريخ البدء</TableCell>
                 <TableCell isHeader>تاريخ الانتهاء</TableCell>
@@ -150,6 +155,36 @@ export const AdReportsDashboardPanel: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Text variant="small">{campaign.package.packageName}</Text>
+                  </TableCell>
+                  <TableCell>
+                    {campaign.impressionsPurchased ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <Text variant="small">
+                          {formatNumber(campaign.impressionsDelivered || 0)} / {formatNumber(campaign.impressionsPurchased)}
+                        </Text>
+                        <div style={{
+                          width: '100%',
+                          height: '4px',
+                          backgroundColor: 'var(--color-neutral-200)',
+                          borderRadius: '2px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${Math.min(100, ((campaign.impressionsDelivered || 0) / campaign.impressionsPurchased) * 100)}%`,
+                            height: '100%',
+                            backgroundColor: (campaign.impressionsDelivered || 0) >= campaign.impressionsPurchased
+                              ? 'var(--color-success)'
+                              : 'var(--color-primary)',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                        <Text variant="small" color="secondary">
+                          {(((campaign.impressionsDelivered || 0) / campaign.impressionsPurchased) * 100).toFixed(1)}%
+                        </Text>
+                      </div>
+                    ) : (
+                      <Text variant="small" color="secondary">-</Text>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span className={`${styles.statusBadge} ${styles[getStatusClass(campaign.status)]}`}>

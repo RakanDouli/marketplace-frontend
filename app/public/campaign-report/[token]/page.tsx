@@ -26,6 +26,7 @@ interface DailyReport {
   impressions: number;
   clicks: number;
   ctr: number;
+  dailyTarget?: number;
 }
 
 interface PublicCampaignReport {
@@ -55,6 +56,7 @@ const GET_PUBLIC_CAMPAIGN_REPORT_QUERY = `
         impressions
         clicks
         ctr
+        dailyTarget
       }
     }
   }
@@ -267,6 +269,7 @@ export default function PublicCampaignReportPage() {
                 <TableCell isHeader>الظهورات</TableCell>
                 <TableCell isHeader>النقرات</TableCell>
                 <TableCell isHeader>معدل النقر</TableCell>
+                <TableCell isHeader>الحالة</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -283,6 +286,17 @@ export default function PublicCampaignReportPage() {
                   </TableCell>
                   <TableCell>
                     <Text variant="small">{(daily.ctr * 100).toLocaleString('ar', {minimumFractionDigits: 2, maximumFractionDigits: 2})}%</Text>
+                  </TableCell>
+                  <TableCell>
+                    {daily.dailyTarget ? (
+                      daily.impressions >= daily.dailyTarget ? (
+                        <Text variant="small" color="success">On track ✅</Text>
+                      ) : (
+                        <Text variant="small" color="warning">Behind ⚠️</Text>
+                      )
+                    ) : (
+                      <Text variant="small" color="secondary">-</Text>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

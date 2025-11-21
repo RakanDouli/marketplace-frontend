@@ -27,11 +27,15 @@ export interface AdPackage {
 export interface CampaignPackage {
   packageId: string;
   packageData: AdPackage;
+  startDate: string;         // NEW - per package start date
+  endDate: string;           // NEW - per package end date (auto-calculated from duration)
+  isAsap: boolean;           // NEW - ASAP flag to activate immediately after payment
   desktopMediaUrl: string;
   mobileMediaUrl: string;
   clickUrl?: string;
   openInNewTab?: boolean;
   customPrice?: number;
+  discountReason?: string;   // NEW - reason for discount
 }
 
 interface AddPackageModalProps {
@@ -51,9 +55,14 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
 }) => {
   const { addNotification } = useNotificationStore();
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
+  const [isAsap, setIsAsap] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<string>('');
   const [desktopImages, setDesktopImages] = useState<ImageItem[]>([]);
   const [mobileImages, setMobileImages] = useState<ImageItem[]>([]);
   const [clickUrl, setClickUrl] = useState<string>('');
+  const [hasDiscount, setHasDiscount] = useState<boolean>(false);
+  const [customPrice, setCustomPrice] = useState<string>('');
+  const [discountReason, setDiscountReason] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +83,7 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
   React.useEffect(() => {
     if (editingPackage && isVisible) {
       setSelectedPackageId(editingPackage.packageId);
+      setStartDate(editingPackage.startDate || '');
 
       // Convert URLs to ImageItem format
       if (editingPackage.desktopMediaUrl) {
@@ -93,12 +103,23 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       }
 
       setClickUrl(editingPackage.clickUrl || '');
+
+      // Handle discount fields
+      if (editingPackage.customPrice) {
+        setHasDiscount(true);
+        setCustomPrice(editingPackage.customPrice.toString());
+        setDiscountReason(editingPackage.discountReason || '');
+      }
     } else if (!isVisible) {
       // Reset form when closing
       setSelectedPackageId('');
+      setStartDate('');
       setDesktopImages([]);
       setMobileImages([]);
       setClickUrl('');
+      setHasDiscount(false);
+      setCustomPrice('');
+      setDiscountReason('');
       setError(null);
     }
   }, [editingPackage, isVisible]);
@@ -181,6 +202,11 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       return;
     }
 
+    if (!isAsap && !startDate) {
+      setError('يرجى اختيار تاريخ البدء أو تفعيل خيار ASAP');
+      return;
+    }
+
     if (desktopImages.length === 0 || !desktopImages[0].url) {
       setError('يرجى رفع صورة سطح المكتب');
       return;
@@ -196,25 +222,57 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       return;
     }
 
+    // Discount validation
+    if (hasDiscount) {
+      const priceValue = parseFloat(customPrice);
+      if (!customPrice || isNaN(priceValue) || priceValue <= 0) {
+        setError('يرجى إدخال سعر صحيح بعد الخصم');
+        return;
+      }
+      if (priceValue >= selectedPackage.basePrice) {
+        setError('السعر بعد الخصم يجب أن يكون أقل من السعر الأصلي');
+        return;
+      }
+      if (!discountReason.trim()) {
+        setError('يرجى إدخال سبب الخصم');
+        return;
+      }
+    }
+
+    // Calculate start/end dates
+    // If ASAP, use placeholder date (will be updated after payment)
+    const effectiveStartDate = isAsap ? new Date().toISOString().split('T')[0] : startDate;
+    const start = new Date(effectiveStartDate);
+    const end = new Date(start);
+    end.setDate(end.getDate() + selectedPackage.durationDays);
+    const endDate = end.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
     // Create campaign package object (URLs already uploaded)
-    // Note: No custom price - packages use their base price
-    // Note: openInNewTab always true (handled in frontend - 99% of ads open in new tab)
     const campaignPackage: CampaignPackage = {
       packageId: selectedPackageId,
       packageData: selectedPackage,
+      startDate: effectiveStartDate,
+      endDate: endDate,
+      isAsap: isAsap,
       desktopMediaUrl: desktopImages[0].url,
       mobileMediaUrl: mobileImages[0].url,
       clickUrl: clickUrl || undefined,
       openInNewTab: true, // Always true - ads open in new tab
+      customPrice: hasDiscount ? parseFloat(customPrice) : undefined,
+      discountReason: hasDiscount ? discountReason : undefined,
     };
 
     onAdd(campaignPackage);
 
     // Reset form
     setSelectedPackageId('');
+    setStartDate('');
     setDesktopImages([]);
     setMobileImages([]);
     setClickUrl('');
+    setHasDiscount(false);
+    setCustomPrice('');
+    setDiscountReason('');
 
     addNotification({
       type: 'success',
@@ -255,8 +313,98 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
               الأبعاد: {selectedPackage.dimensions.desktop.width}x{selectedPackage.dimensions.desktop.height} (سطح مكتب) | {' '}
               {selectedPackage.dimensions.mobile.width}x{selectedPackage.dimensions.mobile.height} (موبايل)
             </Text>
+            <Text variant="small" color="secondary">
+              المدة: {selectedPackage.durationDays} يوم | السعر الأساسي: ${selectedPackage.basePrice}
+            </Text>
           </div>
         )}
+
+        {/* Start Date with ASAP Option */}
+        <div className={styles.section}>
+          <Input
+            type="checkbox"
+            label="البدء فوراً بعد الدفع (ASAP)"
+            checked={isAsap}
+            onChange={(e) => {
+              setIsAsap(e.target.checked);
+              if (e.target.checked) {
+                setStartDate(''); // Clear start date when ASAP is enabled
+              }
+            }}
+          />
+          <Text variant="small" color="secondary" className={styles.description}>
+            عند تفعيل هذا الخيار، سيبدأ الإعلان فوراً بعد تأكيد الدفع
+          </Text>
+
+          {!isAsap && (
+            <>
+              <Input
+                label="تاريخ بدء الحزمة"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                required
+                placeholder="اختر تاريخ البدء"
+              />
+              {selectedPackage && startDate && (
+                <Text variant="small" color="secondary" className={styles.description}>
+                  تاريخ الانتهاء (محسوب تلقائياً): {(() => {
+                    const start = new Date(startDate);
+                    const end = new Date(start);
+                    end.setDate(end.getDate() + selectedPackage.durationDays);
+                    return end.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+                  })()}
+                </Text>
+              )}
+            </>
+          )}
+
+          {isAsap && selectedPackage && (
+            <Text variant="small" color="secondary" className={styles.description}>
+              المدة: {selectedPackage.durationDays} يوم (ستبدأ بعد تأكيد الدفع)
+            </Text>
+          )}
+        </div>
+
+        {/* Discount Section */}
+        <div className={styles.section}>
+          <Input
+            type="checkbox"
+            label="تطبيق خصم على هذه الحزمة"
+            checked={hasDiscount}
+            onChange={(e) => setHasDiscount(e.target.checked)}
+          />
+
+          {hasDiscount && selectedPackage && (
+            <>
+              <Input
+                label="السعر بعد الخصم (دولار)"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={customPrice}
+                onChange={(e) => setCustomPrice(e.target.value)}
+                placeholder={selectedPackage.basePrice.toString()}
+                required
+              />
+              <Input
+                label="سبب الخصم"
+                type="textarea"
+                value={discountReason}
+                onChange={(e) => setDiscountReason(e.target.value)}
+                placeholder="عميل دائم / عرض خاص / حملة متعددة..."
+                required
+                rows={2}
+              />
+              {customPrice && !isNaN(parseFloat(customPrice)) && parseFloat(customPrice) < selectedPackage.basePrice && (
+                <Text variant="small" color="secondary">
+                  السعر الأصلي: ${selectedPackage.basePrice} |
+                  الخصم: ${(selectedPackage.basePrice - parseFloat(customPrice)).toFixed(2)} ({((1 - parseFloat(customPrice) / selectedPackage.basePrice) * 100).toFixed(0)}%)
+                </Text>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Desktop Media Upload */}
         <div className={styles.imagesSection}>

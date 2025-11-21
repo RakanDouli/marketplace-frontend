@@ -13,6 +13,7 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import { invalidateGraphQLCache } from '@/utils/graphql-cache';
 import { formatPrice } from '@/utils/formatPrice';
+import { formatNumberWithCommas } from '@/utils/formatNumber';
 import styles from '../SharedDashboardPanel.module.scss';
 
 export const AdPackagesDashboardPanel: React.FC = () => {
@@ -104,11 +105,6 @@ export const AdPackagesDashboardPanel: React.FC = () => {
   // Helper functions for display
   const getAdTypeLabel = (adType: string) => {
     return getLabel(adType.toLowerCase(), AD_MEDIA_TYPE_LABELS);
-  };
-
-
-  const formatNumber = (num: number) => {
-    return num.toLocaleString('en-US');
   };
 
   // Action handlers
@@ -276,7 +272,7 @@ export const AdPackagesDashboardPanel: React.FC = () => {
                   <TableCell>{getAdTypeLabel(pkg.adType)}</TableCell>
                   <TableCell>{formatPrice(pkg.basePrice)}</TableCell>
                   <TableCell>{pkg.durationDays} يوم</TableCell>
-                  <TableCell>{formatNumber(pkg.impressionLimit)}</TableCell>
+                  <TableCell>{formatNumberWithCommas(pkg.impressionLimit)}</TableCell>
                   <TableCell>
                     <span className={`${styles.statusBadge} ${pkg.isActive ? styles.active : styles.inactive}`}>
                       {pkg.isActive ? 'نشط' : 'غير نشط'}

@@ -261,6 +261,8 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
                 <TableCell isHeader>اسم الحملة</TableCell>
                 <TableCell isHeader>العميل</TableCell>
                 <TableCell isHeader>الحزمة</TableCell>
+                <TableCell isHeader>مرات الظهور</TableCell>
+                <TableCell isHeader>الأداء</TableCell>
                 <TableCell isHeader>الحالة</TableCell>
                 <TableCell isHeader>الفترة</TableCell>
                 <TableCell isHeader>السعر</TableCell>
@@ -286,6 +288,60 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
                   <TableCell>
                     <Text variant="paragraph">{campaign.package.packageName}</Text>
                   </TableCell>
+
+                  {/* Impressions Progress */}
+                  <TableCell>
+                    {campaign.impressionsPurchased && campaign.impressionsPurchased > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <Text variant="small" weight="medium">
+                          {campaign.impressionsDelivered?.toLocaleString() || 0} / {campaign.impressionsPurchased.toLocaleString()}
+                        </Text>
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          backgroundColor: '#e0e0e0',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${Math.min(((campaign.impressionsDelivered || 0) / campaign.impressionsPurchased) * 100, 100)}%`,
+                            height: '100%',
+                            backgroundColor: ((campaign.impressionsDelivered || 0) / campaign.impressionsPurchased) > 0.9 ? '#f44336' : '#4caf50',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                        <Text variant="small" color="secondary">
+                          {(((campaign.impressionsDelivered || 0) / campaign.impressionsPurchased) * 100).toFixed(1)}%
+                        </Text>
+                      </div>
+                    ) : (
+                      <Text variant="small" color="secondary">-</Text>
+                    )}
+                  </TableCell>
+
+                  {/* Performance (Pacing + Priority) */}
+                  <TableCell>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {/* Priority indicator */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Text variant="small" color="secondary">أولوية:</Text>
+                        <Text variant="small" weight="medium">
+                          {campaign.priority || 3} / 5
+                        </Text>
+                        {(campaign.priority || 3) >= 4 && <span title="أولوية عالية">🥇</span>}
+                        {(campaign.priority || 3) === 3 && <span title="أولوية متوسطة">🥈</span>}
+                        {(campaign.priority || 3) <= 2 && <span title="أولوية منخفضة">🥉</span>}
+                      </div>
+                      {/* Pacing mode */}
+                      <Text variant="small" color="secondary">
+                        {campaign.pacingMode === 'EVEN' && '⚡ توزيع متساوي'}
+                        {campaign.pacingMode === 'ASAP' && '🚀 أسرع ما يمكن'}
+                        {campaign.pacingMode === 'MANUAL' && '⚙️ يدوي'}
+                        {!campaign.pacingMode && '⚡ توزيع متساوي'}
+                      </Text>
+                    </div>
+                  </TableCell>
+
                   <TableCell>
                     <span
                       className={styles.statusBadge}
@@ -302,9 +358,17 @@ export const AdCampaignsDashboardPanel: React.FC = () => {
                     <Text variant="small" color="secondary">→ {formatDateShort(campaign.endDate)}</Text>
                   </TableCell>
                   <TableCell>
-                    <Text variant="paragraph" weight="medium">
-                      {formatAdPrice(campaign.totalPrice, campaign.currency)}
-                    </Text>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <Text variant="paragraph" weight="medium">
+                        {formatAdPrice(campaign.totalPrice, campaign.currency)}
+                      </Text>
+                      {campaign.packageBreakdown?.packages?.some((pkg: any) => pkg.customPrice) && (
+                        <Text variant="small" color="secondary" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>💰</span>
+                          <span>خصم مطبق</span>
+                        </Text>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {campaign.publicReportToken ? (

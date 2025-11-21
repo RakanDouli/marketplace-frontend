@@ -200,7 +200,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     <Container>
       {/* Top Banner Ad (below gallery) */}
       <div className={styles.adSection}>
-        <AdContainer type="BANNER" placement="detail-top" />
+        <AdContainer type="BANNER" placement="detail_top" />
       </div>
       <div className={styles.listingDetail}>
         {/* Breadcrumbs with Back Button */}
@@ -346,9 +346,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
         </div>
 
       </div>
-      {/* Bottom Banner Ad (after all content) */}
+      {/* Bottom Banner Ad (before description) */}
       <div className={styles.adSection}>
-        <AdContainer type="BETWEEN_LISTINGS_BANNER" placement="detail-bottom" />
+        <AdContainer type="BANNER" placement="detail_before_description" />
       </div>
 
       {/* Contact Seller Modal */}

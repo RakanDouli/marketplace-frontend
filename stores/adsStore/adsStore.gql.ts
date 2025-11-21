@@ -6,13 +6,14 @@ export const GET_ACTIVE_ADS_BY_TYPE_QUERY = `
       id
       campaignName
       description
-      desktopMediaUrl
-      mobileMediaUrl
-      clickUrl
-      openInNewTab
       status
       startDate
       endDate
+      priority
+      pacingMode
+      impressionsPurchased
+      impressionsDelivered
+      packageBreakdown
       package {
         id
         dimensions {
