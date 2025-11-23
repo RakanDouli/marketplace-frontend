@@ -159,3 +159,48 @@
     flex-direction: column-reverse;
   }
 }
+
+// Tabs for multi-package campaigns
+.tabs {
+  display: flex;
+  gap: $space-xs;
+  border-bottom: 2px solid $border;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+}
+
+.tab {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: $space-sm $space-md;
+  font-size: $font-base;
+  font-weight: 500;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    color: $text;
+    background: $surface;
+  }
+
+  &.activeTab {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    background: var(--color-primary-light);
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .tabs {
+    gap: $space-sm;
+  }
+
+  .tab {
+    padding: $space-xs $space-sm;
+    font-size: $font-sm;
+  }
+}

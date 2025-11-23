@@ -8,10 +8,7 @@ export interface AdCampaign {
   endDate: string;
   status: string;
   totalPrice: number;
-  desktopMediaUrl?: string;
-  mobileMediaUrl?: string;
-  clickUrl?: string;
-  openInNewTab: boolean;
+  packageBreakdown?: any; // JSONB field containing packages array with media URLs
   createdAt: string;
   updatedAt: string;
 
@@ -35,10 +32,7 @@ export interface CreateAdCampaignInput {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  desktopMediaUrl?: string;
-  mobileMediaUrl?: string;
-  clickUrl?: string;
-  openInNewTab: boolean;
+  packageBreakdown?: any; // JSONB field containing packages array
   campaignStartPreference: string;
 }
 
@@ -51,8 +45,5 @@ export interface UpdateAdCampaignInput {
   endDate?: string;
   status?: string;
   totalPrice?: number;
-  desktopMediaUrl?: string;
-  mobileMediaUrl?: string;
-  clickUrl?: string;
-  openInNewTab?: boolean;
+  packageBreakdown?: any; // JSONB field containing packages array
 }

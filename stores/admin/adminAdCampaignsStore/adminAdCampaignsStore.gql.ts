@@ -46,10 +46,6 @@ export const GET_ALL_AD_CAMPAIGNS_QUERY = `
         name
       }
       notes
-      desktopMediaUrl
-      mobileMediaUrl
-      clickUrl
-      openInNewTab
       publicReportToken
       createdAt
       updatedAt
@@ -103,10 +99,6 @@ export const GET_AD_CAMPAIGN_BY_ID_QUERY = `
         name
       }
       notes
-      desktopMediaUrl
-      mobileMediaUrl
-      clickUrl
-      openInNewTab
       publicReportToken
       createdAt
       updatedAt
@@ -210,10 +202,6 @@ export const CREATE_AD_CAMPAIGN_MUTATION = `
       totalPrice
       currency
       notes
-      desktopMediaUrl
-      mobileMediaUrl
-      clickUrl
-      openInNewTab
       publicReportToken
       createdByUserId
       createdByUser {
@@ -263,10 +251,6 @@ export const UPDATE_AD_CAMPAIGN_MUTATION = `
       currency
       paymentLink
       notes
-      desktopMediaUrl
-      mobileMediaUrl
-      clickUrl
-      openInNewTab
       publicReportToken
       createdByUserId
       createdByUser {

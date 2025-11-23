@@ -1,5 +1,5 @@
 'use client';
-import { formatDateShort } from '@/utils/formatDate';
+import { formatDateShort, formatDate } from '@/utils/formatDate';
 
 import React, { useEffect, useState } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
@@ -15,6 +15,31 @@ interface ViewCampaignReportModalProps {
   isVisible: boolean;
   onClose: () => void;
   campaign: AdCampaign | null;
+}
+
+interface PackageMetrics {
+  impressionsPurchased: number;
+  impressionsDelivered: number;
+  clicks: number;
+  ctr: number;
+  progress: number;
+}
+
+interface PackageReport {
+  packageId: string;
+  packageName: string;
+  placement: string;
+  format: string;
+  startDate: string;
+  endDate: string;
+  packageData: any;
+  metrics: PackageMetrics;
+  dailyReports: Array<{
+    date: string;
+    impressions: number;
+    clicks: number;
+    ctr: number;
+  }>;
 }
 
 interface PublicCampaignReportData {
@@ -39,6 +64,7 @@ interface PublicCampaignReportData {
     clicks: number;
     ctr: number;
   }>;
+  packages?: PackageReport[];
 }
 
 const GET_PUBLIC_CAMPAIGN_REPORT_QUERY = `
@@ -65,6 +91,28 @@ const GET_PUBLIC_CAMPAIGN_REPORT_QUERY = `
         clicks
         ctr
       }
+      packages {
+        packageId
+        packageName
+        placement
+        format
+        startDate
+        endDate
+        packageData
+        metrics {
+          impressionsPurchased
+          impressionsDelivered
+          clicks
+          ctr
+          progress
+        }
+        dailyReports {
+          date
+          impressions
+          clicks
+          ctr
+        }
+      }
     }
   }
 `;
@@ -77,6 +125,7 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
   const [reportData, setReportData] = useState<PublicCampaignReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('overview'); // 'overview' or packageId
 
   useEffect(() => {
     if (isVisible && campaign?.publicReportToken) {
@@ -142,13 +191,166 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
     return classes[status.toUpperCase()] || 'draft';
   };
 
-  // Prepare chart data
-  const chartData = reportData?.dailyReports.map((daily) => ({
-    date: formatDate(daily.date),
-    impressions: daily.impressions,
-    clicks: daily.clicks,
-    ctr: (daily.ctr * 100).toFixed(2),
-  })) || [];
+  // Helper function to render metrics for a package or overall campaign
+  const renderMetricsSection = (
+    title: string,
+    metrics: {
+      totalImpressions: number;
+      totalClicks: number;
+      averageCTR: number;
+      totalCost?: number;
+      currency?: string;
+      impressionsPurchased?: number;
+      impressionsDelivered?: number;
+      progress?: number;
+    },
+    dailyReports: Array<{
+      date: string;
+      impressions: number;
+      clicks: number;
+      ctr: number;
+    }>
+  ) => {
+    const chartData = dailyReports.map((daily) => ({
+      date: formatDate(daily.date),
+      impressions: daily.impressions,
+      clicks: daily.clicks,
+      ctr: (daily.ctr * 100).toFixed(2),
+    }));
+
+    return (
+      <>
+        {/* Metrics Cards */}
+        <div className={styles.section}>
+          <Text variant="h3" className={styles.sectionTitle}>{title}</Text>
+          <div className={styles.metricsGrid}>
+            {metrics.impressionsPurchased !== undefined && (
+              <div className={styles.metricCard}>
+                <Text variant="small" color="secondary">الظهورات المشتراة</Text>
+                <Text variant="h2">{formatNumber(metrics.impressionsPurchased)}</Text>
+              </div>
+            )}
+
+            {metrics.impressionsDelivered !== undefined && (
+              <div className={styles.metricCard}>
+                <Text variant="small" color="secondary">الظهورات المنفذة</Text>
+                <Text variant="h2">{formatNumber(metrics.impressionsDelivered)}</Text>
+              </div>
+            )}
+
+            <div className={styles.metricCard}>
+              <Text variant="small" color="secondary">إجمالي الظهورات</Text>
+              <Text variant="h2">{formatNumber(metrics.totalImpressions)}</Text>
+            </div>
+
+            <div className={styles.metricCard}>
+              <Text variant="small" color="secondary">إجمالي النقرات</Text>
+              <Text variant="h2">{formatNumber(metrics.totalClicks)}</Text>
+            </div>
+
+            <div className={styles.metricCard}>
+              <Text variant="small" color="secondary">معدل النقر (CTR)</Text>
+              <Text variant="h2">{(metrics.averageCTR * 100).toFixed(2)}%</Text>
+            </div>
+
+            {metrics.progress !== undefined && (
+              <div className={styles.metricCard}>
+                <Text variant="small" color="secondary">نسبة الإنجاز</Text>
+                <Text variant="h2">{metrics.progress.toFixed(1)}%</Text>
+              </div>
+            )}
+
+            {metrics.totalCost !== undefined && (
+              <div className={styles.metricCard}>
+                <Text variant="small" color="secondary">إجمالي التكلفة</Text>
+                <Text variant="h2">
+                  {formatNumber(metrics.totalCost)} {metrics.currency}
+                </Text>
+              </div>
+            )}
+
+            {metrics.totalClicks > 0 && metrics.totalCost && (
+              <div className={styles.metricCard}>
+                <Text variant="small" color="secondary">تكلفة النقرة (CPC)</Text>
+                <Text variant="h2">
+                  {(metrics.totalCost / metrics.totalClicks).toFixed(2)} {metrics.currency}
+                </Text>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Charts */}
+        {chartData.length > 0 && (
+          <div className={styles.section}>
+            <Text variant="h3" className={styles.sectionTitle}>الأداء اليومي</Text>
+
+            <div className={styles.chartContainer}>
+              <Text variant="paragraph" weight="medium">الظهورات والنقرات</Text>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="impressions" fill="var(--color-primary)" name="الظهورات" />
+                  <Bar dataKey="clicks" fill="var(--color-success)" name="النقرات" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className={styles.chartContainer}>
+              <Text variant="paragraph" weight="medium">معدل النقر (CTR)</Text>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="ctr" stroke="var(--color-warning)" name="CTR %" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* Daily Breakdown Table */}
+        {dailyReports.length > 0 && (
+          <div className={styles.section}>
+            <Text variant="h3" className={styles.sectionTitle}>التفاصيل اليومية</Text>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell isHeader>التاريخ</TableCell>
+                  <TableCell isHeader>الظهورات</TableCell>
+                  <TableCell isHeader>النقرات</TableCell>
+                  <TableCell isHeader>معدل النقر</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {dailyReports.map((daily, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Text variant="small">{formatDate(daily.date)}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text variant="small">{formatNumber(daily.impressions)}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text variant="small">{formatNumber(daily.clicks)}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text variant="small">{(daily.ctr * 100).toFixed(2)}%</Text>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <Modal
@@ -292,124 +494,90 @@ export const ViewCampaignReportModal: React.FC<ViewCampaignReportModalProps> = (
               </div>
             </div>
 
-            {/* Metrics Cards */}
-            <div className={styles.section}>
-              <Text variant="h3" className={styles.sectionTitle}>مقاييس الأداء</Text>
-              <div className={styles.metricsGrid}>
-                <div className={styles.metricCard}>
-                  <Text variant="small" color="secondary">إجمالي الظهورات</Text>
-                  <Text variant="h2">{formatNumber(reportData.metrics.totalImpressions)}</Text>
-                </div>
-
-                <div className={styles.metricCard}>
-                  <Text variant="small" color="secondary">إجمالي النقرات</Text>
-                  <Text variant="h2">{formatNumber(reportData.metrics.totalClicks)}</Text>
-                </div>
-
-                <div className={styles.metricCard}>
-                  <Text variant="small" color="secondary">معدل النقر (CTR)</Text>
-                  <Text variant="h2">{(reportData.metrics.averageCTR * 100).toFixed(2)}%</Text>
-                </div>
-
-                <div className={styles.metricCard}>
-                  <Text variant="small" color="secondary">إجمالي التكلفة</Text>
-                  <Text variant="h2">
-                    {formatNumber(reportData.metrics.totalCost)} {reportData.metrics.currency}
-                  </Text>
-                </div>
-
-                {reportData.metrics.totalClicks > 0 && (
-                  <div className={styles.metricCard}>
-                    <Text variant="small" color="secondary">تكلفة النقرة (CPC)</Text>
-                    <Text variant="h2">
-                      {(reportData.metrics.totalCost / reportData.metrics.totalClicks).toFixed(2)} {reportData.metrics.currency}
-                    </Text>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Charts */}
-            {chartData.length > 0 && (
+            {/* Package Tabs (if multi-package campaign) */}
+            {reportData.packages && reportData.packages.length > 0 && (
               <div className={styles.section}>
-                <Text variant="h3" className={styles.sectionTitle}>الأداء اليومي</Text>
-
-                {/* Impressions & Clicks Chart */}
-                <div className={styles.chartContainer}>
-                  <Text variant="paragraph" weight="medium">الظهورات والنقرات</Text>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="impressions" fill="var(--color-primary)" name="الظهورات" />
-                      <Bar dataKey="clicks" fill="var(--color-success)" name="النقرات" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* CTR Chart */}
-                <div className={styles.chartContainer}>
-                  <Text variant="paragraph" weight="medium">معدل النقر (CTR)</Text>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="ctr" stroke="var(--color-warning)" name="CTR %" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <Text variant="h3" className={styles.sectionTitle}>تقارير الحزم</Text>
+                <div className={styles.tabs}>
+                  <button
+                    className={`${styles.tab} ${activeTab === 'overview' ? styles.activeTab : ''}`}
+                    onClick={() => setActiveTab('overview')}
+                  >
+                    نظرة عامة
+                  </button>
+                  {reportData.packages.map((pkg) => (
+                    <button
+                      key={pkg.packageId}
+                      className={`${styles.tab} ${activeTab === pkg.packageId ? styles.activeTab : ''}`}
+                      onClick={() => setActiveTab(pkg.packageId)}
+                    >
+                      {pkg.packageName}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Daily Breakdown Table */}
-            {reportData.dailyReports.length > 0 && (
-              <div className={styles.section}>
-                <Text variant="h3" className={styles.sectionTitle}>التفاصيل اليومية</Text>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell isHeader>التاريخ</TableCell>
-                      <TableCell isHeader>الظهورات</TableCell>
-                      <TableCell isHeader>النقرات</TableCell>
-                      <TableCell isHeader>معدل النقر</TableCell>
-                      <TableCell isHeader>الحالة</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {reportData.dailyReports.map((daily, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <Text variant="small">{formatDate(daily.date)}</Text>
-                        </TableCell>
-                        <TableCell>
-                          <Text variant="small">{formatNumber(daily.impressions)}</Text>
-                        </TableCell>
-                        <TableCell>
-                          <Text variant="small">{formatNumber(daily.clicks)}</Text>
-                        </TableCell>
-                        <TableCell>
-                          <Text variant="small">{(daily.ctr * 100).toFixed(2)}%</Text>
-                        </TableCell>
-                        <TableCell>
-                          {daily.dailyTarget ? (
-                            daily.impressions >= daily.dailyTarget ? (
-                              <Text variant="small" color="success">On track ✅</Text>
-                            ) : (
-                              <Text variant="small" color="warning">Behind ⚠️</Text>
-                            )
-                          ) : (
-                            <Text variant="small" color="secondary">-</Text>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+            {/* Render content based on active tab */}
+            {activeTab === 'overview' ? (
+              // Overall campaign metrics
+              renderMetricsSection(
+                'مقاييس الأداء - الحملة الإجمالية',
+                {
+                  totalImpressions: reportData.metrics.totalImpressions,
+                  totalClicks: reportData.metrics.totalClicks,
+                  averageCTR: reportData.metrics.averageCTR,
+                  totalCost: reportData.metrics.totalCost,
+                  currency: reportData.metrics.currency
+                },
+                reportData.dailyReports
+              )
+            ) : (
+              // Package-specific metrics
+              (() => {
+                const selectedPackage = reportData.packages?.find(p => p.packageId === activeTab);
+                if (!selectedPackage) return null;
+
+                return (
+                  <>
+                    {/* Package Info */}
+                    <div className={styles.section}>
+                      <Text variant="h3" className={styles.sectionTitle}>معلومات الحزمة</Text>
+                      <div className={styles.infoGrid}>
+                        <div className={styles.infoItem}>
+                          <Text variant="small" color="secondary">الموقع</Text>
+                          <Text variant="paragraph" weight="medium">{selectedPackage.placement}</Text>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <Text variant="small" color="secondary">الشكل</Text>
+                          <Text variant="paragraph" weight="medium">{selectedPackage.format}</Text>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <Text variant="small" color="secondary">تاريخ البدء</Text>
+                          <Text variant="paragraph" weight="medium">{formatDateShort(selectedPackage.startDate)}</Text>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
+                          <Text variant="paragraph" weight="medium">{formatDateShort(selectedPackage.endDate)}</Text>
+                        </div>
+                      </div>
+                    </div>
+
+                    {renderMetricsSection(
+                      `مقاييس الأداء - ${selectedPackage.packageName}`,
+                      {
+                        impressionsPurchased: selectedPackage.metrics.impressionsPurchased,
+                        impressionsDelivered: selectedPackage.metrics.impressionsDelivered,
+                        totalImpressions: selectedPackage.dailyReports.reduce((sum, r) => sum + r.impressions, 0),
+                        totalClicks: selectedPackage.metrics.clicks,
+                        averageCTR: selectedPackage.metrics.ctr,
+                        progress: selectedPackage.metrics.progress
+                      },
+                      selectedPackage.dailyReports
+                    )}
+                  </>
+                );
+              })()
             )}
 
             {/* Actions */}

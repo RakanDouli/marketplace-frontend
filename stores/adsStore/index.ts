@@ -22,8 +22,8 @@ export interface CampaignPackage {
     basePrice: number;
     durationDays: number;
   };
-  startDate: string;
-  endDate: string;
+  startDate: string | null;  // null for ASAP packages
+  endDate: string | null;    // null for ASAP packages
   isAsap: boolean;
   desktopMediaUrl: string;
   mobileMediaUrl: string;

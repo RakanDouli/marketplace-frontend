@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/slices/Modal/Modal';
 import { Button, Text, Form, Input, ImageUploadGrid } from '@/components/slices';
 import type { ImageItem } from '@/components/slices/ImageUploadGrid/ImageUploadGrid';
-import { uploadToCloudflare, validateImageFile } from '@/utils/cloudflare-upload';
+import { uploadToCloudflare, validateImageFile, deleteFromCloudflare } from '@/utils/cloudflare-upload';
 import { useNotificationStore } from '@/stores/notificationStore';
 import styles from './AdCampaignModals.module.scss';
 
@@ -17,6 +17,7 @@ export interface AdPackage {
   placement: string;
   format: string;
   durationDays: number;
+  impressionLimit: number; // Number of guaranteed impressions
   dimensions: {
     desktop: { width: number; height: number };
     mobile: { width: number; height: number };
@@ -27,15 +28,13 @@ export interface AdPackage {
 export interface CampaignPackage {
   packageId: string;
   packageData: AdPackage;
-  startDate: string;         // NEW - per package start date
-  endDate: string;           // NEW - per package end date (auto-calculated from duration)
-  isAsap: boolean;           // NEW - ASAP flag to activate immediately after payment
+  startDate: string | null;  // Per package start date (null for ASAP packages)
+  endDate: string | null;    // Per package end date (null for ASAP packages)
+  isAsap: boolean;           // ASAP flag to activate immediately after payment
   desktopMediaUrl: string;
   mobileMediaUrl: string;
   clickUrl?: string;
   openInNewTab?: boolean;
-  customPrice?: number;
-  discountReason?: string;   // NEW - reason for discount
 }
 
 interface AddPackageModalProps {
@@ -60,9 +59,6 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
   const [desktopImages, setDesktopImages] = useState<ImageItem[]>([]);
   const [mobileImages, setMobileImages] = useState<ImageItem[]>([]);
   const [clickUrl, setClickUrl] = useState<string>('');
-  const [hasDiscount, setHasDiscount] = useState<boolean>(false);
-  const [customPrice, setCustomPrice] = useState<string>('');
-  const [discountReason, setDiscountReason] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,13 +99,6 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       }
 
       setClickUrl(editingPackage.clickUrl || '');
-
-      // Handle discount fields
-      if (editingPackage.customPrice) {
-        setHasDiscount(true);
-        setCustomPrice(editingPackage.customPrice.toString());
-        setDiscountReason(editingPackage.discountReason || '');
-      }
     } else if (!isVisible) {
       // Reset form when closing
       setSelectedPackageId('');
@@ -117,9 +106,6 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       setDesktopImages([]);
       setMobileImages([]);
       setClickUrl('');
-      setHasDiscount(false);
-      setCustomPrice('');
-      setDiscountReason('');
       setError(null);
     }
   }, [editingPackage, isVisible]);
@@ -228,45 +214,67 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
       return;
     }
 
-    // Discount validation
-    if (hasDiscount) {
-      const priceValue = parseFloat(customPrice);
-      if (!customPrice || isNaN(priceValue) || priceValue <= 0) {
-        setError('يرجى إدخال سعر صحيح بعد الخصم');
-        return;
-      }
-      if (priceValue >= selectedPackage.basePrice) {
-        setError('السعر بعد الخصم يجب أن يكون أقل من السعر الأصلي');
-        return;
-      }
-      if (!discountReason.trim()) {
-        setError('يرجى إدخال سبب الخصم');
-        return;
-      }
+    console.log('🔍 Selected Package:', selectedPackage);
+    console.log('🔍 Duration Days:', selectedPackage.durationDays);
+    console.log('🔍 Is ASAP:', isAsap);
+
+    if (!selectedPackage.durationDays || selectedPackage.durationDays <= 0) {
+      console.error('❌ Duration validation failed:', {
+        durationDays: selectedPackage.durationDays,
+        type: typeof selectedPackage.durationDays,
+        isAsap
+      });
+      setError(`مدة الحزمة غير صالحة (القيمة الحالية: ${selectedPackage.durationDays})`);
+      return;
     }
 
     // Calculate start/end dates
-    // If ASAP, use placeholder date (will be updated after payment)
-    const effectiveStartDate = isAsap ? new Date().toISOString().split('T')[0] : startDate;
-    const start = new Date(effectiveStartDate);
-    const end = new Date(start);
-    end.setDate(end.getDate() + selectedPackage.durationDays);
-    const endDate = end.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    // If ASAP, store null (will be set after payment confirmation)
+    // If not ASAP, validate and use the provided start date
+    let effectiveStartDate: string | null = null;
+    let effectiveEndDate: string | null = null;
+
+    if (isAsap) {
+      // ASAP: dates will be set after payment, store null
+      effectiveStartDate = null;
+      effectiveEndDate = null;
+    } else {
+      // Specific date: validate and calculate end date
+      if (!startDate) {
+        setError('يرجى تحديد تاريخ البدء أو تفعيل "البدء فوراً"');
+        return;
+      }
+
+      const start = new Date(startDate);
+
+      // Check if date is valid
+      if (isNaN(start.getTime())) {
+        setError('تاريخ البدء غير صالح');
+        return;
+      }
+
+      const end = new Date(start);
+      end.setDate(end.getDate() + selectedPackage.durationDays);
+
+      effectiveStartDate = startDate;
+      effectiveEndDate = end.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    }
 
     // Create campaign package object (URLs already uploaded)
     const campaignPackage: CampaignPackage = {
       packageId: selectedPackageId,
       packageData: selectedPackage,
       startDate: effectiveStartDate,
-      endDate: endDate,
+      endDate: effectiveEndDate,
       isAsap: isAsap,
       desktopMediaUrl: desktopImages[0].url,
       mobileMediaUrl: mobileImages[0].url,
       clickUrl: clickUrl || undefined,
       openInNewTab: true, // Always true - ads open in new tab
-      customPrice: hasDiscount ? parseFloat(customPrice) : undefined,
-      discountReason: hasDiscount ? discountReason : undefined,
     };
+
+    console.log('Adding package to campaign:', campaignPackage);
+    console.log('Selected package data:', selectedPackage);
 
     onAdd(campaignPackage);
 
@@ -276,9 +284,6 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
     setDesktopImages([]);
     setMobileImages([]);
     setClickUrl('');
-    setHasDiscount(false);
-    setCustomPrice('');
-    setDiscountReason('');
 
     addNotification({
       type: 'success',
@@ -372,46 +377,6 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
           )}
         </div>
 
-        {/* Discount Section */}
-        <div className={styles.section}>
-          <Input
-            type="checkbox"
-            label="تطبيق خصم على هذه الحزمة"
-            checked={hasDiscount}
-            onChange={(e) => setHasDiscount(e.target.checked)}
-          />
-
-          {hasDiscount && selectedPackage && (
-            <>
-              <Input
-                label="السعر بعد الخصم (دولار)"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={customPrice}
-                onChange={(e) => setCustomPrice(e.target.value)}
-                placeholder={selectedPackage.basePrice.toString()}
-                required
-              />
-              <Input
-                label="سبب الخصم"
-                type="textarea"
-                value={discountReason}
-                onChange={(e) => setDiscountReason(e.target.value)}
-                placeholder="عميل دائم / عرض خاص / حملة متعددة..."
-                required
-                rows={2}
-              />
-              {customPrice && !isNaN(parseFloat(customPrice)) && parseFloat(customPrice) < selectedPackage.basePrice && (
-                <Text variant="small" color="secondary">
-                  السعر الأصلي: ${selectedPackage.basePrice} |
-                  الخصم: ${(selectedPackage.basePrice - parseFloat(customPrice)).toFixed(2)} ({((1 - parseFloat(customPrice) / selectedPackage.basePrice) * 100).toFixed(0)}%)
-                </Text>
-              )}
-            </>
-          )}
-        </div>
-
         {/* Desktop Media Upload */}
         <div className={styles.imagesSection}>
           <Text variant="h4">
@@ -424,10 +389,26 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
           )}
           <ImageUploadGrid
             images={desktopImages}
-            onChange={(newImages) => {
+            onChange={async (newImages) => {
               // Detect if images were added or removed
               if (newImages.length > desktopImages.length) {
                 handleDesktopImageAdd(newImages);
+              } else if (newImages.length < desktopImages.length) {
+                // Image removed - delete from Cloudflare
+                const removedImages = desktopImages.filter(
+                  oldImg => !newImages.find(newImg => newImg.id === oldImg.id)
+                );
+
+                for (const img of removedImages) {
+                  if (img.url && !img.url.startsWith('blob:')) {
+                    console.log(`🗑️ Deleting desktop media: ${img.url}`);
+                    await deleteFromCloudflare(img.url).catch(err =>
+                      console.error('Failed to delete desktop media:', err)
+                    );
+                  }
+                }
+
+                setDesktopImages(newImages);
               } else {
                 setDesktopImages(newImages);
               }
@@ -454,10 +435,26 @@ export const AddPackageModal: React.FC<AddPackageModalProps> = ({
           )}
           <ImageUploadGrid
             images={mobileImages}
-            onChange={(newImages) => {
+            onChange={async (newImages) => {
               // Detect if images were added or removed
               if (newImages.length > mobileImages.length) {
                 handleMobileImageAdd(newImages);
+              } else if (newImages.length < mobileImages.length) {
+                // Image removed - delete from Cloudflare
+                const removedImages = mobileImages.filter(
+                  oldImg => !newImages.find(newImg => newImg.id === oldImg.id)
+                );
+
+                for (const img of removedImages) {
+                  if (img.url && !img.url.startsWith('blob:')) {
+                    console.log(`🗑️ Deleting mobile media: ${img.url}`);
+                    await deleteFromCloudflare(img.url).catch(err =>
+                      console.error('Failed to delete mobile media:', err)
+                    );
+                  }
+                }
+
+                setMobileImages(newImages);
               } else {
                 setMobileImages(newImages);
               }

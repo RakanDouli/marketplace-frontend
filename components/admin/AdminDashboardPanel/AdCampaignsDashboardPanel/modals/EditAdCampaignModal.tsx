@@ -14,6 +14,8 @@ import {
   type ValidationErrors,
 } from '@/lib/admin/validation/adCampaignValidation';
 import { AddPackageModal, type CampaignPackage } from './AddPackageModal';
+import { deleteFromCloudflare } from '@/utils/cloudflare-upload';
+import { formatAdPrice } from '@/utils/formatPrice';
 import styles from './AdCampaignModals.module.scss';
 
 interface EditAdCampaignModalProps {
@@ -82,6 +84,10 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
   const [editingPackageIndex, setEditingPackageIndex] = useState<number | null>(null);
   const [sendingPaymentLink, setSendingPaymentLink] = useState(false);
 
+  // Discount state (campaign-level, stored in packageBreakdown only)
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [discountReason, setDiscountReason] = useState<string>('');
+
   // Convert clients to options format for Input select
   const clientOptions = clients.map(client => ({
     value: client.id,
@@ -134,29 +140,43 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
         // Transform backend structure to full CampaignPackage structure
         const transformedPackages: CampaignPackage[] = initialData.packageBreakdown.packages.map((pkg: any) => ({
           packageId: pkg.packageId,
-          packageData: {
+          packageData: pkg.packageData || {
+            // Fallback for old flattened structure
             id: pkg.packageId,
             packageName: pkg.packageName || 'Unknown Package',
-            basePrice: pkg.basePrice || pkg.price || 0, // Support both old and new format
+            basePrice: pkg.basePrice || pkg.price || 0,
             currency: 'USD',
             adType: pkg.adType || 'BANNER',
             placement: pkg.placement || '',
             format: pkg.format || '',
+            durationDays: pkg.durationDays || 30,
+            impressionLimit: pkg.impressionLimit || 0,
             dimensions: pkg.dimensions || {
               desktop: { width: 970, height: 250 },
               mobile: { width: 300, height: 250 }
             },
             mediaRequirements: pkg.mediaRequirements || []
           },
+          startDate: pkg.startDate || initialData.startDate.split('T')[0],
+          endDate: pkg.endDate || initialData.endDate.split('T')[0],
+          isAsap: pkg.isAsap || false,
           desktopMediaUrl: pkg.desktopMediaUrl || '',
           mobileMediaUrl: pkg.mobileMediaUrl || '',
           clickUrl: pkg.clickUrl,
           openInNewTab: pkg.openInNewTab,
-          customPrice: pkg.customPrice || pkg.price, // Support both old and new format
+          customPrice: pkg.customPrice || pkg.price,
         }));
 
         console.log('📦 Transformed packages:', transformedPackages);
         setCampaignPackages(transformedPackages);
+
+        // Load discount data from packageBreakdown
+        if (initialData.packageBreakdown.discountPercentage) {
+          setDiscountPercentage(initialData.packageBreakdown.discountPercentage);
+        }
+        if (initialData.packageBreakdown.discountReason) {
+          setDiscountReason(initialData.packageBreakdown.discountReason);
+        }
       } else {
         console.log('❌ No packages found in packageBreakdown');
         setCampaignPackages([]);
@@ -164,13 +184,13 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     }
   }, [initialData]);
 
-  // Auto-update total price when packages change
+  // Auto-update total price when packages or discount change
   useEffect(() => {
     if (campaignPackages.length > 0) {
       const calculatedTotal = calculateTotalPrice();
       setFormData(prev => ({ ...prev, totalPrice: calculatedTotal }));
     }
-  }, [campaignPackages]);
+  }, [campaignPackages, discountPercentage]);
 
   // Auto-calculate end date when start date or packages change
   useEffect(() => {
@@ -225,6 +245,8 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
             adType
             placement
             format
+            durationDays
+            impressionLimit
             dimensions {
               desktop {
                 width
@@ -263,6 +285,12 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
       return; // STOP - do not submit
     }
 
+    // Validate discount reason if discount is applied
+    if (discountPercentage > 0 && !discountReason.trim()) {
+      setError('يرجى إدخال سبب الخصم عند تطبيق خصم');
+      return;
+    }
+
     console.log('✅ Ad Campaign validation passed, submitting...');
 
     try {
@@ -273,18 +301,20 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
       const packageBreakdown = hasPackages ? {
         packages: campaignPackages.map(pkg => ({
           packageId: pkg.packageId,
-          packageName: pkg.packageData.packageName,
-          basePrice: pkg.packageData.basePrice,
-          adType: pkg.packageData.adType,
-          placement: pkg.packageData.placement,
-          format: pkg.packageData.format,
-          dimensions: pkg.packageData.dimensions,
-          mediaRequirements: pkg.packageData.mediaRequirements,
+          packageData: pkg.packageData,     // Keep nested structure for backend
+          startDate: pkg.startDate,
+          endDate: pkg.endDate,
+          isAsap: pkg.isAsap,
           desktopMediaUrl: pkg.desktopMediaUrl,
           mobileMediaUrl: pkg.mobileMediaUrl,
           clickUrl: pkg.clickUrl,
           openInNewTab: pkg.openInNewTab,
-        }))
+          customPrice: pkg.customPrice,
+        })),
+        discountPercentage: discountPercentage,  // Campaign-level discount
+        discountReason: discountReason,          // Campaign-level discount reason
+        totalBeforeDiscount: calculateTotalBeforeDiscount(),
+        totalAfterDiscount: calculateTotalPrice(),
       } : undefined;
 
       // Calculate total price from packages
@@ -433,15 +463,50 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
     setShowAddPackageModal(true);
   };
 
-  const handleDeletePackage = (index: number) => {
+  const handleDeletePackage = async (index: number) => {
+    const packageToDelete = campaignPackages[index];
+
+    // Delete media from Cloudflare before removing from state
+    if (packageToDelete) {
+      const deletePromises = [];
+
+      if (packageToDelete.desktopMediaUrl) {
+        console.log(`🗑️ Deleting desktop media: ${packageToDelete.desktopMediaUrl}`);
+        deletePromises.push(
+          deleteFromCloudflare(packageToDelete.desktopMediaUrl).catch(err =>
+            console.error('Failed to delete desktop media:', err)
+          )
+        );
+      }
+
+      if (packageToDelete.mobileMediaUrl) {
+        console.log(`🗑️ Deleting mobile media: ${packageToDelete.mobileMediaUrl}`);
+        deletePromises.push(
+          deleteFromCloudflare(packageToDelete.mobileMediaUrl).catch(err =>
+            console.error('Failed to delete mobile media:', err)
+          )
+        );
+      }
+
+      // Wait for deletions (non-blocking)
+      await Promise.all(deletePromises);
+    }
+
     const updated = campaignPackages.filter((_, i) => i !== index);
     setCampaignPackages(updated);
   };
 
   // Calculate total price from all packages (uses base price only)
-  const calculateTotalPrice = (): number => {
+  // Calculate total before discount
+  const calculateTotalBeforeDiscount = (): number => {
     if (campaignPackages.length === 0) return 0;
     return campaignPackages.reduce((sum, pkg) => sum + pkg.packageData.basePrice, 0);
+  };
+
+  // Calculate total after discount
+  const calculateTotalPrice = (): number => {
+    const totalBefore = calculateTotalBeforeDiscount();
+    return totalBefore * (1 - discountPercentage / 100);
   };
 
   return (
@@ -608,10 +673,75 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
                   </tbody>
                 </table>
 
-                {/* Total Price */}
-                <div className={styles.totalPrice}>
-                  <Text variant="h4">السعر الإجمالي:</Text>
-                  <Text variant="h3">${calculateTotalPrice()}</Text>
+                {/* Unified Pricing Summary */}
+                <div className={styles.pricingSummary}>
+                  <div className={styles.pricingRow}>
+                    <Text variant="paragraph">الإجمالي قبل الخصم</Text>
+                    <Text variant="paragraph">{formatAdPrice(calculateTotalBeforeDiscount(), 'USD')}</Text>
+                  </div>
+
+                  {/* Discount Toggle */}
+                  <div className={styles.discountToggle}>
+                    <Input
+                      type="switch"
+                      label="تطبيق خصم على الحملة"
+                      checked={discountPercentage > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setDiscountPercentage(10); // Default 10%
+                        } else {
+                          setDiscountPercentage(0);
+                          setDiscountReason('');
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {discountPercentage > 0 && (
+                    <div className={styles.discountInputs}>
+                      <Input
+                        label="نسبة الخصم (%)"
+                        type="number"
+                        min="0.01"
+                        max="100"
+                        step="0.01"
+                        value={discountPercentage}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setDiscountPercentage(Math.max(0, Math.min(100, value)));
+                        }}
+                        placeholder="10"
+                        required
+                      />
+                      <Input
+                        label="سبب الخصم"
+                        type="textarea"
+                        value={discountReason}
+                        onChange={(e) => setDiscountReason(e.target.value)}
+                        placeholder="عميل دائم / عرض خاص / حملة متعددة / شراكة استراتيجية..."
+                        required
+                        rows={2}
+                      />
+                    </div>
+                  )}
+
+                  {/* Show discount row if applied */}
+                  {discountPercentage > 0 && (
+                    <>
+                      <div className={styles.pricingDivider} />
+                      <div className={styles.pricingRow}>
+                        <Text variant="small" color="secondary">الخصم ({discountPercentage}%)</Text>
+                        <Text variant="small" color="error">- {formatAdPrice(calculateTotalBeforeDiscount() * (discountPercentage / 100), 'USD')}</Text>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Final total */}
+                  <div className={styles.pricingDivider} />
+                  <div className={styles.pricingRow}>
+                    <Text variant="h4">المبلغ الإجمالي</Text>
+                    <Text variant="h3" color="primary">{formatAdPrice(calculateTotalPrice(), 'USD')}</Text>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -624,35 +754,6 @@ export const EditAdCampaignModal: React.FC<EditAdCampaignModalProps> = ({
           </div>
         )}
 
-        {/* Campaign Period */}
-        <div className={styles.section}>
-          <Text variant="h4">فترة الحملة</Text>
-          <div className={styles.formGrid}>
-            <Input
-              label="تاريخ البداية"
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => handleChange('startDate', e.target.value)}
-              required
-            />
-            <div>
-              <Text variant="small" color="secondary" style={{ marginBottom: '8px', display: 'block' }}>
-                تاريخ الانتهاء (محسوب تلقائياً)
-              </Text>
-              <Input
-                type="text"
-                value={formData.endDate || '-'}
-                disabled
-                style={{ backgroundColor: 'var(--surface-secondary)' }}
-              />
-            </div>
-          </div>
-          {campaignPackages.length > 0 && (
-            <Text variant="small" color="secondary" className={styles.description}>
-              يتم حساب تاريخ الانتهاء تلقائياً بناءً على مدة الحزمة ({Math.max(...campaignPackages.map(pkg => pkg.packageData.durationDays || 30))} يوم)
-            </Text>
-          )}
-        </div>
 
         {/* Payment Link */}
         <div className={styles.section}>

@@ -349,3 +349,51 @@
     height: 40px;
   }
 }
+
+// Pricing Summary Styles
+.pricingSummary {
+  background: $surface;
+  border: 2px solid $border;
+  border-radius: $radius-md;
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.pricingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-md;
+
+  &:last-child {
+    padding-top: $space-sm;
+    border-top: 2px solid $border;
+  }
+}
+
+.pricingDivider {
+  height: 1px;
+  background: $border;
+  margin: $space-xs 0;
+}
+
+.discountSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-sm 0;
+}
+
+.discountInputs {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: $space-md;
+  padding-left: $space-lg;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+    padding-left: 0;
+  }
+}

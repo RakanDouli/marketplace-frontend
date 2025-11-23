@@ -9,6 +9,7 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { AddPackageModal, type CampaignPackage } from './AddPackageModal';
 import { formatAdPrice } from '@/utils/formatPrice';
+import { deleteFromCloudflare } from '@/utils/cloudflare-upload';
 import styles from './AdCampaignModals.module.scss';
 
 interface CreateAdCampaignModalProps {
@@ -76,42 +77,15 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     campaignName: '',
     description: '',
     clientId: '',
-    packageId: '',
+    packageId: '', // Kept for backend compatibility (uses first package)
     isCustomPackage: false,
-    startPreference: 'SPECIFIC_DATE', // 'ASAP' or 'SPECIFIC_DATE'
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    totalPrice: 0,
     currency: 'USD',
     notes: '',
-    pacingMode: 'EVEN',     // NEW: Pacing mode (EVEN, ASAP, MANUAL)
-    priority: 3,            // NEW: Priority 1-5 (default 3)
-    discountPercentage: 0,  // NEW: Campaign-level discount (0-100)
-    discountReason: '',     // NEW: Why discount was applied
   });
 
-  // Auto-calculate end date when start date, preference, or package changes
-  useEffect(() => {
-    // Get duration from the first selected package
-    const durationDays = campaignPackages.length > 0
-      ? campaignPackages[0].packageData.durationDays
-      : 30; // Default 30 days if no package selected yet
-
-    if (formData.startPreference === 'SPECIFIC_DATE' && formData.startDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(start.getTime() + durationDays * 24 * 60 * 60 * 1000);
-      setFormData(prev => ({ ...prev, endDate: end.toISOString().split('T')[0] }));
-    } else if (formData.startPreference === 'ASAP') {
-      // For ASAP, set placeholder dates (will be adjusted on payment)
-      const now = new Date();
-      const end = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
-      setFormData(prev => ({
-        ...prev,
-        startDate: now.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0]
-      }));
-    }
-  }, [formData.startPreference, formData.startDate, campaignPackages]);
+  // Discount state (NOT in formData - only goes in packageBreakdown)
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [discountReason, setDiscountReason] = useState<string>('');
 
   // Fetch clients and packages
   useEffect(() => {
@@ -191,7 +165,35 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     setShowAddPackageModal(true);
   };
 
-  const handleDeletePackage = (index: number) => {
+  const handleDeletePackage = async (index: number) => {
+    const packageToDelete = campaignPackages[index];
+
+    // Delete media from Cloudflare before removing from state
+    if (packageToDelete) {
+      const deletePromises = [];
+
+      if (packageToDelete.desktopMediaUrl) {
+        console.log(`🗑️ Deleting desktop media: ${packageToDelete.desktopMediaUrl}`);
+        deletePromises.push(
+          deleteFromCloudflare(packageToDelete.desktopMediaUrl).catch(err =>
+            console.error('Failed to delete desktop media:', err)
+          )
+        );
+      }
+
+      if (packageToDelete.mobileMediaUrl) {
+        console.log(`🗑️ Deleting mobile media: ${packageToDelete.mobileMediaUrl}`);
+        deletePromises.push(
+          deleteFromCloudflare(packageToDelete.mobileMediaUrl).catch(err =>
+            console.error('Failed to delete mobile media:', err)
+          )
+        );
+      }
+
+      // Wait for deletions (non-blocking)
+      await Promise.all(deletePromises);
+    }
+
     const updated = campaignPackages.filter((_, i) => i !== index);
     setCampaignPackages(updated);
   };
@@ -199,12 +201,19 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
   // Calculate total price from all packages with campaign-level discount
   const calculateTotalBeforeDiscount = (): number => {
     if (campaignPackages.length === 0) return formData.totalPrice;
-    return campaignPackages.reduce((sum, pkg) => sum + (pkg.customPrice || pkg.packageData.basePrice), 0);
+    return campaignPackages.reduce((sum, pkg) => {
+      // Safety check - ensure packageData exists
+      if (!pkg?.packageData?.basePrice) {
+        console.error('Invalid package data:', pkg);
+        return sum;
+      }
+      return sum + pkg.packageData.basePrice;
+    }, 0);
   };
 
   const calculateTotalPrice = (): number => {
     const beforeDiscount = calculateTotalBeforeDiscount();
-    const discountAmount = beforeDiscount * (formData.discountPercentage / 100);
+    const discountAmount = beforeDiscount * (discountPercentage / 100);
     return beforeDiscount - discountAmount;
   };
 
@@ -232,14 +241,8 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       return;
     }
 
-    // 4. Validate start date for SPECIFIC_DATE preference
-    if (formData.startPreference === 'SPECIFIC_DATE' && !formData.startDate) {
-      setError('يرجى تحديد تاريخ البداية');
-      return;
-    }
-
-    // 5. Validate discount reason if discount is applied
-    if (formData.discountPercentage > 0 && !formData.discountReason.trim()) {
+    // 4. Validate discount reason if discount is applied
+    if (discountPercentage > 0 && !discountReason.trim()) {
       setError('يرجى إدخال سبب الخصم عند تطبيق خصم');
       return;
     }
@@ -255,15 +258,10 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       const packageBreakdown = hasPackages ? {
         packages: campaignPackages.map(pkg => ({
           packageId: pkg.packageId,
-          packageName: pkg.packageData.packageName,
-          basePrice: pkg.packageData.basePrice,
-          adType: pkg.packageData.adType,
-          placement: pkg.packageData.placement,
-          format: pkg.packageData.format,
-          dimensions: pkg.packageData.dimensions,
-          mediaRequirements: pkg.packageData.mediaRequirements,
+          packageData: pkg.packageData,     // Keep nested structure for backend
           startDate: pkg.startDate,         // NEW: Per-package start date
           endDate: pkg.endDate,             // NEW: Per-package end date
+          isAsap: pkg.isAsap,               // ASAP flag
           desktopMediaUrl: pkg.desktopMediaUrl,
           mobileMediaUrl: pkg.mobileMediaUrl,
           clickUrl: pkg.clickUrl,
@@ -271,8 +269,8 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           customPrice: pkg.customPrice,     // Include discount price
           discountReason: pkg.discountReason, // NEW: Discount reason
         })),
-        discountPercentage: formData.discountPercentage,  // Campaign-level discount
-        discountReason: formData.discountReason,          // Campaign-level discount reason
+        discountPercentage: discountPercentage,  // Campaign-level discount (in packageBreakdown only)
+        discountReason: discountReason,          // Campaign-level discount reason (in packageBreakdown only)
         totalBeforeDiscount: calculateTotalBeforeDiscount(),
         totalAfterDiscount: calculateTotalPrice(),
       } : undefined;
@@ -285,17 +283,49 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         ? campaignPackages[0].packageId
         : formData.packageId;
 
-      // Calculate campaign-level dates as MIN/MAX from all packages
-      let campaignStartDate = formData.startDate;
-      let campaignEndDate = formData.endDate;
+      // Calculate campaign-level dates as MIN/MAX from packages with specific dates
+      // Exclude ASAP packages (they have empty dates until payment)
+      const packagesWithDates = campaignPackages.filter(pkg => !pkg.isAsap && pkg.startDate && pkg.endDate);
 
-      if (campaignPackages.length > 0) {
-        const allStartDates = campaignPackages.map(pkg => new Date(pkg.startDate));
-        const allEndDates = campaignPackages.map(pkg => new Date(pkg.endDate));
+      let campaignStartDate: string;
+      let campaignEndDate: string;
+
+      if (packagesWithDates.length > 0) {
+        // We have packages with specific dates - use min/max
+        const allStartDates = packagesWithDates.map(pkg => new Date(pkg.startDate));
+        const allEndDates = packagesWithDates.map(pkg => new Date(pkg.endDate));
 
         campaignStartDate = new Date(Math.min(...allStartDates.map(d => d.getTime()))).toISOString().split('T')[0];
         campaignEndDate = new Date(Math.max(...allEndDates.map(d => d.getTime()))).toISOString().split('T')[0];
+      } else {
+        // All packages are ASAP - use placeholder dates (will be updated after payment)
+        const today = new Date();
+        campaignStartDate = today.toISOString().split('T')[0];
+
+        // Calculate end date based on the longest package duration
+        const durations = campaignPackages
+          .map(pkg => pkg.packageData?.durationDays || 0)
+          .filter(d => d > 0);
+
+        const maxDuration = durations.length > 0 ? Math.max(...durations) : 30; // Fallback to 30 days
+
+        console.log('📅 ASAP Campaign Date Calculation:', {
+          durations,
+          maxDuration,
+          packages: campaignPackages.map(p => ({
+            name: p.packageData?.packageName,
+            duration: p.packageData?.durationDays
+          }))
+        });
+
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + maxDuration);
+        campaignEndDate = endDate.toISOString().split('T')[0];
       }
+
+      // Auto-calculate startPreference from packages (if any has isAsap, campaign is ASAP)
+      const hasAsapPackage = campaignPackages.some(pkg => pkg.isAsap);
+      const startPreference = hasAsapPackage ? 'ASAP' : 'SPECIFIC_DATE';
 
       const submissionData = {
         ...formData,
@@ -304,6 +334,7 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         totalPrice,
         startDate: campaignStartDate,  // Campaign-level start (min of all packages)
         endDate: campaignEndDate,      // Campaign-level end (max of all packages)
+        startPreference,               // Auto-calculated from packages
         packageBreakdown,
       };
 
@@ -327,17 +358,11 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
         clientId: '',
         packageId: '',
         isCustomPackage: false,
-        startPreference: 'SPECIFIC_DATE',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        totalPrice: 0,
         currency: 'USD',
         notes: '',
-        pacingMode: 'EVEN',
-        priority: 3,
-        discountPercentage: 0,
-        discountReason: '',
       });
+      setDiscountPercentage(0);
+      setDiscountReason('');
       setCampaignPackages([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'فشل في إنشاء الحملة الإعلانية');
@@ -356,17 +381,11 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
       clientId: '',
       packageId: '',
       isCustomPackage: false,
-      startPreference: 'SPECIFIC_DATE',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      totalPrice: 0,
       currency: 'USD',
       notes: '',
-      pacingMode: 'EVEN',
-      priority: 3,
-      discountPercentage: 0,
-      discountReason: '',
     });
+    setDiscountPercentage(0);
+    setDiscountReason('');
     setCampaignPackages([]);
     setError(null);
     onClose();
@@ -377,28 +396,6 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
     value: client.id,
     label: client.companyName
   }));
-
-  // Start preference options
-  const startPreferenceOptions = [
-    { value: 'ASAP', label: 'في أقرب وقت ممكن (عند الدفع)' },
-    { value: 'SPECIFIC_DATE', label: 'تاريخ محدد' }
-  ];
-
-  // Pacing mode options
-  const pacingModeOptions = [
-    { value: 'EVEN', label: 'توزيع متساوي (مُوصى به)' },
-    { value: 'ASAP', label: 'أسرع ما يمكن' },
-    { value: 'MANUAL', label: 'يدوي (تحكم الإدارة)' }
-  ];
-
-  // Priority labels for slider
-  const priorityLabels: { [key: number]: string } = {
-    1: 'منخفض جداً',
-    2: 'منخفض',
-    3: 'متوسط (افتراضي)',
-    4: 'عالي',
-    5: 'عالي جداً'
-  };
 
   return (
     <Modal
@@ -617,134 +614,86 @@ export const CreateAdCampaignModal: React.FC<CreateAdCampaignModalProps> = ({
           </div>
         )}
 
-        {/* Campaign-Level Discount Section */}
-        {campaignPackages.length > 0 && (
+        {/* Pricing Summary Section - Always shown when packages exist */}
+        {campaignPackages.length > 0 && campaignPackages.every(pkg => pkg?.packageData?.basePrice) && (
           <div className={styles.section}>
-            <Text variant="h4">خصم على مستوى الحملة (اختياري)</Text>
-            <Text variant="small" color="secondary" className={styles.description}>
-              يطبق الخصم على إجمالي سعر جميع الحزم في الحملة
-            </Text>
+            <Text variant="h4">ملخص التسعير والخصم</Text>
+            <div className={styles.pricingSummary}>
+              {/* Total before discount */}
+              <div className={styles.pricingRow}>
+                <Text variant="paragraph" weight="medium">إجمالي الحزم ({campaignPackages.length})</Text>
+                <Text variant="paragraph" weight="medium">{formatAdPrice(calculateTotalBeforeDiscount(), 'USD')}</Text>
+              </div>
 
-            <div className={styles.formGrid}>
-              <Input
-                label="نسبة الخصم (%)"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={formData.discountPercentage}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  handleChange('discountPercentage', Math.max(0, Math.min(100, value)));
-                }}
-                placeholder="0"
-              />
-            </div>
+              {/* Discount toggle and inputs */}
+              <div className={styles.pricingDivider} />
 
-            {formData.discountPercentage > 0 && (
-              <>
+              <div className={styles.discountSection}>
                 <Input
-                  label="سبب الخصم"
-                  type="textarea"
-                  value={formData.discountReason}
-                  onChange={(e) => handleChange('discountReason', e.target.value)}
-                  placeholder="عميل دائم / عرض خاص / حملة متعددة / شراكة استراتيجية..."
-                  required
-                  rows={2}
+                  type="checkbox"
+                  label="تطبيق خصم على الحملة"
+                  checked={discountPercentage > 0}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setDiscountPercentage(10); // Default 10% discount
+                    } else {
+                      setDiscountPercentage(0);
+                      setDiscountReason('');
+                    }
+                  }}
                 />
-                <Text variant="small" color="secondary">
-                  السعر قبل الخصم: {formatAdPrice(calculateTotalBeforeDiscount(), 'USD')} |
-                  مبلغ الخصم: {formatAdPrice(calculateTotalBeforeDiscount() * (formData.discountPercentage / 100), 'USD')} |
-                  السعر بعد الخصم: {formatAdPrice(calculateTotalPrice(), 'USD')}
+
+                {discountPercentage > 0 && (
+                  <div className={styles.discountInputs}>
+                    <Input
+                      label="نسبة الخصم (%)"
+                      type="number"
+                      min="0.01"
+                      max="100"
+                      step="0.01"
+                      value={discountPercentage}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        setDiscountPercentage(Math.max(0, Math.min(100, value)));
+                      }}
+                      placeholder="10"
+                      required
+                    />
+                    <Input
+                      label="سبب الخصم"
+                      type="textarea"
+                      value={discountReason}
+                      onChange={(e) => setDiscountReason(e.target.value)}
+                      placeholder="عميل دائم / عرض خاص / حملة متعددة / شراكة استراتيجية..."
+                      required
+                      rows={2}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Show discount row if applied */}
+              {discountPercentage > 0 && (
+                <>
+                  <div className={styles.pricingDivider} />
+                  <div className={styles.pricingRow}>
+                    <Text variant="small" color="secondary">الخصم ({discountPercentage}%)</Text>
+                    <Text variant="small" color="error">- {formatAdPrice(calculateTotalBeforeDiscount() * (discountPercentage / 100), 'USD')}</Text>
+                  </div>
+                </>
+              )}
+
+              {/* Final total */}
+              <div className={styles.pricingDivider} />
+              <div className={styles.pricingRow}>
+                <Text variant="h3">الإجمالي النهائي</Text>
+                <Text variant="h3" style={{ color: 'var(--color-primary)' }}>
+                  {formatAdPrice(calculateTotalPrice(), 'USD')}
                 </Text>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         )}
-
-        {/* Campaign Period */}
-        <div className={styles.section}>
-          <Text variant="h4">فترة الحملة</Text>
-
-          {/* Start Preference */}
-          <Input
-            type="select"
-            label="موعد البدء"
-            value={formData.startPreference}
-            onChange={(e) => handleChange('startPreference', e.target.value)}
-            options={startPreferenceOptions}
-            required
-            placeholder="اختر موعد البدء"
-          />
-
-          {/* Conditional Start Date Picker */}
-          {formData.startPreference === 'SPECIFIC_DATE' && (
-            <div className={styles.formGrid}>
-              <Input
-                label="تاريخ البداية"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => handleChange('startDate', e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-          {/* Show selected package duration (read-only info) */}
-          {campaignPackages.length > 0 && (
-            <div className={styles.formGrid}>
-              <Text variant="small" color="secondary">
-                مدة الحملة: {campaignPackages[0].packageData.durationDays} يوم (من الحزمة المختارة)
-              </Text>
-            </div>
-          )}
-        </div>
-
-        {/* Pacing & Priority Section */}
-        <div className={styles.section}>
-          <Text variant="h4">إعدادات الأداء</Text>
-
-          {/* Pacing Mode */}
-          <Input
-            type="select"
-            label="نظام التوزيع (Pacing)"
-            value={formData.pacingMode}
-            onChange={(e) => handleChange('pacingMode', e.target.value)}
-            options={pacingModeOptions}
-            required
-          />
-          <Text variant="small" color="secondary" className={styles.description}>
-            {formData.pacingMode === 'EVEN' && 'يوزع مرات الظهور بالتساوي طوال فترة الحملة (مُوصى به)'}
-            {formData.pacingMode === 'ASAP' && 'يعرض الإعلان بأسرع ما يمكن حتى نفاذ مرات الظهور'}
-            {formData.pacingMode === 'MANUAL' && 'تحكم يدوي من الإدارة بمعدل العرض'}
-          </Text>
-
-          {/* Priority Slider */}
-          <div className={styles.prioritySection}>
-            <label className={styles.label}>
-              الأولوية (Priority): {formData.priority} - {priorityLabels[formData.priority]}
-            </label>
-            <input
-              type="range"
-              min="1"
-              max="5"
-              step="1"
-              value={formData.priority}
-              onChange={(e) => handleChange('priority', parseInt(e.target.value))}
-              className={styles.prioritySlider}
-            />
-            <div className={styles.priorityMarks}>
-              <span>1</span>
-              <span>2</span>
-              <span>3</span>
-              <span>4</span>
-              <span>5</span>
-            </div>
-            <Text variant="small" color="secondary" className={styles.description}>
-              الأولوية الأعلى تزيد فرص ظهور الإعلان عند وجود إعلانات متعددة
-            </Text>
-          </div>
-        </div>
 
         {/* Notes */}
         <div className={styles.section}>

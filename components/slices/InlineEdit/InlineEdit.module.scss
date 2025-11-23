@@ -30,7 +30,7 @@
 
     .value {
       flex: 1;
-      color: var(--text-primary);
+      color: var(--text);
       font-size: 0.875rem;
       line-height: 1.4;
     }
@@ -54,7 +54,7 @@
 
       &:hover {
         background: var(--background-secondary);
-        color: var(--text-primary);
+        color: var(--text);
       }
     }
 
@@ -84,7 +84,7 @@
         border: 1px solid var(--border-light);
         border-radius: $radius-sm;
         background: var(--background-primary);
-        color: var(--text-primary);
+        color: var(--text);
 
         &:focus {
           outline: none;
@@ -132,7 +132,7 @@
 
           &:hover:not(:disabled) {
             background: var(--background-tertiary);
-            color: var(--text-primary);
+            color: var(--text);
           }
         }
       }
@@ -203,7 +203,9 @@
 
     .editButton {
       opacity: 0;
-      transition: opacity 0.2s ease, color 0.2s ease;
+      transition:
+        opacity 0.2s ease,
+        color 0.2s ease;
 
       &:hover {
         color: $primary;

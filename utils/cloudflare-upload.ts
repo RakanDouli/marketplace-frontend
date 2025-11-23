@@ -201,14 +201,63 @@ export async function deleteFromCloudflare(imageId: string): Promise<boolean> {
   try {
     console.log(`🗑️ Deleting image from Cloudflare: ${imageId}`);
 
-    // Note: Backend handles the actual deletion via ImagesService
-    // This is typically called through mutations like deleteMessage, updateMyListing, etc.
-    // This function is here for reference and future direct deletion support
+    const mutation = `
+      mutation DeleteAdMedia($assetKey: String!) {
+        deleteAdMedia(assetKey: $assetKey)
+      }
+    `;
+
+    const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+
+    // Get auth token
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        const isAdminRoute = window.location.pathname.startsWith('/admin');
+        const storageKey = isAdminRoute ? 'admin-auth-storage' : 'user-auth-storage';
+        const authData = localStorage.getItem(storageKey);
+
+        if (authData) {
+          const { state } = JSON.parse(authData);
+          const token = state?.user?.token;
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not get auth token:', error);
+      }
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        query: mutation,
+        variables: { assetKey: imageId }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete image: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.errors) {
+      console.error('GraphQL errors:', result.errors);
+      // Don't throw - image might already be deleted
+      return true;
+    }
 
     console.log(`✅ Image deleted from Cloudflare: ${imageId}`);
     return true;
   } catch (error) {
     console.error(`❌ Error deleting image from Cloudflare:`, error);
-    throw error;
+    // Don't throw - allow operation to continue even if deletion fails
+    return false;
   }
 }
