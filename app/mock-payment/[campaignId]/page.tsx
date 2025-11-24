@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Text, Button } from '@/components/slices';
-import { CheckCircle, XCircle, CreditCard, Calendar, DollarSign } from 'lucide-react';
+import { CampaignPreview } from '@/components/CampaignPreview';
+import { CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import styles from './MockPayment.module.scss';
 
 const GET_CAMPAIGN_QUERY = `
@@ -17,6 +18,8 @@ const GET_CAMPAIGN_QUERY = `
       startDate
       endDate
       status
+      isCustomPackage
+      packageBreakdown
       client {
         id
         companyName
@@ -65,7 +68,6 @@ export default function MockPaymentPage() {
   const router = useRouter();
   const campaignId = params?.campaignId as string;
 
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'rejected'>('pending');
   const [campaign, setCampaign] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,17 +98,20 @@ export default function MockPaymentPage() {
       await makeGraphQLCall(CONFIRM_PAYMENT_MUTATION, {
         campaignId: campaignId,
       });
-      setPaymentStatus('success');
+      // Redirect to success page
+      router.push(`/payment/success?type=ad_campaign&id=${campaignId}`);
     } catch (err) {
       console.error('Payment confirmation error:', err);
-      alert('فشل في تأكيد الدفع');
+      // Redirect to failure page
+      router.push(`/payment/failure?type=ad_campaign&id=${campaignId}`);
     } finally {
       setUpdating(false);
     }
   };
 
   const handleRejectPayment = () => {
-    setPaymentStatus('rejected');
+    // Redirect to failure page
+    router.push(`/payment/failure?type=ad_campaign&id=${campaignId}`);
   };
 
   if (loading) {
@@ -132,47 +137,7 @@ export default function MockPaymentPage() {
     );
   }
 
-  if (paymentStatus === 'success') {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <div className={styles.successIcon}>
-            <CheckCircle size={64} />
-          </div>
-          <Text variant="h2">تم الدفع بنجاح</Text>
-          <Text variant="paragraph" color="secondary">
-            تم تأكيد دفعتك للحملة الإعلانية "{campaign.campaignName}"
-          </Text>
-          <div className={styles.actions}>
-            <Button onClick={() => router.push('/admin')}>
-              العودة إلى لوحة التحكم
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (paymentStatus === 'rejected') {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <div className={styles.rejectIcon}>
-            <XCircle size={64} />
-          </div>
-          <Text variant="h2">تم رفض الدفع</Text>
-          <Text variant="paragraph" color="secondary">
-            تم إلغاء عملية الدفع للحملة "{campaign.campaignName}"
-          </Text>
-          <div className={styles.actions}>
-            <Button variant="outline" onClick={() => setPaymentStatus('pending')}>
-              المحاولة مرة أخرى
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Removed success/rejected screens - now redirecting to unified success/failure pages
 
   return (
     <div className={styles.container}>
@@ -186,52 +151,8 @@ export default function MockPaymentPage() {
         </div>
 
         <div className={styles.section}>
-          <Text variant="h3">تفاصيل الدفع</Text>
-
-          <div className={styles.detailsGrid}>
-            <div className={styles.detail}>
-              <Text variant="small" color="secondary">اسم الحملة</Text>
-              <Text variant="paragraph">{campaign.campaignName}</Text>
-            </div>
-
-            <div className={styles.detail}>
-              <Text variant="small" color="secondary">العميل</Text>
-              <Text variant="paragraph">{campaign.client.companyName}</Text>
-            </div>
-
-            <div className={styles.detail}>
-              <Text variant="small" color="secondary">نوع الحزمة</Text>
-              <Text variant="paragraph">{campaign.package.packageName}</Text>
-            </div>
-
-            <div className={styles.detail}>
-              <Text variant="small" color="secondary">المبلغ المطلوب</Text>
-              <div className={styles.amount}>
-                <DollarSign size={20} />
-                <Text variant="h3">{campaign.totalPrice} {campaign.currency}</Text>
-              </div>
-            </div>
-
-            <div className={styles.detail}>
-              <Text variant="small" color="secondary">تاريخ البدء</Text>
-              <div className={styles.dateInfo}>
-                <Calendar size={16} />
-                <Text variant="paragraph">
-                  {new Date(campaign.startDate).toLocaleDateString('ar-EG')}
-                </Text>
-              </div>
-            </div>
-
-            <div className={styles.detail}>
-              <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
-              <div className={styles.dateInfo}>
-                <Calendar size={16} />
-                <Text variant="paragraph">
-                  {new Date(campaign.endDate).toLocaleDateString('ar-EG')}
-                </Text>
-              </div>
-            </div>
-          </div>
+          <Text variant="h3">تفاصيل الحملة</Text>
+          <CampaignPreview campaign={campaign} />
         </div>
 
         <div className={styles.section}>
