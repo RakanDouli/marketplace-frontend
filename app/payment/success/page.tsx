@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Container, Text, Button } from '@/components/slices';
 import { CheckCircle, Home, FileText } from 'lucide-react';
 import type { PaymentType } from '@/components/payment';
-import styles from './PaymentResult.module.scss';
+import styles from '../payment.module.scss';
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -42,18 +42,16 @@ export default function PaymentSuccessPage() {
   const message = getMessage();
 
   return (
-    <Container className={styles.container}>
+    <Container className={styles.resultContainer}>
       <div className={styles.result}>
         <div className={styles.successIcon}>
           <CheckCircle size={80} />
         </div>
 
-        <Text variant="h1">{message.title}</Text>
-        <Text variant="paragraph" color="secondary">
-          {message.description}
-        </Text>
+        <h1 className={styles.resultTitle}>{message.title}</h1>
+        <p className={styles.resultMessage}>{message.description}</p>
 
-        <div className={styles.actions}>
+        <div className={styles.resultActions}>
           <Button
             onClick={() => router.push(message.url)}
             icon={<FileText size={20} />}
@@ -71,7 +69,7 @@ export default function PaymentSuccessPage() {
         </div>
 
         {type === 'ad_campaign' && id && (
-          <div className={styles.additionalInfo}>
+          <div className={styles.resultInfo}>
             <Text variant="small" color="secondary">
               رقم الحملة: {id.slice(0, 8)}...
             </Text>

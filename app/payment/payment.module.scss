@@ -1,0 +1,228 @@
+@import "@/styles/variables";
+
+// ========================================
+// Payment Pages - Unified Styles
+// ========================================
+
+// ========================================
+// 1. Payment Page (Main)
+// ========================================
+.paymentContainer {
+  min-height: 100vh;
+  padding: 2rem 0;
+  background: $bg-secondary;
+}
+
+.paymentPage {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 $space-md;
+}
+
+.paymentHeader {
+  text-align: center;
+  margin-bottom: $space-xl;
+
+  h2 {
+    margin: 0 0 $space-xs 0;
+    color: $text-primary;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  p {
+    color: $text-secondary;
+    font-size: 1rem;
+  }
+}
+
+.paymentSection {
+  margin-bottom: $space-lg;
+}
+
+.paymentFooter {
+  text-align: center;
+  padding: $space-lg;
+  background: $bg;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  color: $text-secondary;
+  font-size: 0.875rem;
+}
+
+// ========================================
+// 2. Payment Result (Success/Failure)
+// ========================================
+.resultContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xl 0;
+  background: $bg-secondary;
+}
+
+.result {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 $space-md;
+  text-align: center;
+  padding: $space-xl;
+  background: $bg;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+}
+
+// Success Icon
+.successIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  background: $success-bg;
+  border-radius: 50%;
+  color: $success;
+  margin-bottom: $space-lg;
+
+  svg {
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+}
+
+// Error Icon
+.errorIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  background: $error-bg;
+  border-radius: 50%;
+  color: $error;
+  margin-bottom: $space-lg;
+
+  svg {
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+}
+
+// Result Content
+.resultTitle {
+  margin: 0 0 $space-md 0;
+  color: $text-primary;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.resultMessage {
+  margin: 0 0 $space-xl 0;
+  color: $text-secondary;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.resultActions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  margin-bottom: $space-lg;
+}
+
+.resultInfo {
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+  color: $text-secondary;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+// ========================================
+// 3. Loading & Error States
+// ========================================
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  min-height: 400px;
+  text-align: center;
+  padding: $space-xl;
+
+  h3 {
+    margin: 0;
+    color: $text-primary;
+    font-size: 1.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: $text-secondary;
+  }
+}
+
+// ========================================
+// 4. Responsive Design
+// ========================================
+@media (max-width: $breakpoint-md) {
+  .paymentContainer {
+    padding: $space-md 0;
+  }
+
+  .paymentPage {
+    padding: 0 $space-sm;
+  }
+
+  .paymentHeader {
+    margin-bottom: $space-lg;
+
+    h2 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .paymentSection {
+    margin-bottom: $space-md;
+  }
+
+  .paymentFooter {
+    padding: $space-md;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .result {
+    padding: $space-lg;
+    margin: 0 $space-sm;
+  }
+
+  .successIcon,
+  .errorIcon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: $space-md;
+
+    svg {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  .resultTitle {
+    font-size: 1.5rem;
+  }
+
+  .resultMessage {
+    font-size: 0.9375rem;
+  }
+
+  .resultActions {
+    gap: $space-sm;
+  }
+}

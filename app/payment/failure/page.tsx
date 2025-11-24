@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Container, Text, Button } from '@/components/slices';
 import { XCircle, RefreshCw, Home } from 'lucide-react';
 import type { PaymentType } from '@/components/payment';
-import styles from './PaymentResult.module.scss';
+import styles from '../payment.module.scss';
 
 export default function PaymentFailurePage() {
   const router = useRouter();
@@ -39,18 +39,16 @@ export default function PaymentFailurePage() {
   const message = getMessage();
 
   return (
-    <Container className={styles.container}>
+    <Container className={styles.resultContainer}>
       <div className={styles.result}>
         <div className={styles.errorIcon}>
           <XCircle size={80} />
         </div>
 
-        <Text variant="h1">{message.title}</Text>
-        <Text variant="paragraph" color="secondary">
-          {message.description}
-        </Text>
+        <h1 className={styles.resultTitle}>{message.title}</h1>
+        <p className={styles.resultMessage}>{message.description}</p>
 
-        <div className={styles.actions}>
+        <div className={styles.resultActions}>
           <Button
             onClick={() => router.push(message.retryUrl)}
             icon={<RefreshCw size={20} />}
@@ -67,7 +65,7 @@ export default function PaymentFailurePage() {
           </Button>
         </div>
 
-        <div className={styles.additionalInfo}>
+        <div className={styles.resultInfo}>
           <Text variant="small" color="secondary">
             إذا استمرت المشكلة، يرجى التواصل مع الدعم الفني
           </Text>

@@ -6,7 +6,7 @@ import { Text, Button, Container } from '@/components/slices';
 import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
 import type { PaymentType, PaymentMethod, PaymentData } from '@/components/payment';
 import { ArrowLeft } from 'lucide-react';
-import styles from './PaymentPage.module.scss';
+import styles from '../../payment.module.scss';
 
 // GraphQL helper
 const makeGraphQLCall = async (query: string, variables: any = {}) => {
@@ -106,7 +106,7 @@ export default function PaymentPage() {
 
   if (loading) {
     return (
-      <Container className={styles.container}>
+      <Container className={styles.paymentContainer}>
         <div className={styles.loading}>
           <Text variant="h3">جاري التحميل...</Text>
         </div>
@@ -116,7 +116,7 @@ export default function PaymentPage() {
 
   if (error || !paymentData) {
     return (
-      <Container className={styles.container}>
+      <Container className={styles.paymentContainer}>
         <div className={styles.error}>
           <Text variant="h3">خطأ في تحميل البيانات</Text>
           <Text variant="paragraph" color="secondary">
@@ -135,9 +135,9 @@ export default function PaymentPage() {
   }
 
   return (
-    <Container className={styles.container}>
+    <Container className={styles.paymentContainer}>
       <div className={styles.paymentPage}>
-        <div className={styles.header}>
+        <div className={styles.paymentHeader}>
           <Text variant="h2">إتمام عملية الدفع</Text>
           <Text variant="paragraph" color="secondary">
             يرجى مراجعة التفاصيل واختيار طريقة الدفع المناسبة
@@ -145,19 +145,19 @@ export default function PaymentPage() {
         </div>
 
         {/* Payment Preview */}
-        <div className={styles.section}>
+        <div className={styles.paymentSection}>
           <PaymentPreview type={type} data={paymentData} />
         </div>
 
         {/* Payment Method Selection */}
-        <div className={styles.section}>
+        <div className={styles.paymentSection}>
           <PaymentMethodSelector
             methods={['mock', 'stripe', 'paypal']}
             onSelect={handlePaymentMethodSelect}
           />
         </div>
 
-        <div className={styles.footer}>
+        <div className={styles.paymentFooter}>
           <Text variant="small" color="secondary">
             ملاحظة: بعد اختيار طريقة الدفع، ستتم إعادة توجيهك إلى بوابة الدفع الآمنة.
           </Text>
