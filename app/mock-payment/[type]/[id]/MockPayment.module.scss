@@ -1,0 +1,107 @@
+@import "../../../../styles/variables";
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-lg;
+  // background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card {
+  max-width: 500px;
+  width: 100%;
+  background: $surface;
+  border-radius: $radius-xl;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.header {
+  text-align: center;
+  padding: $space-xl;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  svg {
+    color: white;
+    margin-bottom: $space-md;
+  }
+
+  h2 {
+    color: white;
+    margin: 0;
+  }
+
+  small {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.paymentDetails {
+  padding: $space-xl;
+}
+
+.amountSection {
+  text-align: center;
+  padding: $space-lg 0;
+  border-bottom: 1px solid $border;
+  margin-bottom: $space-lg;
+
+  .amount {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-sm;
+    margin-top: $space-md;
+
+    svg {
+      color: $success;
+    }
+
+    h1 {
+      margin: 0;
+      color: $text;
+    }
+
+    h4 {
+      margin: 0;
+    }
+  }
+}
+
+.merchantInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid $border;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: 0 $space-xl $space-xl;
+
+  button {
+    width: 100%;
+  }
+}
+
+.disclaimer {
+  background: rgba(102, 126, 234, 0.1);
+  border-top: 1px solid rgba(102, 126, 234, 0.2);
+  padding: $space-md $space-xl;
+  text-align: center;
+}

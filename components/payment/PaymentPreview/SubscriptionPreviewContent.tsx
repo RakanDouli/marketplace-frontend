@@ -71,13 +71,11 @@ export const SubscriptionPreviewContent: React.FC<SubscriptionPreviewContentProp
 
       {/* Pricing */}
       <div className={styles.pricingSummary}>
-        <Text variant="h4">التكلفة</Text>
         <div className={styles.totalRow}>
-          <Text variant="h4">الإجمالي</Text>
+          <Text variant="h4">الإجمالي المطلوب</Text>
           <div className={styles.totalAmount}>
             <DollarSign size={24} />
-            <Text variant="h3">{data.price.toFixed(2)}</Text>
-            <Text variant="paragraph">{data.currency}</Text>
+            <Text variant="h3">{data.price.toFixed(2)} {data.currency}</Text>
           </div>
         </div>
       </div>

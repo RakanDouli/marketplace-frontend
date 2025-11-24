@@ -55,6 +55,27 @@ const GET_CAMPAIGN_QUERY = `
   }
 `;
 
+const GET_SUBSCRIPTION_PLANS_QUERY = `
+  query GetPublicSubscriptionPlans {
+    userSubscriptions {
+      id
+      name
+      title
+      description
+      price
+      billingCycle
+      accountType
+      maxListings
+      maxImagesPerListing
+      videoAllowed
+      priorityPlacement
+      analyticsAccess
+      customBranding
+      featuredListings
+    }
+  }
+`;
+
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
@@ -79,8 +100,56 @@ export default function PaymentPage() {
           const data = await makeGraphQLCall(GET_CAMPAIGN_QUERY, { id });
           setPaymentData(data.getCampaignForPayment);
         } else if (type === 'subscription') {
-          // TODO: Add subscription query when backend is ready
-          throw new Error('Subscription payment not yet implemented');
+          const data = await makeGraphQLCall(GET_SUBSCRIPTION_PLANS_QUERY);
+          const plans = data.userSubscriptions || [];
+          const plan = plans.find((p: any) => p.id === id);
+
+          if (!plan) {
+            throw new Error('الخطة المطلوبة غير موجودة');
+          }
+
+          // Transform plan data to match SubscriptionPaymentData interface
+          setPaymentData({
+            planId: plan.id,
+            planName: plan.name,
+            title: plan.title,
+            price: plan.price,
+            currency: 'USD',
+            billingCycle: plan.billingCycle,
+            accountType: plan.accountType,
+            features: [
+              {
+                label: 'عدد الإعلانات',
+                value: plan.maxListings === 0 ? 'غير محدود' : `${plan.maxListings} إعلانات`,
+                included: true,
+              },
+              {
+                label: 'الصور لكل إعلان',
+                value: `${plan.maxImagesPerListing} صورة`,
+                included: true,
+              },
+              {
+                label: 'رفع فيديو',
+                included: plan.videoAllowed,
+              },
+              {
+                label: 'الأولوية في البحث',
+                included: plan.priorityPlacement,
+              },
+              {
+                label: 'لوحة التحليلات',
+                included: plan.analyticsAccess,
+              },
+              {
+                label: 'شعار الشركة',
+                included: plan.customBranding,
+              },
+              {
+                label: 'إعلانات مميزة',
+                included: plan.featuredListings,
+              },
+            ],
+          });
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'فشل في تحميل البيانات');
@@ -96,8 +165,8 @@ export default function PaymentPage() {
     setSelectedMethod(method);
 
     if (method === 'mock') {
-      // Redirect to mock payment page
-      router.push(`/mock-payment/${id}`);
+      // Redirect to mock payment page with type
+      router.push(`/mock-payment/${type}/${id}`);
     } else {
       // TODO: Redirect to Stripe/PayPal
       alert(`ستتم إعادة التوجيه إلى ${method}`);

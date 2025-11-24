@@ -1,19 +1,19 @@
-@import '@/styles/variables';
+@import "@/styles/variables";
 
 .preview {
-  background: var(--color-background-secondary);
-  border-radius: 12px;
+  background: $bg;
+  border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: $shadow-md;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  gap: $space-md;
+  padding: $space-lg;
+
+  border-bottom: 1px solid $border;
 
   .icon {
     display: flex;
@@ -21,82 +21,62 @@
     justify-content: center;
     width: 64px;
     height: 64px;
-    background: var(--color-primary-light);
-    border-radius: 12px;
-    color: var(--color-primary);
+    border-radius: $radius-lg;
+    color: $primary;
     flex-shrink: 0;
   }
 
   .headerContent {
     flex: 1;
     min-width: 0;
-
-    h3 {
-      margin: 0 0 0.25rem 0;
-    }
-
-    small {
-      display: block;
-      margin-top: 0.25rem;
-    }
   }
 }
 
 .section {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: $space-lg;
+  border-bottom: 1px solid $border;
 
   &:last-child {
     border-bottom: none;
-  }
-
-  h4 {
-    margin: 0 0 1rem 0;
-    color: var(--color-text-primary);
   }
 }
 
 .infoGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: $space-md;
 }
 
 .infoItem {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-
-  small {
-    font-weight: 500;
-  }
+  gap: $space-xs;
 }
 
 .packagesContainer {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $space-md;
 }
 
 .packageCard {
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
   overflow: hidden;
   transition: box-shadow 0.2s;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: $shadow-sm;
   }
 }
 
 .packageHeader {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--color-background-tertiary);
-  border-bottom: 1px solid var(--color-border);
+  gap: $space-sm;
+  padding: $space-md;
+  background: $surface;
+  border-bottom: 1px solid $border;
 
   .packageNumber {
     display: flex;
@@ -104,11 +84,11 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: var(--color-primary);
+    background: $primary;
     color: white;
     border-radius: 50%;
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: $weight-semibold;
+    font-size: $font-sm;
     flex-shrink: 0;
   }
 
@@ -120,13 +100,13 @@
   .asapBadge {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.75rem;
-    background: var(--color-warning-light);
-    color: var(--color-warning-dark);
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    gap: $space-xs;
+    padding: $space-xs $space-sm;
+    background: $warning-bg;
+    color: $warning;
+    border-radius: $radius-lg;
+    font-size: $font-xs;
+    font-weight: $weight-semibold;
     flex-shrink: 0;
 
     svg {
@@ -136,26 +116,26 @@
 }
 
 .packageDetails {
-  padding: 1rem;
+  padding: $space-md;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $space-sm;
 }
 
 .detailRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 0;
+  gap: $space-md;
+  padding: $space-sm 0;
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--color-border-light);
+    border-bottom: 1px solid $border;
   }
 
   small {
-    font-weight: 500;
-    color: var(--color-text-secondary);
+    font-weight: $weight-medium;
+    color: $text-secondary;
   }
 
   > div,
@@ -169,10 +149,10 @@
 .clickUrl {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-sm;
 
   svg {
-    color: var(--color-primary);
+    color: $primary;
     flex-shrink: 0;
   }
 }
@@ -192,15 +172,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 2px solid var(--color-border);
+  margin-top: $space-sm;
+  padding-top: $space-sm;
+  // border-top: 2px solid $border;
 
   .packagePrice {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    color: var(--color-primary);
+    gap: $space-xs;
+    color: $primary;
 
     svg {
       flex-shrink: 0;
@@ -208,51 +188,50 @@
 
     h5 {
       margin: 0;
-      font-weight: 700;
+      font-weight: $weight-bold;
     }
   }
 }
 
 .pricingSummary {
-  padding: 1.5rem;
-  background: var(--color-background);
+  padding: $space-lg;
 
   h4 {
-    margin: 0 0 1rem 0;
+    margin: 0 0 $space-md 0;
   }
 }
 
 .pricingDetails {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $space-sm;
 }
 
 .pricingRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: $space-sm 0;
 }
 
 .discountRow {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 0.75rem;
-  background: var(--color-success-light);
-  border-radius: 6px;
-  margin: 0.5rem 0;
+  padding: $space-sm;
+  background: $success-bg;
+  border-radius: $radius-md;
+  margin: $space-sm 0;
 
   > div {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: $space-xs;
   }
 
   p {
-    color: var(--color-success-dark);
-    font-weight: 600;
+    color: $success;
+    font-weight: $weight-semibold;
   }
 }
 
@@ -260,9 +239,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
-  margin-top: 0.5rem;
-  border-top: 2px solid var(--color-border);
+  padding: $space-md 0;
+  margin-top: $space-sm;
+  // border-top: 2px solid $border;
 
   h4 {
     margin: 0;
@@ -271,8 +250,8 @@
   .totalAmount {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: var(--color-primary);
+    gap: $space-sm;
+    color: $primary;
 
     svg {
       flex-shrink: 0;
@@ -280,18 +259,18 @@
 
     h3 {
       margin: 0;
-      font-weight: 700;
+      font-weight: $weight-bold;
     }
 
     p {
-      color: var(--color-text-secondary);
-      font-weight: 500;
+      color: $text-secondary;
+      font-weight: $weight-medium;
     }
   }
 }
 
 // Responsive
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-md) {
   .header {
     flex-direction: column;
     text-align: center;
@@ -308,7 +287,7 @@
   .detailRow {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: $space-xs;
 
     > div,
     > p {
@@ -322,12 +301,12 @@
 
   .totalRow {
     flex-direction: column;
-    gap: 1rem;
+    gap: $space-md;
     text-align: center;
 
     .totalAmount {
       flex-direction: column;
-      gap: 0.25rem;
+      gap: $space-xs;
     }
   }
 }
@@ -336,14 +315,14 @@
 .featuresList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $space-sm;
 }
 
 .featureItem {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
+  gap: $space-sm;
+  padding: $space-sm 0;
 
   .featureIcon {
     flex-shrink: 0;
@@ -353,13 +332,13 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    
+
     .checkIcon {
-      color: var(--color-success);
+      color: $success;
     }
-    
+
     .crossIcon {
-      color: var(--color-text-tertiary);
+      color: $text-muted;
     }
   }
 
@@ -367,6 +346,6 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: $space-xs;
   }
 }

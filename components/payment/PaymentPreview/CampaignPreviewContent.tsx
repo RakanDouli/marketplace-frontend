@@ -191,15 +191,13 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
 
       {/* Pricing Summary */}
       <div className={styles.pricingSummary}>
-        <Text variant="h4">ملخص التكلفة</Text>
-        <div className={styles.pricingDetails}>
-          {hasDiscount && (
-            <>
+        {hasDiscount ? (
+          <>
+            {/* Show discount breakdown */}
+            <div className={styles.pricingDetails}>
               <div className={styles.pricingRow}>
-                <Text variant="paragraph">الإجمالي قبل الخصم</Text>
-                <Text variant="paragraph">
-                  {campaign.packageBreakdown!.totalBeforeDiscount.toFixed(2)} {campaign.currency}
-                </Text>
+                <Text variant="paragraph" color="secondary">السعر الأصلي</Text>
+                <Text variant="paragraph">{campaign.packageBreakdown!.totalBeforeDiscount.toFixed(2)} {campaign.currency}</Text>
               </div>
               <div className={styles.discountRow}>
                 <div>
@@ -208,21 +206,29 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
                     <Text variant="small" color="secondary">{campaign.packageBreakdown!.discountReason}</Text>
                   )}
                 </div>
-                <Text variant="paragraph" color="success">
-                  -{(campaign.packageBreakdown!.totalBeforeDiscount - campaign.packageBreakdown!.totalAfterDiscount).toFixed(2)} {campaign.currency}
-                </Text>
+                <Text variant="paragraph">-{(campaign.packageBreakdown!.totalBeforeDiscount - campaign.totalPrice).toFixed(2)} {campaign.currency}</Text>
               </div>
-            </>
-          )}
-          <div className={styles.totalRow}>
-            <Text variant="h4">الإجمالي المطلوب</Text>
-            <div className={styles.totalAmount}>
-              <DollarSign size={24} />
-              <Text variant="h3">{campaign.totalPrice.toFixed(2)}</Text>
-              <Text variant="paragraph">{campaign.currency}</Text>
             </div>
-          </div>
-        </div>
+            <div className={styles.totalRow}>
+              <Text variant="h4">الإجمالي المطلوب</Text>
+              <div className={styles.totalAmount}>
+                <DollarSign size={24} />
+                <Text variant="h3">{campaign.totalPrice.toFixed(2)} {campaign.currency}</Text>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* No discount - just show total */}
+            <div className={styles.totalRow}>
+              <Text variant="h4">الإجمالي المطلوب</Text>
+              <div className={styles.totalAmount}>
+                <DollarSign size={24} />
+                <Text variant="h3">{campaign.totalPrice.toFixed(2)} {campaign.currency}</Text>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
