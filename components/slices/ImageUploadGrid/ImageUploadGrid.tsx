@@ -15,14 +15,22 @@ interface ImageUploadGridProps {
   images: ImageItem[];
   onChange: (images: ImageItem[]) => void;
   maxImages?: number;
+  maxSize?: number; // Maximum file size in bytes (e.g., 2MB = 2 * 1024 * 1024)
+  accept?: string; // File types (e.g., 'image/*', 'video/*', 'image/*,video/*')
   disabled?: boolean;
+  onError?: (error: string) => void; // Optional error callback
+  label?: string; // Label for the upload area (e.g., 'الصور', 'الفيديو')
 }
 
 export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
   images,
   onChange,
   maxImages = 20,
+  maxSize = 2 * 1024 * 1024, // Default: 2MB
+  accept = 'image/*',
   disabled = false,
+  onError,
+  label = 'الصور',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -38,10 +46,35 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
     };
   }, []);
 
+  // Helper to check if file matches accept pattern
+  const isFileTypeAccepted = (file: File): boolean => {
+    const acceptedTypes = accept.split(',').map(type => type.trim());
+
+    return acceptedTypes.some(acceptType => {
+      if (acceptType.endsWith('/*')) {
+        // Handle wildcards like 'image/*' or 'video/*'
+        const baseType = acceptType.split('/')[0];
+        return file.type.startsWith(`${baseType}/`);
+      } else {
+        // Handle specific types like 'image/png'
+        return file.type === acceptType;
+      }
+    });
+  };
+
+  // Helper to format file size for error messages
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(0)} كيلوبايت`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(2)} ميجابايت`;
+  };
+
   const handleFileSelect = (files: FileList | null) => {
     if (!files || disabled) return;
 
     const newImages: ImageItem[] = [];
+    const errors: string[] = [];
 
     // Single image mode: Replace existing image instead of adding
     const isSingleImageMode = maxImages === 1;
@@ -52,11 +85,30 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
 
     for (let i = 0; i < filesToAdd; i++) {
       const file = files[i];
-      if (file.type.startsWith('image/')) {
-        const id = `${Date.now()}-${i}`;
-        const url = URL.createObjectURL(file);
-        newImages.push({ id, url, file });
+
+      // Validate file type
+      if (!isFileTypeAccepted(file)) {
+        errors.push(`نوع الملف غير مدعوم: ${file.name}. الأنواع المسموحة: ${accept}`);
+        continue;
       }
+
+      // Validate file size
+      if (file.size > maxSize) {
+        const fileSizeFormatted = formatFileSize(file.size);
+        const maxSizeFormatted = formatFileSize(maxSize);
+        errors.push(`حجم الملف كبير جداً: ${file.name} (${fileSizeFormatted}). الحد الأقصى: ${maxSizeFormatted}`);
+        continue;
+      }
+
+      // File is valid - add it
+      const id = `${Date.now()}-${i}`;
+      const url = URL.createObjectURL(file);
+      newImages.push({ id, url, file });
+    }
+
+    // Show errors if any
+    if (errors.length > 0 && onError) {
+      onError(errors.join('\n'));
     }
 
     if (newImages.length > 0) {
@@ -118,11 +170,11 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <Text variant="paragraph">
-          الصور ({images.length}/{maxImages})
+          {label} ({images.length}/{maxImages})
         </Text>
         {!disabled && canAddMore && (
           <Text variant="small" className={styles.hint}>
-            اسحب الصور هنا أو انقر على + للإضافة
+            اسحب الملفات هنا أو انقر على + للإضافة
           </Text>
         )}
       </div>
@@ -137,7 +189,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
           <div key={image.id} className={styles.imageCard}>
             <Image
               src={image.url}
-              alt="صورة"
+              alt={label}
               width={200}
               height={150}
               className={styles.image}
@@ -151,7 +203,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
                 onClick={() => handleDelete(image.id)}
                 className={styles.deleteButton}
                 icon={<Trash2 size={16} />}
-                aria-label="حذف الصورة"
+                aria-label={`حذف ${label}`}
               />
             )}
           </div>
@@ -173,7 +225,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             <Text variant="small">
-              إضافة صورة
+              إضافة {label}
             </Text>
           </div>
         )}
@@ -182,8 +234,8 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
-        multiple
+        accept={accept}
+        multiple={maxImages > 1}
         onChange={(e) => handleFileSelect(e.target.files)}
         className={styles.fileInput}
       />

@@ -666,6 +666,17 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 }
               }}
               maxImages={maxImagesAllowed}
+              maxSize={2 * 1024 * 1024} // 2MB per image
+              accept="image/*"
+              label="الصور"
+              onError={(error) => {
+                addNotification({
+                  type: 'error',
+                  title: 'خطأ في رفع الصورة',
+                  message: error,
+                  duration: 5000,
+                });
+              }}
               disabled={isSubmitting || isUploadingImage}
             />
             {isUploadingImage && (
