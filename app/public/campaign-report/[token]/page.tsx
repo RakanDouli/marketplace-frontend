@@ -9,16 +9,9 @@ import styles from './PublicCampaignReport.module.scss';
 interface CampaignInfo {
   campaignName: string;
   description?: string;
-  packageType: string;
   startDate: string;
   endDate: string;
   status: string;
-}
-
-interface CampaignMetrics {
-  totalImpressions: number;
-  totalClicks: number;
-  averageCTR: number;
 }
 
 interface DailyReport {
@@ -26,7 +19,6 @@ interface DailyReport {
   impressions: number;
   clicks: number;
   ctr: number;
-  dailyTarget?: number;
 }
 
 interface PackageMetrics {
@@ -51,8 +43,6 @@ interface PackageReport {
 
 interface PublicCampaignReport {
   campaign: CampaignInfo;
-  metrics: CampaignMetrics;
-  dailyReports: DailyReport[];
   packages?: PackageReport[];
 }
 
@@ -62,22 +52,9 @@ const GET_PUBLIC_CAMPAIGN_REPORT_QUERY = `
       campaign {
         campaignName
         description
-        packageType
         startDate
         endDate
         status
-      }
-      metrics {
-        totalImpressions
-        totalClicks
-        averageCTR
-      }
-      dailyReports {
-        date
-        impressions
-        clicks
-        ctr
-        dailyTarget
       }
       packages {
         packageId
@@ -112,7 +89,7 @@ export default function PublicCampaignReportPage() {
   const [report, setReport] = useState<PublicCampaignReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('overview'); // 'overview' or packageId
+  const [activeTab, setActiveTab] = useState<string>(''); // Will be set to first packageId
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -135,7 +112,14 @@ export default function PublicCampaignReportPage() {
           throw new Error(result.errors[0].message);
         }
 
-        setReport(result.data.getPublicCampaignReport);
+        const reportData = result.data.getPublicCampaignReport;
+        setReport(reportData);
+
+        // Set active tab to first package by default
+        if (reportData.packages && reportData.packages.length > 0) {
+          setActiveTab(reportData.packages[0].packageId);
+        }
+
         setError(null);
       } catch (err: any) {
         console.error('Error fetching public campaign report:', err);
@@ -172,13 +156,15 @@ export default function PublicCampaignReportPage() {
     return labels[status.toUpperCase()] || status;
   };
 
-  const getAdTypeLabel = (adType: string) => {
+  const getPlacementLabel = (placement: string) => {
     const labels: Record<string, string> = {
-      banner: 'بانر علوي',
-      video: 'فيديو علوي',
-      between_listings_banner: 'بين القوائم - بانر كامل',
+      homepage_top: 'الصفحة الرئيسية - أعلى',
+      homepage_mid: 'الصفحة الرئيسية - وسط',
+      between_listings: 'بين القوائم',
+      detail_top: 'صفحة التفاصيل - أعلى',
+      detail_before_description: 'صفحة التفاصيل - قبل الوصف',
     };
-    return labels[adType.toLowerCase()] || adType;
+    return labels[placement.toLowerCase()] || placement;
   };
 
   if (loading) {
@@ -346,12 +332,6 @@ export default function PublicCampaignReportPage() {
           <Text variant="h2">معلومات الحملة</Text>
           <div className={styles.infoGrid}>
             <div className={styles.infoItem}>
-              <Text variant="small" color="secondary">نوع الإعلان</Text>
-              <Text variant="paragraph" weight="medium">
-                {getAdTypeLabel(report.campaign.packageType)}
-              </Text>
-            </div>
-            <div className={styles.infoItem}>
               <Text variant="small" color="secondary">الحالة</Text>
               <Text variant="paragraph" weight="medium">
                 {getStatusLabel(report.campaign.status)}
@@ -372,81 +352,73 @@ export default function PublicCampaignReportPage() {
           </div>
         </div>
 
-        {/* Package Tabs (if multi-package campaign) */}
+        {/* Package Tabs or Title (if multi-package: tabs, if single: title only) */}
         {report.packages && report.packages.length > 0 && (
           <div className={styles.card}>
-            <Text variant="h2">تقارير الحزم</Text>
-            <div className={styles.tabs}>
-              <button
-                className={`${styles.tab} ${activeTab === 'overview' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('overview')}
-              >
-                نظرة عامة
-              </button>
-              {report.packages.map((pkg) => (
-                <button
-                  key={pkg.packageId}
-                  className={`${styles.tab} ${activeTab === pkg.packageId ? styles.activeTab : ''}`}
-                  onClick={() => setActiveTab(pkg.packageId)}
-                >
-                  {pkg.packageName}
-                </button>
-              ))}
-            </div>
+            {report.packages.length === 1 ? (
+              // Single package: Show title only (not clickable)
+              <Text variant="h2">{report.packages[0].packageName}</Text>
+            ) : (
+              // Multi-package: Show tabs
+              <>
+                <Text variant="h2">تقارير الحزم</Text>
+                <div className={styles.tabs}>
+                  {report.packages.map((pkg) => (
+                    <button
+                      key={pkg.packageId}
+                      className={`${styles.tab} ${activeTab === pkg.packageId ? styles.activeTab : ''}`}
+                      onClick={() => setActiveTab(pkg.packageId)}
+                    >
+                      {pkg.packageName}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* Render content based on active tab */}
-        {activeTab === 'overview' ? (
-          // Overall campaign metrics
-          renderMetricsAndCharts(report.dailyReports, {
-            totalImpressions: report.metrics.totalImpressions,
-            totalClicks: report.metrics.totalClicks,
-            averageCTR: report.metrics.averageCTR
-          })
-        ) : (
-          // Package-specific metrics
-          (() => {
-            const selectedPackage = report.packages?.find(p => p.packageId === activeTab);
-            if (!selectedPackage) return null;
+        {/* Render package-specific metrics */}
+        {(() => {
+          const selectedPackage = report.packages?.find(p => p.packageId === activeTab);
+          if (!selectedPackage) return null;
 
-            return (
-              <>
-                {/* Package Info */}
-                <div className={styles.card}>
-                  <Text variant="h2">معلومات الحزمة</Text>
-                  <div className={styles.infoGrid}>
-                    <div className={styles.infoItem}>
-                      <Text variant="small" color="secondary">الموقع</Text>
-                      <Text variant="paragraph" weight="medium">{selectedPackage.placement}</Text>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Text variant="small" color="secondary">الشكل</Text>
-                      <Text variant="paragraph" weight="medium">{selectedPackage.format}</Text>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Text variant="small" color="secondary">تاريخ البدء</Text>
-                      <Text variant="paragraph" weight="medium">{formatDate(selectedPackage.startDate)}</Text>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
-                      <Text variant="paragraph" weight="medium">{formatDate(selectedPackage.endDate)}</Text>
-                    </div>
+          return (
+            <>
+              {/* Package Info */}
+              <div className={styles.card}>
+                <Text variant="h2">معلومات الحزمة</Text>
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <Text variant="small" color="secondary">الموقع</Text>
+                    <Text variant="paragraph" weight="medium">{getPlacementLabel(selectedPackage.placement)}</Text>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <Text variant="small" color="secondary">الشكل</Text>
+                    <Text variant="paragraph" weight="medium">{selectedPackage.format}</Text>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <Text variant="small" color="secondary">تاريخ البدء</Text>
+                    <Text variant="paragraph" weight="medium">{formatDate(selectedPackage.startDate)}</Text>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
+                    <Text variant="paragraph" weight="medium">{formatDate(selectedPackage.endDate)}</Text>
                   </div>
                 </div>
+              </div>
 
-                {renderMetricsAndCharts(selectedPackage.dailyReports, {
-                  impressionsPurchased: selectedPackage.metrics.impressionsPurchased,
-                  impressionsDelivered: selectedPackage.metrics.impressionsDelivered,
-                  totalImpressions: selectedPackage.dailyReports.reduce((sum, r) => sum + r.impressions, 0),
-                  totalClicks: selectedPackage.metrics.clicks,
-                  averageCTR: selectedPackage.metrics.ctr,
-                  progress: selectedPackage.metrics.progress
-                })}
-              </>
-            );
-          })()
-        )}
+              {renderMetricsAndCharts(selectedPackage.dailyReports, {
+                impressionsPurchased: selectedPackage.metrics.impressionsPurchased,
+                impressionsDelivered: selectedPackage.metrics.impressionsDelivered,
+                totalImpressions: selectedPackage.dailyReports.reduce((sum, r) => sum + r.impressions, 0),
+                totalClicks: selectedPackage.metrics.clicks,
+                averageCTR: selectedPackage.metrics.ctr,
+                progress: selectedPackage.metrics.progress
+              })}
+            </>
+          );
+        })()}
 
         {/* Footer */}
         <div className={styles.footer}>

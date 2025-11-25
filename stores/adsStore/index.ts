@@ -68,6 +68,19 @@ export interface AdCampaign {
   };
 }
 
+// Ad Package Instance - Represents a specific package within a campaign for ad display
+export interface AdPackageInstance {
+  campaignId: string;
+  campaignPackageId: string; // The specific package ID for tracking
+  campaignName: string;
+  priority: number;
+  pacingMode?: string;
+  impressionsPurchased: number;
+  impressionsDelivered: number;
+  endDate: string;
+  packageData: CampaignPackage; // Full package configuration
+}
+
 // AdSense Settings interfaces
 export interface AdSenseSlot {
   id: string;
@@ -91,11 +104,11 @@ interface AdsState {
 
   // Actions
   fetchAllAds: () => Promise<AdCampaign[]>; // NEW: Smart fetch - fetch all ads once
-  getAdsByPlacement: (placement: string) => AdCampaign[]; // NEW: Filter cached ads by placement
+  getAdsByPlacement: (placement: string) => AdPackageInstance[]; // NEW: Returns package instances for placement
   fetchAdsByType: (adType: AdMediaType) => Promise<AdCampaign[]>; // DEPRECATED - kept for backward compatibility
   fetchAdSenseSettings: () => Promise<AdSenseSettings | null>;
-  trackImpression: (campaignId: string) => Promise<void>;
-  trackClick: (campaignId: string) => Promise<void>;
+  trackImpression: (campaignId: string, campaignPackageId?: string) => Promise<void>; // Updated to include packageId
+  trackClick: (campaignId: string, campaignPackageId?: string) => Promise<void>; // Updated to include packageId
   clearError: () => void;
 }
 
@@ -168,35 +181,49 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     }
   },
 
-  // NEW: Filter cached ads by placement (client-side)
+  // NEW: Get package instances for a specific placement
   getAdsByPlacement: (placement: string) => {
     const { allAds } = get();
     const now = new Date();
+    const packageInstances: AdPackageInstance[] = [];
 
-    // Filter ads that have packages for this placement and are currently active
-    const filtered = allAds.filter((campaign) => {
-      if (!campaign.packageBreakdown?.packages) return false;
+    // Extract individual packages from campaigns that match this placement
+    for (const campaign of allAds) {
+      if (!campaign.packageBreakdown?.packages) continue;
 
-      // Check if any package matches this placement and is currently active
-      return campaign.packageBreakdown.packages.some((pkg) => {
+      for (const pkg of campaign.packageBreakdown.packages) {
         // Check for null dates before creating Date objects
-        if (!pkg.startDate || !pkg.endDate) return false;
+        if (!pkg.startDate || !pkg.endDate) continue;
 
         const pkgStart = new Date(pkg.startDate);
         const pkgEnd = new Date(pkg.endDate);
 
-        return (
+        // Check if this package matches the placement and is currently active
+        if (
           pkg.packageData.placement === placement &&
           now >= pkgStart &&
           now <= pkgEnd
-        );
-      });
-    });
+        ) {
+          // Create package instance
+          packageInstances.push({
+            campaignId: campaign.id,
+            campaignPackageId: pkg.packageId,
+            campaignName: campaign.campaignName,
+            priority: campaign.priority || 3,
+            pacingMode: campaign.pacingMode,
+            impressionsPurchased: campaign.impressionsPurchased || 0,
+            impressionsDelivered: campaign.impressionsDelivered || 0,
+            endDate: pkg.endDate,
+            packageData: pkg,
+          });
+        }
+      }
+    }
 
     console.log(
-      `📢 AdsStore: Filtered ${filtered.length} ads for placement "${placement}"`
+      `📢 AdsStore: Found ${packageInstances.length} package instances for placement "${placement}"`
     );
-    return filtered;
+    return packageInstances;
   },
 
   // Fetch active ads by type
@@ -275,24 +302,33 @@ export const useAdsStore = create<AdsState>((set, get) => ({
   },
 
   // Track ad impression
-  trackImpression: async (campaignId: string) => {
-    console.log(`👁️ AdsStore: Tracking impression for campaign:`, campaignId);
+  trackImpression: async (campaignId: string, campaignPackageId?: string) => {
+    const packageInfo = campaignPackageId ? ` (package: ${campaignPackageId})` : '';
+    console.log(`👁️ AdsStore: Tracking impression for campaign ${campaignId}${packageInfo}`);
 
     try {
-      // Use GraphQL mutation (public, no auth required)
-      const TRACK_IMPRESSION_MUTATION = `
-        mutation TrackCampaignImpression($campaignId: String!) {
-          trackCampaignImpression(campaignId: $campaignId)
-        }
-      `;
+      const response = await fetch('/api/ads/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaignId,
+          campaignPackageId,
+          eventType: 'impression',
+        }),
+      });
 
-      await cachedGraphQLRequest(
-        TRACK_IMPRESSION_MUTATION,
-        { campaignId },
-        { ttl: 0 } // No caching for tracking
-      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
 
-      console.log(`✅ AdsStore: Impression tracked for campaign:`, campaignId);
+      const result = await response.json();
+      if (result.success) {
+        console.log(`✅ AdsStore: Impression tracked successfully${packageInfo}`);
+      } else {
+        console.warn(`⚠️ AdsStore: Impression tracking returned success=false`);
+      }
     } catch (error) {
       console.error(`❌ AdsStore: Failed to track impression:`, error);
       // Don't throw error - tracking failures shouldn't break ad display
@@ -300,24 +336,33 @@ export const useAdsStore = create<AdsState>((set, get) => ({
   },
 
   // Track ad click
-  trackClick: async (campaignId: string) => {
-    console.log(`🖱️ AdsStore: Tracking click for campaign:`, campaignId);
+  trackClick: async (campaignId: string, campaignPackageId?: string) => {
+    const packageInfo = campaignPackageId ? ` (package: ${campaignPackageId})` : '';
+    console.log(`🖱️ AdsStore: Tracking click for campaign ${campaignId}${packageInfo}`);
 
     try {
-      // Use GraphQL mutation (public, no auth required)
-      const TRACK_CLICK_MUTATION = `
-        mutation TrackCampaignClick($campaignId: String!) {
-          trackCampaignClick(campaignId: $campaignId)
-        }
-      `;
+      const response = await fetch('/api/ads/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaignId,
+          campaignPackageId,
+          eventType: 'click',
+        }),
+      });
 
-      await cachedGraphQLRequest(
-        TRACK_CLICK_MUTATION,
-        { campaignId },
-        { ttl: 0 } // No caching for tracking
-      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
 
-      console.log(`✅ AdsStore: Click tracked for campaign:`, campaignId);
+      const result = await response.json();
+      if (result.success) {
+        console.log(`✅ AdsStore: Click tracked successfully${packageInfo}`);
+      } else {
+        console.warn(`⚠️ AdsStore: Click tracking returned success=false`);
+      }
     } catch (error) {
       console.error(`❌ AdsStore: Failed to track click:`, error);
       // Don't throw error - tracking failures shouldn't break ad display

@@ -12,6 +12,15 @@ const nextConfig = {
     includePaths: ["./styles"],
     prependData: `@import "styles/variables.scss";`,
   },
+  // Proxy API requests to backend
+  async rewrites() {
+    return [
+      {
+        source: '/api/ads/:path*',
+        destination: 'http://localhost:4000/api/ads/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

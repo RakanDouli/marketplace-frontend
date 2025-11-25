@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAdsStore, AdCampaign, AdSenseSettings } from '@/stores/adsStore';
+import { useAdsStore, AdPackageInstance, AdSenseSettings } from '@/stores/adsStore';
 import { CustomAd } from '../CustomAd';
 import { GoogleAdSense } from '../GoogleAdSense';
 
@@ -14,12 +14,12 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   placement,
   className,
 }) => {
-  const [selectedAd, setSelectedAd] = useState<AdCampaign | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<AdPackageInstance | null>(null);
   const [adSenseSettings, setAdSenseSettings] = useState<AdSenseSettings | null>(null);
   const { fetchAllAds, getAdsByPlacement, fetchAdSenseSettings, trackImpression, trackClick } = useAdsStore();
 
-  // Helper: Calculate days until campaign ends
-  const getDaysUntilEnd = (endDate: string | Date): number => {
+  // Helper: Calculate days until package ends
+  const getDaysUntilEnd = (endDate: string): number => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
@@ -30,20 +30,20 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   };
 
   // Dynamic priority selection with soft limits
-  const selectAdByPriority = (ads: AdCampaign[]): AdCampaign | null => {
-    if (ads.length === 0) return null;
-    if (ads.length === 1) return ads[0];
+  const selectPackageByPriority = (packages: AdPackageInstance[]): AdPackageInstance | null => {
+    if (packages.length === 0) return null;
+    if (packages.length === 1) return packages[0];
 
-    // Calculate weights for each ad based on urgency and static priority
-    const adsWithWeights = ads.map(ad => {
+    // Calculate weights for each package based on urgency and static priority
+    const packagesWithWeights = packages.map(pkg => {
       // Static priority (1-5) set by admin or default to 3
-      const staticPriority = ad.priority || 3;
+      const staticPriority = pkg.priority || 3;
 
       // Calculate dynamic priority based on delivery urgency
-      const impressionsPurchased = ad.impressionsPurchased || 0;
-      const impressionsDelivered = ad.impressionsDelivered || 0;
+      const impressionsPurchased = pkg.impressionsPurchased || 0;
+      const impressionsDelivered = pkg.impressionsDelivered || 0;
       const impressionsRemaining = impressionsPurchased - impressionsDelivered;
-      const daysLeft = getDaysUntilEnd(ad.endDate);
+      const daysLeft = getDaysUntilEnd(pkg.endDate);
 
       // Daily target = impressions we need to deliver per day to meet goal
       const dailyTarget = impressionsRemaining / daysLeft;
@@ -54,35 +54,35 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       if (impressionsRemaining <= 0) {
         // Over-delivered: Reduce weight to 10% (soft limit - still eligible)
         weight = staticPriority * 0.1;
-        console.log(`📊 Ad ${ad.id} over-delivered (${impressionsDelivered}/${impressionsPurchased}) - weight reduced to ${weight.toFixed(2)}`);
+        console.log(`📊 Package ${pkg.campaignPackageId} over-delivered (${impressionsDelivered}/${impressionsPurchased}) - weight reduced to ${weight.toFixed(2)}`);
       } else {
         // Normal: Weight = static priority × daily target (urgency-based)
         weight = staticPriority * Math.max(dailyTarget, 1);
-        console.log(`📊 Ad ${ad.id}: ${impressionsDelivered}/${impressionsPurchased} impressions, ${daysLeft} days left, weight: ${weight.toFixed(2)}`);
+        console.log(`📊 Package ${pkg.campaignPackageId}: ${impressionsDelivered}/${impressionsPurchased} impressions, ${daysLeft} days left, weight: ${weight.toFixed(2)}`);
       }
 
-      return { ad, weight: Math.max(0.1, weight) }; // Minimum weight 0.1
+      return { pkg, weight: Math.max(0.1, weight) }; // Minimum weight 0.1
     });
 
     // Weighted random selection
-    const totalWeight = adsWithWeights.reduce((sum, item) => sum + item.weight, 0);
+    const totalWeight = packagesWithWeights.reduce((sum, item) => sum + item.weight, 0);
 
     if (totalWeight === 0) {
-      // All campaigns exhausted, pick random
-      return ads[Math.floor(Math.random() * ads.length)];
+      // All packages exhausted, pick random
+      return packages[Math.floor(Math.random() * packages.length)];
     }
 
     let random = Math.random() * totalWeight;
 
-    for (const { ad, weight } of adsWithWeights) {
+    for (const { pkg, weight } of packagesWithWeights) {
       random -= weight;
       if (random <= 0) {
-        return ad;
+        return pkg;
       }
     }
 
     // Fallback (should never reach here)
-    return adsWithWeights[0].ad;
+    return packagesWithWeights[0].pkg;
   };
 
   useEffect(() => {
@@ -91,12 +91,12 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       await fetchAllAds();
 
       // Step 2: Filter by placement locally
-      const ads = getAdsByPlacement(placement);
+      const packages = getAdsByPlacement(placement);
 
-      if (ads.length > 0) {
+      if (packages.length > 0) {
         // Use priority-based weighted selection
-        const ad = selectAdByPriority(ads);
-        setSelectedAd(ad);
+        const selectedPkg = selectPackageByPriority(packages);
+        setSelectedPackage(selectedPkg);
         return;
       }
 
@@ -109,22 +109,52 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     loadAd();
   }, [placement, fetchAllAds, getAdsByPlacement, fetchAdSenseSettings]);
 
-  // Handle impression tracking
-  const handleImpression = (campaignId: string) => {
-    trackImpression(campaignId);
+  // Handle impression tracking - Pass both campaignId AND campaignPackageId
+  const handleImpression = () => {
+    if (selectedPackage) {
+      trackImpression(selectedPackage.campaignId, selectedPackage.campaignPackageId);
+    }
   };
 
-  // Handle click tracking
-  const handleClick = (campaignId: string) => {
-    trackClick(campaignId);
+  // Handle click tracking - Pass both campaignId AND campaignPackageId
+  const handleClick = () => {
+    if (selectedPackage) {
+      trackClick(selectedPackage.campaignId, selectedPackage.campaignPackageId);
+    }
   };
 
   // Render custom ad if available
-  if (selectedAd) {
+  if (selectedPackage) {
+    // Convert AdPackageInstance to AdCampaign format for CustomAd component
+    const campaignForAd = {
+      id: selectedPackage.campaignId,
+      campaignName: selectedPackage.campaignName,
+      description: '',
+      status: 'ACTIVE',
+      startDate: selectedPackage.packageData.startDate,
+      endDate: selectedPackage.endDate,
+      priority: selectedPackage.priority,
+      pacingMode: selectedPackage.pacingMode,
+      impressionsPurchased: selectedPackage.impressionsPurchased,
+      impressionsDelivered: selectedPackage.impressionsDelivered,
+      packageBreakdown: {
+        packages: [selectedPackage.packageData],
+        totalBeforeDiscount: selectedPackage.packageData.packageData.basePrice,
+        totalAfterDiscount: selectedPackage.packageData.customPrice || selectedPackage.packageData.packageData.basePrice,
+      },
+      package: {
+        id: selectedPackage.campaignPackageId,
+        adType: selectedPackage.packageData.packageData.adType,
+        dimensions: selectedPackage.packageData.packageData.dimensions,
+        placement: selectedPackage.packageData.packageData.placement,
+        format: selectedPackage.packageData.packageData.format,
+      },
+    };
+
     return (
       <div className={className}>
         <CustomAd
-          campaign={selectedAd}
+          campaign={campaignForAd as any}
           onImpression={handleImpression}
           onClick={handleClick}
         />

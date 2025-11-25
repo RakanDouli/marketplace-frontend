@@ -8,8 +8,8 @@ import { Text } from '@/components/slices';
 
 export interface CustomAdProps {
   campaign: AdCampaign;
-  onImpression: (campaignId: string) => void;
-  onClick: (campaignId: string) => void;
+  onImpression: () => void;
+  onClick: () => void;
   className?: string;
 }
 
@@ -60,14 +60,14 @@ export const CustomAd: React.FC<CustomAdProps> = ({
   // Track impression on mount (once)
   useEffect(() => {
     if (!impressionTracked.current && mediaUrl) {
-      onImpression(campaign.id);
+      onImpression();
       impressionTracked.current = true;
     }
-  }, [campaign.id, onImpression, mediaUrl]);
+  }, [onImpression, mediaUrl]);
 
   // Handle click
   const handleClick = () => {
-    onClick(campaign.id);
+    onClick();
     if (clickUrl) {
       if (openInNewTab) {
         window.open(clickUrl, '_blank', 'noopener,noreferrer');
