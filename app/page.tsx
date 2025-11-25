@@ -54,7 +54,7 @@ export default function HomePage() {
 
       {/* Top Banner Ad */}
       <Container size="lg" padding>
-        <AdContainer type="BANNER" placement="homepage_top" />
+        <AdContainer placement="homepage_top" />
       </Container>
       {/* Features Section */}
       <Container size="lg" padding>
@@ -91,26 +91,9 @@ export default function HomePage() {
 
       {/* Mid-Page Banner Ad */}
       <Container size="lg" padding>
-        <AdContainer type="BANNER" placement="homepage_mid" />
+        <AdContainer placement="homepage_mid" />
       </Container>
 
-      <SubmitButton onClick={handleBrowseCars} variant="primary" type="submit">
-        Save Changes
-      </SubmitButton>
-      {/* Image Gallery Section */}
-      <Container size="full" padding>
-        <div>
-          <Text variant="h2">{t("homepage.featured.title")}</Text>
-          <Text variant="paragraph">{t("homepage.featured.description")}</Text>
-        </div>
-
-        <div>
-          <Image src="/car-1.jpg" alt="BMW X5" aspectRatio="3/2" />
-          <Image src="/car-2.jpg" alt="Mercedes C-Class" aspectRatio="3/2" />
-          <Image src="/car-3.jpg" alt="Audi A4" aspectRatio="3/2" />
-          <Image src="/car-4.jpg" alt="Toyota Camry" aspectRatio="3/2" />
-        </div>
-      </Container>
     </main>
   );
 }

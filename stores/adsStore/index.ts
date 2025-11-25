@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { cachedGraphQLRequest } from "../../utils/graphql-cache";
-import { GET_ALL_ACTIVE_ADS_QUERY, GET_ACTIVE_ADS_BY_TYPE_QUERY, GET_ADSENSE_SETTINGS_QUERY } from "./adsStore.gql";
+import {
+  GET_ALL_ACTIVE_ADS_QUERY,
+  GET_ACTIVE_ADS_BY_TYPE_QUERY,
+  GET_ADSENSE_SETTINGS_QUERY,
+} from "./adsStore.gql";
 
 // Ad types matching backend enum
-export type AdMediaType =
-  | "IMAGE"
-  | "VIDEO";
+export type AdMediaType = "IMAGE" | "VIDEO";
 
 // Package breakdown interfaces (matches backend)
 export interface CampaignPackage {
@@ -22,8 +24,8 @@ export interface CampaignPackage {
     basePrice: number;
     durationDays: number;
   };
-  startDate: string | null;  // null for ASAP packages
-  endDate: string | null;    // null for ASAP packages
+  startDate: string | null; // null for ASAP packages
+  endDate: string | null; // null for ASAP packages
   isAsap: boolean;
   desktopMediaUrl: string;
   mobileMediaUrl: string;
@@ -56,6 +58,7 @@ export interface AdCampaign {
   packageBreakdown?: PackageBreakdown; // NEW: Per-package configuration
   package?: {
     id: string;
+    adType?: string; // IMAGE or VIDEO
     dimensions: {
       desktop: { width: number; height: number };
       mobile: { width: number; height: number };
@@ -101,10 +104,8 @@ export const useAdsStore = create<AdsState>((set, get) => ({
   allAds: [], // NEW: Smart cache
   allAdsFetchedAt: null, // NEW: Track last fetch time
   adsByType: {
-    BANNER: [],
+    IMAGE: [],
     VIDEO: [],
-    BETWEEN_LISTINGS_CARD: [],
-    BETWEEN_LISTINGS_BANNER: [],
   },
   adSenseSettings: null,
   loading: false,
@@ -116,7 +117,11 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
     // Return cached ads if still fresh
-    if (allAds.length > 0 && allAdsFetchedAt && Date.now() - allAdsFetchedAt < CACHE_TTL) {
+    if (
+      allAds.length > 0 &&
+      allAdsFetchedAt &&
+      Date.now() - allAdsFetchedAt < CACHE_TTL
+    ) {
       console.log(`📢 AdsStore: Using cached ads (${allAds.length} campaigns)`);
       return allAds;
     }
@@ -137,7 +142,10 @@ export const useAdsStore = create<AdsState>((set, get) => ({
         campaigns: ads.map((ad) => ({
           id: ad.id,
           name: ad.campaignName,
-          placements: ad.packageBreakdown?.packages?.map(pkg => pkg.packageData.placement) || [],
+          placements:
+            ad.packageBreakdown?.packages?.map(
+              (pkg) => pkg.packageData.placement
+            ) || [],
         })),
       });
 
@@ -166,11 +174,14 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     const now = new Date();
 
     // Filter ads that have packages for this placement and are currently active
-    const filtered = allAds.filter(campaign => {
+    const filtered = allAds.filter((campaign) => {
       if (!campaign.packageBreakdown?.packages) return false;
 
       // Check if any package matches this placement and is currently active
-      return campaign.packageBreakdown.packages.some(pkg => {
+      return campaign.packageBreakdown.packages.some((pkg) => {
+        // Check for null dates before creating Date objects
+        if (!pkg.startDate || !pkg.endDate) return false;
+
         const pkgStart = new Date(pkg.startDate);
         const pkgEnd = new Date(pkg.endDate);
 
@@ -182,7 +193,9 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       });
     });
 
-    console.log(`📢 AdsStore: Filtered ${filtered.length} ads for placement "${placement}"`);
+    console.log(
+      `📢 AdsStore: Filtered ${filtered.length} ads for placement "${placement}"`
+    );
     return filtered;
   },
 
@@ -210,15 +223,6 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       );
 
       const ads: AdCampaign[] = data.getActiveAdsByType || [];
-
-      console.log(`📢 AdsStore: Fetched ${ads.length} ads for ${adType}`, {
-        campaigns: ads.map((ad) => ({
-          id: ad.id,
-          name: ad.campaignName,
-          hasDesktopMedia: !!ad.desktopMediaUrl,
-          hasMobileMedia: !!ad.mobileMediaUrl,
-        })),
-      });
 
       // Update store with fetched ads
       set({
@@ -261,13 +265,6 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       );
 
       const settings: AdSenseSettings = data.getAdSenseSettings || null;
-
-      console.log(`📢 AdsStore: Fetched AdSense settings`, {
-        clientId: settings?.clientId ? 'SET' : 'NOT SET',
-        bannerEnabled: settings?.bannerSlot?.enabled || false,
-        betweenListingsEnabled: settings?.betweenListingsSlot?.enabled || false,
-        videoEnabled: settings?.videoSlot?.enabled || false,
-      });
 
       set({ adSenseSettings: settings });
       return settings;
@@ -335,4 +332,5 @@ export const useAdsByType = (adType: AdMediaType) =>
   useAdsStore((state) => state.adsByType[adType]);
 export const useAdsLoading = () => useAdsStore((state) => state.loading);
 export const useAdsError = () => useAdsStore((state) => state.error);
-export const useAdSenseSettings = () => useAdsStore((state) => state.adSenseSettings);
+export const useAdSenseSettings = () =>
+  useAdsStore((state) => state.adSenseSettings);

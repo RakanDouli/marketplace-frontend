@@ -1,18 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAdsStore, AdMediaType, AdCampaign, AdSenseSettings } from '@/stores/adsStore';
+import { useAdsStore, AdCampaign, AdSenseSettings } from '@/stores/adsStore';
 import { CustomAd } from '../CustomAd';
 import { GoogleAdSense } from '../GoogleAdSense';
 
 export interface AdContainerProps {
-  type: AdMediaType;
   placement: string; // For tracking purposes (e.g., "homepage-top", "listings-between")
   className?: string;
 }
 
 export const AdContainer: React.FC<AdContainerProps> = ({
-  type,
   placement,
   className,
 }) => {
@@ -109,7 +107,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     };
 
     loadAd();
-  }, [type, placement, fetchAllAds, getAdsByPlacement, fetchAdSenseSettings]);
+  }, [placement, fetchAllAds, getAdsByPlacement, fetchAdSenseSettings]);
 
   // Handle impression tracking
   const handleImpression = (campaignId: string) => {

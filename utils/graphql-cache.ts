@@ -142,11 +142,10 @@ class GraphQLCache {
     // Try to get the auth token if user is logged in
     if (typeof window !== 'undefined') {
       try {
-        // Determine which auth store to use based on current path
-        const isAdminRoute = window.location.pathname.startsWith('/admin');
-        const storageKey = isAdminRoute ? 'admin-auth-storage' : 'user-auth-storage';
+        // User frontend always uses user-auth-storage
+        const storageKey = 'user-auth-storage';
 
-        // Get token from the appropriate auth store
+        // Get token from user auth store
         const authData = localStorage.getItem(storageKey);
         if (authData) {
           const { state } = JSON.parse(authData);

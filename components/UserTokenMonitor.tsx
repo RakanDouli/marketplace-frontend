@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { TokenExpirationModal } from '@/components/admin/TokenExpirationModal';
+import { TokenExpirationModal } from '@/components/TokenExpirationModal';
 
 /**
  * Token expiration monitor component

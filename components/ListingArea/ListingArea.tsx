@@ -63,11 +63,6 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     console.log("Navigate to listing:", listingId);
   };
 
-  const handleCardLike = (listingId: string, liked: boolean) => {
-    // TODO: Update user favorites
-    console.log("Toggle like:", listingId, liked);
-  };
-
   // Filter toggle is now handled by Filter component itself (self-sufficient)
 
   // Fetch listings when component mounts or category changes
@@ -345,13 +340,11 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                   {...listing}
                   viewMode={viewMode}
                   onClick={handleCardClick}
-                  onLike={handleCardLike}
                   priority={index < 4}
                 />
                 {shouldShowAd && (
                   <div className={styles.adSlot} style={{ gridColumn: viewMode === 'grid' ? '1 / -1' : 'auto' }}>
                     <AdContainer
-                      type="BETWEEN_LISTINGS_BANNER"
                       placement="between_listings"
                     />
                   </div>
