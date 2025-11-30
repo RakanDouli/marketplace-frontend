@@ -1,0 +1,33 @@
+@import "@/styles/variables";
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  color: $error;
+}
+
+.info {
+  padding: $space-md;
+  background-color: $bg;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.actions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-start;
+
+  button {
+    flex: 1;
+  }
+}

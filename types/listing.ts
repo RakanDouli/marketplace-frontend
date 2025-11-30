@@ -31,6 +31,7 @@ export interface Listing {
   status:
     | "DRAFT"
     | "PENDING_APPROVAL"
+    | "REJECTED" // AI auto-rejected (user can edit & resubmit)
     | "ACTIVE"
     | "SOLD"
     | "SOLD_VIA_PLATFORM"

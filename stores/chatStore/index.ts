@@ -12,7 +12,6 @@ import {
   DELETE_MESSAGE_MUTATION,
   DELETE_MESSAGE_IMAGE_MUTATION,
   DELETE_THREAD_MUTATION,
-  CREATE_REPORT_MUTATION,
   BLOCK_USER_MUTATION,
   EDIT_MESSAGE_MUTATION,
   MY_BLOCKED_USERS_QUERY,
@@ -57,7 +56,6 @@ interface ChatState {
   deleteMessageImage: (messageId: string, imageKey: string) => Promise<void>;
   deleteThread: (threadId: string) => Promise<void>;
   editMessage: (messageId: string, newText: string) => Promise<void>;
-  reportThread: (reportedUserId: string, threadId: string, reason: string, details?: string) => Promise<void>;
   blockUser: (blockedUserId: string) => Promise<void>;
   unblockUser: (blockedUserId: string) => Promise<void>;
   fetchBlockedUsers: () => Promise<void>;
@@ -345,26 +343,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     } catch (error) {
       console.error('Error editing message:', error);
       set({ error: 'فشل في تعديل الرسالة' });
-      throw error;
-    }
-  },
-
-  reportThread: async (reportedUserId: string, threadId: string, reason: string, details?: string) => {
-    try {
-      await cachedGraphQLRequest(
-        CREATE_REPORT_MUTATION,
-        {
-          reportedUserId,
-          entityType: 'thread',
-          entityId: threadId,
-          reason,
-          details: details || null,
-        },
-        { ttl: 0 }
-      );
-    } catch (error) {
-      console.error('Error reporting thread:', error);
-      set({ error: 'فشل في إرسال البلاغ' });
       throw error;
     }
   },

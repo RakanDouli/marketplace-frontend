@@ -26,6 +26,13 @@ export const ME_QUERY = `
         businessVerified
         createdAt
         updatedAt
+        warningCount
+        currentWarningMessage
+        warnedAt
+        warningAcknowledged
+        bannedUntil
+        banReason
+        bannedAt
       }
       tokenExpiresAt
     }
@@ -66,5 +73,11 @@ export const SIGNUP_MUTATION = `
       }
       message
     }
+  }
+`;
+
+export const ACKNOWLEDGE_WARNING_MUTATION = `
+  mutation AcknowledgeWarning {
+    acknowledgeWarning
   }
 `;

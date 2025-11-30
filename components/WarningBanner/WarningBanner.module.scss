@@ -1,0 +1,120 @@
+@import "@/styles/variables.scss";
+
+.warningBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  margin-bottom: $space-lg;
+  border-radius: $radius-md;
+  border: 1px solid;
+  animation: slideDown 0.3s ease-out;
+
+  &.warning {
+    background: $warning-bg;
+    border-color: $warning-border;
+    color: $warning;
+  }
+
+  &.danger {
+    background: $error-bg;
+    border-color: $error-border;
+    color: $error;
+  }
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-md;
+  flex: 1;
+}
+
+.icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.title {
+  font-size: $font-base;
+  font-weight: $weight-semibold;
+  line-height: $line-snug;
+}
+
+.message {
+  font-size: $font-sm;
+  line-height: $line-normal;
+  opacity: 0.9;
+}
+
+.closeButton {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: $space-xs;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .warningBanner {
+    padding: $space-sm $space-md;
+  }
+
+  .icon {
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .title {
+    font-size: $font-sm;
+  }
+
+  .message {
+    font-size: $font-xs;
+  }
+
+  .closeButton {
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

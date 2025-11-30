@@ -214,6 +214,11 @@
   color: $warning;
 }
 
+.status-rejected {
+  background-color: $error-bg;
+  color: $error;
+}
+
 .status-pending_approval,
 .status-pending-approval {
   background-color: $info-bg;

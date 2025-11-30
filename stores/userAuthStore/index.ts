@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { PublicUser, UserAuthState, AccountType } from './types';
 import { supabase } from '@/lib/supabase';
-import { ME_QUERY } from './userAuth.gql';
+import { ME_QUERY, ACKNOWLEDGE_WARNING_MUTATION } from './userAuth.gql';
 import { SIGNUP_MUTATION } from './userAuth.signup.gql';
 import { useForceModalStore } from '@/stores/forceModalStore';
 import { ReactivateContent } from '@/components/ForceModal/contents';
@@ -55,6 +55,9 @@ interface UserAuthActions {
   setError: (error: string | null) => void;
   clearError: () => void;
   updateUser: (userData: Partial<PublicUser>) => void;
+
+  // Warning system
+  acknowledgeWarning: () => Promise<void>;
 }
 
 type UserAuthStore = UserAuthState & UserAuthActions;
@@ -110,7 +113,23 @@ export const useUserAuthStore = create<UserAuthStore>()(
 
             // Check user status before allowing login
             if (user.status === 'BANNED' || user.status === 'banned') {
-              throw new Error('تم حظر حسابك. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
+              throw new Error('تم حظر حسابك نهائياً. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
+            }
+
+            // Check for suspension (Strike 2 - 7-day ban)
+            if (user.status === 'SUSPENDED' || user.status === 'suspended') {
+              // Check if suspension has expired
+              if (user.bannedUntil) {
+                const suspensionEnd = new Date(user.bannedUntil);
+                const now = new Date();
+
+                if (now < suspensionEnd) {
+                  // Still suspended - block login
+                  const daysRemaining = Math.ceil((suspensionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                  throw new Error(`حسابك موقوف مؤقتاً حتى ${suspensionEnd.toLocaleDateString('ar-SA')} (${daysRemaining} أيام متبقية). السبب: ${user.banReason || 'مخالفة السياسات'}`);
+                }
+                // Suspension expired - allow login (backend should have auto-reactivated)
+              }
             }
 
             // Step 3: Verify user has USER role only (not admin roles)
@@ -167,8 +186,21 @@ export const useUserAuthStore = create<UserAuthStore>()(
               );
             }
 
-          } catch (backendError) {
+          } catch (backendError: any) {
             console.error('❌ Backend call failed:', backendError);
+
+            // Check if error is about ban/suspension status
+            const errorMessage = backendError?.message || '';
+            const isBannedError = errorMessage.includes('حظر') || errorMessage.includes('موقوف');
+            const isAdminError = errorMessage.includes('الإدارة');
+            const isUserNotFoundError = errorMessage.includes('غير موجود');
+
+            // Rethrow specific errors as-is
+            if (isBannedError || isAdminError || isUserNotFoundError) {
+              throw backendError;
+            }
+
+            // Other errors = generic server error
             throw new Error('خطأ في الاتصال بالخادم');
           }
 
@@ -529,6 +561,34 @@ export const useUserAuthStore = create<UserAuthStore>()(
 
       dismissExpirationWarning: () => {
         set({ showExpirationWarning: false });
+      },
+
+      // Acknowledge warning (dismiss warning banner)
+      acknowledgeWarning: async () => {
+        const { user } = get();
+        if (!user) return;
+
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
+            throw new Error('No active session');
+          }
+
+          await makeGraphQLCall(
+            ACKNOWLEDGE_WARNING_MUTATION,
+            {},
+            session.access_token
+          );
+
+          // Update local state
+          set((state) => ({
+            user: state.user
+              ? { ...state.user, warningAcknowledged: true }
+              : null,
+          }));
+        } catch (error: any) {
+          console.error('Failed to acknowledge warning:', error);
+        }
       },
     }),
     {

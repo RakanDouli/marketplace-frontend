@@ -15,6 +15,7 @@ import { BiddingSection } from '@/components/BiddingSection';
 import { AdContainer } from '@/components/ads';
 import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
 import { ListingInfoCard } from '@/components/listing/ListingInfoCard';
+import { ReportButton } from '@/components/shared/ReportButton';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -331,6 +332,15 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               </div>
             )}
 
+            {/* Report Listing Button */}
+            <ReportButton
+              entityType="listing"
+              entityId={listing.id}
+              entityTitle={listing.title}
+              reportedUserId={listing.user?.id || ''}
+              reportedUserName={listing.user?.name || 'غير محدد'}
+              ownerId={listing.user?.id}
+            />
           </div>
 
           {/* Right side - Seller Card (Sticky) */}

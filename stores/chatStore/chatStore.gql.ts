@@ -89,21 +89,6 @@ export const DELETE_THREAD_MUTATION = `
   }
 `;
 
-export const CREATE_REPORT_MUTATION = `
-  mutation CreateReport($reportedUserId: ID!, $entityType: String!, $entityId: ID, $reason: String!, $details: String) {
-    createReport(
-      reportedUserId: $reportedUserId
-      entityType: $entityType
-      entityId: $entityId
-      reason: $reason
-      details: $details
-    ) {
-      id
-      status
-    }
-  }
-`;
-
 export const BLOCK_USER_MUTATION = `
   mutation BlockUser($blockedUserId: ID!) {
     blockUser(blockedUserId: $blockedUserId) {

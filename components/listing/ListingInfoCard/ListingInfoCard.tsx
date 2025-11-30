@@ -124,7 +124,6 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           {(user?.phone || user?.contactPhone) && (
             <Button
               variant="outline"
-
               onClick={() => {
                 const phone = (user?.phone || user?.contactPhone)?.replace(/\s+/g, '');
                 window.open(`https://wa.me/${phone}`, '_blank');
@@ -138,7 +137,6 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           {(user?.phone || user?.contactPhone) && (
             <Button
               variant="outline"
-
               onClick={() => {
                 const phone = user?.phone || user?.contactPhone;
                 window.location.href = `tel:${phone}`;
@@ -152,7 +150,6 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
         {currentUser?.id !== user?.id && (
           <Button
             variant="primary"
-
             icon={<MessageCircle size={18} />}
             onClick={handleContactClick}
           >
@@ -163,7 +160,6 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
         {user?.website && (
           <Button
             variant="outline"
-
             href={user.website}
             target="_blank"
           >

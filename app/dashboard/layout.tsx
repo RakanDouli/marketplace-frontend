@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Container, Aside, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
+import { WarningBanner } from '@/components/WarningBanner';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import type { AccountType } from '@/stores/userAuthStore/types';
 import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown, Heart, Ban } from 'lucide-react';
@@ -70,7 +71,7 @@ export default function DashboardLayout({
       href: '/dashboard/subscription',
     },
     // Analytics only for dealers and business accounts
-    ...(user?.accountType === 'dealer' || user?.accountType === 'business'
+    ...(user?.accountType.toLowerCase() === 'dealer' || user?.accountType.toLowerCase() === 'business'
       ? [
         {
           icon: <BarChart3 size={20} />,
@@ -128,7 +129,12 @@ export default function DashboardLayout({
           </Aside>
 
           {/* Main content */}
-          <main className={styles.content}>{children}</main>
+          <main className={styles.content}>
+            {/* Warning Banner - shows if user has active warning */}
+            <WarningBanner />
+
+            {children}
+          </main>
         </div>
       </Container>
     </>

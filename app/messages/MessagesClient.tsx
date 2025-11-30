@@ -11,7 +11,8 @@ import { formatPrice } from '@/utils/formatPrice';
 import { formatDateShort, formatDayName, formatDateTime } from '@/utils/formatDate';
 import { createThumbnail, optimizeListingImage } from '@/utils/cloudflare-images';
 import { validateImageFile } from '@/utils/cloudflare-upload';
-import { ReportThreadModal, BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
+import { BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
+import { ReportModal } from '@/components/shared/ReportButton';
 import type { Listing } from '@/stores/types';
 import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
@@ -43,7 +44,6 @@ export const MessagesClient: React.FC = () => {
     deleteMessage,
     deleteMessageImage,
     editMessage,
-    reportThread,
     blockUser,
     fetchBlockedUsers,
     isUserBlocked,
@@ -802,24 +802,33 @@ export const MessagesClient: React.FC = () => {
       </main>
 
       {/* Modals */}
-      <ReportThreadModal
-        isOpen={reportModalOpen}
-        onClose={() => setReportModalOpen(false)}
-        onConfirm={async (reason, details) => {
-          if (!activeThreadId) return;
+      {(() => {
+        // Get active thread and reported user details
+        const activeThread = threadsWithListings.find(t => t.id === activeThreadId);
+        if (!activeThread || !user) return null;
 
-          // Find the other user in the thread (not the current user)
-          const activeThread = threadsWithListings.find(t => t.id === activeThreadId);
-          if (!activeThread || !user) return;
+        const reportedUserId = user.id === activeThread.buyerId
+          ? activeThread.sellerId
+          : activeThread.buyerId;
 
-          const reportedUserId = user.id === activeThread.buyerId
-            ? activeThread.sellerId
-            : activeThread.buyerId;
+        const reportedUserName = user.id === activeThread.buyerId
+          ? (activeThread.listing?.user?.companyName || activeThread.listing?.user?.name || 'البائع')
+          : 'المشتري';
 
-          await reportThread(reportedUserId, activeThreadId, reason, details);
-        }}
-        threadId={activeThreadId || ''}
-      />
+        const threadTitle = activeThread.listing?.title || 'محادثة';
+
+        return (
+          <ReportModal
+            isVisible={reportModalOpen}
+            onClose={() => setReportModalOpen(false)}
+            entityType="thread"
+            entityId={activeThreadId || ''}
+            entityTitle={threadTitle}
+            reportedUserId={reportedUserId}
+            reportedUserName={reportedUserName}
+          />
+        );
+      })()}
 
       <BlockUserModal
         isOpen={blockModalOpen}

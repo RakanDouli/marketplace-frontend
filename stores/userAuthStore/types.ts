@@ -54,6 +54,15 @@ export interface PublicUser {
   updatedAt: string;
   token?: string;
   tokenExpiresAt?: number;
+
+  // Warning & Ban System
+  warningCount?: number;
+  currentWarningMessage?: string | null;
+  warnedAt?: string | null;
+  warningAcknowledged?: boolean;
+  bannedUntil?: string | null;
+  banReason?: string | null;
+  bannedAt?: string | null;
 }
 
 export interface UserAuthState {

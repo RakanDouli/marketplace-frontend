@@ -54,6 +54,7 @@ export const ACCOUNT_BADGE_LABELS: Record<string, string> = {
 export const LISTING_STATUS_LABELS: Record<string, string> = {
   draft: "مسودة",
   pending_approval: "في الانتظار",
+  rejected: "مرفوض", // AI auto-rejected (user can edit & resubmit)
   active: "نشط",
   sold: "تم البيع",
   sold_via_platform: "تم البيع عبر المنصة",
@@ -182,6 +183,20 @@ export const AD_FORMAT_LABELS: Record<string, string> = {
   large_mobile_banner: "بانر موبايل كبير (320x100)",
   hd_player: "فيديو HD (1280x720)",
   leaderboard_video: "فيديو ليدربورد (970x546)",
+};
+
+// ===== REPORTS METADATA LABELS =====
+
+export const REPORT_REASON_LABELS: Record<string, string> = {
+  fake_listing: "إعلان وهمي",
+  scam: "احتيال أو نصب",
+  inappropriate: "محتوى غير لائق",
+  spam: "رسائل مزعجة",
+  harassment: "تحرش أو إزعاج",
+  fake_account: "حساب وهمي",
+  impersonation: "انتحال شخصية",
+  repeat_offender: "مخالف متكرر",
+  other: "سبب آخر",
 };
 
 // ===== HELPER FUNCTIONS =====

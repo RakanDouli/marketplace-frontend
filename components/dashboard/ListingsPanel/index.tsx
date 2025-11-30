@@ -279,11 +279,13 @@ export const ListingsPanel: React.FC = () => {
                   onClick={() => router.push(`/listing/${listing.id}`)}
                 />
 
-                {/* Draft Message - Show when status is DRAFT */}
-                {listing.status?.toLowerCase() === 'draft' && (
+                {/* Draft/Rejected Message - Show when status is DRAFT or REJECTED */}
+                {(listing.status?.toLowerCase() === 'draft' || listing.status?.toLowerCase() === 'rejected') && (
                   <div className={styles.draftMessage}>
                     <Text variant="small" className={styles.draftText}>
-                      يرجى تعديل إعلانك لنشره
+                      {listing.status?.toLowerCase() === 'rejected'
+                        ? '❌ تم رفض إعلانك - يرجى التعديل وإعادة النشر'
+                        : 'يرجى تعديل إعلانك لنشره'}
                     </Text>
                   </div>
                 )}

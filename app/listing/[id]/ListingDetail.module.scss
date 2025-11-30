@@ -216,5 +216,13 @@
   }
 }
 
+// Report Link (like Marktplaats)
+.reportLink {
+  display: flex;
+  justify-content: flex-start;
+  padding: $space-sm 0;
+  border-top: 1px solid $border;
+}
+
 // Seller Card
 // All seller card styles moved to ListingInfoCard component

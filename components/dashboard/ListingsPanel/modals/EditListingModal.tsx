@@ -592,8 +592,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
       <form onSubmit={handleSubmit} className={styles.editForm}>
         <div className={styles.modalContent}>
-          {/* Rejection Alert - Show if listing is DRAFT with rejection reason */}
-          {detailedListing.status?.toLowerCase() === 'draft' &&
+          {/* Rejection Alert - Show if listing is DRAFT or REJECTED with rejection reason */}
+          {(detailedListing.status?.toLowerCase() === 'draft' || detailedListing.status?.toLowerCase() === 'rejected') &&
             (detailedListing.rejectionReason || detailedListing.rejectionMessage) && (
               <div className={styles.rejectionAlert}>
                 <div className={styles.rejectionHeader}>
@@ -780,11 +780,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 </div>
               )}
 
-              {(formData.status === 'DRAFT' || formData.status === 'PENDING_APPROVAL') && (
+              {(formData.status === 'DRAFT' || formData.status === 'PENDING_APPROVAL' || formData.status === 'REJECTED') && (
                 <div className={styles.systemStatus}>
                   <Text variant="small" color="secondary">
                     {formData.status === 'DRAFT'
                       ? '📝 هذا الإعلان في وضع المسودة'
+                      : formData.status === 'REJECTED'
+                      ? '❌ هذا الإعلان مرفوض - يرجى التعديل وإعادة النشر'
                       : '⏳ هذا الإعلان قيد المراجعة'
                     }
                   </Text>
