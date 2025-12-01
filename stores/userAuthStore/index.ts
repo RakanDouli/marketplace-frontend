@@ -8,9 +8,13 @@ import { SIGNUP_MUTATION } from './userAuth.signup.gql';
 import { useForceModalStore } from '@/stores/forceModalStore';
 import { ReactivateContent } from '@/components/ForceModal/contents';
 
+// Constants
+const ONE_HOUR_MS = 60 * 60 * 1000;
+const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
-  const response = await fetch("http://localhost:4000/graphql", {
+  const response = await fetch(GRAPHQL_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,6 +32,92 @@ const makeGraphQLCall = async (query: string, variables: any = {}, token?: strin
   return result.data;
 };
 
+// Calculate token expiration timestamp
+const calculateTokenExpiration = (sessionExpiresAt?: number, customExpiry?: number): number => {
+  if (customExpiry) {
+    return new Date(customExpiry).getTime();
+  }
+  return sessionExpiresAt ? sessionExpiresAt * 1000 : Date.now() + ONE_HOUR_MS;
+};
+
+// Validate user status (banned/suspended) and throw appropriate error
+const validateUserStatus = async (user: any): Promise<void> => {
+  // Check BANNED first (most severe)
+  if (user.status === 'BANNED' || user.status === 'banned') {
+    await supabase.auth.signOut();
+    throw new Error('تم حظر حسابك نهائياً. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
+  }
+
+  // Check for suspension (Strike 2 - 7-day ban)
+  if (user.status === 'SUSPENDED' || user.status === 'suspended') {
+    if (user.bannedUntil) {
+      const suspensionEnd = new Date(user.bannedUntil);
+      const now = new Date();
+
+      if (now < suspensionEnd) {
+        await supabase.auth.signOut();
+        const daysRemaining = Math.ceil((suspensionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        throw new Error(`حسابك موقوف مؤقتاً حتى ${suspensionEnd.toLocaleDateString('ar-SA')} (${daysRemaining} أيام متبقية). السبب: ${user.banReason || 'مخالفة السياسات'}`);
+      }
+    }
+  }
+};
+
+// Hydrate user-specific stores after login
+const hydrateUserStores = async (): Promise<void> => {
+  try {
+    const { useWishlistStore } = await import('@/stores/wishlistStore');
+    useWishlistStore.getState().loadMyWishlist();
+  } catch (error) {
+    console.warn('Failed to load wishlist on login:', error);
+  }
+
+  try {
+    const { useChatStore } = await import('@/stores/chatStore');
+    useChatStore.getState().fetchUnreadCount();
+  } catch (error) {
+    console.warn('Failed to fetch unread count on login:', error);
+  }
+};
+
+// Reset a store on logout (helper to reduce repetition)
+const resetStoreOnLogout = async (importPath: string, resetFn: (store: any) => void): Promise<void> => {
+  try {
+    const module = await import(importPath);
+    const storeName = Object.keys(module)[0];
+    const store = module[storeName];
+    resetFn(store);
+    console.log(`GraphQL Cache: ${storeName} reset on logout`);
+  } catch (error) {
+    console.warn(`Failed to reset store from ${importPath}:`, error);
+  }
+};
+
+// OAuth login helper (reduces duplication for Google/Facebook)
+const loginWithOAuth = async (
+  provider: 'google' | 'facebook',
+  setFn: (state: Partial<UserAuthState>) => void
+): Promise<void> => {
+  setFn({ isLoading: true, error: null });
+
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error(`${provider} login error:`, error);
+    setFn({
+      isLoading: false,
+      error: `فشل تسجيل الدخول باستخدام ${provider === 'google' ? 'Google' : 'Facebook'}`,
+    });
+  }
+};
+
 interface UserAuthActions {
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
@@ -36,7 +126,7 @@ interface UserAuthActions {
   loginWithFacebook: () => Promise<void>;
   sendMagicLink: (email: string) => Promise<void>;
   logout: () => void;
-  refreshUserData: () => Promise<void>; // Fetch latest user data from API
+  refreshUserData: () => Promise<void>;
 
   // Modal control
   openAuthModal: (view?: 'login' | 'signup' | 'magic-link') => void;
@@ -80,7 +170,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          console.log('🔐 Authenticating user with Supabase...', email);
+          console.log('Authenticating user with Supabase...', email);
 
           // Step 1: Authenticate with Supabase
           const { data, error } = await supabase.auth.signInWithPassword({
@@ -89,7 +179,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
           });
 
           if (error) {
-            console.error('❌ Supabase auth error:', error);
+            console.error('Supabase auth error:', error);
             throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
           }
 
@@ -98,7 +188,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
           }
 
           const token = data.session.access_token;
-          console.log('✅ Supabase authentication successful');
+          console.log('Supabase authentication successful');
 
           // Step 2: Get user data from backend
           let user, userPackage, tokenExpiresAt;
@@ -113,46 +203,18 @@ export const useUserAuthStore = create<UserAuthStore>()(
               throw new Error('المستخدم غير موجود');
             }
 
-            // Step 3: Verify user has USER role only (not admin roles)
+            // Verify user has USER role only (not admin roles)
             if (user.role !== 'USER') {
               throw new Error('هذا الحساب مخصص للإدارة. يرجى استخدام لوحة الإدارة');
             }
 
-            // Check user status before allowing login
-            // IMPORTANT: Check BANNED first (most severe)
-            if (user.status === 'BANNED' || user.status === 'banned') {
-              // Sign out from Supabase immediately
-              await supabase.auth.signOut();
-              throw new Error('تم حظر حسابك نهائياً. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
-            }
+            // Validate user status (throws error if banned/suspended)
+            await validateUserStatus(user);
 
-            // Check for suspension (Strike 2 - 7-day ban)
-            if (user.status === 'SUSPENDED' || user.status === 'suspended') {
-              // Check if suspension has expired
-              if (user.bannedUntil) {
-                const suspensionEnd = new Date(user.bannedUntil);
-                const now = new Date();
+            console.log('User data received:', user);
+            console.log('User package received:', userPackage);
 
-                if (now < suspensionEnd) {
-                  // Still suspended - block login and sign out
-                  await supabase.auth.signOut();
-                  const daysRemaining = Math.ceil((suspensionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                  throw new Error(`حسابك موقوف مؤقتاً حتى ${suspensionEnd.toLocaleDateString('ar-SA')} (${daysRemaining} أيام متبقية). السبب: ${user.banReason || 'مخالفة السياسات'}`);
-                }
-                // Suspension expired - allow login (backend should have auto-reactivated)
-              }
-            }
-
-            console.log('✅ User data received:', user);
-            console.log('✅ User package received:', userPackage);
-
-            const finalTokenExpiresAt = tokenExpiresAt
-              ? new Date(tokenExpiresAt).getTime()
-              : (data.session.expires_at
-                ? data.session.expires_at * 1000
-                : Date.now() + (60 * 60 * 1000));
-
-            // Determine if we should show inactive modal
+            const finalTokenExpiresAt = calculateTokenExpiration(data.session.expires_at, tokenExpiresAt);
             const isInactive = user.status === 'INACTIVE' || user.status === 'inactive';
 
             set({
@@ -168,21 +230,8 @@ export const useUserAuthStore = create<UserAuthStore>()(
               showAuthModal: false,
             });
 
-            // ✅ Load user data after successful login
-            try {
-              const { useWishlistStore } = await import('@/stores/wishlistStore');
-              useWishlistStore.getState().loadMyWishlist();
-            } catch (wishlistError) {
-              console.warn('Failed to load wishlist on login:', wishlistError);
-            }
-
-            // ✅ Fetch unread message count on login
-            try {
-              const { useChatStore } = await import('@/stores/chatStore');
-              useChatStore.getState().fetchUnreadCount();
-            } catch (chatError) {
-              console.warn('Failed to fetch unread count on login:', chatError);
-            }
+            // Load user data after successful login
+            await hydrateUserStores();
 
             // Show force modal for INACTIVE users
             if (isInactive) {
@@ -193,7 +242,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
             }
 
           } catch (backendError: any) {
-            console.error('❌ Backend call failed:', backendError);
+            console.error('Backend call failed:', backendError);
 
             // Check if error is about ban/suspension status
             const errorMessage = backendError?.message || '';
@@ -228,14 +277,14 @@ export const useUserAuthStore = create<UserAuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          console.log('📝 Signing up user...', { email, name, accountType });
+          console.log('Signing up user...', { email, name, accountType });
 
-          // Step 1: Call backend signup mutation (creates in both auth and database)
+          // Step 1: Call backend signup mutation
           await makeGraphQLCall(SIGNUP_MUTATION, {
             input: { email, password, name, accountType }
           });
 
-          console.log('✅ Backend signup successful');
+          console.log('Backend signup successful');
 
           // Step 2: Login to get session token
           const { data, error } = await supabase.auth.signInWithPassword({
@@ -244,7 +293,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
           });
 
           if (error) {
-            console.error('❌ Login after signup error:', error);
+            console.error('Login after signup error:', error);
             throw new Error('تم إنشاء الحساب ولكن فشل تسجيل الدخول. يرجى تسجيل الدخول يدوياً');
           }
 
@@ -253,7 +302,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
           }
 
           const token = data.session.access_token;
-          console.log('✅ Login successful');
+          console.log('Login successful');
 
           // Step 3: Get full user data from backend
           const meData = await makeGraphQLCall(ME_QUERY, {}, token);
@@ -263,9 +312,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
             throw new Error('المستخدم غير موجود');
           }
 
-          const finalTokenExpiresAt = data.session.expires_at
-            ? data.session.expires_at * 1000
-            : Date.now() + (60 * 60 * 1000);
+          const finalTokenExpiresAt = calculateTokenExpiration(data.session.expires_at);
 
           set({
             user: {
@@ -290,48 +337,10 @@ export const useUserAuthStore = create<UserAuthStore>()(
       },
 
       // Login with Google
-      loginWithGoogle: async () => {
-        set({ isLoading: true, error: null });
-
-        try {
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: `${window.location.origin}/auth/callback`,
-            },
-          });
-
-          if (error) throw error;
-        } catch (error) {
-          console.error('Google login error:', error);
-          set({
-            isLoading: false,
-            error: 'فشل تسجيل الدخول باستخدام Google',
-          });
-        }
-      },
+      loginWithGoogle: () => loginWithOAuth('google', set),
 
       // Login with Facebook
-      loginWithFacebook: async () => {
-        set({ isLoading: true, error: null });
-
-        try {
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'facebook',
-            options: {
-              redirectTo: `${window.location.origin}/auth/callback`,
-            },
-          });
-
-          if (error) throw error;
-        } catch (error) {
-          console.error('Facebook login error:', error);
-          set({
-            isLoading: false,
-            error: 'فشل تسجيل الدخول باستخدام Facebook',
-          });
-        }
-      },
+      loginWithFacebook: () => loginWithOAuth('facebook', set),
 
       // Send magic link
       sendMagicLink: async (email: string) => {
@@ -369,16 +378,15 @@ export const useUserAuthStore = create<UserAuthStore>()(
           console.error('Logout error:', error);
         }
 
-        // ✅ Clear GraphQL cache on logout
+        // Clear GraphQL cache on logout
         const { clearGraphQLCache } = await import('@/utils/graphql-cache');
         clearGraphQLCache();
-        console.log('🧹 GraphQL Cache: Cleared on logout');
+        console.log('GraphQL Cache: Cleared on logout');
 
-        // ✅ Reset all user-specific stores
-        try {
-          const { useChatStore } = await import('@/stores/chatStore');
-          useChatStore.getState().unsubscribeFromThread(); // Clean up realtime subscription
-          useChatStore.setState({
+        // Reset all user-specific stores
+        await resetStoreOnLogout('@/stores/chatStore', (chatStore) => {
+          chatStore.getState().unsubscribeFromThread();
+          chatStore.setState({
             threads: [],
             activeThreadId: null,
             messages: {},
@@ -390,31 +398,20 @@ export const useUserAuthStore = create<UserAuthStore>()(
             realtimeChannel: null,
             typingUsers: {},
           });
-          console.log('🧹 ChatStore: Reset on logout');
-        } catch (err) {
-          console.warn('Failed to reset chatStore:', err);
-        }
+        });
 
-        try {
-          const { useWishlistStore } = await import('@/stores/wishlistStore');
-          useWishlistStore.setState({
+        await resetStoreOnLogout('@/stores/wishlistStore', (wishlistStore) => {
+          wishlistStore.setState({
             wishlistIds: new Set<string>(),
             listings: [],
             isLoading: false,
             error: null,
           });
-          console.log('🧹 WishlistStore: Reset on logout');
-        } catch (err) {
-          console.warn('Failed to reset wishlistStore:', err);
-        }
+        });
 
-        try {
-          const { useUserListingsStore } = await import('@/stores/userListingsStore');
-          useUserListingsStore.getState().reset(); // Use existing reset method
-          console.log('🧹 UserListingsStore: Reset on logout');
-        } catch (err) {
-          console.warn('Failed to reset userListingsStore:', err);
-        }
+        await resetStoreOnLogout('@/stores/userListingsStore', (userListingsStore) => {
+          userListingsStore.getState().reset();
+        });
 
         set({
           user: null,
@@ -425,7 +422,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
         });
       },
 
-      // Refresh user data from API (called after profile updates)
+      // Refresh user data from API
       refreshUserData: async () => {
         const state = get();
 
@@ -505,20 +502,17 @@ export const useUserAuthStore = create<UserAuthStore>()(
         }
 
         try {
-          console.log('🔄 Extending Supabase session...');
+          console.log('Extending Supabase session...');
 
-          // Refresh the Supabase session
           const { data, error } = await supabase.auth.refreshSession();
 
           if (error) {
-            console.error('❌ Session extension failed:', error);
+            console.error('Session extension failed:', error);
             throw new Error('Failed to extend session');
           }
 
           if (data.session) {
-            const newExpiresAt = data.session.expires_at
-              ? data.session.expires_at * 1000
-              : Date.now() + (60 * 60 * 1000);
+            const newExpiresAt = calculateTokenExpiration(data.session.expires_at);
 
             set({
               user: {
@@ -529,7 +523,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
               showExpirationWarning: false,
             });
 
-            console.log('✅ Session extended successfully');
+            console.log('Session extended successfully');
           } else {
             throw new Error('No session returned from refresh');
           }
@@ -546,7 +540,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
         const now = Date.now();
         const timeUntilExpiry = user.tokenExpiresAt - now;
 
-        // Return true if token has expired
         return timeUntilExpiry <= 0;
       },
 
@@ -557,7 +550,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
         const now = Date.now();
         const timeUntilExpiry = user.tokenExpiresAt - now;
 
-        // Return seconds until expiration (or 0 if already expired)
         return Math.max(0, Math.floor(timeUntilExpiry / 1000));
       },
 
@@ -569,7 +561,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
         set({ showExpirationWarning: false });
       },
 
-      // Acknowledge warning (dismiss warning banner)
+      // Acknowledge warning
       acknowledgeWarning: async () => {
         const { user } = get();
         if (!user) return;
@@ -586,7 +578,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
             session.access_token
           );
 
-          // Update local state
           set((state) => ({
             user: state.user
               ? { ...state.user, warningAcknowledged: true }
