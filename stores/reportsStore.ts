@@ -59,9 +59,19 @@ export const useReportsStore = create<ReportsStore>((set) => ({
 
       set({ isLoading: false });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال البلاغ';
+      let errorMessage = 'حدث خطأ أثناء إرسال البلاغ';
+
+      // Check for duplicate report error
+      if (error instanceof Error && (error.message.includes('duplicate') || error.message.includes('duplicate_report'))) {
+        errorMessage = 'لقد قمت بالإبلاغ عن هذا العنصر مسبقاً';
+      } else if (error instanceof Error && error.message === 'Cannot report yourself') {
+        errorMessage = 'لا يمكنك الإبلاغ عن نفسك';
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       set({ isLoading: false, error: errorMessage });
-      throw error;
+      throw new Error(errorMessage);
     }
   },
 }));

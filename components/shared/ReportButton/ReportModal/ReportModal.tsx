@@ -75,10 +75,12 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
       handleClose();
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال البلاغ. يرجى المحاولة مرة أخرى';
+
       addNotification({
         type: 'error',
         title: 'خطأ',
-        message: 'حدث خطأ أثناء إرسال البلاغ. يرجى المحاولة مرة أخرى',
+        message,
       });
     }
   };

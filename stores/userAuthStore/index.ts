@@ -101,18 +101,28 @@ export const useUserAuthStore = create<UserAuthStore>()(
           console.log('✅ Supabase authentication successful');
 
           // Step 2: Get user data from backend
+          let user, userPackage, tokenExpiresAt;
+
           try {
             const meData = await makeGraphQLCall(ME_QUERY, {}, token);
-            const user = meData?.me?.user;
-            const userPackage = meData?.myPackage;
-            const tokenExpiresAt = meData?.me?.tokenExpiresAt;
+            user = meData?.me?.user;
+            userPackage = meData?.myPackage;
+            tokenExpiresAt = meData?.me?.tokenExpiresAt;
 
             if (!user) {
               throw new Error('المستخدم غير موجود');
             }
 
+            // Step 3: Verify user has USER role only (not admin roles)
+            if (user.role !== 'USER') {
+              throw new Error('هذا الحساب مخصص للإدارة. يرجى استخدام لوحة الإدارة');
+            }
+
             // Check user status before allowing login
+            // IMPORTANT: Check BANNED first (most severe)
             if (user.status === 'BANNED' || user.status === 'banned') {
+              // Sign out from Supabase immediately
+              await supabase.auth.signOut();
               throw new Error('تم حظر حسابك نهائياً. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
             }
 
@@ -124,17 +134,13 @@ export const useUserAuthStore = create<UserAuthStore>()(
                 const now = new Date();
 
                 if (now < suspensionEnd) {
-                  // Still suspended - block login
+                  // Still suspended - block login and sign out
+                  await supabase.auth.signOut();
                   const daysRemaining = Math.ceil((suspensionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                   throw new Error(`حسابك موقوف مؤقتاً حتى ${suspensionEnd.toLocaleDateString('ar-SA')} (${daysRemaining} أيام متبقية). السبب: ${user.banReason || 'مخالفة السياسات'}`);
                 }
                 // Suspension expired - allow login (backend should have auto-reactivated)
               }
-            }
-
-            // Step 3: Verify user has USER role only (not admin roles)
-            if (user.role !== 'USER') {
-              throw new Error('هذا الحساب مخصص للإدارة. يرجى استخدام لوحة الإدارة');
             }
 
             console.log('✅ User data received:', user);
