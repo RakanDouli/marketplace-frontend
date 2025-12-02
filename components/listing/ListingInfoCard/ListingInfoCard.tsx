@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Phone, Globe, MessageCircle } from 'lucide-react';
 import { Text, Button, ShareButton, FavoriteButton } from '@/components/slices';
-import { ListingOwnerInfo } from '@/components/ListingOwnerInfo';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -171,13 +170,30 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
 
       </div>
 
-      {/* Owner Info Component - Replaces old seller info fields */}
-      {user?.id && (
-        <ListingOwnerInfo userId={user.id} listingId={listingId} />
-      )}
-
-      {/* Location & Published Date Info */}
+      {/* Seller Info */}
       <div className={styles.infoCard}>
+        {/* Seller Name */}
+        <div className={styles.infoRow}>
+          <span className={styles.label}>البائع</span>
+          <span className={styles.value}>{user?.name || 'غير محدد'}</span>
+        </div>
+
+        {/* Company Name - show if exists */}
+        {user?.companyName && (
+          <div className={styles.infoRow}>
+            <span className={styles.label}>الشركة</span>
+            <span className={styles.value}>{user.companyName}</span>
+          </div>
+        )}
+
+        {/* KVK Number - show if exists */}
+        {user?.companyRegistrationNumber && (
+          <div className={styles.infoRow}>
+            <span className={styles.label}>رقم التسجيل التجاري</span>
+            <span className={styles.value}>{user.companyRegistrationNumber}</span>
+          </div>
+        )}
+
         {/* Location */}
         {location?.province && (
           <div className={styles.infoRow}>
