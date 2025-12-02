@@ -15,7 +15,7 @@ import { BiddingSection } from '@/components/BiddingSection';
 import { AdContainer } from '@/components/ads';
 import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
 import { ListingInfoCard } from '@/components/listing/ListingInfoCard';
-import { ReportButton } from '@/components/shared/ReportButton';
+import { ReportButton } from '@/components/ReportButton';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {

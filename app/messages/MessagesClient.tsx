@@ -12,7 +12,7 @@ import { formatDateShort, formatDayName, formatDateTime } from '@/utils/formatDa
 import { createThumbnail, optimizeListingImage } from '@/utils/cloudflare-images';
 import { validateImageFile } from '@/utils/cloudflare-upload';
 import { BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
-import { ReportModal } from '@/components/shared/ReportButton';
+import { ReportModal } from '@/components/ReportButton';
 import type { Listing } from '@/stores/types';
 import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
