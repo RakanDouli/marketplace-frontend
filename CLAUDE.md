@@ -2,6 +2,113 @@
 
 ---
 
+## 🚧 IN PROGRESS: User Review System with Tag-Based Feedback (2025-12-03)
+
+### **Purpose:** Implement complete review system for users to rate each other using predefined positive/negative tags (no free text)
+
+**Status:** 📋 Planning complete, ready to implement
+
+---
+
+### **📋 IMPLEMENTATION PLAN:**
+
+#### **Phase 1: Backend - Database & API (3-4 hours)**
+- [ ] Create `reviews` table migration
+  - reviewer_id (nullable - handles deleted users)
+  - reviewer_name & reviewer_avatar (snapshots)
+  - reviewed_user_id (NOT NULL)
+  - rating (1-5 stars)
+  - positive_tags (TEXT[])
+  - negative_tags (TEXT[])
+  - UNIQUE constraint (reviewer_id, reviewed_user_id)
+- [ ] Add `average_rating` and `review_count` to users table
+- [ ] Create Review entity
+- [ ] Create ReviewService (createReview, getUserReviews, updateUserStats)
+- [ ] Create GraphQL mutations/queries
+
+#### **Phase 2: Frontend - Chat Integration (2 hours)**
+- [ ] Create review-tags.ts constants (17 positive, 13 negative tags)
+- [ ] Add dropdown button to chat header (Attach File + Request Review)
+- [ ] Implement "Request Review" → Send special message type
+- [ ] Display review request messages with "Write Review" button
+- [ ] Create ReviewModal component (star rating + tag selection, NO textarea)
+
+#### **Phase 3: Frontend - Display Reviews (2 hours)**
+- [ ] Create reviewsStore (createReview, fetchUserReviews)
+- [ ] Update ReviewsModal to fetch/display real reviews
+- [ ] Add tag summary section (like image: "النقاط الإيجابية (45)")
+- [ ] Display individual reviews with positive/negative tags
+- [ ] Update listingOwnerStore to fetch real averageRating/reviewCount
+
+---
+
+### **Key Features:**
+- ✅ **Tag-based only** - No free text comments (prevents spam/abuse)
+- ✅ **Product-specific tags** - "مطابق للوصف", "مطابق للصور", "معلومات دقيقة"
+- ✅ **Reviewer snapshots** - Name/avatar preserved even if user deleted
+- ✅ **One review per pair** - Prevent duplicate reviews
+- ✅ **Auto-calculate stats** - averageRating and reviewCount updated automatically
+- ✅ **Chat-integrated** - Request review via dropdown in active chat
+
+**Total Estimate:** 7-8 hours
+
+---
+
+## ✅ COMPLETED SESSION: Owner Info Components Refactor (2025-12-03)
+
+### **Purpose:** Separate OwnerCard (simple) from OwnerInfoSection (detailed) and fix component structure
+
+**Status:** ✅ Complete - Components refactored and pushed to GitHub
+
+---
+
+### **✅ What Was Completed:**
+
+1. **Created OwnerCard Component** ([OwnerCard.tsx](components/ListingOwnerInfo/OwnerCard.tsx))
+   - Simple card for sidebar display
+   - Shows: avatar, name with badge, rating + review button OR "no reviews"
+   - Used in ListingInfoCard (sidebar)
+
+2. **Created OwnerInfoSection Component** ([OwnerInfoSection.tsx](components/ListingOwnerInfo/OwnerInfoSection.tsx))
+   - Detailed seller information for listing detail page
+   - Shows: profile, account type, member since, contact info, reviews section
+   - Used in ListingDetailClient (main content)
+
+3. **Renamed OwnerDetailsModal → ReviewsModal** ([ReviewsModal.tsx](components/ListingOwnerInfo/ReviewsModal.tsx))
+   - Shows ONLY reviews (no contact info)
+   - Placeholder UI ready for real reviews implementation
+   - 5-star rating overview + review list
+
+4. **Fixed Metadata Usage**
+   - Removed hardcoded `getAccountTypeLabel()` function
+   - Now uses `ACCOUNT_TYPE_LABELS` from constants/metadata-labels.ts
+   - Centralized account type translations
+
+5. **Fixed ListingInfoCard Price Display**
+   - Changed from `formatPrice(primaryPrice.value)` to `formatPrice(priceMinor)`
+   - Fixed TypeScript error: formatPrice expects number, not string
+   - Added `priceMinor` to destructuring
+
+6. **UI/UX Improvements**
+   - Badge moved before name in both components (user preference)
+   - Avatar in OwnerInfoSection uses border-radius: $radius-sm (not 50%)
+   - Review section at end with rating + button or "no reviews" text
+   - Fixed SCSS undefined variables in loading animations
+
+**Files Modified (8):**
+- `components/ListingOwnerInfo/OwnerCard.tsx` (CREATED)
+- `components/ListingOwnerInfo/OwnerCard.module.scss` (CREATED)
+- `components/ListingOwnerInfo/OwnerInfoSection.tsx` (CREATED)
+- `components/ListingOwnerInfo/OwnerInfoSection.module.scss` (CREATED)
+- `components/ListingOwnerInfo/ReviewsModal.tsx` (CREATED)
+- `components/ListingOwnerInfo/ReviewsModal.module.scss` (CREATED)
+- `components/ListingOwnerInfo/types.ts` (CREATED)
+- `components/ListingOwnerInfo/index.tsx` (CREATED)
+
+**Git Commit:** `510092d` - "Refactor owner info components: separate OwnerCard and OwnerInfoSection"
+
+---
+
 ## ✅ COMPLETED SESSION: Email Template Standardization & Payment System Planning (2025-11-24)
 
 ### **Purpose:** Fix email template variable naming inconsistencies and design a unified payment system architecture for all transaction types
