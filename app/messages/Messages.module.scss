@@ -163,6 +163,11 @@
   height: 50px;
   border-radius: $radius-md;
   overflow: hidden;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .listingDetails {
@@ -173,11 +178,20 @@
   min-width: 0;
 }
 
+.listingTitleLink {
+  color: $primary;
+  text-decoration: underline;
+  &:hover .listingTitle {
+    text-decoration: none;
+  }
+}
+
 .listingTitle {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: $weight-medium;
+  transition: color 0.2s ease;
 }
 
 .typingIndicator {
@@ -535,4 +549,23 @@
   justify-content: center;
   border-radius: $radius-md;
   backdrop-filter: blur(4px);
+}
+
+// Review request message styling
+.reviewRequestMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: $radius-md;
+  text-align: center;
+}
+
+.reviewRequestContent {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
 }

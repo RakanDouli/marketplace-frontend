@@ -89,11 +89,7 @@ export const useListingOwnerStore = create<ListingOwnerStore>((set, get) => ({
       const data = await makeGraphQLCall(GET_OWNER_DATA_QUERY, { userId });
 
       if (data?.userById) {
-        const ownerData: OwnerData = {
-          ...data.userById,
-          averageRating: 0,
-          reviewCount: 0,
-        };
+        const ownerData: OwnerData = data.userById;
 
         set(state => ({
           owners: {

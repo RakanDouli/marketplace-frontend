@@ -1,0 +1,163 @@
+@import '@/styles/variables';
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.ratingSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stars {
+  display: flex;
+  gap: 8px;
+  direction: ltr; // Stars go left to right
+}
+
+.starButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.starEmpty {
+  color: var(--border);
+  transition: color 0.2s ease;
+}
+
+.starFilled {
+  color: #ffc107; // Golden star color
+  transition: color 0.2s ease;
+}
+
+.tagsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--bg-hover);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.tagSelected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+
+  &:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+  }
+}
+
+.tagNegative {
+  &.tagSelected {
+    background: var(--danger);
+    border-color: var(--danger);
+
+    &:hover {
+      background: var(--danger-dark);
+      border-color: var(--danger-dark);
+    }
+  }
+}
+
+.errorText {
+  color: var(--danger);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+
+  button {
+    min-width: 120px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .content {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .stars {
+    gap: 4px;
+  }
+
+  .starButton {
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .tag {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}

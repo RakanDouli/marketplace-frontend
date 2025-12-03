@@ -28,6 +28,7 @@ export interface ChatMessage {
   senderId: string;
   text: string | null;
   imageKeys: string[] | null;
+  messageType?: 'text' | 'review_request'; // Special message types
   status: 'sent' | 'delivered' | 'read';
   createdAt: string;
 }

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck, Star } from 'lucide-react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
@@ -13,6 +14,7 @@ import { createThumbnail, optimizeListingImage } from '@/utils/cloudflare-images
 import { validateImageFile } from '@/utils/cloudflare-upload';
 import { BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
 import { ReportModal } from '@/components/ReportButton';
+import { ReviewModal } from '@/components/ReviewModal';
 import type { Listing } from '@/stores/types';
 import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
@@ -82,6 +84,12 @@ export const MessagesClient: React.FC = () => {
   // Image preview modal state (for viewing received images)
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+  // Review system state
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewedUserId, setReviewedUserId] = useState<string | null>(null);
+  const [reviewedUserName, setReviewedUserName] = useState<string>('');
+  const [attachDropdownOpen, setAttachDropdownOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -345,6 +353,54 @@ export const MessagesClient: React.FC = () => {
     handleClearAllImages();
   };
 
+  // Review request pattern detection (frontend-only)
+  const REVIEW_REQUEST_PATTERN = '🌟 طلب تقييم';
+
+  const isReviewRequestMessage = (messageText: string | null): boolean => {
+    return messageText?.includes(REVIEW_REQUEST_PATTERN) || false;
+  };
+
+  // Send review request message
+  const handleSendReviewRequest = async () => {
+    if (!activeThreadId || isSending) return;
+
+    const activeThread = threadsWithListings.find(t => t.id === activeThreadId);
+    if (!activeThread || !user) return;
+
+    // Check if the other user is blocked
+    const otherUserId = user.id === activeThread.buyerId ? activeThread.sellerId : activeThread.buyerId;
+    if (isUserBlocked(otherUserId)) {
+      console.log('⛔ Cannot send message to blocked user');
+      return;
+    }
+
+    setIsSending(true);
+    setAttachDropdownOpen(false);
+
+    try {
+      // Send message with special pattern
+      await sendMessage(activeThreadId, REVIEW_REQUEST_PATTERN);
+    } catch (error) {
+      console.error('Failed to send review request:', error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Open review modal for recipient
+  const handleOpenReviewModal = (senderId: string) => {
+    const activeThread = threadsWithListings.find(t => t.id === activeThreadId);
+    if (!activeThread) return;
+
+    // Get sender info from listing
+    const listing = activeThread.listing;
+    const senderName = listing?.user?.companyName || listing?.user?.name || 'المستخدم';
+
+    setReviewedUserId(senderId);
+    setReviewedUserName(senderName);
+    setReviewModalOpen(true);
+  };
+
   if (authLoading || !user) {
     return null;
   }
@@ -461,18 +517,20 @@ export const MessagesClient: React.FC = () => {
                   {listing && (
                     <div className={styles.listingInfo}>
                       {thumbnailUrl && (
-                        <div className={styles.listingImage}>
+                        <Link href={`/listings/${listing.id}`} className={styles.listingImage}>
                           <Image
                             src={thumbnailUrl}
                             alt={listing.title}
                             aspectRatio="1/1"
                           />
-                        </div>
+                        </Link>
                       )}
                       <div className={styles.listingDetails}>
-                        <Text variant="paragraph" className={styles.listingTitle}>
-                          {listing.title}
-                        </Text>
+                        <Link href={`/listing/${listing.id}`} className={styles.listingTitleLink}>
+                          <Text variant="paragraph" className={styles.listingTitle}>
+                            {listing.title}
+                          </Text>
+                        </Link>
                         {typingUserName ? (
                           <Text variant="small" className={styles.typingIndicator}>
                             {typingUserName} يكتب...
@@ -631,7 +689,31 @@ export const MessagesClient: React.FC = () => {
                             )}
 
                             {message.text && (
-                              <Text variant="paragraph">{message.text}</Text>
+                              <>
+                                {isReviewRequestMessage(message.text) ? (
+                                  // Special UI for review request messages
+                                  <div className={styles.reviewRequestMessage}>
+                                    <div className={styles.reviewRequestContent}>
+                                      <Star size={24} fill="#fbbf24" color="#fbbf24" />
+                                      <Text variant="paragraph" style={{ fontWeight: 500 }}>
+                                        طلب تقييم
+                                      </Text>
+                                    </div>
+                                    {!isSentByMe && (
+                                      <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={() => handleOpenReviewModal(message.senderId)}
+                                        style={{ marginTop: '8px', width: '100%' }}
+                                      >
+                                        كتابة تقييم
+                                      </Button>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <Text variant="paragraph">{message.text}</Text>
+                                )}
+                              </>
                             )}
                             <div className={styles.messageFooter}>
                               <Text variant="small" color="secondary" className={styles.messageTime}>
@@ -759,20 +841,42 @@ export const MessagesClient: React.FC = () => {
                   onChange={handleImageSelect}
                 />
 
-                {/* Attach button */}
-                <Button
-                  type="button"
-                  variant='outline'
-                  className={styles.attachButton}
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isSending || isUploadingImages || selectedImages.length >= 8}
-                  title={selectedImages.length >= 8 ? 'الحد الأقصى 8 صور' : 'إرفاق صور'}
+                {/* Attach / Review Request Dropdown */}
+                <Dropdown
+                  isOpen={attachDropdownOpen}
+                  onClose={() => setAttachDropdownOpen(false)}
+                  align="left"
+                  trigger={
+                    <Button
+                      type="button"
+                      variant='outline'
+                      className={styles.attachButton}
+                      onClick={() => setAttachDropdownOpen(!attachDropdownOpen)}
+                      disabled={isSending || isUploadingImages}
+                      title="خيارات"
+                    >
+                      <Paperclip size={20} />
+                      {selectedImages.length > 0 && (
+                        <span className={styles.imageCount}>{selectedImages.length}</span>
+                      )}
+                    </Button>
+                  }
                 >
-                  <Paperclip size={20} />
-                  {selectedImages.length > 0 && (
-                    <span className={styles.imageCount}>{selectedImages.length}</span>
-                  )}
-                </Button>
+                  <DropdownMenuItem
+                    icon={<Paperclip size={16} />}
+                    label="إرفاق صور"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      setAttachDropdownOpen(false);
+                    }}
+                    disabled={selectedImages.length >= 8}
+                  />
+                  <DropdownMenuItem
+                    icon={<Star size={16} />}
+                    label="طلب تقييم"
+                    onClick={handleSendReviewRequest}
+                  />
+                </Dropdown>
 
                 <input
                   type="text"
@@ -918,6 +1022,22 @@ export const MessagesClient: React.FC = () => {
               }
             }
           }}
+        />
+      )}
+
+      {/* Review Modal */}
+      {reviewModalOpen && reviewedUserId && activeThreadId && (
+        <ReviewModal
+          isVisible={reviewModalOpen}
+          onClose={() => {
+            setReviewModalOpen(false);
+            setReviewedUserId(null);
+            setReviewedUserName('');
+          }}
+          reviewedUserId={reviewedUserId}
+          reviewedUserName={reviewedUserName}
+          threadId={activeThreadId}
+          listingId={threadsWithListings.find(t => t.id === activeThreadId)?.listingId}
         />
       )}
     </div>

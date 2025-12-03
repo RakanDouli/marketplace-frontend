@@ -21,6 +21,8 @@ export const GET_OWNER_DATA_QUERY = `
       isEmailConfirmed
       isPhoneConfirmed
       createdAt
+      averageRating
+      reviewCount
     }
   }
 `;
