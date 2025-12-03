@@ -1,0 +1,141 @@
+@import "../../styles/variables";
+
+// Main container
+.section {
+  background: $bg;
+  border-radius: $radius-md;
+  padding: $space-md;
+}
+
+// Profile row (avatar + info)
+.profile {
+  display: flex;
+  gap: $space-md;
+  margin-bottom: $space-md;
+}
+.badge {
+  background-color: $info;
+  border-radius: $radius-full;
+  padding: $space-xs;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg {
+    color: $text-light;
+    width: 20px;
+    height: 20px;
+  }
+}
+.avatar,
+.initials {
+  width: 80px;
+  height: 80px;
+  aspect-ratio: 1/1;
+  border-radius: $radius-sm;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Info column
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  justify-content: center;
+}
+
+.name {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-xs;
+  font-size: $font-lg;
+  font-weight: 600;
+  margin: 0;
+}
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: $success;
+  color: $text-light;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  font-size: $font-sm;
+  color: $text-muted;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// Contact section
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-top: $space-md;
+  margin-bottom: $space-md;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  font-size: $font-sm;
+
+  svg {
+    color: $text-muted;
+    flex-shrink: 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: $primary;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Reviews section
+.reviews {
+  padding-top: $space-md;
+}
+
+.reviewRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  font-size: $font-sm;
+  color: $text;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.noReviews {
+  color: $text-muted;
+  font-size: $font-sm;
+}

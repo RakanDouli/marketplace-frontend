@@ -152,13 +152,12 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     };
 
     return (
-      <div className={className}>
-        <CustomAd
-          campaign={campaignForAd as any}
-          onImpression={handleImpression}
-          onClick={handleClick}
-        />
-      </div>
+      <CustomAd
+        campaign={campaignForAd as any}
+        onImpression={handleImpression}
+        onClick={handleClick}
+        className={className}
+      />
     );
   }
 
@@ -176,14 +175,13 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       });
 
       return (
-        <div className={className}>
-          <GoogleAdSense
-            client={adSenseSettings.clientId}
-            slot={adSenseSlot.id}
-            format="horizontal"
-            responsive={true}
-          />
-        </div>
+        <GoogleAdSense
+          client={adSenseSettings.clientId}
+          slot={adSenseSlot.id}
+          format="horizontal"
+          responsive={true}
+          className={className}
+        />
       );
     } else {
       console.log(`📢 AdContainer: AdSense slot is disabled or not configured for placement "${placement}"`);
@@ -193,5 +191,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   }
 
   // No custom ad and no AdSense fallback - render nothing
+  console.log(`📢 AdContainer: Returning NULL for placement "${placement}" (no ads available)`);
   return null;
 };

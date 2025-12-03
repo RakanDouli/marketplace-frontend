@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Phone, Globe, MessageCircle } from 'lucide-react';
 import { Text, Button, ShareButton, FavoriteButton } from '@/components/slices';
+
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -13,6 +14,7 @@ import { useCurrencyStore } from '@/stores/currencyStore';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
 import styles from './ListingInfoCard.module.scss';
+import { OwnerCard } from '@/components/ListingOwnerInfo';
 
 interface ListingInfoCardProps {
   onContactClick: () => void;
@@ -47,6 +49,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
     imageKeys,
     status,
     prices,
+    priceMinor,
     user,
     location,
     createdAt,
@@ -109,13 +112,17 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
 
       {/* Price */}
       <div className={styles.priceBox}>
-        <Text variant="h2" className={styles.title}>
+        <Text variant="h3" className={styles.title}>
           {title}
         </Text>
         <Text variant="h3" className={styles.price}>
-          {primaryPrice ? formatPrice(primaryPrice.value) : 'السعر غير محدد'}
+          {priceMinor ? formatPrice(priceMinor) : 'السعر غير محدد'}
         </Text>
       </div>
+      {/* Owner Info Component - Replaces old seller info fields */}
+      {user?.id && (
+        <OwnerCard userId={user.id} listingId={listingId} />
+      )}
 
       {/* Contact Buttons */}
       <div className={styles.buttons}>
@@ -170,39 +177,16 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
 
       </div>
 
-      {/* Seller Info */}
-      <div className={styles.infoCard}>
-        {/* Seller Name */}
-        <div className={styles.infoRow}>
-          <span className={styles.label}>البائع</span>
-          <span className={styles.value}>{user?.name || 'غير محدد'}</span>
-        </div>
-
-        {/* Company Name - show if exists */}
-        {user?.companyName && (
-          <div className={styles.infoRow}>
-            <span className={styles.label}>الشركة</span>
-            <span className={styles.value}>{user.companyName}</span>
-          </div>
-        )}
-
-        {/* KVK Number - show if exists */}
-        {user?.companyRegistrationNumber && (
-          <div className={styles.infoRow}>
-            <span className={styles.label}>رقم التسجيل التجاري</span>
-            <span className={styles.value}>{user.companyRegistrationNumber}</span>
-          </div>
-        )}
-
+      {/* Location & Published Date Info */}      <div className={styles.infoCard}>
         {/* Location */}
-        {location?.province && (
+        {/* {location?.province && (
           <div className={styles.infoRow}>
             <span className={styles.label}>الموقع</span>
             <span className={styles.value}>
               {location.city ? `${location.city}, ${location.province}` : location.province}
             </span>
           </div>
-        )}
+        )} */}
 
         {/* Published Date */}
         {createdAt && (

@@ -20,6 +20,7 @@ export const CustomAd: React.FC<CustomAdProps> = ({
   className,
 }) => {
   const impressionTracked = useRef(false);
+  const [mediaError, setMediaError] = React.useState(false);
 
   // Determine if we're on mobile
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
@@ -77,7 +78,9 @@ export const CustomAd: React.FC<CustomAdProps> = ({
     }
   };
 
-  if (!mediaUrl) {
+  // Don't render if no media URL or if media failed to load
+  if (!mediaUrl || mediaError) {
+    console.log(`📢 CustomAd: Returning NULL - mediaUrl: ${mediaUrl}, mediaError: ${mediaError}, campaign: ${campaign.campaignName}`);
     return null;
   }
 
@@ -96,6 +99,8 @@ export const CustomAd: React.FC<CustomAdProps> = ({
     desktopDimensions: dimensions?.desktop,
     mobileDimensions: dimensions?.mobile,
   });
+
+  console.log(`✅ CustomAd: Rendering ad - campaign: ${campaign.campaignName}, mediaUrl: ${mediaUrl}`);
 
   return (
     <div className={`${styles.customAd} ${className || ''}`}>
@@ -123,6 +128,10 @@ export const CustomAd: React.FC<CustomAdProps> = ({
             muted
             loop
             playsInline
+            onError={() => {
+              console.error('❌ CustomAd: Video failed to load:', mediaUrl);
+              setMediaError(true);
+            }}
             style={{
               width: '100%',
               height: 'auto',
@@ -139,6 +148,7 @@ export const CustomAd: React.FC<CustomAdProps> = ({
             style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }}
             priority
             sizes={`(max-width: 768px) ${dimensions?.mobile?.width || 300}px, ${currentDimensions.width}px`}
+
           />
         )}
       </div>

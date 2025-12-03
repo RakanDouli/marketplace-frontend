@@ -1,0 +1,84 @@
+@import "../../styles/variables";
+
+// Owner Card - Clean design like Marktplaats
+.card {
+  display: flex;
+  gap: $space-md;
+  background: $bg;
+  border-radius: $radius-md;
+  align-items: flex-start;
+  padding: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    gap: $space-sm;
+    padding: $space-sm;
+  }
+}
+.badge {
+  background-color: $info;
+  border-radius: $radius-full;
+  padding: $space-xs;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg {
+    color: $text-light;
+    width: 20px;
+    height: 20px;
+  }
+}
+// Avatar
+.avatar,
+.initials {
+  width: 25%;
+  aspect-ratio: 1/1;
+  border-radius: $radius-sm;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Content
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+// Name with badge
+.name {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-xs;
+  font-size: $font-md;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+// Rating row (star + score + review button)
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  font-size: $font-sm;
+  color: $text;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// No reviews
+.noReviews {
+  color: $text-muted;
+  font-size: $font-sm;
+}

@@ -15,6 +15,7 @@ import { BiddingSection } from '@/components/BiddingSection';
 import { AdContainer } from '@/components/ads';
 import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
 import { ListingInfoCard } from '@/components/listing/ListingInfoCard';
+import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
 import styles from './ListingDetail.module.scss';
 
@@ -200,9 +201,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   return (
     <Container>
       {/* Top Banner Ad (below gallery) */}
-      <div className={styles.adSection}>
-        <AdContainer placement="detail_top" />
-      </div>
+      <AdContainer placement="detail_top" />
       <div className={styles.listingDetail}>
         {/* Breadcrumbs with Back Button */}
         <div className={styles.breadcrumbsContainer}>
@@ -305,9 +304,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             {/* ww */}
 
             {/* Ad before description */}
-            <div className={styles.adSection}>
-              <AdContainer placement="detail_before_description" />
-            </div>
+            <AdContainer placement="detail_before_description" />
 
             {/* Description - Moved after attributes */}
             {listing.description && (
@@ -332,6 +329,14 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               </div>
             )}
 
+            {/* Owner Info Section */}
+            <div className={styles.section}>
+              <OwnerInfoSection
+                userId={listing.user?.id || ''}
+                listingId={listing.id}
+              />
+            </div>
+
             {/* Report Listing Button */}
             <ReportButton
               entityType="listing"
@@ -348,7 +353,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             <ListingInfoCard
               onContactClick={() => setIsContactModalOpen(true)}
             />
-
             {/* Bidding Section */}
             {listing.allowBidding && (
               <BiddingSection
