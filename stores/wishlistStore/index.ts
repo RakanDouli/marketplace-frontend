@@ -66,7 +66,7 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
       );
 
       const listings = data.myWishlist || [];
-      const wishlistIds = new Set(listings.map((l: Listing) => l.id));
+      const wishlistIds = new Set<string>(listings.map((l: Listing) => l.id));
 
       set({
         listings,

@@ -18,13 +18,17 @@ const GET_CAMPAIGN_QUERY = `
   }
 `;
 
-const GET_SUBSCRIPTION_PLANS_QUERY = `
-  query GetPublicSubscriptionPlans {
-    userSubscriptions {
+// Query for subscription transaction (by transactionId)
+const GET_SUBSCRIPTION_TRANSACTION_QUERY = `
+  query GetSubscriptionTransaction($transactionId: ID!) {
+    getSubscriptionTransaction(transactionId: $transactionId) {
       id
-      name
-      title
-      price
+      amount
+      currency
+      status
+      notes
+      billingPeriodStart
+      billingPeriodEnd
     }
   }
 `;
@@ -32,6 +36,16 @@ const GET_SUBSCRIPTION_PLANS_QUERY = `
 const CONFIRM_CAMPAIGN_PAYMENT_MUTATION = `
   mutation ConfirmPayment($campaignId: String!) {
     confirmPayment(campaignId: $campaignId) {
+      id
+      status
+    }
+  }
+`;
+
+// Mutation for subscription payment confirmation
+const CONFIRM_SUBSCRIPTION_PAYMENT_MUTATION = `
+  mutation ConfirmSubscriptionPayment($transactionId: ID!) {
+    confirmSubscriptionPayment(transactionId: $transactionId) {
       id
       status
     }
@@ -61,7 +75,7 @@ export default function MockPaymentPage() {
   const params = useParams();
   const router = useRouter();
   const type = params?.type as 'subscription' | 'ad_campaign';
-  const id = params?.id as string;
+  const id = params?.id as string; // For ad_campaign: campaignId, for subscription: transactionId
 
   const [paymentData, setPaymentData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -85,17 +99,23 @@ export default function MockPaymentPage() {
             description: data.getCampaignForPayment.campaignName,
           });
         } else if (type === 'subscription') {
-          const data = await makeGraphQLCall(GET_SUBSCRIPTION_PLANS_QUERY);
-          const plan = data.userSubscriptions.find((p: any) => p.id === id);
+          // For subscription, id is the transactionId
+          const data = await makeGraphQLCall(GET_SUBSCRIPTION_TRANSACTION_QUERY, { transactionId: id });
+          const transaction = data.getSubscriptionTransaction;
 
-          if (!plan) {
-            throw new Error('Subscription plan not found');
+          if (!transaction) {
+            throw new Error('Transaction not found');
           }
 
+          // Extract subscription name from notes (format: "Subscription: Name (X months)")
+          const subscriptionName = transaction.notes?.replace('Subscription: ', '').split(' (')[0] || 'Subscription';
+
           setPaymentData({
-            amount: plan.price,
-            currency: 'USD',
-            description: plan.title,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            description: subscriptionName,
+            billingPeriodStart: transaction.billingPeriodStart,
+            billingPeriodEnd: transaction.billingPeriodEnd,
           });
         }
       } catch (err) {
@@ -112,11 +132,12 @@ export default function MockPaymentPage() {
     try {
       setUpdating(true);
 
-      // Only campaigns have actual payment confirmation mutation
       if (type === 'ad_campaign') {
         await makeGraphQLCall(CONFIRM_CAMPAIGN_PAYMENT_MUTATION, { campaignId: id });
+      } else if (type === 'subscription') {
+        // Call subscription payment confirmation with transactionId
+        await makeGraphQLCall(CONFIRM_SUBSCRIPTION_PAYMENT_MUTATION, { transactionId: id });
       }
-      // For subscriptions, we just simulate success (TODO: implement actual subscription upgrade)
 
       // Redirect to success page
       router.push(`/payment/success?type=${type}&id=${id}`);
@@ -202,7 +223,7 @@ export default function MockPaymentPage() {
             onClick={handleConfirmPayment}
             disabled={updating}
             icon={<CheckCircle size={20} />}
-            size="large"
+            size="lg"
           >
             {updating ? 'Processing...' : 'Confirm Payment'}
           </Button>
@@ -211,7 +232,7 @@ export default function MockPaymentPage() {
             onClick={handleRejectPayment}
             disabled={updating}
             icon={<XCircle size={20} />}
-            size="large"
+            size="lg"
           >
             Cancel
           </Button>

@@ -41,12 +41,12 @@ const detailsSchema = z
 
 export const validateReason = (value: string): string | undefined => {
   const result = reasonSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : result.error.issues[0]?.message;
 };
 
 export const validateDetails = (value: string | undefined): string | undefined => {
   const result = detailsSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : result.error.issues[0]?.message;
 };
 
 // ===== FORM VALIDATORS =====

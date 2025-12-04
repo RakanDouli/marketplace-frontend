@@ -78,7 +78,7 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
                 <div key={index} className={styles.packageCard}>
                   <div className={styles.packageHeader}>
                     <div className={styles.packageNumber}>#{index + 1}</div>
-                    <Text variant="h5">{pkg.packageData.packageName}</Text>
+                    <Text variant="h4">{pkg.packageData.packageName}</Text>
                     {pkg.isAsap && (
                       <div className={styles.asapBadge}>
                         <Zap size={14} />
@@ -101,24 +101,30 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
                       <Text variant="paragraph">{getAdTypeName(pkg.packageData.placement)}</Text>
                     </div>
 
-                    <div className={styles.detailRow}>
-                      <Text variant="small" color="secondary">الأبعاد (سطح المكتب)</Text>
-                      <Text variant="paragraph">
-                        {pkg.packageData.dimensions.desktop.width}x{pkg.packageData.dimensions.desktop.height}px
-                      </Text>
-                    </div>
+                    {pkg.packageData.dimensions && (
+                      <>
+                        <div className={styles.detailRow}>
+                          <Text variant="small" color="secondary">الأبعاد (سطح المكتب)</Text>
+                          <Text variant="paragraph">
+                            {pkg.packageData.dimensions.desktop.width}x{pkg.packageData.dimensions.desktop.height}px
+                          </Text>
+                        </div>
 
-                    <div className={styles.detailRow}>
-                      <Text variant="small" color="secondary">الأبعاد (موبايل)</Text>
-                      <Text variant="paragraph">
-                        {pkg.packageData.dimensions.mobile.width}x{pkg.packageData.dimensions.mobile.height}px
-                      </Text>
-                    </div>
+                        <div className={styles.detailRow}>
+                          <Text variant="small" color="secondary">الأبعاد (موبايل)</Text>
+                          <Text variant="paragraph">
+                            {pkg.packageData.dimensions.mobile.width}x{pkg.packageData.dimensions.mobile.height}px
+                          </Text>
+                        </div>
+                      </>
+                    )}
 
-                    <div className={styles.detailRow}>
-                      <Text variant="small" color="secondary">مرات الظهور المضمونة</Text>
-                      <Text variant="paragraph">{pkg.packageData.impressionLimit.toLocaleString('ar-EG')}</Text>
-                    </div>
+                    {pkg.packageData.impressionLimit && (
+                      <div className={styles.detailRow}>
+                        <Text variant="small" color="secondary">مرات الظهور المضمونة</Text>
+                        <Text variant="paragraph">{pkg.packageData.impressionLimit.toLocaleString('ar-EG')}</Text>
+                      </div>
+                    )}
 
                     <div className={styles.detailRow}>
                       <Text variant="small" color="secondary">المدة</Text>
@@ -156,7 +162,7 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
                       <Text variant="small" color="secondary">السعر</Text>
                       <div className={styles.packagePrice}>
                         <DollarSign size={18} />
-                        <Text variant="h5">{pkg.packageData.basePrice.toFixed(2)}</Text>
+                        <Text variant="h4">{pkg.packageData.basePrice.toFixed(2)}</Text>
                       </div>
                     </div>
                   </div>
@@ -191,22 +197,22 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
 
       {/* Pricing Summary */}
       <div className={styles.pricingSummary}>
-        {hasDiscount ? (
+        {hasDiscount && campaign.packageBreakdown?.totalBeforeDiscount ? (
           <>
             {/* Show discount breakdown */}
             <div className={styles.pricingDetails}>
               <div className={styles.pricingRow}>
                 <Text variant="paragraph" color="secondary">السعر الأصلي</Text>
-                <Text variant="paragraph">{campaign.packageBreakdown!.totalBeforeDiscount.toFixed(2)} {campaign.currency}</Text>
+                <Text variant="paragraph">{campaign.packageBreakdown.totalBeforeDiscount.toFixed(2)} {campaign.currency}</Text>
               </div>
               <div className={styles.discountRow}>
                 <div>
-                  <Text variant="paragraph">الخصم ({campaign.packageBreakdown!.discountPercentage}%)</Text>
-                  {campaign.packageBreakdown!.discountReason && (
-                    <Text variant="small" color="secondary">{campaign.packageBreakdown!.discountReason}</Text>
+                  <Text variant="paragraph">الخصم ({campaign.packageBreakdown.discountPercentage}%)</Text>
+                  {campaign.packageBreakdown.discountReason && (
+                    <Text variant="small" color="secondary">{campaign.packageBreakdown.discountReason}</Text>
                   )}
                 </div>
-                <Text variant="paragraph">-{(campaign.packageBreakdown!.totalBeforeDiscount - campaign.totalPrice).toFixed(2)} {campaign.currency}</Text>
+                <Text variant="paragraph">-{(campaign.packageBreakdown.totalBeforeDiscount - campaign.totalPrice).toFixed(2)} {campaign.currency}</Text>
               </div>
             </div>
             <div className={styles.totalRow}>

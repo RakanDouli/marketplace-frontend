@@ -87,11 +87,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   fetchMyThreads: async () => {
     set({ isLoading: true, error: null });
     try {
-      const data = await cachedGraphQLRequest<{ myThreads: ChatThread[] }>(
+      const data = await cachedGraphQLRequest(
         MY_THREADS_QUERY,
         {},
         { ttl: 0 }
-      );
+      ) as { myThreads: ChatThread[] };
       console.log('📬 Fetched threads:', data.myThreads);
       console.log('📬 First thread listing data:', data.myThreads[0]?.listing);
       set({ threads: data.myThreads, isLoading: false });
@@ -104,7 +104,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   getOrCreateThread: async (listingId: string, sellerId?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await cachedGraphQLRequest<{ getOrCreateThread: ChatThread }>(
+      const data = await cachedGraphQLRequest(
         GET_OR_CREATE_THREAD_MUTATION,
         {
           input: { listingId, sellerId },
@@ -139,7 +139,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   fetchThreadMessages: async (threadId: string, limit = 50) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await cachedGraphQLRequest<{ threadMessages: ChatMessage[] }>(
+      const data = await cachedGraphQLRequest(
         THREAD_MESSAGES_QUERY,
         { threadId, limit },
         { ttl: 0 }
@@ -161,7 +161,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   sendMessage: async (threadId: string, text?: string, imageKeys?: string[]) => {
     set({ error: null });
     try {
-      const data = await cachedGraphQLRequest<{ sendMessage: ChatMessage }>(
+      const data = await cachedGraphQLRequest(
         SEND_MESSAGE_MUTATION,
         {
           input: { threadId, text, imageKeys },
@@ -220,7 +220,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   fetchUnreadCount: async () => {
     try {
-      const data = await cachedGraphQLRequest<{ myUnreadCount: number }>(
+      const data = await cachedGraphQLRequest(
         UNREAD_COUNT_QUERY,
         {},
         { ttl: 0 }
@@ -258,7 +258,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   deleteMessageImage: async (messageId: string, imageKey: string) => {
     try {
-      const result = await cachedGraphQLRequest<{ deleteMessageImage: ChatMessage | null }>(
+      const result = await cachedGraphQLRequest(
         DELETE_MESSAGE_IMAGE_MUTATION,
         {
           messageId,
@@ -320,7 +320,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   editMessage: async (messageId: string, newText: string) => {
     try {
-      const data = await cachedGraphQLRequest<{ editMessage: ChatMessage }>(
+      const data = await cachedGraphQLRequest(
         EDIT_MESSAGE_MUTATION,
         {
           input: { messageId, text: newText },
@@ -373,14 +373,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   fetchBlockedUsers: async () => {
     try {
-      const data = await cachedGraphQLRequest<{ myBlockedUsers: BlockedUser[] }>(
+      const data = await cachedGraphQLRequest(
         MY_BLOCKED_USERS_QUERY,
         {},
         { ttl: 0 } // No cache - always fresh
-      );
+      ) as { myBlockedUsers: BlockedUser[] };
 
       // Convert array to Set for fast lookup
-      const blockedIds = new Set(data.myBlockedUsers.map(b => b.blockedUserId));
+      const blockedIds = new Set(data.myBlockedUsers.map((b: BlockedUser) => b.blockedUserId));
       set({
         blockedUserIds: blockedIds,
         blockedUsers: data.myBlockedUsers
@@ -425,9 +425,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   createImageUploadUrl: async () => {
     try {
-      const data = await cachedGraphQLRequest<{
-        createImageUploadUrl: { uploadUrl: string; assetKey: string };
-      }>(CREATE_IMAGE_UPLOAD_URL_MUTATION, {}, { ttl: 0 });
+      const data = await cachedGraphQLRequest(
+        CREATE_IMAGE_UPLOAD_URL_MUTATION, {}, { ttl: 0 }
+      ) as { createImageUploadUrl: { uploadUrl: string; assetKey: string } };
 
       return data.createImageUploadUrl;
     } catch (error) {

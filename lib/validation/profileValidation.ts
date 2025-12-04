@@ -202,8 +202,8 @@ export const validateProfileForm = (formData: ProfileFormData): ValidationErrors
   // Convert Zod errors to our ValidationErrors format
   const errors: ValidationErrors = {};
   result.error.issues.forEach((issue) => {
-    const field = issue.path[0] as string;
-    if (!errors[field]) {
+    const field = issue.path[0] as keyof ValidationErrors;
+    if (field && !errors[field]) {
       errors[field] = issue.message;
     }
   });

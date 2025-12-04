@@ -178,17 +178,17 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             />
 
             <Input
-              type="checkbox"
+              type="switch"
               label="هذا الرقم يدعم واتساب"
               checked={formData.phoneIsWhatsApp}
-              onChange={(e) => setFormData({ ...formData, phoneIsWhatsApp: e.target.checked })}
+              onChange={(e) => setFormData({ ...formData, phoneIsWhatsApp: (e.target as HTMLInputElement).checked })}
             />
 
             <Input
-              type="checkbox"
+              type="switch"
               label="إظهار رقم الجوال في الإعلانات"
               checked={formData.showPhone}
-              onChange={(e) => setFormData({ ...formData, showPhone: e.target.checked })}
+              onChange={(e) => setFormData({ ...formData, showPhone: (e.target as HTMLInputElement).checked })}
             />
 
             <Input
@@ -238,10 +238,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               />
 
               <Input
-                type="checkbox"
+                type="switch"
                 label="إظهار هاتف المكتب"
                 checked={formData.showContactPhone}
-                onChange={(e) => setFormData({ ...formData, showContactPhone: e.target.checked })}
+                onChange={(e) => setFormData({ ...formData, showContactPhone: (e.target as HTMLInputElement).checked })}
               />
 
               <Input

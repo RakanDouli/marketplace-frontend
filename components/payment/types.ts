@@ -26,6 +26,37 @@ export interface SubscriptionPaymentData {
   }>;
 }
 
+export interface CampaignPackageData {
+  packageId: string;
+  isAsap: boolean;
+  startDate: string | null;
+  endDate: string | null;
+  desktopMediaUrl?: string;
+  mobileMediaUrl?: string;
+  clickUrl?: string;
+  packageData: {
+    packageName: string;
+    adType: string;
+    placement: string;
+    format: string;
+    basePrice: number;
+    durationDays: number;
+    impressionLimit?: number;
+    dimensions?: {
+      desktop: { width: number; height: number };
+      mobile: { width: number; height: number };
+    };
+  };
+}
+
+export interface PackageBreakdown {
+  packages: CampaignPackageData[];
+  discountPercentage?: number;
+  discountReason?: string;
+  totalBeforeDiscount?: number;
+  totalAfterDiscount?: number;
+}
+
 export interface AdCampaignPaymentData {
   id: string;
   campaignName: string;
@@ -35,7 +66,7 @@ export interface AdCampaignPaymentData {
   startDate: string;
   endDate: string;
   isCustomPackage: boolean;
-  packageBreakdown?: any;
+  packageBreakdown?: PackageBreakdown;
   client: {
     id: string;
     companyName: string;

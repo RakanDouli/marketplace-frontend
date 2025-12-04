@@ -8,7 +8,7 @@ import styles from './DeleteListingModal.module.scss';
 interface DeleteListingModalProps {
   listing: Listing;
   onClose: () => void;
-  onConfirm: (action: 'sold_via_platform' | 'sold_externally' | 'delete' | null) => Promise<void>;
+  onConfirm: (action: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale' | null) => Promise<void>;
 }
 
 export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
@@ -18,7 +18,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleAction = async (action: 'sold_via_platform' | 'sold_externally' | 'delete') => {
+  const handleAction = async (action: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale') => {
     setIsDeleting(true);
     try {
       await onConfirm(action);
@@ -28,7 +28,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
   };
 
   return (
-    <Modal isVisible onClose={onClose} title="حذف الإعلان" maxWidth="md">
+    <Modal isVisible onClose={onClose} title="أرشفة الإعلان" maxWidth="md">
       <div className={styles.deleteModalContent}>
         <Text variant="paragraph" align="center" weight="medium">
           {listing.title}
@@ -52,11 +52,11 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
           </Button>
 
           <Button
-            onClick={() => handleAction('delete')}
+            onClick={() => handleAction('no_longer_for_sale')}
             variant="danger"
             disabled={isDeleting}
           >
-            حذف الإعلان
+            لم يعد للبيع
           </Button>
 
           <Button

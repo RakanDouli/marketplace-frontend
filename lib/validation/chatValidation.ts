@@ -31,7 +31,7 @@ const messageSchema = z
 
 export const validateMessage = (value: string): string | undefined => {
   const result = messageSchema.safeParse(value);
-  return result.success ? undefined : result.error.errors[0]?.message;
+  return result.success ? undefined : result.error.issues[0]?.message;
 };
 
 // ===== FORM VALIDATORS =====

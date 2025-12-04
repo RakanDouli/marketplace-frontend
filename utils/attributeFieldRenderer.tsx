@@ -137,7 +137,7 @@ export const renderAttributeField = ({
           type="boolean"
           label={attribute.name}
           checked={!!value}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={(e) => onChange((e.target as HTMLInputElement).checked)}
           error={error}
         />
       );

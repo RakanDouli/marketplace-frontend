@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Container, Text, Button } from '@/components/slices';
+import { Container, Text, Button, Loading } from '@/components/slices';
 import { CheckCircle, Home, FileText } from 'lucide-react';
 import type { PaymentType } from '@/components/payment';
 import styles from '../payment.module.scss';
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams?.get('type') as PaymentType | null;
@@ -20,14 +20,14 @@ export default function PaymentSuccessPage() {
           title: 'تم ترقية حسابك بنجاح',
           description: 'يمكنك الآن الاستفادة من جميع ميزات الخطة الجديدة',
           action: 'الذهاب إلى لوحة التحكم',
-          url: '/admin',
+          url: '/dashboard',
         };
       case 'ad_campaign':
         return {
           title: 'تم تأكيد دفع الحملة الإعلانية',
           description: 'سيتم تفعيل حملتك الإعلانية قريباً. ستصلك رسالة تأكيد عبر البريد الإلكتروني',
-          action: 'عرض الحملات',
-          url: '/admin',
+          action: 'الصفحة الرئيسية',
+          url: '/',
         };
       default:
         return {
@@ -77,5 +77,13 @@ export default function PaymentSuccessPage() {
         )}
       </div>
     </Container>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<Container className={styles.resultContainer}><Loading type="svg" /></Container>}>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

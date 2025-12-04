@@ -5,15 +5,18 @@ import { useParams, useRouter } from 'next/navigation';
 import { Text, Button, Container } from '@/components/slices';
 import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
 import type { PaymentType, PaymentMethod, PaymentData } from '@/components/payment';
+import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { ArrowLeft } from 'lucide-react';
 import styles from '../../payment.module.scss';
 
 // GraphQL helper
-const makeGraphQLCall = async (query: string, variables: any = {}) => {
+const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
   const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
     body: JSON.stringify({ query, variables }),
   });
@@ -76,15 +79,33 @@ const GET_SUBSCRIPTION_PLANS_QUERY = `
   }
 `;
 
+// Mutation to initiate subscription payment (creates transaction and returns payment URL)
+const INITIATE_SUBSCRIPTION_PAYMENT_MUTATION = `
+  mutation InitiateSubscriptionPayment($input: InitiateSubscriptionPaymentInput!) {
+    initiateSubscriptionPayment(input: $input) {
+      transactionId
+      paymentUrl
+      amount
+      currency
+      subscriptionName
+      billingPeriodStart
+      billingPeriodEnd
+    }
+  }
+`;
+
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useUserAuthStore();
+  const { addNotification } = useNotificationStore();
   const type = params?.type as PaymentType;
   const id = params?.id as string;
 
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch payment data based on type
@@ -161,15 +182,57 @@ export default function PaymentPage() {
     fetchPaymentData();
   }, [type, id]);
 
-  const handlePaymentMethodSelect = (method: PaymentMethod) => {
+  const handlePaymentMethodSelect = async (method: PaymentMethod) => {
     setSelectedMethod(method);
+    setProcessingPayment(true);
 
-    if (method === 'mock') {
-      // Redirect to mock payment page with type
-      router.push(`/mock-payment/${type}/${id}`);
-    } else {
-      // TODO: Redirect to Stripe/PayPal
-      alert(`ستتم إعادة التوجيه إلى ${method}`);
+    try {
+      if (type === 'subscription') {
+        // For subscriptions, we need to initiate payment first to get transactionId
+        if (!user?.token) {
+          addNotification({
+            type: 'error',
+            title: 'خطأ',
+            message: 'يجب تسجيل الدخول للمتابعة',
+          });
+          router.push('/');
+          return;
+        }
+
+        // Call initiateSubscriptionPayment mutation
+        const data = await makeGraphQLCall(
+          INITIATE_SUBSCRIPTION_PAYMENT_MUTATION,
+          { input: { subscriptionId: id, durationMonths: 1 } },
+          user.token
+        );
+
+        const { transactionId, paymentUrl } = data.initiateSubscriptionPayment;
+
+        if (method === 'mock') {
+          // For mock payment, redirect to our mock payment page with transactionId
+          router.push(`/mock-payment/subscription/${transactionId}`);
+        } else {
+          // TODO: For real payment, use paymentUrl or redirect to Stripe/PayPal
+          alert(`ستتم إعادة التوجيه إلى ${method}`);
+        }
+      } else if (type === 'ad_campaign') {
+        // For ad campaigns, the campaign already exists, just redirect
+        if (method === 'mock') {
+          router.push(`/mock-payment/ad_campaign/${id}`);
+        } else {
+          // TODO: Redirect to Stripe/PayPal
+          alert(`ستتم إعادة التوجيه إلى ${method}`);
+        }
+      }
+    } catch (err) {
+      console.error('Payment initiation error:', err);
+      addNotification({
+        type: 'error',
+        title: 'خطأ في بدء عملية الدفع',
+        message: err instanceof Error ? err.message : 'حدث خطأ غير متوقع',
+      });
+    } finally {
+      setProcessingPayment(false);
     }
   };
 
@@ -223,7 +286,13 @@ export default function PaymentPage() {
           <PaymentMethodSelector
             methods={['mock', 'stripe', 'paypal']}
             onSelect={handlePaymentMethodSelect}
+            disabled={processingPayment}
           />
+          {processingPayment && (
+            <Text variant="small" color="secondary" style={{ marginTop: '1rem', textAlign: 'center' }}>
+              جاري إنشاء طلب الدفع...
+            </Text>
+          )}
         </div>
 
         <div className={styles.paymentFooter}>

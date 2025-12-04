@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Container, Text, Button } from '@/components/slices';
+import { Container, Text, Button, Loading } from '@/components/slices';
 import { XCircle, RefreshCw, Home } from 'lucide-react';
 import type { PaymentType } from '@/components/payment';
 import styles from '../payment.module.scss';
 
-export default function PaymentFailurePage() {
+function PaymentFailureContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams?.get('type') as PaymentType | null;
@@ -72,5 +72,13 @@ export default function PaymentFailurePage() {
         </div>
       </div>
     </Container>
+  );
+}
+
+export default function PaymentFailurePage() {
+  return (
+    <Suspense fallback={<Container className={styles.resultContainer}><Loading type="svg" /></Container>}>
+      <PaymentFailureContent />
+    </Suspense>
   );
 }

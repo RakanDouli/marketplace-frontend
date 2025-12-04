@@ -127,7 +127,7 @@ export const CampaignPreview: React.FC<CampaignPreviewProps> = ({ campaign }) =>
                 <div key={index} className={styles.packageCard}>
                   <div className={styles.packageHeader}>
                     <div className={styles.packageNumber}>#{index + 1}</div>
-                    <Text variant="h5">{pkg.packageData.packageName}</Text>
+                    <Text variant="h4">{pkg.packageData.packageName}</Text>
                     {pkg.isAsap && (
                       <div className={styles.asapBadge}>
                         <Zap size={14} />
@@ -205,7 +205,7 @@ export const CampaignPreview: React.FC<CampaignPreviewProps> = ({ campaign }) =>
                       <Text variant="small" color="secondary">السعر</Text>
                       <div className={styles.packagePrice}>
                         <DollarSign size={18} />
-                        <Text variant="h5">{pkg.packageData.basePrice.toFixed(2)}</Text>
+                        <Text variant="h4">{pkg.packageData.basePrice.toFixed(2)}</Text>
                       </div>
                     </div>
                   </div>

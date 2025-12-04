@@ -7,6 +7,7 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useUserProfileStore } from '@/stores/userProfileStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
+import { AccountType } from '@/common/enums';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import { Upload, Trash2 } from 'lucide-react';
@@ -282,7 +283,7 @@ export const PersonalInfoPanel: React.FC = () => {
           )}
 
           {/* Office Phone - additional field for DEALER/BUSINESS only */}
-          {(user.accountType === 'DEALER' || user.accountType === 'BUSINESS') && user.contactPhone && (
+          {(user.accountType === AccountType.DEALER || user.accountType === AccountType.BUSINESS) && user.contactPhone && (
             <div className={styles.infoItem}>
               <Text variant="small" className={styles.infoLabel}>هاتف المكتب</Text>
               <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
