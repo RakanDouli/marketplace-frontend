@@ -50,7 +50,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
       trackListingView(currentListing.id);
     }
   }, [currentListing?.id]);
-  console.log(currentListing);
+
+  // DEBUG: Log current listing (uncomment when debugging)
+  // console.log('currentListing:', currentListing);
+
   // Separate grouped and ungrouped specifications
   const { groupedSpecs, ungroupedSpecs } = useMemo(() => {
     if (!currentListing?.specsDisplay || attributes.length === 0) {
@@ -133,7 +136,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   }
 
   if (error) {
-    console.error('Error loading listing:', error);
+    // Error handled by UI - no console logging needed
     return (
       <Container>
         <div className={styles.errorContainer}>
@@ -155,7 +158,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   }
 
   if (!currentListing) {
-    console.warn('Listing not found for ID:', listingId);
+    // Listing not found - UI handles this case
     return (
       <Container>
         <div className={styles.errorContainer}>
@@ -178,19 +181,11 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   const listing = currentListing;
 
-  // Debug: Log location data
-  console.log('🔍 Listing Location Debug:', {
-    location: listing.location,
-    hasLocation: listing.location && (
-      listing.location.city ||
-      listing.location.province ||
-      listing.location.coordinates
-    ),
-    province: listing.location?.province,
-    city: listing.location?.city,
-    area: listing.location?.area,
-    viewCount: listing.viewCount
-  });
+  // DEBUG: Log location data (uncomment when debugging location issues)
+  // console.log('🔍 Listing Location Debug:', {
+  //   location: listing.location, province: listing.location?.province,
+  //   city: listing.location?.city, viewCount: listing.viewCount
+  // });
 
   const hasLocation = listing.location && (
     listing.location.city ||

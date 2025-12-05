@@ -57,17 +57,11 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
 
   const primaryPrice = prices?.[0];
 
-  // 🔍 DEBUG: Log user business fields
-  console.log('🔍 ListingInfoCard - User Data:', {
-    userId: user?.id,
-    name: user?.name,
-    accountType: user?.accountType,
-    companyName: user?.companyName,
-    website: user?.website,
-    companyRegistrationNumber: user?.companyRegistrationNumber,
-    phone: user?.phone,
-    contactPhone: user?.contactPhone,
-  });
+  // DEBUG: Log user business fields (uncomment when debugging user data issues)
+  // console.log('🔍 ListingInfoCard - User Data:', {
+  //   userId: user?.id, name: user?.name, accountType: user?.accountType,
+  //   companyName: user?.companyName, website: user?.website, phone: user?.phone,
+  // });
 
   const handleContactClick = () => {
     const sellerId = user?.id;
