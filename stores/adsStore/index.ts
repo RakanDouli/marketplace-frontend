@@ -135,11 +135,9 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       allAdsFetchedAt &&
       Date.now() - allAdsFetchedAt < CACHE_TTL
     ) {
-      console.log(`📢 AdsStore: Using cached ads (${allAds.length} campaigns)`);
       return allAds;
     }
 
-    console.log(`📢 AdsStore: Fetching all active ads (smart cache)`);
     set({ loading: true, error: null });
 
     try {
@@ -150,17 +148,6 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       );
 
       const ads: AdCampaign[] = data.getAllActiveAds || [];
-
-      console.log(`📢 AdsStore: Fetched ${ads.length} active campaigns`, {
-        campaigns: ads.map((ad) => ({
-          id: ad.id,
-          name: ad.campaignName,
-          placements:
-            ad.packageBreakdown?.packages?.map(
-              (pkg) => pkg.packageData.placement
-            ) || [],
-        })),
-      });
 
       // Update store with fetched ads
       set({
@@ -220,9 +207,6 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       }
     }
 
-    console.log(
-      `📢 AdsStore: Found ${packageInstances.length} package instances for placement "${placement}"`
-    );
     return packageInstances;
   },
 
@@ -232,11 +216,9 @@ export const useAdsStore = create<AdsState>((set, get) => ({
 
     // Return cached ads if already fetched (cache for 5 minutes)
     if (adsByType[adType].length > 0) {
-      console.log(`📢 AdsStore: Using cached ads for ${adType}`);
       return adsByType[adType];
     }
 
-    console.log(`📢 AdsStore: Fetching ads for type: ${adType}`);
     set({ loading: true, error: null });
 
     try {
@@ -278,11 +260,8 @@ export const useAdsStore = create<AdsState>((set, get) => ({
 
     // Return cached settings if already fetched
     if (adSenseSettings) {
-      console.log(`📢 AdsStore: Using cached AdSense settings`);
       return adSenseSettings;
     }
-
-    console.log(`📢 AdsStore: Fetching AdSense settings`);
 
     try {
       const data = await cachedGraphQLRequest(
@@ -303,69 +282,27 @@ export const useAdsStore = create<AdsState>((set, get) => ({
 
   // Track ad impression
   trackImpression: async (campaignId: string, campaignPackageId?: string) => {
-    const packageInfo = campaignPackageId ? ` (package: ${campaignPackageId})` : '';
-    console.log(`👁️ AdsStore: Tracking impression for campaign ${campaignId}${packageInfo}`);
-
     try {
-      const response = await fetch('/api/ads/track', {
+      await fetch('/api/ads/track', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          campaignId,
-          campaignPackageId,
-          eventType: 'impression',
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId, campaignPackageId, eventType: 'impression' }),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        console.log(`✅ AdsStore: Impression tracked successfully${packageInfo}`);
-      } else {
-        console.warn(`⚠️ AdsStore: Impression tracking returned success=false`);
-      }
-    } catch (error) {
-      console.error(`❌ AdsStore: Failed to track impression:`, error);
-      // Don't throw error - tracking failures shouldn't break ad display
+    } catch {
+      // Silent fail - tracking shouldn't break ad display
     }
   },
 
   // Track ad click
   trackClick: async (campaignId: string, campaignPackageId?: string) => {
-    const packageInfo = campaignPackageId ? ` (package: ${campaignPackageId})` : '';
-    console.log(`🖱️ AdsStore: Tracking click for campaign ${campaignId}${packageInfo}`);
-
     try {
-      const response = await fetch('/api/ads/track', {
+      await fetch('/api/ads/track', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          campaignId,
-          campaignPackageId,
-          eventType: 'click',
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId, campaignPackageId, eventType: 'click' }),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        console.log(`✅ AdsStore: Click tracked successfully${packageInfo}`);
-      } else {
-        console.warn(`⚠️ AdsStore: Click tracking returned success=false`);
-      }
-    } catch (error) {
-      console.error(`❌ AdsStore: Failed to track click:`, error);
-      // Don't throw error - tracking failures shouldn't break ad display
+    } catch {
+      // Silent fail - tracking shouldn't break ad display
     }
   },
 

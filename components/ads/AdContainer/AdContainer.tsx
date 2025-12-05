@@ -54,11 +54,9 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       if (impressionsRemaining <= 0) {
         // Over-delivered: Reduce weight to 10% (soft limit - still eligible)
         weight = staticPriority * 0.1;
-        console.log(`📊 Package ${pkg.campaignPackageId} over-delivered (${impressionsDelivered}/${impressionsPurchased}) - weight reduced to ${weight.toFixed(2)}`);
       } else {
         // Normal: Weight = static priority × daily target (urgency-based)
         weight = staticPriority * Math.max(dailyTarget, 1);
-        console.log(`📊 Package ${pkg.campaignPackageId}: ${impressionsDelivered}/${impressionsPurchased} impressions, ${daysLeft} days left, weight: ${weight.toFixed(2)}`);
       }
 
       return { pkg, weight: Math.max(0.1, weight) }; // Minimum weight 0.1
@@ -91,7 +89,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 
     // Must start with ca-pub- and have numbers after
     if (!clientId.startsWith('ca-pub-')) {
-      console.log(`📢 AdContainer: AdSense client ID invalid format - skipping`);
       return false;
     }
 
@@ -114,7 +111,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       }
 
       // Step 3: No custom ads - try Google AdSense fallback
-      console.log(`📢 AdContainer: No custom ads for placement "${placement}", checking AdSense fallback...`);
       const settings = await fetchAdSenseSettings();
       setAdSenseSettings(settings);
     };
@@ -181,11 +177,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 
     // Check if slot exists and is enabled
     if (adSenseSlot && adSenseSlot.enabled && adSenseSlot.id) {
-      console.log(`📢 AdContainer: Rendering Google AdSense for placement "${placement}"`, {
-        clientId: adSenseSettings.clientId,
-        slotId: adSenseSlot.id,
-      });
-
       return (
         <GoogleAdSense
           client={adSenseSettings.clientId!}
@@ -195,12 +186,9 @@ export const AdContainer: React.FC<AdContainerProps> = ({
           className={className}
         />
       );
-    } else {
-      console.log(`📢 AdContainer: AdSense slot is disabled or not configured for placement "${placement}"`);
     }
   }
 
   // No custom ad and no valid AdSense - render nothing (no empty space)
-  console.log(`📢 AdContainer: No ads available for placement "${placement}" - returning null`);
   return null;
 };

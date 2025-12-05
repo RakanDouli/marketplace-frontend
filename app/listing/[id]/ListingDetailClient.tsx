@@ -197,7 +197,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     listing.location.province ||
     listing.location.coordinates
   );
-  console.log('sss', listing);
+
   return (
     <Container>
       {/* Top Banner Ad (below gallery) */}
