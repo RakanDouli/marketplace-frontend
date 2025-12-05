@@ -67,7 +67,6 @@ export const OwnerInfoSection: React.FC<ListingOwnerInfoProps> = ({ userId, list
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} شهر`;
     return `${Math.floor(diffDays / 365)} سنة`;
   };
-  console.log('sss', owner);
   return (
     <>
       <div className={styles.section}>

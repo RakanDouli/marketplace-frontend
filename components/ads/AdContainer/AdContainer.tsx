@@ -85,6 +85,19 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     return packagesWithWeights[0].pkg;
   };
 
+  // Helper: Check if AdSense is properly configured
+  const isAdSenseConfigured = (clientId: string | null | undefined): boolean => {
+    if (!clientId) return false;
+
+    // Must start with ca-pub- and have numbers after
+    if (!clientId.startsWith('ca-pub-')) {
+      console.log(`📢 AdContainer: AdSense client ID invalid format - skipping`);
+      return false;
+    }
+
+    return true;
+  };
+
   useEffect(() => {
     const loadAd = async () => {
       // Step 1: Fetch all ads once (smart caching)
@@ -160,9 +173,8 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       />
     );
   }
-
-  // No custom ad - try Google AdSense fallback
-  if (adSenseSettings && adSenseSettings.clientId) {
+  // No custom ad - try Google AdSense fallback (only if valid ID format)
+  if (adSenseSettings && isAdSenseConfigured(adSenseSettings.clientId)) {
     // Use image slot by default (Google AdSense auto-detects format/dimensions)
     // Admin can disable image/video slots independently via toggles
     const adSenseSlot = adSenseSettings.imageSlot;
@@ -176,7 +188,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 
       return (
         <GoogleAdSense
-          client={adSenseSettings.clientId}
+          client={adSenseSettings.clientId!}
           slot={adSenseSlot.id}
           format="horizontal"
           responsive={true}
@@ -186,11 +198,9 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     } else {
       console.log(`📢 AdContainer: AdSense slot is disabled or not configured for placement "${placement}"`);
     }
-  } else {
-    console.log(`📢 AdContainer: No AdSense settings available (clientId missing or settings not loaded)`);
   }
 
-  // No custom ad and no AdSense fallback - render nothing
-  console.log(`📢 AdContainer: Returning NULL for placement "${placement}" (no ads available)`);
+  // No custom ad and no valid AdSense - render nothing (no empty space)
+  console.log(`📢 AdContainer: No ads available for placement "${placement}" - returning null`);
   return null;
 };

@@ -12,6 +12,12 @@ export interface GoogleAdSenseProps {
   className?: string;
 }
 
+/**
+ * GoogleAdSense component - renders a Google AdSense ad unit
+ *
+ * Strategy: Start HIDDEN, only show when ad is confirmed filled.
+ * This prevents the "flash" effect where container shows then hides.
+ */
 export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   client,
   slot,
@@ -20,94 +26,118 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   style,
   className,
 }) => {
-  const adRef = useRef<HTMLDivElement>(null);
-  const [adLoaded, setAdLoaded] = useState(false);
-  const [adError, setAdError] = useState(false);
-  const [shouldRender, setShouldRender] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const insRef = useRef<HTMLModElement>(null);
+  // Start hidden - only show when ad confirmed loaded
+  const [isVisible, setIsVisible] = useState(false);
+  const [adPushed, setAdPushed] = useState(false);
+  const [adFailed, setAdFailed] = useState(false);
 
+  // Push ad request to AdSense
   useEffect(() => {
-    // Only load ad once
-    if (adLoaded) return;
+    if (adPushed || !containerRef.current) return;
 
-    try {
-      // Wait longer for container to be fully rendered and measured
-      const timer = setTimeout(() => {
-        if (typeof window !== 'undefined' && adRef.current) {
-          const width = adRef.current.offsetWidth;
-          const height = adRef.current.offsetHeight;
+    const timer = setTimeout(() => {
+      if (containerRef.current && containerRef.current.offsetWidth > 0) {
+        try {
+          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+          setAdPushed(true);
+        } catch (err) {
+          console.error('❌ GoogleAdSense: Push failed', err);
+          setAdFailed(true);
+        }
+      }
+    }, 300);
 
-          console.log(`📐 GoogleAdSense: Container dimensions - width: ${width}px, height: ${height}px`);
+    return () => clearTimeout(timer);
+  }, [adPushed]);
 
-          if (width > 0) {
-            console.log('✅ GoogleAdSense: Loading ad with valid dimensions');
-            try {
-              ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-              setAdLoaded(true);
-            } catch (pushError) {
-              console.error('❌ GoogleAdSense: Failed to push ad:', pushError);
-              setAdError(true);
-            }
-          } else {
-            console.warn('⚠️ GoogleAdSense: Container width is 0, retrying in 300ms...');
-            // Retry after a longer delay
-            setTimeout(() => {
-              if (adRef.current) {
-                const retryWidth = adRef.current.offsetWidth;
-                console.log(`📐 GoogleAdSense: Retry - width: ${retryWidth}px`);
+  // Monitor for ad load status using MutationObserver
+  useEffect(() => {
+    if (!adPushed || adFailed || !insRef.current) return;
 
-                if (retryWidth > 0) {
-                  console.log('✅ GoogleAdSense: Loading ad on retry');
-                  try {
-                    ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-                    setAdLoaded(true);
-                  } catch (pushError) {
-                    console.error('❌ GoogleAdSense: Failed to push ad on retry:', pushError);
-                    setAdError(true);
-                  }
-                } else {
-                  console.error('❌ GoogleAdSense: Container still has no width after retry');
-                  setAdError(true);
-                  setShouldRender(false);
-                }
-              }
-            }, 300);
+    const ins = insRef.current;
+
+    // Watch for data-ad-status attribute changes (set by AdSense SDK)
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes') {
+          const adStatus = ins.getAttribute('data-ad-status');
+
+          if (adStatus === 'filled') {
+            // Ad loaded successfully - NOW show the container
+            setIsVisible(true);
+            observer.disconnect();
+            return;
+          }
+
+          if (adStatus === 'unfilled') {
+            // No ad available - keep hidden
+            setAdFailed(true);
+            observer.disconnect();
+            return;
           }
         }
-      }, 300);
+      }
+    });
 
-      return () => clearTimeout(timer);
-    } catch (error) {
-      console.error('❌ GoogleAdSense: Failed to load ad:', error);
-      setAdError(true);
-    }
-  }, [adLoaded]);
+    observer.observe(ins, {
+      attributes: true,
+      attributeFilter: ['data-ad-status'],
+    });
 
-  console.log(`✅ GoogleAdSense: Rendering ad container - client: ${client}, slot: ${slot}, adError: ${adError}, shouldRender: ${shouldRender}`);
+    // Fallback timeout - if no "filled" status after 4 seconds, give up
+    const fallbackTimer = setTimeout(() => {
+      const adStatus = ins.getAttribute('data-ad-status');
+      const hasContent = (ins.querySelector('iframe')?.offsetHeight ?? 0) > 50;
 
+      if (adStatus === 'filled' || hasContent) {
+        // Ad loaded - show it
+        setIsVisible(true);
+      } else {
+        // Ad failed - stay hidden
+        setAdFailed(true);
+      }
+
+      observer.disconnect();
+    }, 4000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallbackTimer);
+    };
+  }, [adPushed, adFailed]);
+
+  // If failed, return nothing
+  if (adFailed) {
+    return null;
+  }
+
+  // Render container but keep it hidden until ad is confirmed
   return (
-    <>
-      {/* Only render container if no errors and should render */}
-      {!adError && shouldRender && (
-        <div ref={adRef} className={`${styles.googleAdSense} ${className || ''}`} style={style}>
-          <div className={styles.adLabel}>إعلان</div>
-          <ins
-            className="adsbygoogle"
-            style={{ display: 'block' }}
-            data-ad-client={client}
-            data-ad-slot={slot}
-            data-ad-format={format}
-            data-full-width-responsive={responsive.toString()}
-          />
-        </div>
-      )}
-
-      {/* Log when returning null */}
-      {(adError || !shouldRender) && (
-        <>
-          {console.log(`📢 GoogleAdSense: NOT rendering (returning NULL) - adError: ${adError}, shouldRender: ${shouldRender}, client: ${client}, slot: ${slot}`)}
-          {null}
-        </>
-      )}
-    </>
+    <div
+      ref={containerRef}
+      className={`${styles.googleAdSense} ${className || ''}`}
+      style={{
+        ...style,
+        // Hide completely until ad is confirmed loaded (no margin, no height, no visibility)
+        visibility: isVisible ? 'visible' : 'hidden',
+        height: isVisible ? 'auto' : 0,
+        margin: isVisible ? undefined : 0,
+        padding: isVisible ? undefined : 0,
+        overflow: 'hidden',
+      }}
+    >
+      {isVisible && <div className={styles.adLabel}>إعلان</div>}
+      <ins
+        ref={insRef}
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={client}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive={responsive.toString()}
+      />
+    </div>
   );
 };
