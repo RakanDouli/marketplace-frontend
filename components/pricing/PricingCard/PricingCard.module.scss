@@ -58,7 +58,7 @@
 
 .price {
   display: flex;
-
+  flex-wrap: wrap;
   align-items: baseline;
   gap: $space-xs;
   h1,
@@ -68,6 +68,13 @@
   padding: $space-sm 0;
   border-top: 1px solid $border;
   border-bottom: 1px solid $border;
+}
+
+.taxLabel {
+  width: 100%;
+  margin-top: $space-xs;
+  font-size: $font-xs;
+  opacity: 0.8;
 }
 
 .features {

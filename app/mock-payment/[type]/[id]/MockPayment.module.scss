@@ -39,6 +39,26 @@
   }
 }
 
+// Selected payment method display (passed from payment page)
+.selectedMethod {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  padding: $space-lg;
+  background: rgba($primary, 0.08);
+  border-bottom: 1px solid $border;
+
+  svg {
+    color: $primary;
+  }
+
+  h4 {
+    margin: 0;
+    color: $primary;
+  }
+}
+
 .paymentDetails {
   padding: $space-xl;
 }
@@ -96,6 +116,74 @@
 
   button {
     width: 100%;
+  }
+}
+
+// Payment Methods Selection
+.paymentMethods {
+  padding: $space-lg $space-xl;
+  border-bottom: 1px solid $border;
+}
+
+.methodsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  margin-top: $space-md;
+}
+
+.methodCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-md;
+  background: $bg;
+  border: 2px solid $border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary;
+    background: rgba($primary, 0.05);
+  }
+
+  &.selected {
+    border-color: $primary;
+    background: rgba($primary, 0.1);
+
+    &::before {
+      content: "✓";
+      color: $primary;
+      font-weight: bold;
+      margin-left: $space-sm;
+    }
+  }
+}
+
+// Fee Breakdown
+.feeBreakdown {
+  background: $bg;
+  border-radius: $radius-md;
+  padding: $space-md;
+  margin-top: $space-lg;
+}
+
+.feeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-xs 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px dashed $border;
+  }
+
+  &.total {
+    border-top: 2px solid $border;
+    margin-top: $space-sm;
+    padding-top: $space-sm;
+    font-weight: bold;
   }
 }
 

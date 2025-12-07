@@ -1,6 +1,16 @@
 export type PaymentType = 'subscription' | 'ad_campaign';
 
-export type PaymentMethod = 'stripe' | 'paypal' | 'mock';
+export type PaymentMethod = 'stripe' | 'paypal' | 'bank_transfer' | 'cash' | 'mock' | 'manual';
+
+export interface PaymentMethodOption {
+  paymentMethod: PaymentMethod;
+  displayName: string;
+  displayNameAr?: string;
+  feePercentage: number;
+  fixedFee: number;
+  isActive: boolean;
+  sortOrder: number;
+}
 
 export interface PaymentIntent {
   id: string;

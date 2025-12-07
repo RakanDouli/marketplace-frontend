@@ -171,6 +171,12 @@ export default function UserSubscriptionsPage() {
                 <Text variant="paragraph" className={styles.billingCycle}>
                   / شهرياً
                 </Text>
+                {/* Tax included label - shown for paid plans */}
+                {plan.price > 0 && (
+                  <Text variant="small" color="secondary" className={styles.taxLabel}>
+                    شامل الضريبة
+                  </Text>
+                )}
               </div>
 
               <ul className={styles.features}>

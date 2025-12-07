@@ -61,6 +61,7 @@
 
 .price {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: $space-xs;
   padding: $space-md 0;
@@ -68,6 +69,13 @@
 
 .billingCycle {
   color: $text-muted;
+}
+
+.taxLabel {
+  width: 100%;
+  margin-top: $space-xs;
+  font-size: $font-xs;
+  opacity: 0.8;
 }
 
 .features {

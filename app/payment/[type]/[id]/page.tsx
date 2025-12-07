@@ -4,10 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Text, Button, Container } from '@/components/slices';
 import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
-import type { PaymentType, PaymentMethod, PaymentData } from '@/components/payment';
+import type { PaymentType, PaymentMethod, PaymentMethodOption, PaymentData } from '@/components/payment';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CreditCard } from 'lucide-react';
 import styles from '../../payment.module.scss';
 
 // GraphQL helper
@@ -104,9 +104,17 @@ export default function PaymentPage() {
 
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [selectedMethodOption, setSelectedMethodOption] = useState<PaymentMethodOption | null>(null);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get base amount for fee calculation
+  const baseAmount = paymentData
+    ? 'totalPrice' in paymentData
+      ? paymentData.totalPrice
+      : paymentData.price
+    : 0;
 
   // Fetch payment data based on type
   useEffect(() => {
@@ -182,8 +190,23 @@ export default function PaymentPage() {
     fetchPaymentData();
   }, [type, id]);
 
-  const handlePaymentMethodSelect = async (method: PaymentMethod) => {
+  // Handle payment method selection (just updates state)
+  const handlePaymentMethodSelect = (method: PaymentMethod, option: PaymentMethodOption) => {
     setSelectedMethod(method);
+    setSelectedMethodOption(option);
+  };
+
+  // Handle proceed to payment button
+  const handleProceedToPayment = async () => {
+    if (!selectedMethod) {
+      addNotification({
+        type: 'error',
+        title: 'خطأ',
+        message: 'يرجى اختيار طريقة الدفع',
+      });
+      return;
+    }
+
     setProcessingPayment(true);
 
     try {
@@ -206,23 +229,13 @@ export default function PaymentPage() {
           user.token
         );
 
-        const { transactionId, paymentUrl } = data.initiateSubscriptionPayment;
+        const { transactionId } = data.initiateSubscriptionPayment;
 
-        if (method === 'mock') {
-          // For mock payment, redirect to our mock payment page with transactionId
-          router.push(`/mock-payment/subscription/${transactionId}`);
-        } else {
-          // TODO: For real payment, use paymentUrl or redirect to Stripe/PayPal
-          alert(`ستتم إعادة التوجيه إلى ${method}`);
-        }
+        // Redirect to mock payment page with selected method
+        router.push(`/mock-payment/subscription/${transactionId}?method=${selectedMethod}`);
       } else if (type === 'ad_campaign') {
-        // For ad campaigns, the campaign already exists, just redirect
-        if (method === 'mock') {
-          router.push(`/mock-payment/ad_campaign/${id}`);
-        } else {
-          // TODO: Redirect to Stripe/PayPal
-          alert(`ستتم إعادة التوجيه إلى ${method}`);
-        }
+        // For ad campaigns, the campaign already exists, just redirect with method
+        router.push(`/mock-payment/ad_campaign/${id}?method=${selectedMethod}`);
       }
     } catch (err) {
       console.error('Payment initiation error:', err);
@@ -281,23 +294,32 @@ export default function PaymentPage() {
           <PaymentPreview type={type} data={paymentData} />
         </div>
 
-        {/* Payment Method Selection */}
+        {/* Payment Method Selection - Now fetches from backend */}
         <div className={styles.paymentSection}>
           <PaymentMethodSelector
-            methods={['mock', 'stripe', 'paypal']}
             onSelect={handlePaymentMethodSelect}
             disabled={processingPayment}
+            selectedMethod={selectedMethod}
+            baseAmount={baseAmount}
           />
-          {processingPayment && (
-            <Text variant="small" color="secondary" style={{ marginTop: '1rem', textAlign: 'center' }}>
-              جاري إنشاء طلب الدفع...
-            </Text>
-          )}
+        </div>
+
+        {/* Proceed Button */}
+        <div className={styles.paymentSection}>
+          <Button
+            onClick={handleProceedToPayment}
+            disabled={!selectedMethod || processingPayment}
+            icon={<CreditCard size={20} />}
+            size="lg"
+            style={{ width: '100%' }}
+          >
+            {processingPayment ? 'جاري المعالجة...' : 'متابعة الدفع'}
+          </Button>
         </div>
 
         <div className={styles.paymentFooter}>
           <Text variant="small" color="secondary">
-            ملاحظة: بعد اختيار طريقة الدفع، ستتم إعادة توجيهك إلى بوابة الدفع الآمنة.
+            ملاحظة: بعد الضغط على "متابعة الدفع"، ستتم إعادة توجيهك إلى بوابة الدفع الآمنة.
           </Text>
         </div>
       </div>

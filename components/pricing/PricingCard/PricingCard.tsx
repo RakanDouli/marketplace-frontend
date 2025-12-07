@@ -108,6 +108,12 @@ export const PricingCard: React.FC<PricingCardProps> = ({
             {period}
           </Text>
         )}
+        {/* Tax included label - shown for paid plans */}
+        {price > 0 && (
+          <Text variant="small" color="secondary" className={styles.taxLabel}>
+            شامل الضريبة
+          </Text>
+        )}
       </div>
 
       {/* Features List */}

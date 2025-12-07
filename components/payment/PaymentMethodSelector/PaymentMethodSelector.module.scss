@@ -37,6 +37,12 @@
     cursor: not-allowed;
   }
 
+  &.selected {
+    border-color: $primary;
+    background: rgba($primary, 0.05);
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
   .methodIcon {
     display: flex;
     align-items: center;
@@ -51,6 +57,14 @@
   .methodContent {
     text-align: center;
   }
+}
+
+.feeEstimate {
+  margin-top: $space-md;
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+  text-align: center;
 }
 
 // Responsive
