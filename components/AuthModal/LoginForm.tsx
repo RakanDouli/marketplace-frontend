@@ -46,10 +46,16 @@ const DEV_CREDENTIALS = [
     accountType: AccountType.INDIVIDUAL,
   },
   {
+    name: '🧑 Rakan (Real Email)',
+    email: 'rairakzak@gmail.com',
+    password: 'User123!',
+    accountType: AccountType.INDIVIDUAL,
+  },
+  {
     name: 'Custom Login',
     email: '',
     password: '',
-  },
+  }
 ];
 
 export const LoginForm: React.FC = () => {

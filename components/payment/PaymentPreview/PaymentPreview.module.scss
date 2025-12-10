@@ -241,7 +241,7 @@
   align-items: center;
   padding: $space-md 0;
   margin-top: $space-sm;
-  // border-top: 2px solid $border;
+  border-top: 2px solid $border;
 
   h4 {
     margin: 0;
@@ -267,6 +267,126 @@
       font-weight: $weight-medium;
     }
   }
+}
+
+// Tax row
+.taxRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+  margin: $space-sm 0;
+  border: 1px solid $border;
+
+  .feeLabel {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+
+    svg {
+      color: $text-secondary;
+      flex-shrink: 0;
+    }
+
+    p {
+      color: $text;
+      font-weight: $weight-medium;
+    }
+  }
+
+  > p {
+    color: $text;
+    font-weight: $weight-semibold;
+  }
+}
+
+// Processing fee row
+.processingFeeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm $space-md;
+  background: $warning-bg;
+  border-radius: $radius-md;
+  margin: $space-sm 0;
+
+  .feeLabel {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+
+    svg {
+      color: $warning;
+      flex-shrink: 0;
+    }
+
+    p {
+      color: $text;
+      font-weight: $weight-medium;
+    }
+  }
+
+  > p {
+    color: $warning;
+    font-weight: $weight-semibold;
+  }
+}
+
+// Syrian pound total section
+.sypTotalSection {
+  margin-top: $space-md;
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+}
+
+.exchangeRateRow {
+  margin-bottom: $space-sm;
+
+  .exchangeInfo {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+
+    svg {
+      color: $text-secondary;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.sypTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: $space-sm;
+  border-top: 1px solid $border;
+
+  h4 {
+    margin: 0;
+    font-weight: $weight-semibold;
+  }
+
+  .sypAmount {
+    h3 {
+      margin: 0;
+      font-weight: $weight-bold;
+      color: $primary;
+      font-size: $font-xl;
+    }
+  }
+}
+
+// Prompt to select payment method
+.selectMethodPrompt {
+  text-align: center;
+  padding: $space-md;
+  background: $surface;
+  border-radius: $radius-md;
+  margin-top: $space-md;
 }
 
 // Responsive

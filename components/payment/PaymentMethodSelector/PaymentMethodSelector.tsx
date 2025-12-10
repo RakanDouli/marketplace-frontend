@@ -174,27 +174,6 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         ))}
       </div>
 
-      {/* Show estimated total if base amount provided */}
-      {baseAmount > 0 && selectedMethod && (
-        <div className={styles.feeEstimate}>
-          {(() => {
-            const selected = methods.find(m => m.paymentMethod === selectedMethod);
-            if (!selected) return null;
-            const processingFee = (baseAmount * (selected.feePercentage / 100)) + selected.fixedFee;
-            const total = baseAmount + processingFee;
-            return (
-              <>
-                <Text variant="small" color="secondary">
-                  المبلغ: ${baseAmount.toFixed(2)} + رسوم المعالجة: ${processingFee.toFixed(2)}
-                </Text>
-                <Text variant="paragraph">
-                  الإجمالي: <strong>${total.toFixed(2)}</strong>
-                </Text>
-              </>
-            );
-          })()}
-        </div>
-      )}
     </div>
   );
 };

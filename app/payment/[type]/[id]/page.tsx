@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Text, Button, Container } from '@/components/slices';
 import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
-import type { PaymentType, PaymentMethod, PaymentMethodOption, PaymentData } from '@/components/payment';
+import type { PaymentType, PaymentMethod, PaymentMethodOption, PaymentData, PaymentFeeInfo } from '@/components/payment';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { ArrowLeft, CreditCard } from 'lucide-react';
@@ -94,6 +94,23 @@ const INITIATE_SUBSCRIPTION_PAYMENT_MUTATION = `
   }
 `;
 
+// Query to get exchange rate
+const GET_EXCHANGE_RATE_QUERY = `
+  query GetExchangeRate($from: String!, $to: String!) {
+    getExchangeRate(from: $from, to: $to)
+  }
+`;
+
+// Query to get financial settings (tax rate)
+const GET_FINANCIAL_SETTINGS_QUERY = `
+  query GetPublicFinancialSettings {
+    publicFinancialSettings {
+      taxEnabled
+      taxRate
+    }
+  }
+`;
+
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
@@ -108,6 +125,8 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number>(0);
+  const [taxRate, setTaxRate] = useState<number>(0);
 
   // Get base amount for fee calculation
   const baseAmount = paymentData
@@ -115,6 +134,82 @@ export default function PaymentPage() {
       ? paymentData.totalPrice
       : paymentData.price
     : 0;
+
+  // Calculate fee info based on selected payment method
+  // NOTE: Tax is INCLUDED in the base price, NOT added on top
+  const feeInfo = useMemo<PaymentFeeInfo | null>(() => {
+    // Tax is INCLUDED in baseAmount - calculate the tax portion for display only
+    // If tax rate is 10% and price is $100, tax portion is $100 * (10/110) = $9.09
+    const taxAmount = taxRate > 0 ? baseAmount * (taxRate / (100 + taxRate)) : 0;
+
+    if (!paymentData) {
+      return null;
+    }
+
+    if (!selectedMethod || !selectedMethodOption) {
+      // No payment method selected yet - show base amounts (tax already included)
+      const totalWithFee = baseAmount; // Tax is already in baseAmount
+      const totalInSyp = exchangeRate > 0 ? totalWithFee * exchangeRate : 0;
+      return {
+        paymentMethod: null,
+        paymentMethodNameAr: '',
+        feePercentage: 0,
+        fixedFee: 0,
+        processingFee: 0,
+        taxRate,
+        taxAmount,
+        totalWithFee,
+        exchangeRate,
+        totalInSyp,
+      };
+    }
+
+    // Calculate processing fee based on selected method (on base amount which includes tax)
+    const processingFee = (baseAmount * (selectedMethodOption.feePercentage / 100)) + selectedMethodOption.fixedFee;
+    // Total = baseAmount (which includes tax) + processingFee
+    const totalWithFee = baseAmount + processingFee;
+    const totalInSyp = exchangeRate > 0 ? totalWithFee * exchangeRate : 0;
+
+    return {
+      paymentMethod: selectedMethod,
+      paymentMethodNameAr: selectedMethodOption.displayNameAr || selectedMethodOption.displayName,
+      feePercentage: selectedMethodOption.feePercentage,
+      fixedFee: selectedMethodOption.fixedFee,
+      processingFee,
+      taxRate,
+      taxAmount,
+      totalWithFee,
+      exchangeRate,
+      totalInSyp,
+    };
+  }, [paymentData, selectedMethod, selectedMethodOption, baseAmount, exchangeRate, taxRate]);
+
+  // Fetch exchange rate and tax rate
+  useEffect(() => {
+    const fetchFinancialData = async () => {
+      try {
+        // Fetch exchange rate and financial settings in parallel
+        const [exchangeData, financialData] = await Promise.all([
+          makeGraphQLCall(GET_EXCHANGE_RATE_QUERY, { from: 'USD', to: 'SYP' }),
+          makeGraphQLCall(GET_FINANCIAL_SETTINGS_QUERY),
+        ]);
+
+        setExchangeRate(exchangeData.getExchangeRate || 0);
+
+        // Set tax rate if enabled
+        const settings = financialData.publicFinancialSettings;
+        if (settings?.taxEnabled && settings?.taxRate > 0) {
+          setTaxRate(Number(settings.taxRate));
+        }
+      } catch (err) {
+        console.error('Failed to fetch financial data:', err);
+        setExchangeRate(0);
+        setTaxRate(0);
+      }
+    };
+
+    fetchFinancialData();
+  }, []);
 
   // Fetch payment data based on type
   useEffect(() => {
@@ -291,7 +386,7 @@ export default function PaymentPage() {
 
         {/* Payment Preview */}
         <div className={styles.paymentSection}>
-          <PaymentPreview type={type} data={paymentData} />
+          <PaymentPreview type={type} data={paymentData} feeInfo={feeInfo} />
         </div>
 
         {/* Payment Method Selection - Now fetches from backend */}

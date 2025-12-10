@@ -91,3 +91,17 @@ export interface AdCampaignPaymentData {
 }
 
 export type PaymentData = SubscriptionPaymentData | AdCampaignPaymentData;
+
+// Payment fee information passed from parent to preview
+export interface PaymentFeeInfo {
+  paymentMethod: PaymentMethod | null;
+  paymentMethodNameAr: string;
+  feePercentage: number;
+  fixedFee: number;
+  processingFee: number;
+  taxRate: number;
+  taxAmount: number;
+  totalWithFee: number;
+  exchangeRate: number;
+  totalInSyp: number;
+}

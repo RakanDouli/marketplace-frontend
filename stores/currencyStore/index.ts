@@ -53,31 +53,15 @@ async function fetchRate(from: Currency, to: Currency): Promise<number> {
     const result = await response.json();
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
-      // Return fallback rates on error
-      const fallbacks: Record<string, number> = {
-        'USD_SYP': 13000,
-        'EUR_SYP': 14130,
-        'USD_EUR': 0.92,
-        'EUR_USD': 1.09,
-        'SYP_USD': 0.000077,
-        'SYP_EUR': 0.000071,
-      };
-      return fallbacks[`${from}_${to}`] || 1;
+      // Return 1 on error - the API should handle fallback to database
+      return 1;
     }
 
     return result.data.getExchangeRate;
   } catch (error) {
     console.error(`Failed to fetch rate ${from}→${to}:`, error);
-    // Return fallback rates on error
-    const fallbacks: Record<string, number> = {
-      'USD_SYP': 13000,
-      'EUR_SYP': 14130,
-      'USD_EUR': 0.92,
-      'EUR_USD': 1.09,
-      'SYP_USD': 0.000077,
-      'SYP_EUR': 0.000071,
-    };
-    return fallbacks[`${from}_${to}`] || 1;
+    // Return 1 on error - backend handles fallback to last saved rate
+    return 1;
   }
 }
 
@@ -86,16 +70,16 @@ export const useCurrencyStore = create<CurrencyStore>()(
     (set, get) => ({
       preferredCurrency: 'SYP',
       exchangeRates: {
+        // Initial rates - will be fetched from API on mount
         USD_USD: 1,
         EUR_EUR: 1,
         SYP_SYP: 1,
-        // Fallback rates (updated 2025-01-19)
-        USD_EUR: 0.92,
-        USD_SYP: 13000,
-        EUR_USD: 1.09,
-        EUR_SYP: 14130,
-        SYP_USD: 0.000077,
-        SYP_EUR: 0.000071,
+        USD_EUR: 1,
+        USD_SYP: 1,
+        EUR_USD: 1,
+        EUR_SYP: 1,
+        SYP_USD: 1,
+        SYP_EUR: 1,
       },
       lastUpdated: null,
 
@@ -148,10 +132,10 @@ export const useCurrencyStore = create<CurrencyStore>()(
     }),
     {
       name: 'currency-storage',
+      // Only persist user preference, NOT exchange rates
+      // Rates should always be fetched fresh from API
       partialize: (state) => ({
         preferredCurrency: state.preferredCurrency,
-        exchangeRates: state.exchangeRates,
-        lastUpdated: state.lastUpdated,
       }),
     }
   )

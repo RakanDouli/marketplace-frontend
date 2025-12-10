@@ -1,11 +1,12 @@
 import React from 'react';
 import { Text } from '@/components/slices';
-import { Package, Calendar, DollarSign, Image, Video, ExternalLink, Zap } from 'lucide-react';
-import type { AdCampaignPaymentData } from '../types';
+import { Package, Calendar, DollarSign, Image, Video, ExternalLink, Zap, CreditCard, ArrowLeftRight, Receipt } from 'lucide-react';
+import type { AdCampaignPaymentData, PaymentFeeInfo } from '../types';
 import styles from './PaymentPreview.module.scss';
 
 interface CampaignPreviewContentProps {
   data: AdCampaignPaymentData;
+  feeInfo?: PaymentFeeInfo | null;
 }
 
 const formatDate = (dateString: string | null) => {
@@ -30,9 +31,23 @@ const getAdTypeName = (adType: string) => {
   return types[adType] || adType;
 };
 
-export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ data: campaign }) => {
-  const hasMultiplePackages = campaign.isCustomPackage && campaign.packageBreakdown?.packages && campaign.packageBreakdown.packages.length > 0;
-  const hasDiscount = campaign.packageBreakdown && campaign.packageBreakdown.discountPercentage && campaign.packageBreakdown.discountPercentage > 0;
+// Format numbers in Arabic locale
+const formatNumber = (num: number, decimals: number = 2) => {
+  return num.toLocaleString('ar-EG', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+};
+
+export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ data: campaign, feeInfo }) => {
+  const hasMultiplePackages = Boolean(campaign.isCustomPackage && campaign.packageBreakdown?.packages && campaign.packageBreakdown.packages.length > 0);
+  const hasDiscount = Boolean(campaign.packageBreakdown && campaign.packageBreakdown.discountPercentage && campaign.packageBreakdown.discountPercentage > 0);
+
+  // Calculate totals based on whether payment method is selected
+  const baseAmount = campaign.totalPrice;
+  const hasPaymentMethod = feeInfo && feeInfo.paymentMethod !== null;
+  const taxRate = feeInfo?.taxRate || 0;
+  const taxAmount = feeInfo?.taxAmount || 0;
+  const processingFee = hasPaymentMethod ? feeInfo.processingFee : 0;
+  const finalTotal = feeInfo?.totalWithFee || baseAmount;
+  const finalTotalSyp = feeInfo?.totalInSyp || 0;
 
   return (
     <div className={styles.preview}>
@@ -173,23 +188,40 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
         </>
       ) : (
         <div className={styles.section}>
-          <Text variant="h4">تفاصيل الحزمة</Text>
-          <div className={styles.infoGrid}>
-            <div className={styles.infoItem}>
-              <Text variant="small" color="secondary">اسم الحزمة</Text>
-              <Text variant="paragraph">{campaign.package?.packageName}</Text>
-            </div>
-            <div className={styles.infoItem}>
-              <Text variant="small" color="secondary">نوع الإعلان</Text>
-              <Text variant="paragraph">{getAdTypeName(campaign.package?.adType || '')}</Text>
-            </div>
-            <div className={styles.infoItem}>
-              <Text variant="small" color="secondary">تاريخ البدء</Text>
-              <Text variant="paragraph">{formatDate(campaign.startDate)}</Text>
-            </div>
-            <div className={styles.infoItem}>
-              <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
-              <Text variant="paragraph">{formatDate(campaign.endDate)}</Text>
+          <Text variant="h4">الحزمة الإعلانية</Text>
+          <div className={styles.packagesContainer}>
+            <div className={styles.packageCard}>
+              <div className={styles.packageHeader}>
+                <Text variant="h4">{campaign.package?.packageName}</Text>
+              </div>
+
+              <div className={styles.packageDetails}>
+                <div className={styles.detailRow}>
+                  <Text variant="small" color="secondary">نوع الإعلان</Text>
+                  <div className={styles.mediaType}>
+                    {campaign.package?.adType === 'IMAGE' ? <Image size={16} /> : <Video size={16} />}
+                    <Text variant="paragraph">{getAdTypeName(campaign.package?.adType || '')}</Text>
+                  </div>
+                </div>
+
+                <div className={styles.detailRow}>
+                  <Text variant="small" color="secondary">تاريخ البدء</Text>
+                  <Text variant="paragraph">{formatDate(campaign.startDate)}</Text>
+                </div>
+
+                <div className={styles.detailRow}>
+                  <Text variant="small" color="secondary">تاريخ الانتهاء</Text>
+                  <Text variant="paragraph">{formatDate(campaign.endDate)}</Text>
+                </div>
+
+                <div className={styles.priceRow}>
+                  <Text variant="small" color="secondary">السعر</Text>
+                  <div className={styles.packagePrice}>
+                    <DollarSign size={18} />
+                    <Text variant="h4">{campaign.totalPrice.toFixed(2)}</Text>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -197,10 +229,10 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
 
       {/* Pricing Summary */}
       <div className={styles.pricingSummary}>
-        {hasDiscount && campaign.packageBreakdown?.totalBeforeDiscount ? (
-          <>
-            {/* Show discount breakdown */}
-            <div className={styles.pricingDetails}>
+        <div className={styles.pricingDetails}>
+          {/* Show discount breakdown if applicable */}
+          {hasDiscount && campaign.packageBreakdown?.totalBeforeDiscount && (
+            <>
               <div className={styles.pricingRow}>
                 <Text variant="paragraph" color="secondary">السعر الأصلي</Text>
                 <Text variant="paragraph">{campaign.packageBreakdown.totalBeforeDiscount.toFixed(2)} {campaign.currency}</Text>
@@ -214,26 +246,80 @@ export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ 
                 </div>
                 <Text variant="paragraph">-{(campaign.packageBreakdown.totalBeforeDiscount - campaign.totalPrice).toFixed(2)} {campaign.currency}</Text>
               </div>
+              <div className={styles.pricingRow}>
+                <Text variant="paragraph" color="secondary">المبلغ بعد الخصم</Text>
+                <Text variant="paragraph">{baseAmount.toFixed(2)} {campaign.currency}</Text>
+              </div>
+            </>
+          )}
+
+          {/* Show base amount if no discount */}
+          {!hasDiscount && (
+            <div className={styles.pricingRow}>
+              <Text variant="paragraph" color="secondary">المبلغ</Text>
+              <Text variant="paragraph">{baseAmount.toFixed(2)} {campaign.currency}</Text>
             </div>
-            <div className={styles.totalRow}>
-              <Text variant="h4">الإجمالي المطلوب</Text>
-              <div className={styles.totalAmount}>
-                <DollarSign size={24} />
-                <Text variant="h3">{campaign.totalPrice.toFixed(2)} {campaign.currency}</Text>
+          )}
+
+          {/* Tax Row - Always show if tax rate > 0 (tax is INCLUDED in price) */}
+          {taxRate > 0 && (
+            <div className={styles.taxRow}>
+              <div className={styles.feeLabel}>
+                <Receipt size={16} />
+                <Text variant="paragraph">الضريبة ({taxRate}%) - شامل</Text>
+              </div>
+              <Text variant="paragraph" color="secondary">{taxAmount.toFixed(2)} {campaign.currency}</Text>
+            </div>
+          )}
+
+          {/* Processing Fee - Only show when payment method is selected */}
+          {hasPaymentMethod && processingFee > 0 && (
+            <div className={styles.processingFeeRow}>
+              <div className={styles.feeLabel}>
+                <CreditCard size={16} />
+                <Text variant="paragraph">رسوم المعالجة ({feeInfo.paymentMethodNameAr})</Text>
+              </div>
+              <Text variant="paragraph">+{processingFee.toFixed(2)} {campaign.currency}</Text>
+            </div>
+          )}
+        </div>
+
+        {/* Final Total in USD */}
+        <div className={styles.totalRow}>
+          <Text variant="h4">الإجمالي المطلوب</Text>
+          <div className={styles.totalAmount}>
+            <DollarSign size={24} />
+            <Text variant="h3">{finalTotal.toFixed(2)} {campaign.currency}</Text>
+          </div>
+        </div>
+
+        {/* Syrian Pound Total - Always show if exchange rate is available */}
+        {feeInfo?.exchangeRate && feeInfo.exchangeRate > 0 && (
+          <div className={styles.sypTotalSection}>
+            <div className={styles.exchangeRateRow}>
+              <div className={styles.exchangeInfo}>
+                <ArrowLeftRight size={16} />
+                <Text variant="small" color="secondary">
+                  سعر الصرف: 1 {campaign.currency} = {formatNumber(feeInfo.exchangeRate, 0)} ل.س
+                </Text>
               </div>
             </div>
-          </>
-        ) : (
-          <>
-            {/* No discount - just show total */}
-            <div className={styles.totalRow}>
-              <Text variant="h4">الإجمالي المطلوب</Text>
-              <div className={styles.totalAmount}>
-                <DollarSign size={24} />
-                <Text variant="h3">{campaign.totalPrice.toFixed(2)} {campaign.currency}</Text>
+            <div className={styles.sypTotalRow}>
+              <Text variant="h4">الإجمالي بالليرة السورية</Text>
+              <div className={styles.sypAmount}>
+                <Text variant="h3">{formatNumber(finalTotalSyp, 0)} ل.س</Text>
               </div>
             </div>
-          </>
+          </div>
+        )}
+
+        {/* Prompt to select payment method if not selected */}
+        {!hasPaymentMethod && (
+          <div className={styles.selectMethodPrompt}>
+            <Text variant="small" color="secondary">
+              اختر طريقة الدفع لعرض الرسوم النهائية والمبلغ بالليرة السورية
+            </Text>
+          </div>
         )}
       </div>
     </div>
