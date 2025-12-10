@@ -4,104 +4,55 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Text, Button } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
+import { useSubscriptionPlansStore } from "@/stores/subscriptionPlansStore";
 import { formatPrice } from "@/utils/formatPrice";
 import { Check } from "lucide-react";
 import styles from "./UserSubscriptions.module.scss";
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  title: string;
-  description: string;
-  price: number;
-  billingCycle: string;
-  maxListings: number;
-  maxImagesPerListing: number;
-  videoAllowed: boolean;
-  priorityPlacement: boolean;
-  analyticsAccess: boolean;
-  customBranding: boolean;
-  featuredListings: boolean;
-  accountType: string;
-}
-
 export default function UserSubscriptionsPage() {
   const router = useRouter();
-  const { user } = useUserAuthStore();
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, userPackage, openAuthModal } = useUserAuthStore();
+  const { plans, isLoading, error, fetchPublicPlans } = useSubscriptionPlansStore();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
+  // Fetch plans on mount
   useEffect(() => {
-    // TODO: Fetch available plans from API
-    // For now, using dummy data based on user accountType
-    const dummyPlans: SubscriptionPlan[] = [
-      {
-        id: "1",
-        name: "individual_free",
-        title: "الخطة الفردية المجانية",
-        description: "للأفراد - خطة مجانية مثالية لبيع سياراتك الشخصية",
-        price: 0,
-        billingCycle: "monthly",
-        maxListings: 5,
-        maxImagesPerListing: 5,
-        videoAllowed: false,
-        priorityPlacement: false,
-        analyticsAccess: false,
-        customBranding: false,
-        featuredListings: false,
-        accountType: "individual",
-      },
-      {
-        id: "2",
-        name: "dealer_free",
-        title: "خطة التاجر",
-        description: "للتجار والوكلاء - إعلانات غير محدودة مع ميزات احترافية",
-        price: 0, // Will be 29
-        billingCycle: "monthly",
-        maxListings: 0,
-        maxImagesPerListing: 20,
-        videoAllowed: true,
-        priorityPlacement: true,
-        analyticsAccess: true,
-        customBranding: true,
-        featuredListings: false,
-        accountType: "dealer",
-      },
-      {
-        id: "3",
-        name: "business_free",
-        title: "خطة الأعمال",
-        description: "للشركات - جميع الميزات + رابط الموقع + رقم التسجيل التجاري",
-        price: 0, // Will be 99
-        billingCycle: "monthly",
-        maxListings: 0,
-        maxImagesPerListing: 50,
-        videoAllowed: true,
-        priorityPlacement: true,
-        analyticsAccess: true,
-        customBranding: true,
-        featuredListings: true,
-        accountType: "business",
-      },
-    ];
+    fetchPublicPlans();
+  }, [fetchPublicPlans]);
 
-    setPlans(dummyPlans);
-    setLoading(false);
-  }, []);
+  // Filter plans to only show public ones, sorted by sortOrder
+  const publicPlans = plans
+    .filter((plan) => plan.isPublic)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const handleSelectPlan = async (planId: string) => {
-    setSelectedPlanId(planId);
-    // TODO: Call API to update user subscription
-    console.log("Selected plan:", planId);
+  const handleSelectPlan = (planId: string) => {
+    // Check if user is logged in
+    if (!user) {
+      openAuthModal("login");
+      return;
+    }
 
-    // Simulate API call
-    setTimeout(() => {
+    const selectedPlan = plans.find((p) => p.id === planId);
+
+    // If it's a free plan, just assign it directly
+    if (selectedPlan && selectedPlan.monthlyPrice === 0) {
+      setSelectedPlanId(planId);
+      // For free plans, go directly to dashboard after assigning
+      // TODO: Call assign subscription mutation for free plans
       router.push("/dashboard/subscription");
-    }, 1000);
+      return;
+    }
+
+    // For paid plans, go to payment preview page
+    router.push(`/payment/subscription/${planId}`);
   };
 
-  const getPlanFeatures = (plan: SubscriptionPlan) => [
+  const loading = isLoading;
+
+  // Get the user's current subscription name
+  const currentSubscriptionName = userPackage?.userSubscription?.name;
+
+  const getPlanFeatures = (plan: typeof plans[0]) => [
     {
       text: plan.maxListings === 0 ? "إعلانات غير محدودة" : `${plan.maxListings} إعلانات`,
       included: true,
@@ -150,9 +101,9 @@ export default function UserSubscriptionsPage() {
       </div>
 
       <div className={styles.plansGrid}>
-        {plans.map((plan) => {
+        {publicPlans.map((plan) => {
           const features = getPlanFeatures(plan);
-          const isCurrentPlan = (user as any)?.subscription?.name === plan.name;
+          const isCurrentPlan = currentSubscriptionName === plan.name;
 
           return (
             <div
@@ -167,12 +118,12 @@ export default function UserSubscriptionsPage() {
               </div>
 
               <div className={styles.price}>
-                <Text variant="h1">{formatPrice(plan.price)}</Text>
+                <Text variant="h1">{formatPrice(plan.monthlyPrice)}</Text>
                 <Text variant="paragraph" className={styles.billingCycle}>
                   / شهرياً
                 </Text>
                 {/* Tax included label - shown for paid plans */}
-                {plan.price > 0 && (
+                {plan.monthlyPrice > 0 && (
                   <Text variant="small" color="secondary" className={styles.taxLabel}>
                     شامل الضريبة
                   </Text>

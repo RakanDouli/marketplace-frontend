@@ -69,7 +69,7 @@ export interface CreateListingFormData {
   categoryId: string;
   title: string;
   description: string;
-  priceMinor: number; // USD cents
+  priceMinor: number; // USD dollars
   allowBidding: boolean;
   biddingStartPrice?: number;
 

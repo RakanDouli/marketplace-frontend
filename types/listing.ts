@@ -22,7 +22,7 @@ export interface Listing {
   id: string;
   title: string;
   description?: string;
-  priceMinor: number; // Backend stores price in cents (USD)
+  priceMinor: number; // Backend stores price in USD dollars
   prices: Price[]; // Calculated price array for display
   location?: Location; // Location JSONB object (new structure)
   // Legacy fields for backward compatibility (deprecated)

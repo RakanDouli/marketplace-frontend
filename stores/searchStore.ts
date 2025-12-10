@@ -421,9 +421,9 @@ export const useSearchStore = create<SearchStore>()(
         params.set("location", appliedFilters.province);
       if (appliedFilters.city) params.set("city", appliedFilters.city);
       if (appliedFilters.priceMinMinor)
-        params.set("minPrice", (appliedFilters.priceMinMinor / 100).toString());
+        params.set("minPrice", appliedFilters.priceMinMinor.toString());
       if (appliedFilters.priceMaxMinor)
-        params.set("maxPrice", (appliedFilters.priceMaxMinor / 100).toString());
+        params.set("maxPrice", appliedFilters.priceMaxMinor.toString());
       if (appliedFilters.page && appliedFilters.page > 1)
         params.set("page", appliedFilters.page.toString());
 
@@ -454,10 +454,10 @@ export const useSearchStore = create<SearchStore>()(
       if (searchParams.get("city")) newFilters.city = searchParams.get("city")!;
       if (searchParams.get("minPrice"))
         newFilters.priceMinMinor =
-          parseFloat(searchParams.get("minPrice")!) * 100;
+          parseFloat(searchParams.get("minPrice")!);
       if (searchParams.get("maxPrice"))
         newFilters.priceMaxMinor =
-          parseFloat(searchParams.get("maxPrice")!) * 100;
+          parseFloat(searchParams.get("maxPrice")!);
       if (searchParams.get("page"))
         newFilters.page = parseInt(searchParams.get("page")!);
 

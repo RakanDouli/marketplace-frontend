@@ -195,7 +195,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     // Filter specs based on current view type and attribute flags
     const viewFilteredSpecs = filterSpecsByViewType(specsWithAccountType, viewType);
 
-    // Handle price formatting consistently
+    // Handle price formatting (price is in dollars)
     const displayPrice = formatPrice(listing.priceMinor || 0);
 
     const displayCurrency = listing.prices?.[0]?.currency || "USD";

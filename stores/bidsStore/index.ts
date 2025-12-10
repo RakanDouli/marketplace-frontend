@@ -18,7 +18,7 @@ export interface Bid {
   id: string;
   listingId: string;
   bidderId: string;
-  amount: number; // in minor units (cents)
+  amount: number; // in USD dollars
   createdAt: string;
   bidder?: Bidder;
   listing?: {

@@ -45,14 +45,14 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({
     }
   }, [listingId, allowBidding, fetchHighestBid, fetchPublicListingBids]);
 
-  // Initialize input with highest bid or start price (in USD cents)
+  // Initialize input with highest bid or start price (in USD dollars)
   useEffect(() => {
     if (highestBid) {
-      // Show highest bid + $1 increment (convert cents to dollars, add 1, then back to cents)
-      const nextBidCents = highestBid.amount + 100; // Add 100 cents ($1)
-      setBidAmount(nextBidCents.toString());
+      // Show highest bid + $1 increment
+      const nextBid = highestBid.amount + 1; // Add $1
+      setBidAmount(nextBid.toString());
     } else if (biddingStartPrice) {
-      // Show start price (already in cents)
+      // Show start price (in dollars)
       setBidAmount(biddingStartPrice.toString());
     }
   }, [highestBid, biddingStartPrice]);
@@ -91,9 +91,9 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({
       return;
     }
 
-    // bidAmount is already in USD cents from the price input
-    const amountInCents = parseFloat(bidAmount);
-    if (isNaN(amountInCents) || amountInCents <= 0) {
+    // bidAmount is in USD dollars from the price input
+    const amountInDollars = parseFloat(bidAmount);
+    if (isNaN(amountInDollars) || amountInDollars <= 0) {
       setError('يرجى إدخال مبلغ صحيح');
       return;
     }
@@ -101,14 +101,13 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Place bid (already in USD cents from price input)
-      await placeBid(listingId, amountInCents);
+      // Place bid (in USD dollars)
+      await placeBid(listingId, amountInDollars);
 
       // Create/get chat thread with owner (auto-creates if doesn't exist)
       const threadId = await getOrCreateThread(listingId, listingOwnerId);
 
-      // Send message with bid amount in USD (rounded to whole number)
-      const amountInDollars = Math.round(amountInCents / 100);
+      // Send message with bid amount in USD
       const bidMessage = `${user?.name || 'مستخدم'} قدم عرضاً بمبلغ $${amountInDollars}`;
 
       await sendMessage(threadId, bidMessage);

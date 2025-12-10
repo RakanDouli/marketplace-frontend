@@ -5,8 +5,9 @@ export const GET_PUBLIC_SUBSCRIPTION_PLANS_QUERY = `
       name
       title
       description
-      price
-      billingCycle
+      monthlyPrice
+      yearlyPrice
+      yearlySavingsPercent
       maxListings
       maxImagesPerListing
       videoAllowed
@@ -19,6 +20,10 @@ export const GET_PUBLIC_SUBSCRIPTION_PLANS_QUERY = `
       status
       isPublic
       isDefault
+      originalPrice
+      discountPercentage
+      discountLabel
+      discountValidUntil
     }
   }
 `;

@@ -25,9 +25,11 @@ export interface SubscriptionPaymentData {
   planId: string;
   planName: string;
   title: string;
-  price: number;
+  monthlyPrice: number;
+  yearlyPrice: number | null;
+  price: number; // Computed based on selected billingCycle
   currency: string;
-  billingCycle: string;
+  billingCycle: 'monthly' | 'yearly';
   accountType: string;
   features: Array<{
     label: string;

@@ -17,9 +17,12 @@ export interface FeatureItem {
 export interface PricingCardProps {
   title: string;
   description: string;
-  price: number;
+  monthlyPrice?: number;
+  yearlyPrice?: number | null;
+  yearlySavingsPercent?: number | null;
+  price?: number; // For ad packages (one-time price)
   currency?: string;
-  billingCycle?: 'monthly' | 'yearly' | 'days' | 'free';
+  billingCycle: 'monthly' | 'yearly' | 'days';
   durationDays?: number;
   features: FeatureItem[];
   badge?: string;
@@ -36,9 +39,12 @@ export interface PricingCardProps {
 export const PricingCard: React.FC<PricingCardProps> = ({
   title,
   description,
-  price,
+  monthlyPrice,
+  yearlyPrice,
+  yearlySavingsPercent,
+  price: oneTimePrice,
   currency = 'USD',
-  billingCycle = 'monthly',
+  billingCycle,
   durationDays,
   features,
   badge,
@@ -51,36 +57,46 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   icon,
   disabled = false,
 }) => {
+  // Get the current price based on billing cycle
+  const displayPrice = billingCycle === 'days' && oneTimePrice !== undefined
+    ? oneTimePrice
+    : billingCycle === 'yearly' && yearlyPrice
+      ? yearlyPrice
+      : monthlyPrice || 0;
+
   // Format price display
   const getPriceDisplay = () => {
-    if (price === 0) {
-      return { main: 'مجاني', period: '' };
+    if (displayPrice === 0) {
+      return { main: 'مجاني', period: '', savings: null };
     }
 
     // Use formatAdPrice utility for ad packages (decimal dollars, not minor units)
-    const formattedPrice = formatAdPrice(price, currency);
+    const formattedPrice = formatAdPrice(displayPrice, currency);
 
-    if (billingCycle === 'days' && durationDays) {
+    if (billingCycle === 'days') {
       return {
         main: formattedPrice,
-        period: `/ ${durationDays} يوم`,
+        period: durationDays ? `/ ${durationDays} يوم` : '',
+        savings: null,
       };
     }
 
-    const periodMap = {
-      monthly: '/ شهر',
-      yearly: '/ سنة',
-      free: '',
-      days: '',
-    };
+    if (billingCycle === 'yearly') {
+      return {
+        main: formattedPrice,
+        period: '/ سنة',
+        savings: yearlySavingsPercent ? `وفر ${yearlySavingsPercent}%` : null,
+      };
+    }
 
     return {
       main: formattedPrice,
-      period: periodMap[billingCycle] || '',
+      period: '/ شهر',
+      savings: null,
     };
   };
 
-  const { main, period } = getPriceDisplay();
+  const { main, period, savings } = getPriceDisplay();
 
   return (
     <div className={`${styles.card} ${highlighted ? styles.highlighted : ''} ${disabled ? styles.disabled : ''}`}>
@@ -108,8 +124,16 @@ export const PricingCard: React.FC<PricingCardProps> = ({
             {period}
           </Text>
         )}
+        {/* Savings badge for yearly plans */}
+        {savings && (
+          <div className={styles.savingsBadge}>
+            <Badge size="small" variant="success">
+              {savings}
+            </Badge>
+          </div>
+        )}
         {/* Tax included label - shown for paid plans */}
-        {price > 0 && (
+        {displayPrice > 0 && (
           <Text variant="small" color="secondary" className={styles.taxLabel}>
             شامل الضريبة
           </Text>

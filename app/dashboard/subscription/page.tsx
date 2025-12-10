@@ -18,7 +18,7 @@ interface SubscriptionPlan {
   name: string;
   title: string;
   price: number;
-  billingCycle: string;
+  billingCycle: 'monthly' | 'yearly' | 'free';
   maxListings: number;
   maxImagesPerListing: number;
   videoAllowed: boolean;
@@ -120,7 +120,7 @@ export default function SubscriptionPage() {
             <div className={styles.price}>
               <Text variant="h1">{formatPrice(subscription?.price || 0)}</Text>
               <Text variant="paragraph" className={styles.billingCycle}>
-                {subscription?.billingCycle === "monthly" ? "/ شهرياً" : "مجاناً"}
+                {subscription?.price === 0 ? "مجاناً" : "/ شهرياً"}
               </Text>
             </div>
           </div>

@@ -106,12 +106,8 @@ export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   deprecated: "متوقفة",
 };
 
-export const SUBSCRIPTION_ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  individual: "للأفراد",
-  dealer: "للتجار",
-  business: "للشركات",
-  all: "جميع الأنواع",
-};
+// Note: SUBSCRIPTION_ACCOUNT_TYPE_LABELS removed - use ACCOUNT_TYPE_LABELS instead
+// Subscriptions now use AccountType enum (single source of truth)
 
 // ===== ATTRIBUTE METADATA LABELS =====
 

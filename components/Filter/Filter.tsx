@@ -127,20 +127,20 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
     fetchFilterData(categorySlug);
   }, [categorySlug, fetchFilterData]);
 
-  // Helper functions for draft values
-  const getDraftPriceMin = () => draftFilters.priceMinMinor ? (draftFilters.priceMinMinor / 100).toString() : "";
-  const getDraftPriceMax = () => draftFilters.priceMaxMinor ? (draftFilters.priceMaxMinor / 100).toString() : "";
+  // Helper functions for draft values - price is in dollars
+  const getDraftPriceMin = () => draftFilters.priceMinMinor ? draftFilters.priceMinMinor.toString() : "";
+  const getDraftPriceMax = () => draftFilters.priceMaxMinor ? draftFilters.priceMaxMinor.toString() : "";
   const getDraftCurrency = () => draftFilters.priceCurrency || "USD";
   const getDraftSearch = () => draftFilters.search || "";
 
   const setDraftPriceMin = (value: string) => {
-    const minorValue = value ? parseFloat(value) * 100 : undefined;
-    setDraftFilter("priceMinMinor", minorValue || undefined);
+    const dollarValue = value ? parseFloat(value) : undefined;
+    setDraftFilter("priceMinMinor", dollarValue || undefined);
   };
 
   const setDraftPriceMax = (value: string) => {
-    const minorValue = value ? parseFloat(value) * 100 : undefined;
-    setDraftFilter("priceMaxMinor", minorValue || undefined);
+    const dollarValue = value ? parseFloat(value) : undefined;
+    setDraftFilter("priceMaxMinor", dollarValue || undefined);
   };
 
   const setDraftCurrency = (value: string) => {

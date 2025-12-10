@@ -5,8 +5,9 @@ export interface SubscriptionPlan {
   name: string;
   title: string;
   description: string;
-  price: number;
-  billingCycle: 'monthly' | 'yearly' | 'free';
+  monthlyPrice: number;
+  yearlyPrice?: number | null;
+  yearlySavingsPercent?: number | null;
   maxListings: number;
   maxImagesPerListing: number;
   videoAllowed: boolean;
@@ -19,4 +20,9 @@ export interface SubscriptionPlan {
   status: string;
   isPublic: boolean;
   isDefault: boolean;
+  // Promotional discount fields
+  originalPrice?: number | null;
+  discountPercentage?: number | null;
+  discountLabel?: string;
+  discountValidUntil?: string | null;
 }

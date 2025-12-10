@@ -151,14 +151,14 @@ export function AppliedFilters() {
     });
   }
 
-  // Add price filters
+  // Add price filters - price is in dollars
   if (filters.priceMinMinor || filters.priceMaxMinor) {
     const currency = filters.priceCurrency || "USD";
     const min = filters.priceMinMinor
-      ? (filters.priceMinMinor / 100).toLocaleString()
+      ? filters.priceMinMinor.toLocaleString()
       : "";
     const max = filters.priceMaxMinor
-      ? (filters.priceMaxMinor / 100).toLocaleString()
+      ? filters.priceMaxMinor.toLocaleString()
       : "";
 
     let priceLabel = "";

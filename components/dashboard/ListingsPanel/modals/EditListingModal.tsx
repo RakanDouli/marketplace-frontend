@@ -806,10 +806,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 type="number"
                 label="سعر البداية للمزايدة"
                 placeholder="0 = مجاني"
-                value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice / 100 : ''}
+                value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value);
-                  setFormData({ ...formData, biddingStartPrice: value * 100 });
+                  setFormData({ ...formData, biddingStartPrice: value });
                 }}
                 min={0}
                 step={1}

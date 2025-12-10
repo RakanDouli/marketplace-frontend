@@ -309,7 +309,7 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
                     {archivedListing.title}
                   </Text>
                   <Text variant="h3" className={styles.price}>
-                    {primaryPrice ? formatPrice(primaryPrice.value) : 'السعر غير محدد'}
+                    {primaryPrice ? formatPrice(Number(primaryPrice.value)) : 'السعر غير محدد'}
                   </Text>
                 </div>
 

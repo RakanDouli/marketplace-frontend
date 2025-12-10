@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Text, Button, Container } from '@/components/slices';
 import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
 import type { PaymentType, PaymentMethod, PaymentMethodOption, PaymentData, PaymentFeeInfo } from '@/components/payment';
@@ -65,8 +65,9 @@ const GET_SUBSCRIPTION_PLANS_QUERY = `
       name
       title
       description
-      price
-      billingCycle
+      monthlyPrice
+      yearlyPrice
+      yearlySavingsPercent
       accountType
       maxListings
       maxImagesPerListing
@@ -113,11 +114,16 @@ const GET_FINANCIAL_SETTINGS_QUERY = `
 
 export default function PaymentPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useUserAuthStore();
   const { addNotification } = useNotificationStore();
   const type = params?.type as PaymentType;
   const id = params?.id as string;
+
+  // Get billing cycle from URL query param (for subscriptions)
+  const billingCycleParam = searchParams?.get('cycle') as 'monthly' | 'yearly' | null;
+  const billingCycle = billingCycleParam || 'monthly';
 
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
@@ -232,14 +238,21 @@ export default function PaymentPage() {
             throw new Error('الخطة المطلوبة غير موجودة');
           }
 
+          // Calculate the price based on selected billing cycle
+          const selectedPrice = billingCycle === 'yearly' && plan.yearlyPrice
+            ? plan.yearlyPrice
+            : plan.monthlyPrice;
+
           // Transform plan data to match SubscriptionPaymentData interface
           setPaymentData({
             planId: plan.id,
             planName: plan.name,
             title: plan.title,
-            price: plan.price,
+            monthlyPrice: plan.monthlyPrice,
+            yearlyPrice: plan.yearlyPrice,
+            price: selectedPrice,
             currency: 'USD',
-            billingCycle: plan.billingCycle,
+            billingCycle: billingCycle,
             accountType: plan.accountType,
             features: [
               {
@@ -283,7 +296,7 @@ export default function PaymentPage() {
     };
 
     fetchPaymentData();
-  }, [type, id]);
+  }, [type, id, billingCycle]);
 
   // Handle payment method selection (just updates state)
   const handlePaymentMethodSelect = (method: PaymentMethod, option: PaymentMethodOption) => {
@@ -317,10 +330,11 @@ export default function PaymentPage() {
           return;
         }
 
-        // Call initiateSubscriptionPayment mutation
+        // Call initiateSubscriptionPayment mutation with billing cycle
+        const durationMonths = billingCycle === 'yearly' ? 12 : 1;
         const data = await makeGraphQLCall(
           INITIATE_SUBSCRIPTION_PAYMENT_MUTATION,
-          { input: { subscriptionId: id, durationMonths: 1 } },
+          { input: { subscriptionId: id, durationMonths, billingCycle } },
           user.token
         );
 

@@ -169,12 +169,12 @@ export const ListingsPanel: React.FC = () => {
     }
   }, [listingStatuses.length]);
 
-  // Format price
+  // Format price - price is in USD dollars
   const formatPrice = (priceMinor: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(priceMinor / 100);
+    }).format(priceMinor);
   };
 
   // Calculate total pages

@@ -426,10 +426,10 @@ export default function CreateListingDetailsPage() {
                     type="number"
                     label="سعر البداية للمزايدة (بالدولار)"
                     placeholder="0 = مجاني"
-                    value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice / 100 : ''}
+                    value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
                     onChange={(e) => {
                       const value = e.target.value === '' ? 0 : parseInt(e.target.value);
-                      setFormField('biddingStartPrice', value * 100);
+                      setFormField('biddingStartPrice', value);
                     }}
                     onBlur={() => handleBlur('biddingStartPrice')}
                     error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}

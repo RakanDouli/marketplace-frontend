@@ -143,11 +143,10 @@ export const Input = forwardRef<
         const [selectedCurrency, setSelectedCurrency] = useState<Currency>("USD");
         const [displayValue, setDisplayValue] = useState<string>('');
 
-        // Convert USD cents (from props.value) to display currency
+        // Convert USD dollars (from props.value) to display currency
         useEffect(() => {
           if (props.value) {
-            const usdCents = Number(props.value);
-            const usdDollars = usdCents / 100;
+            const usdDollars = Number(props.value);
 
             if (selectedCurrency === 'USD') {
               const roundedAmount = Math.round(usdDollars);
@@ -194,7 +193,7 @@ export const Input = forwardRef<
             return;
           }
 
-          // Convert to USD cents
+          // Convert to USD dollars
           let usdDollars: number;
           if (selectedCurrency === 'USD') {
             usdDollars = amount;
@@ -203,12 +202,12 @@ export const Input = forwardRef<
             usdDollars = amount * rate;
           }
 
-          const usdCents = Math.round(usdDollars * 100);
+          const roundedDollars = Math.round(usdDollars);
 
-          // Call onChange with USD cents
+          // Call onChange with USD dollars
           if (props.onChange) {
             const syntheticEvent = {
-              target: { value: String(usdCents), name: props.name || generatedId }
+              target: { value: String(roundedDollars), name: props.name || generatedId }
             } as any;
             props.onChange(syntheticEvent);
           }
@@ -219,11 +218,9 @@ export const Input = forwardRef<
         };
 
         // Show conversion preview
-        const usdCents = Number(props.value) || 0;
-        const usdDollars = usdCents / 100;
-        const roundedUSD = Math.round(usdDollars);
+        const usdDollars = Number(props.value) || 0;
         const conversionPreview = selectedCurrency !== 'USD'
-          ? `≈ ${CURRENCY_SYMBOLS.USD}${roundedUSD.toLocaleString('en-US')} USD`
+          ? `≈ ${CURRENCY_SYMBOLS.USD}${usdDollars.toLocaleString('en-US')} USD`
           : '';
 
         return (

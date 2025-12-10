@@ -20,6 +20,10 @@ export default function PricingPage() {
   const { addNotification } = useNotificationStore();
 
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
+  // Check if any plan has yearly pricing
+  const hasYearlyPricing = plans.some(plan => plan.yearlyPrice && plan.yearlyPrice > 0);
 
   useEffect(() => {
     fetchPublicPlans();
@@ -105,8 +109,8 @@ export default function PricingPage() {
       return;
     }
 
-    // Navigate to payment page
-    router.push(`/payment/subscription/${plan.id}`);
+    // Navigate to payment page with billing cycle
+    router.push(`/payment/subscription/${plan.id}?cycle=${billingCycle}`);
   };
 
   // Watch for user login - navigate to payment if plan was selected
@@ -122,8 +126,8 @@ export default function PricingPage() {
         });
         setSelectedPlan(null);
       } else {
-        // Navigate to payment page
-        router.push(`/payment/subscription/${selectedPlan.id}`);
+        // Navigate to payment page with billing cycle
+        router.push(`/payment/subscription/${selectedPlan.id}?cycle=${billingCycle}`);
       }
     }
   }, [user, selectedPlan, router]);
@@ -148,7 +152,7 @@ export default function PricingPage() {
   };
 
   const getBadge = (plan: SubscriptionPlan): string | undefined => {
-    if (plan.price === 0) {
+    if (plan.monthlyPrice === 0) {
       return plan.accountType === AccountType.INDIVIDUAL ? 'مجاني دائماً' : 'مجاني حالياً';
     }
     return undefined;
@@ -182,6 +186,25 @@ export default function PricingPage() {
 
       <Container >
 
+        {/* Billing Cycle Toggle - Only show if any plan has yearly pricing */}
+        {hasYearlyPricing && (
+          <div className={styles.billingToggle}>
+            <button
+              className={`${styles.toggleOption} ${billingCycle === 'monthly' ? styles.active : ''}`}
+              onClick={() => setBillingCycle('monthly')}
+            >
+              شهري
+            </button>
+            <button
+              className={`${styles.toggleOption} ${billingCycle === 'yearly' ? styles.active : ''}`}
+              onClick={() => setBillingCycle('yearly')}
+            >
+              سنوي
+              <span className={styles.savingsBadge}>وفر أكثر</span>
+            </button>
+          </div>
+        )}
+
         {/* Pricing Cards Slider */}
         {plans.length > 0 && (
           <Slider
@@ -196,8 +219,10 @@ export default function PricingPage() {
                 key={plan.id}
                 title={plan.title}
                 description={plan.description}
-                price={plan.price}
-                billingCycle={plan.billingCycle}
+                monthlyPrice={plan.monthlyPrice}
+                yearlyPrice={plan.yearlyPrice}
+                yearlySavingsPercent={plan.yearlySavingsPercent}
+                billingCycle={billingCycle}
                 features={getFeatureList(plan)}
                 badge={getBadge(plan)}
                 badgeColor={getBadgeColor(plan)}

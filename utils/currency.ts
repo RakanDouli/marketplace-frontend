@@ -45,9 +45,9 @@ async function graphqlRequest(query: string, variables: any): Promise<any> {
 
 /**
  * Convert price amount from any currency to USD (for backend filtering)
- * @param amount - Amount in minor units (cents/piastres)
+ * @param amount - Amount in dollars
  * @param fromCurrency - Source currency
- * @returns Amount in USD minor units (cents)
+ * @returns Amount in USD dollars
  */
 export async function convertToUSD(amount: number, fromCurrency: Currency): Promise<number> {
   if (fromCurrency === "USD") return amount;
@@ -61,10 +61,10 @@ export async function convertToUSD(amount: number, fromCurrency: Currency): Prom
 }
 
 /**
- * Parse price input and convert to minor units
+ * Parse price input (returns dollars)
  */
 export function parsePrice(priceString: string): number {
   const parsed = parseFloat(priceString);
   if (isNaN(parsed)) return 0;
-  return Math.round(parsed * 100); // Convert to minor units (cents/piastres)
+  return Math.round(parsed); // Returns dollars (whole numbers)
 }

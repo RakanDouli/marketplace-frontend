@@ -4,6 +4,12 @@ import { Package, DollarSign, Check, X, CreditCard, ArrowLeftRight, Receipt } fr
 import type { SubscriptionPaymentData, PaymentFeeInfo } from '../types';
 import styles from './PaymentPreview.module.scss';
 
+// Billing cycle label map
+const BILLING_CYCLE_ARABIC: Record<string, string> = {
+  monthly: 'شهري',
+  yearly: 'سنوي',
+};
+
 // Format numbers in Arabic locale
 const formatNumber = (num: number, decimals: number = 2) => {
   return num.toLocaleString('ar-EG', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -53,7 +59,7 @@ export const SubscriptionPreviewContent: React.FC<SubscriptionPreviewContentProp
 
           <div className={styles.infoItem}>
             <Text variant="small" color="secondary">دورة الفوترة</Text>
-            <Text variant="paragraph">{data.billingCycle}</Text>
+            <Text variant="paragraph">{BILLING_CYCLE_ARABIC[data.billingCycle] || data.billingCycle}</Text>
           </div>
         </div>
       </div>

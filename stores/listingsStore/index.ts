@@ -289,8 +289,8 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             description: item.description,
             priceMinor: item.priceMinor,
             prices: item.prices || [
-              { currency: "USD", value: (item.priceMinor / 100).toString() },
-            ], // Use backend prices or create from priceMinor
+              { currency: "USD", value: item.priceMinor.toString() },
+            ], // Use backend prices or create from priceMinor (in dollars)
             city, // Now comes from specs.location
             status: item.status as any,
             allowBidding: false, // Default - backend should provide this
@@ -455,7 +455,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         description: item.description,
         priceMinor: item.priceMinor,
         prices: item.prices || [
-          { currency: "USD", value: (item.priceMinor / 100).toString() },
+          { currency: "USD", value: item.priceMinor.toString() },
         ],
         city,
         status: item.status as any,
