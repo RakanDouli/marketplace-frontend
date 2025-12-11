@@ -10,7 +10,7 @@ export interface ListingCardProps {
   id: string;
   title: string;
   price: string;
-  currency: string;
+  currency?: string; // Optional - defaults to 'USD' for SEO/share metadata
   location: string;
   accountType: "individual" | "dealer" | "business"; // Changed from sellerType to accountType
   specs?: Record<string, any>; // Dynamic specs from backend
@@ -29,7 +29,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   id,
   title,
   price,
-  currency,
+  currency = 'USD',
   location,
   accountType,
   specs = {},

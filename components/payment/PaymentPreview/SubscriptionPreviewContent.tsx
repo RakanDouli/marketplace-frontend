@@ -10,9 +10,9 @@ const BILLING_CYCLE_ARABIC: Record<string, string> = {
   yearly: 'سنوي',
 };
 
-// Format numbers in Arabic locale
+// Format numbers with thousand separators (English digits)
 const formatNumber = (num: number, decimals: number = 2) => {
-  return num.toLocaleString('ar-EG', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 };
 
 interface SubscriptionPreviewContentProps {

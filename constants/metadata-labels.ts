@@ -24,7 +24,8 @@ export const USER_STATUS_LABELS: Record<string, string> = {
   active: "نشط",
   pending: "معلق",
   inactive: "غير نشط",
-  banned: "محظور",
+  suspended: "موقوف", // 7-day suspension (strike 2)
+  banned: "محظور",    // permanent ban (strike 3)
 };
 
 export const USER_ROLE_LABELS: Record<string, string> = {
@@ -102,8 +103,9 @@ export const BILLING_CYCLE_LABELS: Record<string, string> = {
 
 export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   active: "نشطة",
-  inactive: "غير نشطة",
-  deprecated: "متوقفة",
+  expired: "منتهية",   // Backend: expired (not 'inactive')
+  cancelled: "ملغاة",  // Backend: cancelled (not 'deprecated')
+  pending: "معلقة",    // Backend: pending
 };
 
 // Note: SUBSCRIPTION_ACCOUNT_TYPE_LABELS removed - use ACCOUNT_TYPE_LABELS instead
@@ -154,13 +156,12 @@ export const AD_CAMPAIGN_STATUS_LABELS: Record<string, string> = {
 export const AD_CLIENT_STATUS_LABELS: Record<string, string> = {
   active: "نشط",
   inactive: "غير نشط",
-  blacklisted: "محظور",
+  suspended: "محظور", // Backend uses 'suspended' not 'blacklisted'
 };
 
 export const CAMPAIGN_START_PREFERENCE_LABELS: Record<string, string> = {
-  immediate: "فوري بعد الدفع",
-  scheduled: "تاريخ محدد",
-  after_review: "بعد المراجعة",
+  asap: "فوري بعد الدفع",       // Backend: asap (not 'immediate')
+  specific_date: "تاريخ محدد",  // Backend: specific_date (not 'scheduled')
 };
 
 export const AD_PLACEMENT_LABELS: Record<string, string> = {
@@ -193,6 +194,22 @@ export const REPORT_REASON_LABELS: Record<string, string> = {
   impersonation: "انتحال شخصية",
   repeat_offender: "مخالف متكرر",
   other: "سبب آخر",
+};
+
+// Report Status - Backend: report-reason.enum.ts (ReportStatus)
+export const REPORT_STATUS_LABELS: Record<string, string> = {
+  pending: "قيد المراجعة",
+  requires_human_review: "يتطلب مراجعة بشرية",
+  reviewed: "تمت المراجعة",
+  resolved: "تم الحل",
+  dismissed: "مرفوض",
+};
+
+// Report Entity Type - Backend: report-reason.enum.ts (ReportEntityType)
+export const REPORT_ENTITY_TYPE_LABELS: Record<string, string> = {
+  thread: "محادثة",
+  user: "مستخدم",
+  listing: "إعلان",
 };
 
 // ===== HELPER FUNCTIONS =====

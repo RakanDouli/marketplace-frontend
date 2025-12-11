@@ -223,7 +223,7 @@ export const PersonalInfoPanel: React.FC = () => {
         <div className={styles.profileInfo}>
           <Text variant="h2">{user.name || 'مستخدم'}</Text>
           <Text variant="paragraph" style={{ color: 'var(--text-secondary)' }}>
-            {ACCOUNT_TYPE_LABELS[user.accountType] || user.accountType}
+            {ACCOUNT_TYPE_LABELS[user.accountType.toLowerCase()] || user.accountType}
           </Text>
           {user.companyName && (
             <Text variant="paragraph" style={{ marginTop: '$space-xs' }}>
@@ -283,7 +283,7 @@ export const PersonalInfoPanel: React.FC = () => {
           )}
 
           {/* Office Phone - additional field for DEALER/BUSINESS only */}
-          {(user.accountType === AccountType.DEALER || user.accountType === AccountType.BUSINESS) && user.contactPhone && (
+          {(user.accountType.toLowerCase() === AccountType.DEALER || user.accountType.toLowerCase() === AccountType.BUSINESS) && user.contactPhone && (
             <div className={styles.infoItem}>
               <Text variant="small" className={styles.infoLabel}>هاتف المكتب</Text>
               <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { MinusIcon, Plus, PlusIcon, Star } from 'lucide-react';
 import { Modal, Text } from '@/components/slices';
+import { AccountType } from '@/common/enums';
 import { useReviewsStore, type Review } from '@/stores/reviewsStore';
 import { formatDate } from '@/utils/formatDate';
 import { ReviewsModalProps } from './types';
@@ -60,7 +61,7 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({
     setTagSummary({ positiveTags, negativeTags });
   };
 
-  const displayName = owner.accountType !== 'INDIVIDUAL' && owner.companyName
+  const displayName = owner.accountType !== AccountType.INDIVIDUAL && owner.companyName
     ? owner.companyName
     : owner.name || 'مستخدم';
 

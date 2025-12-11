@@ -21,8 +21,7 @@ import styles from "./ListingArea.module.scss";
 export interface ListingData {
   id: string;
   title: string;
-  price: string;
-  currency: string;
+  price: string; // Already includes currency symbol from formatPrice()
   location: string;
   accountType: "individual" | "dealer" | "business";
   specs?: Record<string, any>; // Dynamic specs from backend
@@ -196,15 +195,13 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     const viewFilteredSpecs = filterSpecsByViewType(specsWithAccountType, viewType);
 
     // Handle price formatting (price is in dollars)
+    // formatPrice() handles currency conversion based on user's preferred currency
     const displayPrice = formatPrice(listing.priceMinor || 0);
-
-    const displayCurrency = listing.prices?.[0]?.currency || "USD";
 
     return {
       id: listing.id,
       title: listing.title,
-      price: displayPrice,
-      currency: displayCurrency,
+      price: displayPrice, // Already includes currency symbol from formatPrice()
       location: (allSpecs as any).location || (listing as any).province || (listing as any).city || "",
       accountType: listing.accountType as "individual" | "dealer" | "business",
       specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags

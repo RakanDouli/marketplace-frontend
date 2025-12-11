@@ -3,6 +3,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Text, Button, Badge } from '@/components/slices';
+import { useCurrencyStore } from '@/stores/currencyStore';
 import { formatAdPrice } from '@/utils/formatPrice';
 import styles from './PricingCard.module.scss';
 
@@ -57,6 +58,9 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   icon,
   disabled = false,
 }) => {
+  // Subscribe to preferredCurrency to trigger re-render when currency changes
+  const preferredCurrency = useCurrencyStore((state) => state.preferredCurrency);
+
   // Get the current price based on billing cycle
   const displayPrice = billingCycle === 'days' && oneTimePrice !== undefined
     ? oneTimePrice

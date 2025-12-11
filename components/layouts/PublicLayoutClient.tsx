@@ -10,6 +10,7 @@ import { ForceModal } from '../ForceModal';
 import { useForceModalStore } from '@/stores/forceModalStore';
 import React from 'react';
 import { ReactivateContent } from '../ForceModal/contents';
+import { UserStatus, matchesEnum } from '@/common/enums';
 
 interface PublicLayoutClientProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
 
   // Check if INACTIVE user on mount and show ForceModal (only check, don't refetch)
   useEffect(() => {
-    if (isAuthenticated && user && (user.status === 'INACTIVE' || user.status === 'inactive')) {
+    if (isAuthenticated && user && matchesEnum(user.status, UserStatus.INACTIVE)) {
       useForceModalStore.getState().showForceModal(
         React.createElement(ReactivateContent),
         { title: 'حسابك معطل', maxWidth: 'md' }

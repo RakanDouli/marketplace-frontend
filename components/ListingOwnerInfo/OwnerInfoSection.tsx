@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Star, Building2, Calendar, Globe, Mail, Phone, BadgeCheck } from 'lucide-react';
 import { useListingOwnerStore } from '@/stores/listingOwnerStore';
 import { Button, Loading, Text } from '@/components/slices';
+import { AccountType } from '@/common/enums';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import { ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
@@ -40,7 +41,7 @@ export const OwnerInfoSection: React.FC<ListingOwnerInfoProps> = ({ userId, list
     );
   }
 
-  const displayName = owner.accountType !== 'INDIVIDUAL' && owner.companyName
+  const displayName = owner.accountType !== AccountType.INDIVIDUAL && owner.companyName
     ? owner.companyName
     : owner.name || 'مستخدم';
 
@@ -95,7 +96,7 @@ export const OwnerInfoSection: React.FC<ListingOwnerInfoProps> = ({ userId, list
             {/* Account Type */}
 
             <div className={styles.row}>
-              {owner.accountType !== 'INDIVIDUAL' ? <Building2 size={16} /> : <CgProfile size={16} />}
+              {owner.accountType !== AccountType.INDIVIDUAL ? <Building2 size={16} /> : <CgProfile size={16} />}
               <span>{ACCOUNT_TYPE_LABELS[owner.accountType.toLowerCase()] || ''}</span>
             </div>
 

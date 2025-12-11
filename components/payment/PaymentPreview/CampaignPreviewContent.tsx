@@ -31,9 +31,9 @@ const getAdTypeName = (adType: string) => {
   return types[adType] || adType;
 };
 
-// Format numbers in Arabic locale
+// Format numbers with thousand separators (English digits)
 const formatNumber = (num: number, decimals: number = 2) => {
-  return num.toLocaleString('ar-EG', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 };
 
 export const CampaignPreviewContent: React.FC<CampaignPreviewContentProps> = ({ data: campaign, feeInfo }) => {

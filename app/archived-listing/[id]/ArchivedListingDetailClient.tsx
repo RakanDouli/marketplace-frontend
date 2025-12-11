@@ -162,8 +162,6 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
   }
 
   // At this point, archivedListing is guaranteed to be non-null
-  const primaryPrice = archivedListing.prices?.[0];
-
   const hasLocation = archivedListing.province || archivedListing.city || archivedListing.mapLink;
 
   return (
@@ -309,7 +307,7 @@ export const ArchivedListingDetailClient: React.FC<ArchivedListingDetailClientPr
                     {archivedListing.title}
                   </Text>
                   <Text variant="h3" className={styles.price}>
-                    {primaryPrice ? formatPrice(Number(primaryPrice.value)) : 'السعر غير محدد'}
+                    {archivedListing.priceMinor ? formatPrice(archivedListing.priceMinor) : 'السعر غير محدد'}
                   </Text>
                 </div>
 

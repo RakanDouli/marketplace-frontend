@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Container, Text, Button } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { useSubscriptionPlansStore } from "@/stores/subscriptionPlansStore";
+import { useCurrencyStore } from "@/stores/currencyStore";
 import { formatPrice } from "@/utils/formatPrice";
 import { Check } from "lucide-react";
 import styles from "./UserSubscriptions.module.scss";
@@ -13,7 +14,10 @@ export default function UserSubscriptionsPage() {
   const router = useRouter();
   const { user, userPackage, openAuthModal } = useUserAuthStore();
   const { plans, isLoading, error, fetchPublicPlans } = useSubscriptionPlansStore();
+  // Subscribe to preferredCurrency to trigger re-render when currency changes
+  const preferredCurrency = useCurrencyStore((state) => state.preferredCurrency);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   // Fetch plans on mount
   useEffect(() => {
@@ -24,6 +28,9 @@ export default function UserSubscriptionsPage() {
   const publicPlans = plans
     .filter((plan) => plan.isPublic)
     .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  // Check if any plan has yearly pricing
+  const hasYearlyPricing = plans.some(plan => plan.yearlyPrice && plan.yearlyPrice > 0);
 
   const handleSelectPlan = (planId: string) => {
     // Check if user is logged in
@@ -43,8 +50,8 @@ export default function UserSubscriptionsPage() {
       return;
     }
 
-    // For paid plans, go to payment preview page
-    router.push(`/payment/subscription/${planId}`);
+    // For paid plans, go to payment preview page with billing cycle
+    router.push(`/payment/subscription/${planId}?cycle=${billingCycle}`);
   };
 
   const loading = isLoading;
@@ -100,6 +107,25 @@ export default function UserSubscriptionsPage() {
         </Text>
       </div>
 
+      {/* Billing Cycle Toggle */}
+      {hasYearlyPricing && (
+        <div className={styles.billingToggle}>
+          <button
+            className={`${styles.toggleOption} ${billingCycle === 'monthly' ? styles.active : ''}`}
+            onClick={() => setBillingCycle('monthly')}
+          >
+            شهري
+          </button>
+          <button
+            className={`${styles.toggleOption} ${billingCycle === 'yearly' ? styles.active : ''}`}
+            onClick={() => setBillingCycle('yearly')}
+          >
+            سنوي
+            <span className={styles.savingsBadge}>وفر أكثر</span>
+          </button>
+        </div>
+      )}
+
       <div className={styles.plansGrid}>
         {publicPlans.map((plan) => {
           const features = getPlanFeatures(plan);
@@ -118,12 +144,18 @@ export default function UserSubscriptionsPage() {
               </div>
 
               <div className={styles.price}>
-                <Text variant="h1">{formatPrice(plan.monthlyPrice)}</Text>
-                <Text variant="paragraph" className={styles.billingCycle}>
-                  / شهرياً
+                <Text variant="h1">
+                  {formatPrice(
+                    billingCycle === 'yearly' && plan.yearlyPrice
+                      ? plan.yearlyPrice
+                      : plan.monthlyPrice
+                  )}
+                </Text>
+                <Text variant="paragraph" className={styles.billingCycleLabel}>
+                  / {billingCycle === 'yearly' ? 'سنوياً' : 'شهرياً'}
                 </Text>
                 {/* Tax included label - shown for paid plans */}
-                {plan.monthlyPrice > 0 && (
+                {(billingCycle === 'yearly' ? (plan.yearlyPrice || 0) : plan.monthlyPrice) > 0 && (
                   <Text variant="small" color="secondary" className={styles.taxLabel}>
                     شامل الضريبة
                   </Text>

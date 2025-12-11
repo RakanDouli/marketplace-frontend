@@ -16,6 +16,54 @@
   margin-top: $space-md;
 }
 
+// Billing Cycle Toggle
+.billingToggle {
+  display: flex;
+  justify-content: center;
+  gap: $space-xs;
+  margin-bottom: $space-xl;
+  padding: $space-xs;
+  background: $surface;
+  border-radius: $radius-lg;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.toggleOption {
+  padding: $space-sm $space-lg;
+  border: none;
+  background: transparent;
+  border-radius: $radius-md;
+  cursor: pointer;
+  font-size: $font-md;
+  font-weight: 500;
+  color: $text-muted;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+
+  &:hover {
+    color: $text;
+  }
+
+  &.active {
+    background: $bg;
+    color: $primary;
+    box-shadow: $shadow-sm;
+  }
+}
+
+.savingsBadge {
+  font-size: $font-xs;
+  background: $success-bg;
+  color: $success;
+  padding: 2px $space-xs;
+  border-radius: $radius-sm;
+  font-weight: 600;
+}
+
 .plansGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -67,7 +115,7 @@
   padding: $space-md 0;
 }
 
-.billingCycle {
+.billingCycleLabel {
   color: $text-muted;
 }
 

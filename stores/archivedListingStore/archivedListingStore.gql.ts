@@ -37,10 +37,6 @@ export const GET_ARCHIVED_LISTING_QUERY = `
       reviewedAt
       createdAt
       updatedAt
-      prices {
-        currency
-        value
-      }
       category {
         id
         slug
@@ -78,10 +74,6 @@ export const GET_MY_ARCHIVED_LISTINGS_QUERY = `
         link
       }
       viewCount
-      prices {
-        currency
-        value
-      }
       category {
         id
         nameAr

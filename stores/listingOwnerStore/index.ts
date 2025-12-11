@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { GET_OWNER_DATA_QUERY } from './listingOwner.gql';
+import { AccountType } from '@/common/enums';
 
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}) => {
@@ -32,7 +33,7 @@ export interface OwnerData {
   showContactPhone: boolean;
   website: string | null;
   avatar: string | null;
-  accountType: 'INDIVIDUAL' | 'DEALER' | 'BUSINESS';
+  accountType: AccountType;
   businessVerified: boolean;
   accountBadge: 'NONE' | 'VERIFIED' | 'PREMIUM';
   companyRegistrationNumber: string | null;

@@ -3,6 +3,7 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { UserStatus, matchesEnum, matchesAnyEnum } from '@/common/enums';
 import styles from './WarningBanner.module.scss';
 
 export const WarningBanner: React.FC = () => {
@@ -24,18 +25,18 @@ export const WarningBanner: React.FC = () => {
   // - No warning message
   // - Warning already acknowledged
   // - User is banned/suspended (they can't access the site anyway)
+  const isBannedOrSuspended = matchesAnyEnum(user?.status, [UserStatus.BANNED, UserStatus.SUSPENDED]);
   if (
     !user ||
     !user.currentWarningMessage ||
     user.warningAcknowledged ||
-    user.status === 'banned' ||
-    user.status === 'suspended'
+    isBannedOrSuspended
   ) {
     console.log('⚠️ WarningBanner NOT showing. Reason:', {
       noUser: !user,
       noMessage: !user?.currentWarningMessage,
       acknowledged: user?.warningAcknowledged,
-      bannedOrSuspended: user?.status === 'banned' || user?.status === 'suspended',
+      bannedOrSuspended: isBannedOrSuspended,
     });
     return null;
   }

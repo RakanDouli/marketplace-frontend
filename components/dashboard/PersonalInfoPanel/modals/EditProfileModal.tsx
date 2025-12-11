@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Input, Button, Text, Form } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { AccountType } from '@/common/enums';
 import {
   validateProfileForm,
   createProfileFieldValidator,
@@ -92,12 +93,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       updateData.showContactPhone = formData.showContactPhone;
 
       // Add business fields for DEALER and BUSINESS
-      if (user.accountType === 'DEALER' || user.accountType === 'BUSINESS') {
+      const accountTypeLower = user.accountType.toLowerCase();
+      if (accountTypeLower === AccountType.DEALER || accountTypeLower === AccountType.BUSINESS) {
         updateData.companyName = formData.companyName || null;
         updateData.website = formData.website || null;
         updateData.contactPhone = formData.contactPhone || null;
 
-        if (user.accountType === 'BUSINESS') {
+        if (accountTypeLower === AccountType.BUSINESS) {
           updateData.companyRegistrationNumber = formData.companyRegistrationNumber || null;
         }
       }
@@ -211,7 +213,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </div>
 
           {/* Business Information Section - Only for DEALER and BUSINESS */}
-          {(user.accountType === 'DEALER' || user.accountType === 'BUSINESS') && (
+          {(user.accountType.toLowerCase() === AccountType.DEALER || user.accountType.toLowerCase() === AccountType.BUSINESS) && (
             <div className={styles.section}>
               <Text variant="h4" className={styles.sectionTitle}>
                 معلومات العمل
@@ -254,7 +256,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 placeholder="https://example.com"
               />
 
-              {user.accountType === 'BUSINESS' && (
+              {user.accountType.toLowerCase() === AccountType.BUSINESS && (
                 <Input
                   type="text"
                   label="رقم التسجيل التجاري (KVK)"

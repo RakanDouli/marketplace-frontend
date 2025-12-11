@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Star, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/slices';
+import { AccountType } from '@/common/enums';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import { useListingOwnerStore } from '@/stores/listingOwnerStore';
@@ -26,7 +27,7 @@ export const OwnerCard: React.FC<OwnerCardProps> = ({
   if (!owner) {
     return null;
   }
-  const displayName = owner.accountType !== 'INDIVIDUAL' && owner.companyName
+  const displayName = owner.accountType !== AccountType.INDIVIDUAL && owner.companyName
     ? owner.companyName
     : owner.name || 'مستخدم';
 

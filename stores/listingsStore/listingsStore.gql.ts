@@ -17,10 +17,6 @@ export const LISTINGS_GRID_QUERY = `
       }
       specs
       specsDisplay
-      prices {
-        value
-        currency
-      }
       user {
         id
       }
@@ -49,10 +45,6 @@ export const LISTINGS_LIST_QUERY = `
       }
       specs
       specsDisplay
-      prices {
-        value
-        currency
-      }
       user {
         id
       }
@@ -88,10 +80,6 @@ export const LISTINGS_DETAIL_QUERY = `
       }
       specs
       specsDisplay
-      prices {
-        value
-        currency
-      }
     }
     listingsAggregations(filter: $filter) {
       totalResults
@@ -124,10 +112,6 @@ export const LISTINGS_SEARCH_QUERY = `
       }
       specs
       specsDisplay
-      prices {
-        value
-        currency
-      }
     }
     listingsAggregations(filter: $filter) {
       totalResults
@@ -169,10 +153,6 @@ export const LISTING_BY_ID_QUERY = `
       }
       specs
       specsDisplay
-      prices {
-        value
-        currency
-      }
       viewCount
       wishlistCount
       user {

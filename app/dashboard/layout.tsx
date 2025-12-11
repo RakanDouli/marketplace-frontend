@@ -7,7 +7,7 @@ import { Container, Aside, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { WarningBanner } from '@/components/WarningBanner';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import type { AccountType } from '@/stores/userAuthStore/types';
+import { AccountType, matchesAnyEnum } from '@/common/enums';
 import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown, Heart, Ban } from 'lucide-react';
 import styles from './Dashboard.module.scss';
 
@@ -71,7 +71,7 @@ export default function DashboardLayout({
       href: '/dashboard/subscription',
     },
     // Analytics only for dealers and business accounts
-    ...(user?.accountType.toLowerCase() === 'dealer' || user?.accountType.toLowerCase() === 'business'
+    ...(matchesAnyEnum(user?.accountType, [AccountType.DEALER, AccountType.BUSINESS])
       ? [
         {
           icon: <BarChart3 size={20} />,

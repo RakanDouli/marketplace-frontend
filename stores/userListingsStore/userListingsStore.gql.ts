@@ -17,10 +17,6 @@ export const MY_LISTINGS_QUERY = `
         nameAr
         slug
       }
-      prices {
-        currency
-        value
-      }
     }
   }
 `;
@@ -60,10 +56,6 @@ export const MY_LISTING_BY_ID_QUERY = `
         name
         nameAr
         slug
-      }
-      prices {
-        currency
-        value
       }
     }
   }

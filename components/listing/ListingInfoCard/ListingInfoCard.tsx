@@ -48,14 +48,11 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
     description,
     imageKeys,
     status,
-    prices,
     priceMinor,
     user,
     location,
     createdAt,
   } = currentListing;
-
-  const primaryPrice = prices?.[0];
 
   // DEBUG: Log user business fields (uncomment when debugging user data issues)
   // console.log('🔍 ListingInfoCard - User Data:', {
@@ -93,8 +90,8 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
             image: imageKeys?.[0],
             siteName: 'السوق السوري للسيارات',
             type: 'product',
-            price: primaryPrice?.value,
-            currency: primaryPrice?.currency,
+            price: priceMinor?.toString(),
+            currency: 'USD',
             availability: status === 'ACTIVE' ? 'in stock' : 'out of stock',
           }}
         />
