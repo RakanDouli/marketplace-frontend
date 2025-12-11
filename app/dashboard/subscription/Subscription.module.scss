@@ -8,6 +8,38 @@
   margin-bottom: $space-lg;
 }
 
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md;
+  margin-bottom: $space-md;
+  background: rgba($warning, 0.1);
+  border: 1px solid $warning;
+  border-radius: $radius-md;
+  color: $warning;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md;
+  margin-bottom: $space-md;
+  background: rgba($error, 0.1);
+  border: 1px solid $error;
+  border-radius: $radius-md;
+  color: $error;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
 .content {
   display: flex;
   flex-direction: column;

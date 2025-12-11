@@ -9,8 +9,8 @@ export interface UserSubscriptionPlan {
   name: string;
   title: string;
   description: string | null;
-  price: number;
-  billingCycle: 'monthly' | 'yearly' | 'free';
+  monthlyPrice: number;
+  yearlyPrice: number | null;
   maxListings: number;
   maxImagesPerListing: number;
   videoAllowed: boolean;

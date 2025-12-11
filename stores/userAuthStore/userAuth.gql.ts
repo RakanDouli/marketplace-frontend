@@ -47,8 +47,8 @@ export const ME_QUERY = `
         name
         title
         description
-        price
-        billingCycle
+        monthlyPrice
+        yearlyPrice
         maxListings
         maxImagesPerListing
         videoAllowed

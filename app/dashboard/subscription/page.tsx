@@ -6,7 +6,7 @@ import { Text, Button } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { formatPrice } from "@/utils/formatPrice";
 import { formatDate } from "@/utils/formatDate";
-import { Check, X } from "lucide-react";
+import { Check, X, AlertTriangle } from "lucide-react";
 import styles from "./Subscription.module.scss";
 
 interface SubscriptionFeature {
@@ -17,8 +17,8 @@ interface SubscriptionFeature {
 interface SubscriptionPlan {
   name: string;
   title: string;
-  price: number;
-  billingCycle: 'monthly' | 'yearly' | 'free';
+  monthlyPrice: number;
+  yearlyPrice: number | null;
   maxListings: number;
   maxImagesPerListing: number;
   videoAllowed: boolean;
@@ -32,12 +32,6 @@ export default function SubscriptionPage() {
   const router = useRouter();
   const { user, userPackage } = useUserAuthStore();
 
-  // DEBUG: Log everything
-  console.log("=== SUBSCRIPTION PAGE DEBUG ===");
-  console.log("user:", user);
-  console.log("userPackage:", userPackage);
-  console.log("userPackage?.userSubscription:", userPackage?.userSubscription);
-
   if (!user) {
     return (
       <div className={styles.container}>
@@ -48,10 +42,6 @@ export default function SubscriptionPage() {
 
   const subscription = userPackage?.userSubscription as SubscriptionPlan | null;
   const currentListingsCount = userPackage?.currentListings || 0;
-
-  console.log("subscription:", subscription);
-  console.log("subscription?.maxListings:", subscription?.maxListings);
-  console.log("subscription?.maxImagesPerListing:", subscription?.maxImagesPerListing);
 
   const features: SubscriptionFeature[] = [
     {
@@ -84,26 +74,46 @@ export default function SubscriptionPage() {
     },
   ];
 
-  const handleCancelSubscription = async () => {
-    if (!confirm("هل أنت متأكد من إلغاء اشتراكك؟")) {
-      return;
-    }
-    // TODO: Call cancel subscription API
-    console.log("Cancel subscription");
-  };
-
   const handleUpgradeSubscription = () => {
     router.push("/user-subscriptions");
   };
 
-  const isFree = subscription?.price === 0;
-  const canUpgrade = user.accountType === "individual" || user.accountType === "dealer";
+  const isFree = subscription?.monthlyPrice === 0;
+  // Check if user can upgrade - hide upgrade button if user has "business" subscription (top tier)
+  const isBusinessSubscription = subscription?.name?.toLowerCase() === "business";
+  const canUpgrade = !isBusinessSubscription;
+
+  // Expiry date and warning calculations
+  const endDate = userPackage?.endDate ? new Date(userPackage.endDate) : null;
+  const now = new Date();
+  const daysRemaining = endDate ? Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+  const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0;
+  const isExpired = daysRemaining !== null && daysRemaining <= 0;
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <Text variant="h2">الاشتراك الحالي</Text>
       </div>
+
+      {/* Expiry Warning Banner */}
+      {!isFree && isExpiringSoon && (
+        <div className={styles.warningBanner}>
+          <AlertTriangle size={20} />
+          <Text variant="paragraph">
+            اشتراكك سينتهي خلال {daysRemaining} {daysRemaining === 1 ? "يوم" : "أيام"}! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
+          </Text>
+        </div>
+      )}
+
+      {!isFree && isExpired && (
+        <div className={styles.errorBanner}>
+          <AlertTriangle size={20} />
+          <Text variant="paragraph">
+            انتهى اشتراكك! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
+          </Text>
+        </div>
+      )}
 
       <div className={styles.content}>
         {/* Current Plan */}
@@ -118,9 +128,9 @@ export default function SubscriptionPage() {
               </Text>
             </div>
             <div className={styles.price}>
-              <Text variant="h1">{formatPrice(subscription?.price || 0)}</Text>
+              <Text variant="h1">{formatPrice(subscription?.monthlyPrice || 0)}</Text>
               <Text variant="paragraph" className={styles.billingCycle}>
-                {subscription?.price === 0 ? "مجاناً" : "/ شهرياً"}
+                {subscription?.monthlyPrice === 0 ? "مجاناً" : "/ شهرياً"}
               </Text>
             </div>
           </div>
@@ -168,11 +178,11 @@ export default function SubscriptionPage() {
           </div>
 
           {/* Billing Info */}
-          {!isFree && (
+          {!isFree && endDate && (
             <div className={styles.billingInfo}>
-              <Text variant="paragraph">التجديد التالي</Text>
+              <Text variant="paragraph">ينتهي الاشتراك في</Text>
               <Text variant="paragraph">
-                {formatDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}
+                {formatDate(endDate)}
               </Text>
             </div>
           )}
@@ -184,22 +194,20 @@ export default function SubscriptionPage() {
                 variant="primary"
                 onClick={handleUpgradeSubscription}
               >
-                ترقية الاشتراك
-              </Button>
-            )}
-            {!isFree && (
-              <Button
-                variant="secondary"
-                onClick={handleCancelSubscription}
-              >
-                إلغاء الاشتراك
+                {isFree ? "ترقية الاشتراك" : "تجديد الاشتراك"}
               </Button>
             )}
           </div>
         </div>
 
         {/* Info Note */}
-        {isFree && (
+        {isBusinessSubscription ? (
+          <div className={styles.infoCard}>
+            <Text variant="paragraph">
+              أنت مشترك في أعلى خطة متاحة! استمتع بجميع الميزات المتقدمة.
+            </Text>
+          </div>
+        ) : isFree && (
           <div className={styles.infoCard}>
             <Text variant="paragraph">
               {user.accountType === "individual" &&

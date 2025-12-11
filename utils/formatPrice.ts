@@ -51,3 +51,35 @@ export function formatPriceRange(min: number, max: number, toCurrency?: Currency
 export function formatAdPrice(price: number, currency: string = 'USD'): string {
   return formatPrice(price);
 }
+
+/**
+ * Format price showing both USD and SYP values
+ * @param priceUSD - Price in US dollars
+ * @returns Object with both formatted prices
+ */
+export function formatDualPrice(priceUSD: number): { usd: string; syp: string } {
+  const { convertPrice } = useCurrencyStore.getState();
+
+  // Handle invalid values
+  if (priceUSD === null || priceUSD === undefined || isNaN(priceUSD)) {
+    return { usd: '$0', syp: '0 ل.س' };
+  }
+
+  // Format USD
+  const usdFormatted = priceUSD.toLocaleString('en-US', {
+    minimumFractionDigits: priceUSD % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
+  });
+
+  // Convert and format SYP
+  const sypAmount = convertPrice(priceUSD, 'SYP');
+  const sypFormatted = sypAmount.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+
+  return {
+    usd: `$${usdFormatted}`,
+    syp: `${sypFormatted} ل.س`
+  };
+}

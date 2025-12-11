@@ -5,7 +5,7 @@ import { Text, Button, Loading } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { formatAdPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
-import { CreditCard, Receipt, FileText, Download, RefreshCw } from 'lucide-react';
+import { CreditCard, Receipt, Download, RefreshCw } from 'lucide-react';
 import styles from './Payments.module.scss';
 
 // GraphQL query for transactions with receipts
@@ -19,8 +19,6 @@ const MY_TRANSACTIONS_QUERY = `
       currency
       paymentMethod
       status
-      billingPeriodStart
-      billingPeriodEnd
       notes
       createdAt
       description
@@ -51,14 +49,12 @@ const makeGraphQLCall = async (query: string, variables: any = {}, token?: strin
 
 interface Transaction {
   id: string;
-  transactionType: 'user_subscription' | 'ad_campaign' | 'listing_promotion';
+  transactionType: 'user_subscription';
   referenceId: string;
   amount: number;
   currency: string;
   paymentMethod: string;
   status: 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
-  billingPeriodStart?: string;
-  billingPeriodEnd?: string;
   notes?: string;
   createdAt: string;
   description: string;
@@ -77,15 +73,12 @@ const STATUS_LABELS: Record<string, string> = {
 // Transaction type labels in Arabic
 const TYPE_LABELS: Record<string, string> = {
   user_subscription: 'اشتراك',
-  ad_campaign: 'حملة إعلانية',
-  listing_promotion: 'ترويج إعلان',
 };
 
 export default function PaymentsPage() {
   const { user } = useUserAuthStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // Fetch transactions
@@ -107,26 +100,13 @@ export default function PaymentsPage() {
     fetchTransactions();
   }, [user?.token]);
 
-  // Filter transactions by type
-  const filteredTransactions = transactions.filter(t => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'subscriptions') return t.transactionType === 'user_subscription';
-    if (activeTab === 'ads') return t.transactionType === 'ad_campaign';
-    return true;
-  });
-
   // Calculate summary stats
   const totalSpent = transactions
     .filter(t => t.status === 'completed')
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const subscriptionSpent = transactions
-    .filter(t => t.status === 'completed' && t.transactionType === 'user_subscription')
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  const adsSpent = transactions
-    .filter(t => t.status === 'completed' && t.transactionType === 'ad_campaign')
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const completedCount = transactions.filter(t => t.status === 'completed').length;
+  const pendingCount = transactions.filter(t => t.status === 'pending').length;
 
   // Download receipt
   const handleDownloadReceipt = async (transactionId: string) => {
@@ -164,13 +144,6 @@ export default function PaymentsPage() {
     }
   };
 
-  // Tab items
-  const tabItems = [
-    { id: 'all', label: 'جميع العمليات' },
-    { id: 'subscriptions', label: 'الاشتراكات' },
-    { id: 'ads', label: 'الحملات الإعلانية' },
-  ];
-
   if (isLoading) {
     return (
       <div className={styles.payments}>
@@ -187,9 +160,9 @@ export default function PaymentsPage() {
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <Text variant="h2">لوحة الحسابات المالية</Text>
+          <Text variant="h2">سجل المدفوعات</Text>
           <Text variant="paragraph" color="secondary">
-            إدارة الاشتراكات والمدفوعات والإيصالات
+            عرض سجل مدفوعات الاشتراكات والإيصالات
           </Text>
         </div>
       </div>
@@ -211,18 +184,8 @@ export default function PaymentsPage() {
             <RefreshCw size={24} />
           </div>
           <div className={styles.overviewContent}>
-            <Text variant="small" color="secondary">الاشتراكات</Text>
-            <Text variant="h3">{formatAdPrice(subscriptionSpent, 'USD')}</Text>
-          </div>
-        </div>
-
-        <div className={styles.overviewCard}>
-          <div className={styles.overviewIcon}>
-            <FileText size={24} />
-          </div>
-          <div className={styles.overviewContent}>
-            <Text variant="small" color="secondary">الحملات الإعلانية</Text>
-            <Text variant="h3">{formatAdPrice(adsSpent, 'USD')}</Text>
+            <Text variant="small" color="secondary">العمليات المكتملة</Text>
+            <Text variant="h3">{completedCount}</Text>
           </div>
         </div>
 
@@ -231,24 +194,9 @@ export default function PaymentsPage() {
             <Receipt size={24} />
           </div>
           <div className={styles.overviewContent}>
-            <Text variant="small" color="secondary">عدد العمليات</Text>
-            <Text variant="h3">{transactions.length}</Text>
+            <Text variant="small" color="secondary">العمليات المعلقة</Text>
+            <Text variant="h3">{pendingCount}</Text>
           </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className={styles.tabsSection}>
-        <div className={styles.tabs}>
-          {tabItems.map((item) => (
-            <button
-              key={item.id}
-              className={`${styles.tab} ${activeTab === item.id ? styles.active : ''}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -256,21 +204,17 @@ export default function PaymentsPage() {
       <div className={styles.section}>
         <Text variant="h3">سجل العمليات</Text>
 
-        {filteredTransactions.length === 0 ? (
+        {transactions.length === 0 ? (
           <div className={styles.empty}>
             <CreditCard size={48} className={styles.emptyIcon} />
             <Text variant="h4">لا توجد عمليات</Text>
             <Text variant="paragraph" color="secondary">
-              {activeTab === 'all'
-                ? 'سيظهر هنا سجل جميع المدفوعات والإيصالات'
-                : activeTab === 'subscriptions'
-                ? 'لم تقم بأي اشتراكات بعد'
-                : 'لم تقم بأي حملات إعلانية بعد'}
+              سيظهر هنا سجل جميع مدفوعات الاشتراكات والإيصالات
             </Text>
           </div>
         ) : (
           <div className={styles.transactionsList}>
-            {filteredTransactions.map((transaction) => (
+            {transactions.map((transaction) => (
               <div key={transaction.id} className={styles.transactionItem}>
                 <div className={styles.transactionMain}>
                   <div className={styles.transactionInfo}>
@@ -284,9 +228,6 @@ export default function PaymentsPage() {
                     </div>
                     <Text variant="small" color="secondary">
                       {formatDate(transaction.createdAt)}
-                      {transaction.billingPeriodStart && transaction.billingPeriodEnd && (
-                        <> • {formatDate(transaction.billingPeriodStart)} - {formatDate(transaction.billingPeriodEnd)}</>
-                      )}
                     </Text>
                     {transaction.notes && (
                       <Text variant="small" color="secondary">

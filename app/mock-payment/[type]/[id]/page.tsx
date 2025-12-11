@@ -38,8 +38,6 @@ const GET_SUBSCRIPTION_TRANSACTION_QUERY = `
       currency
       status
       notes
-      billingPeriodStart
-      billingPeriodEnd
       taxRate
       taxAmount
       originalAmount
@@ -136,8 +134,6 @@ export default function MockPaymentPage() {
     amount: number;
     currency: string;
     description: string;
-    billingPeriodStart?: string;
-    billingPeriodEnd?: string;
     taxRate?: number;
     taxAmount?: number;
     originalAmount?: number;
@@ -210,8 +206,6 @@ export default function MockPaymentPage() {
             amount: transaction.amount,
             currency: transaction.currency,
             description: subscriptionName,
-            billingPeriodStart: transaction.billingPeriodStart,
-            billingPeriodEnd: transaction.billingPeriodEnd,
             taxRate: transaction.taxRate,
             taxAmount: transaction.taxAmount,
             originalAmount: transaction.originalAmount,

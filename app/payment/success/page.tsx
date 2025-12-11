@@ -1,10 +1,11 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Container, Text, Button, Loading } from '@/components/slices';
 import { CheckCircle, Home, FileText, Download } from 'lucide-react';
 import type { PaymentType } from '@/components/payment';
+import { useUserAuthStore } from '@/stores/userAuthStore';
 import styles from '../payment.module.scss';
 
 // GraphQL query for generating invoice PDF
@@ -36,6 +37,15 @@ function PaymentSuccessContent() {
   const type = searchParams?.get('type') as PaymentType | null;
   const id = searchParams?.get('id');
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const { refreshUserData, isAuthenticated } = useUserAuthStore();
+
+  // Refresh user data after successful subscription payment to update the dashboard
+  useEffect(() => {
+    if (type === 'subscription' && isAuthenticated) {
+      console.log('Payment success: Refreshing user data to update subscription...');
+      refreshUserData();
+    }
+  }, [type, isAuthenticated, refreshUserData]);
 
   const getMessage = () => {
     switch (type) {

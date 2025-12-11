@@ -89,8 +89,7 @@ const INITIATE_SUBSCRIPTION_PAYMENT_MUTATION = `
       amount
       currency
       subscriptionName
-      billingPeriodStart
-      billingPeriodEnd
+      durationMonths
     }
   }
 `;
@@ -331,10 +330,11 @@ export default function PaymentPage() {
         }
 
         // Call initiateSubscriptionPayment mutation with billing cycle
-        const durationMonths = billingCycle === 'yearly' ? 12 : 1;
+        // GraphQL enum expects uppercase: MONTHLY, YEARLY (not lowercase)
+        const billingCycleEnum = billingCycle.toUpperCase();
         const data = await makeGraphQLCall(
           INITIATE_SUBSCRIPTION_PAYMENT_MUTATION,
-          { input: { subscriptionId: id, durationMonths, billingCycle } },
+          { input: { subscriptionId: id, billingCycle: billingCycleEnum } },
           user.token
         );
 

@@ -80,6 +80,53 @@ const hydrateUserStores = async (): Promise<void> => {
   }
 };
 
+// Check subscription expiry and show notification
+const checkSubscriptionExpiry = async (userPackage: any): Promise<void> => {
+  if (!userPackage?.endDate) return;
+
+  const subscription = userPackage.userSubscription;
+  const isFree = subscription?.monthlyPrice === 0;
+  if (isFree) return;
+
+  const endDate = new Date(userPackage.endDate);
+  const now = new Date();
+  const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysRemaining <= 7 && daysRemaining > 0) {
+    try {
+      const { useNotificationStore } = await import('@/stores/notificationStore');
+      useNotificationStore.getState().addNotification({
+        type: 'warning',
+        title: 'اشتراكك على وشك الانتهاء',
+        message: `اشتراكك سينتهي خلال ${daysRemaining} ${daysRemaining === 1 ? 'يوم' : 'أيام'}. قم بتجديده للاستمرار في الاستفادة من جميع الميزات.`,
+        duration: 15000,
+        action: {
+          label: 'تجديد الاشتراك',
+          onClick: () => { window.location.href = '/dashboard/subscription'; },
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to show subscription expiry notification:', error);
+    }
+  } else if (daysRemaining <= 0) {
+    try {
+      const { useNotificationStore } = await import('@/stores/notificationStore');
+      useNotificationStore.getState().addNotification({
+        type: 'error',
+        title: 'انتهى اشتراكك',
+        message: 'انتهت صلاحية اشتراكك. قم بتجديده للاستمرار في الاستفادة من جميع الميزات.',
+        duration: 15000,
+        action: {
+          label: 'تجديد الاشتراك',
+          onClick: () => { window.location.href = '/dashboard/subscription'; },
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to show subscription expired notification:', error);
+    }
+  }
+};
+
 // Reset a store on logout (helper to reduce repetition)
 const resetStoreOnLogout = async (importPath: string, resetFn: (store: any) => void): Promise<void> => {
   try {
@@ -232,6 +279,9 @@ export const useUserAuthStore = create<UserAuthStore>()(
 
             // Load user data after successful login
             await hydrateUserStores();
+
+            // Check subscription expiry and show notification
+            await checkSubscriptionExpiry(userPackage);
 
             // Show force modal for INACTIVE users
             if (isInactive) {
