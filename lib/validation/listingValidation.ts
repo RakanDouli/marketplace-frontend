@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { AttributeType } from '@/common/enums';
 
 export interface ListingFormData {
   title: string;
@@ -228,13 +229,13 @@ export const validateAttribute = (
   // Type-specific validation
   if (value !== undefined && value !== null && value !== '') {
     switch (attribute.type) {
-      case 'SELECTOR':
+      case AttributeType.SELECTOR:
         if (typeof value !== 'string' || !value.trim()) {
           return `${attribute.name} غير صحيح`;
         }
         break;
 
-      case 'MULTI_SELECTOR':
+      case AttributeType.MULTI_SELECTOR:
         if (!Array.isArray(value)) {
           return `${attribute.name} غير صحيح`;
         }
@@ -243,7 +244,7 @@ export const validateAttribute = (
         }
         break;
 
-      case 'RANGE':
+      case AttributeType.RANGE:
         // RANGE has two use cases:
         // 1. Listing creation/editing: single value (string or number) - e.g., year: "2018"
         // 2. Filtering: {min, max} object - e.g., year: {min: 2015, max: 2020}
@@ -269,13 +270,13 @@ export const validateAttribute = (
         return `${attribute.name} غير صحيح`;
         break;
 
-      case 'NUMBER':
+      case AttributeType.NUMBER:
         if (isNaN(Number(value))) {
           return `${attribute.name} يجب أن يكون رقماً`;
         }
         break;
 
-      case 'TEXT':
+      case AttributeType.TEXT:
         if (typeof value !== 'string') {
           return `${attribute.name} غير صحيح`;
         }

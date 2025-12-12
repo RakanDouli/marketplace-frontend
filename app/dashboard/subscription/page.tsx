@@ -2,13 +2,13 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Text, Button } from "@/components/slices";
+import { Text, Button, Loading } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { formatPrice } from "@/utils/formatPrice";
 import { formatDate } from "@/utils/formatDate";
 import { Check, X, AlertTriangle } from "lucide-react";
-import { AccountType, matchesEnum } from "@/common/enums";
+import { AccountType } from "@/common/enums";
 import styles from "./Subscription.module.scss";
 
 interface SubscriptionFeature {
@@ -39,7 +39,7 @@ export default function SubscriptionPage() {
   if (!user) {
     return (
       <div className={styles.container}>
-        <Text variant="h2">جاري التحميل...</Text>
+        <Loading type="svg" />
       </div>
     );
   }
@@ -83,9 +83,9 @@ export default function SubscriptionPage() {
   };
 
   const isFree = subscription?.monthlyPrice === 0;
-  // Check if user can upgrade - hide upgrade button if user has "business" subscription (top tier)
-  const isBusinessSubscription = subscription?.name?.toLowerCase() === "business";
-  const canUpgrade = !isBusinessSubscription;
+  // Check if user can upgrade - hide upgrade button if user has "business" account type (top tier)
+  const isBusinessAccount = user.accountType === AccountType.BUSINESS;
+  const canUpgrade = !isBusinessAccount;
 
   // Expiry date and warning calculations
   const endDate = userPackage?.endDate ? new Date(userPackage.endDate) : null;
@@ -126,9 +126,9 @@ export default function SubscriptionPage() {
             <div>
               <Text variant="h3">{subscription?.title || "لا يوجد اشتراك"}</Text>
               <Text variant="paragraph" className={styles.planDescription}>
-                {matchesEnum(user.accountType, AccountType.INDIVIDUAL) && "خطة فردية"}
-                {matchesEnum(user.accountType, AccountType.DEALER) && "خطة تاجر"}
-                {matchesEnum(user.accountType, AccountType.BUSINESS) && "خطة أعمال"}
+                {user.accountType === AccountType.INDIVIDUAL && "خطة فردية"}
+                {user.accountType === AccountType.DEALER && "خطة تاجر"}
+                {user.accountType === AccountType.BUSINESS && "خطة أعمال"}
               </Text>
             </div>
             <div className={styles.price}>
@@ -205,7 +205,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Info Note */}
-        {isBusinessSubscription ? (
+        {isBusinessAccount ? (
           <div className={styles.infoCard}>
             <Text variant="paragraph">
               أنت مشترك في أعلى خطة متاحة! استمتع بجميع الميزات المتقدمة.
@@ -214,11 +214,11 @@ export default function SubscriptionPage() {
         ) : isFree && (
           <div className={styles.infoCard}>
             <Text variant="paragraph">
-              {matchesEnum(user.accountType, AccountType.INDIVIDUAL) &&
+              {user.accountType === AccountType.INDIVIDUAL &&
                 "استمتع بالخطة الفردية المجانية! يمكنك ترقية اشتراكك في أي وقت للحصول على ميزات إضافية."}
-              {matchesEnum(user.accountType, AccountType.DEALER) &&
+              {user.accountType === AccountType.DEALER &&
                 "استمتع بخطة التاجر المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 29$ شهرياً قريباً."}
-              {matchesEnum(user.accountType, AccountType.BUSINESS) &&
+              {user.accountType === AccountType.BUSINESS &&
                 "استمتع بخطة الأعمال المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 99$ شهرياً قريباً."}
             </Text>
           </div>

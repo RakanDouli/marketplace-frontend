@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Ban, UserCircle } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { Container, Text, Button } from '@/components/slices';
+import { Container, Text, Button, Loading } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { formatDate } from '@/utils/formatDate';
 import styles from './blocked-users.module.scss';
@@ -69,11 +69,7 @@ export default function BlockedUsersPage() {
 
         {/* Loading State */}
         {isLoading && (
-          <div className={styles.loadingState}>
-            <Text variant="paragraph" color="secondary">
-              جاري التحميل...
-            </Text>
-          </div>
+          <Loading type="svg" />
         )}
 
         {/* Error State */}

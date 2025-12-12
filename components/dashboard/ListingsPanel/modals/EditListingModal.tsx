@@ -12,6 +12,7 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
+import { ListingStatus } from '@/common/enums';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import { uploadMultipleToCloudflare } from '@/utils/cloudflare-upload';
 import {
@@ -593,7 +594,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       <form onSubmit={handleSubmit} className={styles.editForm}>
         <div className={styles.modalContent}>
           {/* Rejection Alert - Show if listing is DRAFT or REJECTED with rejection reason */}
-          {(detailedListing.status?.toLowerCase() === 'draft' || detailedListing.status?.toLowerCase() === 'rejected') &&
+          {(detailedListing.status === ListingStatus.DRAFT || detailedListing.status === ListingStatus.REJECTED) &&
             (detailedListing.rejectionReason || detailedListing.rejectionMessage) && (
               <div className={styles.rejectionAlert}>
                 <div className={styles.rejectionHeader}>
@@ -748,11 +749,11 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 إدارة الإعلان
               </Text>
 
-              {formData.status === 'ACTIVE' && (
+              {formData.status === ListingStatus.ACTIVE && (
                 <div className={styles.actionButtons}>
                   <Button
                     variant="secondary"
-                    onClick={() => setFormData({ ...formData, status: 'HIDDEN' })}
+                    onClick={() => setFormData({ ...formData, status: ListingStatus.HIDDEN })}
                     type="button"
                   >
                     إيقاف الإعلان مؤقتاً
@@ -760,11 +761,11 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 </div>
               )}
 
-              {formData.status === 'HIDDEN' && (
+              {formData.status === ListingStatus.HIDDEN && (
                 <div className={styles.actionButtons}>
                   <Button
                     variant="primary"
-                    onClick={() => setFormData({ ...formData, status: 'ACTIVE' })}
+                    onClick={() => setFormData({ ...formData, status: ListingStatus.ACTIVE })}
                     type="button"
                   >
                     اعاده تفعيل الاعلان
@@ -772,7 +773,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 </div>
               )}
 
-              {(formData.status === 'SOLD' || formData.status === 'SOLD_VIA_PLATFORM') && (
+              {(formData.status === ListingStatus.SOLD || formData.status === ListingStatus.SOLD_VIA_PLATFORM) && (
                 <div className={styles.soldNotice}>
                   <Text variant="small" color="secondary">
                     ✅ هذا الإعلان تم بيعه
@@ -780,12 +781,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 </div>
               )}
 
-              {(formData.status === 'DRAFT' || formData.status === 'PENDING_APPROVAL' || formData.status === 'REJECTED') && (
+              {(formData.status === ListingStatus.DRAFT || formData.status === ListingStatus.PENDING_APPROVAL || formData.status === ListingStatus.REJECTED) && (
                 <div className={styles.systemStatus}>
                   <Text variant="small" color="secondary">
-                    {formData.status === 'DRAFT'
+                    {formData.status === ListingStatus.DRAFT
                       ? '📝 هذا الإعلان في وضع المسودة'
-                      : formData.status === 'REJECTED'
+                      : formData.status === ListingStatus.REJECTED
                       ? '❌ هذا الإعلان مرفوض - يرجى التعديل وإعادة النشر'
                       : '⏳ هذا الإعلان قيد المراجعة'
                     }

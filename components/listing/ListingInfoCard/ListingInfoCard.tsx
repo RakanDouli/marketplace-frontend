@@ -13,6 +13,7 @@ import { useListingsStore } from '@/stores/listingsStore';
 import { useCurrencyStore } from '@/stores/currencyStore';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
+import { ListingStatus } from '@/common/enums';
 import styles from './ListingInfoCard.module.scss';
 import { OwnerCard } from '@/components/ListingOwnerInfo';
 
@@ -92,7 +93,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
             type: 'product',
             price: priceMinor?.toString(),
             currency: 'USD',
-            availability: status === 'ACTIVE' ? 'in stock' : 'out of stock',
+            availability: status === ListingStatus.ACTIVE ? 'in stock' : 'out of stock',
           }}
         />
         <FavoriteButton

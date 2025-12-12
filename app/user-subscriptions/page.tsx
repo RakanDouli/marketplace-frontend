@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Text, Button } from "@/components/slices";
+import { Container, Text, Button, Loading } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { useSubscriptionPlansStore } from "@/stores/subscriptionPlansStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
@@ -93,7 +93,7 @@ export default function UserSubscriptionsPage() {
   if (loading) {
     return (
       <Container className={styles.container}>
-        <Text variant="h2">جاري التحميل...</Text>
+        <Loading type="svg" />
       </Container>
     );
   }

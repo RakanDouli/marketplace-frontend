@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Image, Video, BarChart, Star, Zap, TrendingUp } from 'lucide-react';
-import { Text, Button, Container, Slider, Collapsible, TextSection } from '@/components/slices';
+import { Text, Button, Container, Slider, Collapsible, TextSection, Loading } from '@/components/slices';
 import { PricingCard } from '@/components/pricing';
 import type { FeatureItem } from '@/components/pricing';
 import { useSubscriptionPlansStore } from '@/stores/subscriptionPlansStore';
@@ -168,9 +168,7 @@ export default function PricingPage() {
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>
-          <Text>جاري التحميل...</Text>
-        </div>
+        <Loading type="svg" />
       </div>
     );
   }

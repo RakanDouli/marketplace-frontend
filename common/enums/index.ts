@@ -1,39 +1,27 @@
 /**
  * Common Enums
  *
- * Frontend mirror of backend enums for type safety.
- * These should match exactly with backend enum VALUES (lowercase).
+ * Frontend mirror of backend enums for TYPE SAFETY in comparisons.
  *
- * IMPORTANT: GraphQL may return UPPERCASE enum names, but the VALUES are lowercase.
- * Always use the matchesEnum() helper for comparisons to handle case differences.
- */
-
-// ===== HELPER FUNCTION =====
-
-/**
- * Case-insensitive enum comparison helper.
- * Use this instead of direct === comparison to avoid case mismatch issues.
+ * IMPORTANT: Enum values must match what GraphQL returns:
+ * - Most enums: UPPERCASE (GraphQL returns enum KEY names)
+ * - Some enums: lowercase (when backend returns VALUE instead of KEY)
+ * - Check the TypeScript interface for the actual type to confirm
  *
- * @example
- * // Instead of: user.accountType === 'business' or user.accountType.toLowerCase() === AccountType.BUSINESS
- * // Use: matchesEnum(user.accountType, AccountType.BUSINESS)
- */
-export function matchesEnum(value: string | null | undefined, enumValue: string): boolean {
-  if (!value) return false;
-  return value.toLowerCase() === enumValue.toLowerCase();
-}
-
-/**
- * Check if value matches any of the provided enum values
+ * Usage:
+ * ```ts
+ * import { UserStatus, ListingStatus } from '@/common/enums';
  *
- * @example
- * matchesAnyEnum(user.accountType, [AccountType.DEALER, AccountType.BUSINESS])
+ * // ✅ CORRECT - Type-safe, catches typos at compile time
+ * if (listing.status === ListingStatus.ACTIVE) { }
+ *
+ * // ❌ WRONG - Typos not caught
+ * if (listing.status === 'ACTVE') { }
+ * ```
+ *
+ * For dropdowns: Use metadataStore + metadata-labels
+ * For display: Use metadata-labels for Arabic translations
  */
-export function matchesAnyEnum(value: string | null | undefined, enumValues: string[]): boolean {
-  if (!value) return false;
-  const lowerValue = value.toLowerCase();
-  return enumValues.some(ev => ev.toLowerCase() === lowerValue);
-}
 
 // ===== ACCOUNT TYPE =====
 
@@ -80,16 +68,17 @@ export enum UserRole {
 /**
  * Listing Status Enum
  * Backend: marketplace-backend/src/common/enums/listing-status.enum.ts
+ * NOTE: Values are UPPERCASE because GraphQL returns enum keys (not values)
  */
 export enum ListingStatus {
-  DRAFT = "draft",
-  PENDING_APPROVAL = "pending_approval",
-  REJECTED = "rejected",
-  ACTIVE = "active",
-  SOLD = "sold",
-  SOLD_VIA_PLATFORM = "sold_via_platform",
-  HIDDEN = "hidden",
-  ARCHIVED = "archived",
+  DRAFT = "DRAFT",
+  PENDING_APPROVAL = "PENDING_APPROVAL",
+  REJECTED = "REJECTED",
+  ACTIVE = "ACTIVE",
+  SOLD = "SOLD",
+  SOLD_VIA_PLATFORM = "SOLD_VIA_PLATFORM",
+  HIDDEN = "HIDDEN",
+  ARCHIVED = "ARCHIVED",
 }
 
 // ===== REPORT ENUMS =====
@@ -224,6 +213,7 @@ export enum AdPlacement {
   BETWEEN_LISTINGS = "between_listings",
   DETAIL_TOP = "detail_top",
   DETAIL_BEFORE_DESCRIPTION = "detail_before_description",
+  DETAIL_BOTTOM = "detail_bottom",
 }
 
 /**
@@ -275,6 +265,25 @@ export enum BrandSource {
 export enum BrandStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
+}
+
+// ===== ATTRIBUTE TYPE =====
+
+/**
+ * Attribute Type Enum
+ * Backend: marketplace-backend/src/common/enums/attribute-type.enum.ts
+ * NOTE: Values are UPPERCASE because GraphQL returns enum values in uppercase
+ */
+export enum AttributeType {
+  SELECTOR = "SELECTOR",
+  MULTI_SELECTOR = "MULTI_SELECTOR",
+  RANGE = "RANGE",
+  CURRENCY = "CURRENCY",
+  TEXT = "TEXT",
+  TEXTAREA = "TEXTAREA",
+  NUMBER = "NUMBER",
+  DATE_RANGE = "DATE_RANGE",
+  BOOLEAN = "BOOLEAN",
 }
 
 // ===== REJECTION REASON =====

@@ -2,6 +2,7 @@ import React from 'react';
 import { Input } from '@/components/slices/Input/Input';
 import Text from '@/components/slices/Text/Text';
 import type { Attribute } from '@/stores/createListingStore/types';
+import { AttributeType } from '@/common/enums';
 import styles from './attributeFieldRenderer.module.scss';
 
 interface RenderAttributeFieldProps {
@@ -26,7 +27,7 @@ export const renderAttributeField = ({
   };
 
   switch (attribute.type) {
-    case 'SELECTOR':
+    case AttributeType.SELECTOR:
       return (
         <Input
           type="select"
@@ -45,7 +46,7 @@ export const renderAttributeField = ({
         />
       );
 
-    case 'MULTI_SELECTOR':
+    case AttributeType.MULTI_SELECTOR:
       // For listing creation, MULTI_SELECTOR is rendered as a regular SELECTOR
       // (A specific item has ONE value, not multiple)
       // MULTI_SELECTOR is only used in filters (e.g., "show cars with 1.6L OR 2.0L")
@@ -67,11 +68,11 @@ export const renderAttributeField = ({
         />
       );
 
-    case 'RANGE':
+    case AttributeType.RANGE:
       // RANGE type can have two behaviors:
       // 1. NO OPTIONS → Free text/number input (e.g., year: "2018", mileage: "50000")
       // 2. WITH OPTIONS → Selector dropdown (rare, but supported)
-      
+
       if (attribute.options && attribute.options.length > 0) {
         // Has predefined options → render as dropdown
         return (
@@ -103,7 +104,7 @@ export const renderAttributeField = ({
           />
         );
       }
-    case 'TEXT':
+    case AttributeType.TEXT:
       return (
         <Input
           type="text"
@@ -112,7 +113,7 @@ export const renderAttributeField = ({
         />
       );
 
-    case 'TEXTAREA':
+    case AttributeType.TEXTAREA:
       return (
         <Input
           type="textarea"
@@ -122,7 +123,7 @@ export const renderAttributeField = ({
         />
       );
 
-    case 'NUMBER':
+    case AttributeType.NUMBER:
       return (
         <Input
           type="number"
@@ -131,7 +132,7 @@ export const renderAttributeField = ({
         />
       );
 
-    case 'BOOLEAN':
+    case AttributeType.BOOLEAN:
       return (
         <Input
           type="boolean"
@@ -142,7 +143,7 @@ export const renderAttributeField = ({
         />
       );
 
-    case 'CURRENCY':
+    case AttributeType.CURRENCY:
       return (
         <Input
           type="number"

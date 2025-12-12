@@ -362,6 +362,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
       </div>
 
+      {/* Bottom Ad */}
+      <AdContainer placement="detail_bottom" />
+
       {/* Contact Seller Modal */}
       {currentListing && (
         <ContactSellerModal

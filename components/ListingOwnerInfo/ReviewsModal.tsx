@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MinusIcon, Plus, PlusIcon, Star } from 'lucide-react';
-import { Modal, Text } from '@/components/slices';
+import { Loading, Modal, Text } from '@/components/slices';
 import { AccountType } from '@/common/enums';
 import { useReviewsStore, type Review } from '@/stores/reviewsStore';
 import { formatDate } from '@/utils/formatDate';
@@ -119,11 +119,7 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({
 
       <div className={styles.body}>
         {isLoading ? (
-          <div className={styles.loading}>
-            <Text variant="paragraph" color="secondary">
-              جاري التحميل...
-            </Text>
-          </div>
+          <Loading type="svg" />
         ) : hasReviews ? (
           <>
             {/* Tag Summary Section */}

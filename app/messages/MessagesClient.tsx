@@ -15,6 +15,7 @@ import { validateImageFile } from '@/utils/cloudflare-upload';
 import { BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
 import { ReportModal } from '@/components/ReportButton';
 import { ReviewModal } from '@/components/ReviewModal';
+import { MessageStatus } from '@/common/enums';
 import type { Listing } from '@/stores/types';
 import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
@@ -743,8 +744,8 @@ export const MessagesClient: React.FC = () => {
                                 })()}
                               </Text>
                               {isSentByMe && (
-                                <span className={`${styles.messageStatus} ${message.status === 'read' ? styles.read : styles.sent}`}>
-                                  {message.status === 'read' ? (
+                                <span className={`${styles.messageStatus} ${message.status === MessageStatus.READ ? styles.read : styles.sent}`}>
+                                  {message.status === MessageStatus.READ ? (
                                     <CheckCheck size={14} />
                                   ) : (
                                     <Check size={14} />

@@ -6,6 +6,7 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { formatAdPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
 import { CreditCard, Receipt, Download, RefreshCw } from 'lucide-react';
+import { TransactionStatus } from '@/common/enums';
 import styles from './Payments.module.scss';
 
 // GraphQL query for transactions with receipts
@@ -102,11 +103,11 @@ export default function PaymentsPage() {
 
   // Calculate summary stats
   const totalSpent = transactions
-    .filter(t => t.status === 'completed')
+    .filter(t => t.status === TransactionStatus.COMPLETED)
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const completedCount = transactions.filter(t => t.status === 'completed').length;
-  const pendingCount = transactions.filter(t => t.status === 'pending').length;
+  const completedCount = transactions.filter(t => t.status === TransactionStatus.COMPLETED).length;
+  const pendingCount = transactions.filter(t => t.status === TransactionStatus.PENDING).length;
 
   // Download receipt
   const handleDownloadReceipt = async (transactionId: string) => {

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Text, Button, Container } from '@/components/slices';
+import { Text, Button, Container, Loading } from '@/components/slices';
 import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
 import type { PaymentType, PaymentMethod, PaymentMethodOption, PaymentData, PaymentFeeInfo } from '@/components/payment';
 import { useUserAuthStore } from '@/stores/userAuthStore';
@@ -361,9 +361,7 @@ export default function PaymentPage() {
   if (loading) {
     return (
       <Container className={styles.paymentContainer}>
-        <div className={styles.loading}>
-          <Text variant="h3">جاري التحميل...</Text>
-        </div>
+        <Loading type="svg" />
       </Container>
     );
   }

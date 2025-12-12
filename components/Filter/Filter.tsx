@@ -19,6 +19,7 @@ import {
   useFilterActions,
   useAttributeFilters
 } from "../../hooks";
+import { AttributeType } from "../../common/enums";
 import {
   useFiltersStore,
   useListingsStore,
@@ -360,8 +361,8 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                       {attribute.name}
                     </Text>
 
-                    {(attribute.type === "SELECTOR" ||
-                      attribute.type === "MULTI_SELECTOR") &&
+                    {(attribute.type === AttributeType.SELECTOR ||
+                      attribute.type === AttributeType.MULTI_SELECTOR) &&
                       attribute.processedOptions && (
                         <>
                           {attribute.key === "body_type" ? (
@@ -428,7 +429,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                                 );
                               })}
                             </div>
-                          ) : attribute.type === "MULTI_SELECTOR" ? (
+                          ) : attribute.type === AttributeType.MULTI_SELECTOR ? (
                             // Multi-select checkboxes for other MULTI_SELECTOR attributes
                             <div className={styles.checkboxGroup}>
                               {/* Selection Counter for Limited Multi-Selectors */}
@@ -527,7 +528,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                         </>
                       )}
 
-                    {attribute.type === "CURRENCY" && (
+                    {attribute.type === AttributeType.CURRENCY && (
                       <div className={styles.rangeInputs}>
                         <div className={styles.rangeInputFields}>
                           <Input
@@ -569,7 +570,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                       </div>
                     )}
 
-                    {attribute.type === "RANGE" && (
+                    {attribute.type === AttributeType.RANGE && (
                       <div className={styles.rangeInputs}>
                         <div className={styles.rangeInputFields}>
                           <Input
@@ -612,7 +613,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
                       </div>
                     )}
 
-                    {attribute.type === "TEXT" && (
+                    {attribute.type === AttributeType.TEXT && (
                       <div className={styles.rangeInputs}>
                         <Input
                           type="text"

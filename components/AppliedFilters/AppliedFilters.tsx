@@ -4,6 +4,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { useSearchStore, useFiltersStore, useListingsStore } from "../../stores";
 import { Button } from "../slices";
 import { Text } from "../slices";
+import { AttributeType } from "../../common/enums";
 import styles from "./AppliedFilters.module.scss";
 
 export function AppliedFilters() {
@@ -73,7 +74,7 @@ export function AppliedFilters() {
       // For multi-select attributes, show as comma-separated values
       if (
         attribute &&
-        (attribute.type === "MULTI_SELECTOR" ||
+        (attribute.type === AttributeType.MULTI_SELECTOR ||
           attributeKey === "body_type" ||
           attributeKey === "engine_size")
       ) {

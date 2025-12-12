@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Monitor, Smartphone, Eye, MapPin, BarChart, Clock } from 'lucide-react';
-import { Container, Text, Slider, Collapsible, TextSection } from '@/components/slices';
+import { Container, Text, Slider, Collapsible, TextSection, Loading } from '@/components/slices';
 import { PricingCard, ContactAdModal } from '@/components/pricing';
 import type { FeatureItem } from '@/components/pricing';
 import { useAdPackagesStore } from '@/stores/adPackagesStore';
 import type { AdPackage } from '@/stores/adPackagesStore/types';
+import { AdPlacement } from '@/common/enums';
 import styles from './Advertise.module.scss';
 
 export default function AdvertisePage() {
@@ -48,9 +49,11 @@ export default function AdvertisePage() {
     // Placement
     const placementLabels: Record<string, string> = {
       homepage_top: 'أعلى الصفحة الرئيسية',
-      detail_after_gallery: 'صفحة التفاصيل (بعد المعرض)',
-      listings_top: 'أعلى صفحة القوائم',
+      homepage_mid: 'وسط الصفحة الرئيسية',
       between_listings: 'بين القوائم',
+      detail_top: 'أعلى صفحة التفاصيل',
+      detail_before_description: 'صفحة التفاصيل (قبل الوصف)',
+      detail_bottom: 'أسفل صفحة التفاصيل',
     };
 
     features.push({
@@ -77,10 +80,10 @@ export default function AdvertisePage() {
   };
 
   const getBadge = (pkg: AdPackage): string | undefined => {
-    if (pkg.placement === 'detail_after_gallery') {
+    if (pkg.placement === AdPlacement.DETAIL_TOP || pkg.placement === AdPlacement.DETAIL_BEFORE_DESCRIPTION) {
       return 'أفضل تحويل';
     }
-    if (pkg.placement === 'homepage_top' && pkg.adType === 'video') {
+    if (pkg.placement === AdPlacement.HOMEPAGE_TOP && pkg.adType === 'video') {
       return 'الأكثر تأثيراً';
     }
     if (pkg.basePrice >= 300) {
@@ -90,7 +93,7 @@ export default function AdvertisePage() {
   };
 
   const getBadgeColor = (pkg: AdPackage): 'primary' | 'success' | 'warning' => {
-    if (pkg.placement === 'detail_after_gallery') {
+    if (pkg.placement === AdPlacement.DETAIL_TOP || pkg.placement === AdPlacement.DETAIL_BEFORE_DESCRIPTION) {
       return 'success';
     }
     return 'primary';
@@ -109,9 +112,7 @@ export default function AdvertisePage() {
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>
-          <Text>جاري التحميل...</Text>
-        </div>
+        <Loading type="svg" />
       </div>
     );
   }
@@ -183,7 +184,7 @@ export default function AdvertisePage() {
                   features={getFeatureList(pkg)}
                   badge={getBadge(pkg)}
                   badgeColor={getBadgeColor(pkg)}
-                  highlighted={pkg.placement === 'detail_after_gallery'}
+                  highlighted={pkg.placement === AdPlacement.DETAIL_TOP || pkg.placement === AdPlacement.DETAIL_BEFORE_DESCRIPTION}
                   buttonText="تواصل معنا"
                   buttonVariant="outline"
                   metadata={getMetadata(pkg)}

@@ -1,4 +1,5 @@
 import { useSearchStore, useFiltersStore } from "../stores";
+import { AttributeType } from "../common/enums";
 
 /**
  * Custom hook for managing dynamic attribute filters
@@ -14,11 +15,11 @@ export const useAttributeFilters = () => {
       .filter(
         (attr) =>
           attr.showInFilter && // Only show attributes marked for filters
-          (attr.type === "SELECTOR" ||
-            attr.type === "MULTI_SELECTOR" ||
-            attr.type === "RANGE" ||
-            attr.type === "CURRENCY" ||
-            attr.type === "TEXT") // Include TEXT type for search fields (uppercase from backend)
+          (attr.type === AttributeType.SELECTOR ||
+            attr.type === AttributeType.MULTI_SELECTOR ||
+            attr.type === AttributeType.RANGE ||
+            attr.type === AttributeType.CURRENCY ||
+            attr.type === AttributeType.TEXT) // Include TEXT type for search fields (uppercase from backend)
       );
 
     return filtered;

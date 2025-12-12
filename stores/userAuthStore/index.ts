@@ -7,7 +7,7 @@ import { ME_QUERY, ACKNOWLEDGE_WARNING_MUTATION } from './userAuth.gql';
 import { SIGNUP_MUTATION } from './userAuth.signup.gql';
 import { useForceModalStore } from '@/stores/forceModalStore';
 import { ReactivateContent } from '@/components/ForceModal/contents';
-import { UserStatus, matchesEnum } from '@/common/enums';
+import { UserStatus } from '@/common/enums';
 
 // Constants
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -44,13 +44,13 @@ const calculateTokenExpiration = (sessionExpiresAt?: number, customExpiry?: numb
 // Validate user status (banned/suspended) and throw appropriate error
 const validateUserStatus = async (user: any): Promise<void> => {
   // Check BANNED first (most severe)
-  if (matchesEnum(user.status, UserStatus.BANNED)) {
+  if (user.status === UserStatus.BANNED) {
     await supabase.auth.signOut();
     throw new Error('تم حظر حسابك نهائياً. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
   }
 
   // Check for suspension (Strike 2 - 7-day ban)
-  if (matchesEnum(user.status, UserStatus.SUSPENDED)) {
+  if (user.status === UserStatus.SUSPENDED) {
     if (user.bannedUntil) {
       const suspensionEnd = new Date(user.bannedUntil);
       const now = new Date();
@@ -263,7 +263,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
             console.log('User package received:', userPackage);
 
             const finalTokenExpiresAt = calculateTokenExpiration(data.session.expires_at, tokenExpiresAt);
-            const isInactive = matchesEnum(user.status, UserStatus.INACTIVE);
+            const isInactive = user.status === UserStatus.INACTIVE;
 
             set({
               user: {

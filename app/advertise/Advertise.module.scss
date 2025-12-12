@@ -4,13 +4,6 @@
   background-color: $bg !important;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-}
-
 .benefits {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
