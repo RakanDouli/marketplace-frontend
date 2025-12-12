@@ -10,17 +10,17 @@
 }
 
 .small {
-  padding: 2px 8px;
+  padding: $space-xs $space-sm;
   font-size: $font-xs;
 }
 
 .medium {
-  padding: 4px 12px;
+  padding: $space-sm $space-sm;
   font-size: $font-sm;
 }
 
 .large {
-  padding: 6px 16px;
+  padding: $space-sm $space-md;
   font-size: $font-base;
 }
 
@@ -28,7 +28,10 @@
   background: $primary;
   color: $text-light;
 }
-
+.accent {
+  background: $accent-bg;
+  color: $accent;
+}
 .success {
   background: $success;
   color: $text-light;
