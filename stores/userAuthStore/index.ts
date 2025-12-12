@@ -41,26 +41,34 @@ const calculateTokenExpiration = (sessionExpiresAt?: number, customExpiry?: numb
   return sessionExpiresAt ? sessionExpiresAt * 1000 : Date.now() + ONE_HOUR_MS;
 };
 
-// Validate user status (banned/suspended) and throw appropriate error
+/**
+ * Validate user status (banned/suspended) and throw appropriate error
+ *
+ * Strike System:
+ * - Strike 1: warningCount=1, status=ACTIVE → User can login, sees WarningBanner
+ * - Strike 2: warningCount=2, status=SUSPENDED → Blocked here until bannedUntil date
+ * - Strike 3: warningCount>=3, status=BANNED → Permanently blocked here
+ *
+ * Note: Backend has SuspensionSchedulerService that auto-unsuspends users
+ * when bannedUntil date passes (runs daily at midnight)
+ */
 const validateUserStatus = async (user: any): Promise<void> => {
-  // Check BANNED first (most severe)
+  // Check BANNED first (most severe - permanent)
   if (user.status === UserStatus.BANNED) {
     await supabase.auth.signOut();
     throw new Error('تم حظر حسابك نهائياً. يرجى زيارة صفحة اتصل بنا للتواصل مع الإدارة');
   }
 
-  // Check for suspension (Strike 2 - 7-day ban)
+  // Check for suspension (Strike 2 - temporary ban)
+  // Backend auto-unsuspends when bannedUntil passes, so if status is still SUSPENDED, user is blocked
   if (user.status === UserStatus.SUSPENDED) {
-    if (user.bannedUntil) {
-      const suspensionEnd = new Date(user.bannedUntil);
-      const now = new Date();
-
-      if (now < suspensionEnd) {
-        await supabase.auth.signOut();
-        const daysRemaining = Math.ceil((suspensionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        throw new Error(`حسابك موقوف مؤقتاً حتى ${suspensionEnd.toLocaleDateString('ar-SA')} (${daysRemaining} أيام متبقية). السبب: ${user.banReason || 'مخالفة السياسات'}`);
-      }
+    await supabase.auth.signOut();
+    const suspensionEnd = user.bannedUntil ? new Date(user.bannedUntil) : null;
+    if (suspensionEnd) {
+      const daysRemaining = Math.ceil((suspensionEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      throw new Error(`حسابك موقوف مؤقتاً حتى ${suspensionEnd.toLocaleDateString('ar-SA')} (${daysRemaining > 0 ? daysRemaining : 1} أيام متبقية). السبب: ${user.banReason || 'مخالفة السياسات'}`);
     }
+    throw new Error(`حسابك موقوف مؤقتاً. السبب: ${user.banReason || 'مخالفة السياسات'}`);
   }
 };
 
