@@ -27,7 +27,7 @@ export interface PricingCardProps {
   durationDays?: number;
   features: FeatureItem[];
   badge?: string;
-  badgeColor?: 'primary' | 'success' | 'warning';
+  badgeColor?: 'primary' | 'success' | 'warning' | 'accent';
   highlighted?: boolean;
   buttonText: string;
   buttonVariant?: 'primary' | 'outline' | 'secondary';
@@ -131,7 +131,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         {/* Savings badge for yearly plans */}
         {savings && (
           <div className={styles.savingsBadge}>
-            <Badge size="small" variant="success">
+            <Badge size="small" variant="accent">
               {savings}
             </Badge>
           </div>

@@ -19,7 +19,7 @@ function PaymentFailureContent() {
         return {
           title: 'فشلت عملية ترقية الحساب',
           description: 'لم تتم عملية الدفع. يرجى المحاولة مرة أخرى أو التواصل مع الدعم الفني',
-          retryUrl: `/pricing`,
+          retryUrl: `/user-subscriptions`,
         };
       case 'ad_campaign':
         return {

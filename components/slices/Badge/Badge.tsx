@@ -3,7 +3,7 @@ import styles from './Badge.module.scss';
 
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'secondary';
+  variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'secondary' | 'accent';
   size?: 'small' | 'medium' | 'large';
 }
 
