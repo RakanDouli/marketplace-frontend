@@ -17,9 +17,9 @@ export default function UserSubscriptionsPage() {
   const { plans, isLoading, fetchPublicPlans } = useSubscriptionPlansStore();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Fetch plans on mount
+  // Fetch plans on mount - always force refresh to get latest plans
   useEffect(() => {
-    fetchPublicPlans();
+    fetchPublicPlans(true); // Force refresh to bypass cache
   }, [fetchPublicPlans]);
 
   // Filter plans to only show public ones, sorted by sortOrder

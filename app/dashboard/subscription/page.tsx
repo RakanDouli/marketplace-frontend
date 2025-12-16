@@ -94,6 +94,11 @@ export default function SubscriptionPage() {
   const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0;
   const isExpired = daysRemaining !== null && daysRemaining <= 0;
 
+  // Over-limit calculations (for soft-block on downgrade)
+  const maxListings = subscription?.maxListings || 0;
+  const isOverLimit = maxListings > 0 && currentListingsCount > maxListings;
+  const overLimitCount = isOverLimit ? currentListingsCount - maxListings : 0;
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -116,6 +121,22 @@ export default function SubscriptionPage() {
           <Text variant="paragraph">
             انتهى اشتراكك! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
           </Text>
+        </div>
+      )}
+
+      {/* Over Limit Warning Banner - Soft Block */}
+      {isOverLimit && (
+        <div className={styles.errorBanner}>
+          <AlertTriangle size={20} />
+          <div>
+            <Text variant="paragraph" style={{ fontWeight: 600 }}>
+              لقد تجاوزت الحد المسموح للإعلانات!
+            </Text>
+            <Text variant="paragraph">
+              لديك {currentListingsCount} إعلانات نشطة، بينما خطتك الحالية تسمح بـ {maxListings} إعلانات فقط.
+              لن تتمكن من إضافة إعلانات جديدة حتى تقوم بأرشفة {overLimitCount} إعلانات أو ترقية اشتراكك.
+            </Text>
+          </div>
         </div>
       )}
 

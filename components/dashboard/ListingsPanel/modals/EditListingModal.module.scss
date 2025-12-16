@@ -244,6 +244,21 @@
   margin-top: $space-xl;
 }
 
+.locationLinkRow {
+  display: flex;
+  gap: $space-sm;
+  align-items: flex-end;
+
+  > div:first-child {
+    flex: 1;
+  }
+
+  .locationButton {
+    white-space: nowrap;
+    height: 44px;
+  }
+}
+
 @media (max-width: $breakpoint-md) {
   .listingInfo {
     grid-template-columns: 1fr;
@@ -257,6 +272,15 @@
     flex-direction: column-reverse;
 
     button {
+      width: 100%;
+    }
+  }
+
+  .locationLinkRow {
+    flex-direction: column;
+    align-items: stretch;
+
+    .locationButton {
       width: 100%;
     }
   }

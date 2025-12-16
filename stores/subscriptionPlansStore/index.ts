@@ -8,7 +8,7 @@ interface SubscriptionPlansStore {
   isLoading: boolean;
   error: string | null;
 
-  fetchPublicPlans: () => Promise<void>;
+  fetchPublicPlans: (forceRefresh?: boolean) => Promise<void>;
   getPlanByAccountType: (accountType: string) => SubscriptionPlan | undefined;
   reset: () => void;
 }
@@ -18,14 +18,15 @@ export const useSubscriptionPlansStore = create<SubscriptionPlansStore>((set, ge
   isLoading: false,
   error: null,
 
-  fetchPublicPlans: async () => {
+  fetchPublicPlans: async (forceRefresh = false) => {
     set({ isLoading: true, error: null });
 
     try {
+      // Use shorter cache (1 minute) and allow force refresh
       const data = await cachedGraphQLRequest(
         GET_PUBLIC_SUBSCRIPTION_PLANS_QUERY,
         {},
-        { ttl: 5 * 60 * 1000 } // Cache for 5 minutes
+        { ttl: forceRefresh ? 0 : 1 * 60 * 1000 } // 1 minute cache, or bypass on force refresh
       );
 
       const plans = data.userSubscriptions || [];

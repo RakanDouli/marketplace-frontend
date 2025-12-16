@@ -40,6 +40,81 @@
   flex-wrap: wrap;
 }
 
+// Over Limit Warning Banner
+.overLimitWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  padding: $space-md;
+  background-color: $error-bg;
+  border: 1px solid $error;
+  border-radius: $radius-base;
+  color: $error;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+// At Limit Info Banner
+.atLimitInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  background-color: $warning-bg;
+  border: 1px solid $warning;
+  border-radius: $radius-base;
+  color: $warning;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// Usage Stats Section
+.usageStats {
+  padding: $space-md;
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-base;
+}
+
+.usageStat {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.usageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progressBar {
+  height: 8px;
+  background-color: $border;
+  border-radius: $radius-base;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background-color: $primary;
+  border-radius: $radius-base;
+  transition: width 0.3s ease;
+
+  &.warning {
+    background-color: $warning;
+  }
+
+  &.danger {
+    background-color: $error;
+  }
+}
+
 // Search & Filters Section
 .searchSection {
   display: flex;

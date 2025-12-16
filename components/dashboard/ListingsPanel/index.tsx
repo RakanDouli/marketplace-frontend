@@ -10,9 +10,10 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore';
 import { useArchivedListingStore } from '@/stores/archivedListingStore';
 import { useMetadataStore } from '@/stores/metadataStore';
+import { useUserAuthStore } from '@/stores/userAuthStore';
 import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { ListingStatus as ListingStatusEnum } from '@/common/enums';
-import { RefreshCw, Edit, Trash2, Eye, Plus } from 'lucide-react';
+import { RefreshCw, Edit, Trash2, Eye, Plus, AlertTriangle } from 'lucide-react';
 import { Listing } from '@/types/listing';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import styles from './ListingsPanel.module.scss';
@@ -37,6 +38,15 @@ export const ListingsPanel: React.FC = () => {
 
   // Use archived listing store for archiving
   const { archiveListing } = useArchivedListingStore();
+
+  // Get user subscription limits
+  const { userPackage } = useUserAuthStore();
+  const maxListings = userPackage?.userSubscription?.maxListings || 0;
+  // Use pagination.total from listings store - this is the actual count of user's listings
+  const currentListingsCount = pagination.total;
+  // Check if user is at or over limit (0 = unlimited)
+  const isAtLimit = maxListings > 0 && currentListingsCount >= maxListings;
+  const isOverLimit = maxListings > 0 && currentListingsCount > maxListings;
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -214,11 +224,63 @@ export const ListingsPanel: React.FC = () => {
               onClick={handleCreateListing}
               variant="primary"
               icon={<Plus size={16} />}
+              disabled={isAtLimit}
+              title={isAtLimit ? 'لقد وصلت للحد الأقصى من الإعلانات' : undefined}
             >
               إضافة إعلان جديد
             </Button>
           </div>
         </div>
+
+        {/* Usage Stats with Progress Bar - Only show if there's a limit */}
+        {maxListings > 0 && (
+          <div className={styles.usageStats}>
+            <div className={styles.usageStat}>
+              <div className={styles.usageHeader}>
+                <Text variant="paragraph">الإعلانات المستخدمة</Text>
+                <Text variant="h4">
+                  {currentListingsCount} / {maxListings}
+                </Text>
+              </div>
+              <div className={styles.progressBar}>
+                <div
+                  className={`${styles.progress} ${
+                    isOverLimit ? styles.danger : isAtLimit ? styles.warning : ''
+                  }`}
+                  style={{
+                    width: `${Math.min((currentListingsCount / maxListings) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Over Limit Warning */}
+        {isOverLimit && (
+          <div className={styles.overLimitWarning}>
+            <AlertTriangle size={20} />
+            <div>
+              <Text variant="paragraph" style={{ fontWeight: 600 }}>
+                لقد تجاوزت الحد المسموح للإعلانات!
+              </Text>
+              <Text variant="small" color="secondary">
+                لديك {currentListingsCount} إعلانات، بينما خطتك تسمح بـ {maxListings} فقط.
+                قم بأرشفة بعض الإعلانات أو ترقية اشتراكك لإضافة إعلانات جديدة.
+              </Text>
+            </div>
+          </div>
+        )}
+
+        {/* At Limit Info (not over, just at limit) */}
+        {isAtLimit && !isOverLimit && (
+          <div className={styles.atLimitInfo}>
+            <AlertTriangle size={20} />
+            <Text variant="small">
+              لقد وصلت للحد الأقصى ({maxListings} إعلانات). قم بأرشفة إعلان أو ترقية اشتراكك لإضافة المزيد.
+            </Text>
+          </div>
+        )}
 
         {/* Search & Filters */}
         <div className={styles.searchSection}>

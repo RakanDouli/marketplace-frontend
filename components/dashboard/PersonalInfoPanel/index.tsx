@@ -223,7 +223,7 @@ export const PersonalInfoPanel: React.FC = () => {
         <div className={styles.profileInfo}>
           <Text variant="h2">{user.name || 'مستخدم'}</Text>
           <Text variant="paragraph" style={{ color: 'var(--text-secondary)' }}>
-            {ACCOUNT_TYPE_LABELS[user.accountType.toLowerCase()] || user.accountType}
+            {userPackage?.userSubscription?.title || ACCOUNT_TYPE_LABELS[user.accountType.toLowerCase()] || user.accountType}
           </Text>
           {user.companyName && (
             <Text variant="paragraph" style={{ marginTop: '$space-xs' }}>

@@ -980,16 +980,62 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               />
             </div>
 
-            <Input
-              type="text"
-              label="رابط الموقع"
-              placeholder="https://maps.google.com/..."
-              value={formData.location.link || ''}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                location: { ...prev.location, link: e.target.value },
-              }))}
-            />
+            <div className={styles.locationLinkRow}>
+              <Input
+                type="text"
+                label="رابط الموقع"
+                placeholder="https://maps.google.com/..."
+                value={formData.location.link || ''}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  location: { ...prev.location, link: e.target.value },
+                }))}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className={styles.locationButton}
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const { latitude, longitude } = position.coords;
+                        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                        setFormData(prev => ({
+                          ...prev,
+                          location: { ...prev.location, link: mapsLink },
+                        }));
+                        addNotification({
+                          type: 'success',
+                          title: 'تم تحديد الموقع',
+                          message: 'تم إضافة رابط موقعك الحالي',
+                          duration: 3000,
+                        });
+                      },
+                      (error) => {
+                        addNotification({
+                          type: 'error',
+                          title: 'خطأ في تحديد الموقع',
+                          message: error.code === 1
+                            ? 'يرجى السماح بالوصول إلى الموقع من إعدادات المتصفح'
+                            : 'تعذر تحديد الموقع، حاول مرة أخرى',
+                          duration: 5000,
+                        });
+                      }
+                    );
+                  } else {
+                    addNotification({
+                      type: 'error',
+                      title: 'غير مدعوم',
+                      message: 'المتصفح لا يدعم تحديد الموقع الجغرافي',
+                      duration: 5000,
+                    });
+                  }
+                }}
+              >
+                📍 موقعي الحالي
+              </Button>
+            </div>
           </div>
 
           <div className={styles.formActions}>
