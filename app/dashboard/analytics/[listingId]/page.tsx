@@ -81,6 +81,39 @@ export default function ListingAnalyticsPage() {
   // Format numbers with commas (English numbers)
   const formatNumber = (num: number) => num.toLocaleString('en-US');
 
+  // Performance indicator helpers
+  const getPerformanceLabel = (indicator: string) => {
+    switch (indicator) {
+      case 'excellent': return 'ممتاز';
+      case 'good': return 'جيد';
+      case 'poor': return 'ضعيف';
+      case 'very_poor': return 'ضعيف جداً';
+      default: return 'غير محدد';
+    }
+  };
+
+  const getPerformanceColor = (indicator: string) => {
+    switch (indicator) {
+      case 'excellent': return 'var(--success)';
+      case 'good': return 'var(--info)';
+      case 'poor': return 'var(--warning)';
+      case 'very_poor': return 'var(--error)';
+      default: return 'var(--text-secondary)';
+    }
+  };
+
+  // Get marker position based on performance indicator (0-100%)
+  // LTR: Red (very_poor) on left, Green (excellent) on right
+  const getMarkerPosition = (indicator: string) => {
+    switch (indicator) {
+      case 'very_poor': return 8;   // Left (red zone)
+      case 'poor': return 28;       // Orange zone
+      case 'good': return 55;       // Blue zone
+      case 'excellent': return 85;  // Right (green zone)
+      default: return 50;
+    }
+  };
+
   // Format large numbers for Y-axis (e.g., 1000 → "1k", 1500 → "1.5k")
   const formatYAxis = (value: number) => {
     if (value >= 1000) {
@@ -225,6 +258,36 @@ export default function ListingAnalyticsPage() {
           </div>
         </div>
       </div>
+
+      {/* Performance Indicator Bar (Google-style) */}
+      {listingAnalytics.performanceIndicator && (
+        <div className={styles.performanceCard}>
+          <div className={styles.performanceHeader}>
+            <TrendingUp size={20} />
+            <Text variant="h4" className={styles.performanceTitle}>مؤشر الأداء</Text>
+            <span
+              className={styles.performanceBadge}
+              style={{ backgroundColor: getPerformanceColor(listingAnalytics.performanceIndicator) }}
+            >
+              {getPerformanceLabel(listingAnalytics.performanceIndicator)}
+            </span>
+          </div>
+
+          <div className={styles.performanceBar}>
+            <div
+              className={styles.performanceMarker}
+              style={{ left: `${getMarkerPosition(listingAnalytics.performanceIndicator)}%` }}
+            />
+          </div>
+
+          <div className={styles.performanceScale}>
+            <Text variant="small" color="error">ضعيف جداً</Text>
+            <Text variant="small" color="warning">ضعيف</Text>
+            <Text variant="small" color="info">جيد</Text>
+            <Text variant="small" color="success">ممتاز</Text>
+          </div>
+        </div>
+      )}
 
       {/* Performance Comparison */}
       {listingAnalytics.comparisonText && (

@@ -171,3 +171,78 @@
   color: $primary;
   opacity: 0.3;
 }
+
+// ===================================
+// Performance Indicator (Google-style)
+// ===================================
+
+.performanceCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding: $space-lg;
+  background: $surface;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+}
+
+.performanceHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.performanceTitle {
+  margin: 0;
+}
+
+.performanceBar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: $radius-full;
+  background: linear-gradient(
+    to right,
+    $error 0%,
+    $error 15%,
+    $warning 15%,
+    $warning 40%,
+    $info 40%,
+    $info 70%,
+    $success 70%,
+    $success 100%
+  );
+  margin-top: $space-lg;
+}
+
+.performanceMarker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  background: white;
+  border: 3px solid $text;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.performanceScale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: $space-xs;
+  direction: ltr; // Force LTR so labels match bar gradient direction
+}
+
+.performanceBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: $radius-full;
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  color: white;
+  white-space: nowrap;
+}

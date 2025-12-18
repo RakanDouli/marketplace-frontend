@@ -91,11 +91,11 @@ export default function AnalyticsPage() {
     }
   };
 
-  // Performance indicator color
+  // Performance indicator color (matches detail page indicator)
   const getPerformanceColor = (indicator: string) => {
     switch (indicator) {
       case 'excellent': return 'var(--success)';
-      case 'good': return 'var(--primary)';
+      case 'good': return 'var(--info)';
       case 'poor': return 'var(--warning)';
       case 'very_poor': return 'var(--error)';
       default: return 'var(--text-secondary)';
