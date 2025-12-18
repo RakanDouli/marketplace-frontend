@@ -2,16 +2,16 @@ import { Metadata } from "next";
 
 interface CategoryLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     category: string;
-  };
+  }>;
 }
 
 // Static metadata - avoid SSR issues
 export async function generateMetadata({
   params,
 }: CategoryLayoutProps): Promise<Metadata> {
-  const categorySlug = params.category;
+  const { category: categorySlug } = await params;
   
   // Static fallback mapping for common categories
   const categoryNames: Record<string, { ar: string; en: string }> = {

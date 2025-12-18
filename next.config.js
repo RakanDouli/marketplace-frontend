@@ -6,6 +6,7 @@ const nextConfig = {
   images: {
     domains: ["localhost", "imagedelivery.net", "images.unsplash.com", "your-domain.com", "hepesfbyhjydndmihvvv.supabase.co"],
     formats: ["image/webp", "image/avif"],
+    qualities: [75, 85], // Support both default (75) and Unsplash default (85)
   },
   // Enable SCSS support
   sassOptions: {

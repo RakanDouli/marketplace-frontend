@@ -110,6 +110,10 @@
   color: $warning !important;
 }
 
+.info {
+  color: $info !important;
+}
+
 // RTL Support - Following SYR_APP pattern
 .rtl {
   %text-base,

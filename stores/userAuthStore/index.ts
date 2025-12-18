@@ -136,16 +136,50 @@ const checkSubscriptionExpiry = async (userPackage: any): Promise<void> => {
   }
 };
 
-// Reset a store on logout (helper to reduce repetition)
-const resetStoreOnLogout = async (importPath: string, resetFn: (store: any) => void): Promise<void> => {
+// Reset stores on logout - direct imports required for Next.js 16+
+const resetAllStoresOnLogout = async (): Promise<void> => {
   try {
-    const module = await import(importPath);
-    const storeName = Object.keys(module)[0];
-    const store = module[storeName];
-    resetFn(store);
-    console.log(`GraphQL Cache: ${storeName} reset on logout`);
+    // Reset chatStore
+    const { useChatStore } = await import('@/stores/chatStore');
+    useChatStore.getState().unsubscribeFromThread();
+    useChatStore.setState({
+      threads: [],
+      activeThreadId: null,
+      messages: {},
+      unreadCount: 0,
+      isLoading: false,
+      error: null,
+      blockedUserIds: new Set<string>(),
+      blockedUsers: [],
+      realtimeChannel: null,
+      typingUsers: {},
+    });
+    console.log('GraphQL Cache: chatStore reset on logout');
   } catch (error) {
-    console.warn(`Failed to reset store from ${importPath}:`, error);
+    console.warn('Failed to reset chatStore:', error);
+  }
+
+  try {
+    // Reset wishlistStore
+    const { useWishlistStore } = await import('@/stores/wishlistStore');
+    useWishlistStore.setState({
+      wishlistIds: new Set<string>(),
+      listings: [],
+      isLoading: false,
+      error: null,
+    });
+    console.log('GraphQL Cache: wishlistStore reset on logout');
+  } catch (error) {
+    console.warn('Failed to reset wishlistStore:', error);
+  }
+
+  try {
+    // Reset userListingsStore
+    const { useUserListingsStore } = await import('@/stores/userListingsStore');
+    useUserListingsStore.getState().reset();
+    console.log('GraphQL Cache: userListingsStore reset on logout');
+  } catch (error) {
+    console.warn('Failed to reset userListingsStore:', error);
   }
 };
 
@@ -443,34 +477,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
         console.log('GraphQL Cache: Cleared on logout');
 
         // Reset all user-specific stores
-        await resetStoreOnLogout('@/stores/chatStore', (chatStore) => {
-          chatStore.getState().unsubscribeFromThread();
-          chatStore.setState({
-            threads: [],
-            activeThreadId: null,
-            messages: {},
-            unreadCount: 0,
-            isLoading: false,
-            error: null,
-            blockedUserIds: new Set<string>(),
-            blockedUsers: [],
-            realtimeChannel: null,
-            typingUsers: {},
-          });
-        });
-
-        await resetStoreOnLogout('@/stores/wishlistStore', (wishlistStore) => {
-          wishlistStore.setState({
-            wishlistIds: new Set<string>(),
-            listings: [],
-            isLoading: false,
-            error: null,
-          });
-        });
-
-        await resetStoreOnLogout('@/stores/userListingsStore', (userListingsStore) => {
-          userListingsStore.getState().reset();
-        });
+        await resetAllStoresOnLogout();
 
         set({
           user: null,

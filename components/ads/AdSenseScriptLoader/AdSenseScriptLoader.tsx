@@ -46,7 +46,9 @@ export const AdSenseScriptLoader: React.FC = () => {
     };
 
     script.onerror = () => {
-      console.error('❌ AdSenseScriptLoader: Failed to load AdSense script');
+      // Use warn instead of error to avoid Next.js 16 error overlay in development
+      // This is expected to fail on localhost or with ad blockers
+      console.warn('⚠️ AdSenseScriptLoader: Failed to load AdSense script (expected on localhost or with ad blockers)');
     };
 
     document.head.appendChild(script);

@@ -1,25 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { IMapProvider, LocationData, MapConfig, Coordinates } from '../types';
 
-// Dynamically import react-leaflet to avoid SSR issues
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
+// Dynamically import the entire map component to avoid SSR issues
+// This ensures the map only renders on the client side
+const LeafletMap = dynamic(
+  () => import('./LeafletMapWrapper').then((mod) => mod.LeafletMapWrapper),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ height: '300px', width: '100%', borderRadius: '8px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span>جاري تحميل الخريطة...</span>
+      </div>
+    )
+  }
 );
 
 /**
@@ -141,39 +137,6 @@ export class OpenStreetMapProvider implements IMapProvider {
    * Render OpenStreetMap with Leaflet
    */
   renderMap(config: MapConfig): React.ReactElement {
-    // Import Leaflet CSS dynamically
-    if (typeof window !== 'undefined') {
-      // @ts-ignore - CSS import
-      import('leaflet/dist/leaflet.css');
-
-      // Fix for default marker icon in Leaflet with Next.js
-      import('leaflet').then((L) => {
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        });
-      });
-    }
-
-    return (
-      <MapContainer
-        center={[config.center.lat, config.center.lng]}
-        zoom={config.zoom}
-        style={{ height: '300px', width: '100%', borderRadius: '8px' }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {config.marker && (
-          <Marker position={[config.marker.lat, config.marker.lng]}>
-            <Popup>الموقع</Popup>
-          </Marker>
-        )}
-      </MapContainer>
-    );
+    return <LeafletMap config={config} />;
   }
 }

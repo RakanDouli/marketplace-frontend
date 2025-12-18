@@ -12,7 +12,7 @@ export type TextVariant =
   | "xs"
   | "navlink";
 
-export type TextColor = "primary" | "secondary" | "error" | "success" | "warning";
+export type TextColor = "primary" | "secondary" | "error" | "success" | "warning" | "info";
 
 export interface TextProps {
   variant?: TextVariant;

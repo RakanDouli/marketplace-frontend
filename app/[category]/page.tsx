@@ -1,12 +1,13 @@
 "use client";
 
+import { use } from "react";
 import CategoryPageClient from "./CategoryPageClient";
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
     brand?: string;
     model?: string;
@@ -15,15 +16,18 @@ interface CategoryPageProps {
     province?: string;
     city?: string;
     search?: string;
-  };
+  }>;
 }
 
 // Client-side only component using Zustand stores
 export default function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  const { category } = use(params);
+  const resolvedSearchParams = use(searchParams);
+
   return (
-    <CategoryPageClient 
-      categorySlug={params.category}
-      searchParams={searchParams}
+    <CategoryPageClient
+      categorySlug={category}
+      searchParams={resolvedSearchParams}
     />
   );
 }
