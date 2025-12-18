@@ -24,15 +24,20 @@ export const FeatureList: React.FC<FeatureListProps> = ({ features }) => {
           key={index}
           className={`${styles.item} ${!feature.included ? styles.notIncluded : ''}`}
         >
-          <div className={styles.iconWrapper}>
-            {feature.icon || (
-              feature.included ? (
-                <Check size={16} className={styles.check} />
-              ) : (
-                <X size={16} className={styles.x} />
-              )
+          {/* Status indicator (check/x) - always shown */}
+          <div className={styles.statusIcon}>
+            {feature.included ? (
+              <Check size={16} className={styles.check} />
+            ) : (
+              <X size={16} className={styles.x} />
             )}
           </div>
+          {/* Feature icon (optional) */}
+          {feature.icon && (
+            <div className={styles.featureIcon}>
+              {feature.icon}
+            </div>
+          )}
           <div className={styles.content}>
             <Text variant="paragraph">{feature.label}</Text>
             {feature.value && (

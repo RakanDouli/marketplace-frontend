@@ -7,7 +7,6 @@ import { Container, Aside, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { WarningBanner } from '@/components/WarningBanner';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { AccountType } from '@/common/enums';
 import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown, Heart, Ban } from 'lucide-react';
 import styles from './Dashboard.module.scss';
 
@@ -17,7 +16,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, logout } = useUserAuthStore();
+  const { user, userPackage, logout } = useUserAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hydrated, setHydrated] = useState(false);
 
@@ -70,8 +69,8 @@ export default function DashboardLayout({
       label: 'الاشتراك',
       href: '/dashboard/subscription',
     },
-    // Analytics only for dealers and business accounts
-    ...((user?.accountType === AccountType.DEALER || user?.accountType === AccountType.BUSINESS)
+    // Analytics - based on subscription plan's analyticsAccess
+    ...(userPackage?.userSubscription?.analyticsAccess
       ? [
         {
           icon: <BarChart3 size={20} />,

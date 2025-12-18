@@ -8,19 +8,24 @@
 
 .item {
   display: flex;
-  gap: $space-sm;
+  gap: $space-xs;
   align-items: flex-start;
   transition: opacity 0.2s ease;
 
   &.notIncluded {
     opacity: 0.5;
+
+    .featureIcon {
+      color: $text-secondary;
+    }
   }
 }
 
-.iconWrapper {
+// Status icon (check/x) - always first
+.statusIcon {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,8 +36,20 @@
   }
 
   .x {
-    color: $text-secondary;
+    color: $error;
   }
+}
+
+// Feature icon (optional) - after status
+.featureIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  color: $text-secondary;
 }
 
 .content {
