@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck, Star } from 'lucide-react';
+import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck, Star, Container } from 'lucide-react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
@@ -19,6 +19,7 @@ import { MessageStatus } from '@/common/enums';
 import type { Listing } from '@/stores/types';
 import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
+import { AdContainer } from '@/components/ads';
 
 interface ThreadWithListing {
   id: string;
@@ -518,7 +519,7 @@ export const MessagesClient: React.FC = () => {
                   {listing && (
                     <div className={styles.listingInfo}>
                       {thumbnailUrl && (
-                        <Link href={`/listings/${listing.id}`} className={styles.listingImage}>
+                        <Link href={`/${listing.category?.slug || 'car'}/${listing.id}`} className={styles.listingImage}>
                           <Image
                             src={thumbnailUrl}
                             alt={listing.title}
@@ -527,7 +528,7 @@ export const MessagesClient: React.FC = () => {
                         </Link>
                       )}
                       <div className={styles.listingDetails}>
-                        <Link href={`/listing/${listing.id}`} className={styles.listingTitleLink}>
+                        <Link href={`/${listing.category?.slug || 'car'}/${listing.id}`} className={styles.listingTitleLink}>
                           <Text variant="paragraph" className={styles.listingTitle}>
                             {listing.title}
                           </Text>

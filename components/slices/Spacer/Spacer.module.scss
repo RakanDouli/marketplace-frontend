@@ -4,7 +4,8 @@
   // Height = header + preheader (when both visible at top)
   height: calc(#{$header-height} + #{$pre-header-height});
 
+  // Hide on mobile - no fixed header, using BottomNav instead
   @media (max-width: $breakpoint-md) {
-    height: calc(#{$header-height-mobile} + #{$pre-header-height});
+    display: none;
   }
 }

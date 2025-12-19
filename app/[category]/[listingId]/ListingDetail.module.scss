@@ -9,16 +9,15 @@
   }
 }
 
-// Breadcrumbs Container
+// Breadcrumbs Container (hidden on mobile - use MobileBackButton instead)
 .breadcrumbsContainer {
   display: flex;
   align-items: center;
   gap: $space-md;
   margin-bottom: $space-md;
+
   @media (max-width: $breakpoint-md) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $space-sm;
+    display: none;
   }
 }
 

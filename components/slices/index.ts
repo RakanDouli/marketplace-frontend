@@ -54,3 +54,5 @@ export { Slider } from "./Slider";
 export { TextSection } from "./TextSection/TextSection";
 export type { TextSectionProps } from "./TextSection/TextSection";
 export { FxRateTicker } from "./FxRateTicker";
+export { MobileBackButton } from "./MobileBackButton";
+export type { MobileBackButtonProps } from "./MobileBackButton";

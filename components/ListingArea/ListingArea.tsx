@@ -338,6 +338,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                   viewMode={viewMode}
                   onClick={handleCardClick}
                   priority={index < 4}
+                  categorySlug={categorySlug}
                 />
                 {shouldShowAd && (
                   <div className={styles.adSlot} style={{ gridColumn: viewMode === 'grid' ? '1 / -1' : 'auto' }}>

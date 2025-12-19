@@ -1,0 +1,273 @@
+// Bottom Navigation - Mobile App Style
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: $surface;
+  border-top: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: $z-nav;
+  padding-bottom: env(safe-area-inset-bottom, 0); // iOS safe area
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // Hide on desktop
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+
+  // Hidden state (scrolling down)
+  &.hidden {
+    transform: translateY(100%);
+  }
+
+  // Visible state (scrolling up or at top)
+  &.visible {
+    transform: translateY(0);
+  }
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+  padding: $space-sm $space-md;
+  color: $text-secondary;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    transform 0.15s ease;
+  min-width: 60px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: $radius-lg;
+  position: relative;
+
+  &:hover,
+  &:focus {
+    color: $primary;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.active {
+    color: $primary;
+
+    .iconWrapper {
+      background: $primary;
+      color: $text-light;
+      border-radius: $radius-full;
+      padding: $space-sm;
+    }
+
+    .label {
+      opacity: 0;
+      visibility: hidden;
+      height: 0;
+      margin: 0;
+    }
+  }
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    padding 0.2s ease;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: $error;
+  color: white;
+  font-size: $font-xs;
+  font-weight: $weight-bold;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: $weight-medium;
+  opacity: 1;
+  visibility: visible;
+  height: auto;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    height 0.2s ease;
+}
+
+// Menu Button
+.menuButton {
+  // Same as navItem
+}
+
+// Menu Overlay
+.menuOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: $z-modal;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease;
+
+  // Hide on desktop
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+.menuPanel {
+  width: 100%;
+  background: $surface;
+  border-radius: $radius-xl $radius-xl 0 0;
+  padding: $space-md;
+  padding-bottom: calc($space-md + env(safe-area-inset-bottom, 0) + 64px); // Account for bottom nav
+  animation: slideUp 0.3s ease;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.menuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border;
+  margin-bottom: $space-md;
+
+  span {
+    font-size: $font-lg;
+    font-weight: $weight-semibold;
+    color: $text;
+  }
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: $space-sm;
+  color: $text-secondary;
+  cursor: pointer;
+  border-radius: $radius-md;
+
+  &:hover {
+    background: $bg;
+    color: $text;
+  }
+}
+
+.menuItems {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-md;
+  color: $text;
+  text-decoration: none;
+  border-radius: $radius-md;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: $bg;
+  }
+
+  svg {
+    color: $primary;
+  }
+
+  span {
+    font-size: $font-base;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: $border;
+  margin: $space-md 0;
+}
+
+.settingsSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm 0;
+}
+
+.settingsLabel {
+  font-size: $font-sm;
+  color: $text-secondary;
+}
+
+.currencyButtons {
+  display: flex;
+  gap: $space-xs;
+}
+
+.currencyButton {
+  padding: $space-xs $space-sm;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  font-size: $font-xs;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+
+  &.activeCurrency {
+    background: $primary;
+    border-color: $primary;
+    color: $text-light;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

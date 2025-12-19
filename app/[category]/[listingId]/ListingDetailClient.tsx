@@ -7,7 +7,7 @@ import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, Container, Collapsible } from '@/components/slices';
+import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton } from '@/components/slices';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { LocationMap } from '@/components/LocationMap';
 import { BiddingSection } from '@/components/BiddingSection';
@@ -21,9 +21,10 @@ import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
   listingId: string;
+  categorySlug: string;
 }
 
-export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listingId }) => {
+export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listingId, categorySlug }) => {
   const router = useRouter();
   const { currentListing, isLoading, error, fetchListingById } = useListingsStore();
   const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
@@ -38,11 +39,11 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   // Fetch attributes when listing is loaded (uses filtersStore cache)
   useEffect(() => {
-    const categorySlug = currentListing?.category?.slug;
-    if (categorySlug) {
-      fetchFilterData(categorySlug);
+    const catSlug = currentListing?.category?.slug || categorySlug;
+    if (catSlug) {
+      fetchFilterData(catSlug);
     }
-  }, [currentListing?.category?.slug, fetchFilterData]);
+  }, [currentListing?.category?.slug, categorySlug, fetchFilterData]);
 
   // Track listing view when listing is loaded
   useEffect(() => {
@@ -51,8 +52,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     }
   }, [currentListing?.id]);
 
-  // DEBUG: Log current listing (uncomment when debugging)
-  // console.log('currentListing:', currentListing);
+  // Back button handler - navigates to parent category
+  const handleBack = () => {
+    router.push(`/${categorySlug}`);
+  };
 
   // Separate grouped and ungrouped specifications
   const { groupedSpecs, ungroupedSpecs } = useMemo(() => {
@@ -136,7 +139,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   }
 
   if (error) {
-    // Error handled by UI - no console logging needed
     return (
       <Container>
         <div className={styles.errorContainer}>
@@ -145,8 +147,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             عذراً، لم نتمكن من العثور على الإعلان الذي تبحث عنه. قد يكون قد تم حذفه أو أن الرابط غير صحيح.
           </Text>
           <div className={styles.errorActions}>
-            <Button onClick={() => router.back()} variant="secondary">
-              العودة للصفحة السابقة
+            <Button onClick={handleBack} variant="secondary">
+              العودة للقائمة
             </Button>
             <Button onClick={() => router.push('/')} variant="primary">
               العودة للرئيسية
@@ -158,7 +160,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   }
 
   if (!currentListing) {
-    // Listing not found - UI handles this case
     return (
       <Container>
         <div className={styles.errorContainer}>
@@ -167,8 +168,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
             عذراً، لم نتمكن من العثور على الإعلان الذي تبحث عنه. قد يكون قد تم حذفه أو أن الرابط غير صحيح.
           </Text>
           <div className={styles.errorActions}>
-            <Button onClick={() => router.back()} variant="secondary">
-              العودة للصفحة السابقة
+            <Button onClick={handleBack} variant="secondary">
+              العودة للقائمة
             </Button>
             <Button onClick={() => router.push('/')} variant="primary">
               العودة للرئيسية
@@ -181,12 +182,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   const listing = currentListing;
 
-  // DEBUG: Log location data (uncomment when debugging location issues)
-  // console.log('🔍 Listing Location Debug:', {
-  //   location: listing.location, province: listing.location?.province,
-  //   city: listing.location?.city, viewCount: listing.viewCount
-  // });
-
   const hasLocation = listing.location && (
     listing.location.city ||
     listing.location.province ||
@@ -194,13 +189,16 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   );
 
   return (
-    <Container>
+    <>
+      {/* Mobile Back Button Header - Outside Container for full-width sticky */}
+      <MobileBackButton onClick={handleBack} title={listing.title} />
+
+      <Container>
       {/* Top Banner Ad (below gallery) */}
       <AdContainer placement="detail_top" />
       <div className={styles.listingDetail}>
-        {/* Breadcrumbs with Back Button */}
+        {/* Breadcrumbs with Back Button (desktop only) */}
         <div className={styles.breadcrumbsContainer}>
-
           <nav className={styles.breadcrumbs}>
             <Link href="/">الرئيسية</Link>
             <ChevronLeft size={16} />
@@ -214,11 +212,11 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
           </nav>
           <Button
             variant="link"
-            onClick={() => router.back()}
+            onClick={handleBack}
             className={styles.backButton}
-          >  العودة
+          >
+            العودة
             <ChevronLeft />
-
           </Button>
         </div>
 
@@ -248,19 +246,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               {listing.title}
             </Text>
 
-            {/* Key specs chips */}
-            {/* {listing.specsDisplay && (
-            <div className={styles.keySpecs}>
-              {Object.entries(listing.specsDisplay)
-                .slice(0, 3)
-                .map(([key, value]: [string, any]) => (
-                  <span key={key} className={styles.chip}>
-                    {typeof value === 'object' ? value.value : value}
-                  </span>
-                ))}
-            </div>
-          )} */}
-
             {/* Ungrouped Specifications - Individual Fields */}
             {!attributesLoading && ungroupedSpecs.length > 0 && (
               <div className={styles.section}>
@@ -274,7 +259,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                 </div>
               </div>
             )}
-            {/* sss */}
+
             {/* Dynamically Grouped Specifications */}
             {!attributesLoading && sortedGroups.length > 0 && (
               <>
@@ -296,7 +281,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
                 ))}
               </>
             )}
-            {/* ww */}
 
             {/* Ad before description */}
             <AdContainer placement="detail_before_description" />
@@ -375,6 +359,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
           sellerId={currentListing.user?.id || ''}
         />
       )}
-    </Container>
+      </Container>
+    </>
   );
 };

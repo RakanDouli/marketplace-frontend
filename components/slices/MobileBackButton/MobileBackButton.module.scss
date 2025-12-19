@@ -1,0 +1,62 @@
+// Mobile Header - Reusable component
+// Shows back button + optional title
+// Only visible on mobile
+
+.mobileHeader {
+  display: flex;
+  flex-direction: column;
+  background: $primary;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: $z-nav;
+
+  // Hide on desktop
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+// Header bar with back button and title
+.headerBar {
+  display: flex;
+  flex-direction: row-reverse; // In RTL, this puts back button on LEFT side
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-md;
+  min-height: 56px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: $radius-full;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover,
+  &:focus {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.title {
+  flex: 1;
+  font-size: $font-lg;
+  font-weight: $weight-semibold;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

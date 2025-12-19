@@ -339,7 +339,7 @@ export const ListingsPanel: React.FC = () => {
                 {/* Listing Card */}
                 <ListingCard
                   {...getListingCardProps(listing)}
-                  onClick={() => router.push(`/listing/${listing.id}`)}
+                  onClick={() => router.push(`/${listing.category?.slug || 'car'}/${listing.id}`)}
                 />
 
                 {/* Draft/Rejected Message - Show when status is DRAFT or REJECTED */}

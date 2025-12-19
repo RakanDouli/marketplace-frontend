@@ -1,11 +1,12 @@
 import { ArchivedListingDetailClient } from './ArchivedListingDetailClient';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function ArchivedListingPage({ params }: PageProps) {
-  return <ArchivedListingDetailClient listingId={params.id} />;
+export default async function ArchivedListingPage({ params }: PageProps) {
+  const { id } = await params;
+  return <ArchivedListingDetailClient listingId={id} />;
 }

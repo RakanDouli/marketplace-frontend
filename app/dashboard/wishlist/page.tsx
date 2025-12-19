@@ -16,10 +16,6 @@ export default function WishlistPage() {
     loadMyWishlist();
   }, [loadMyWishlist]);
 
-  const handleViewListing = (id: string) => {
-    router.push(`/listing/${id}`);
-  };
-
   return (
     <Container>
       <div className={styles.wishlistPage}>
@@ -90,7 +86,7 @@ export default function WishlistPage() {
                 location={listing.category?.nameAr || ''}
                 accountType={(listing.user?.accountType as 'individual' | 'dealer' | 'business') || 'individual'}
                 images={listing.imageKeys}
-                onClick={handleViewListing}
+                categorySlug={listing.category?.slug}
                 specs={{}}
                 viewMode="grid"
               />

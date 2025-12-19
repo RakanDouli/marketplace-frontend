@@ -8,6 +8,7 @@ const CATEGORIES_QUERY = `
     categories {
       id
       name
+      nameAr
       slug
       isActive
     }
@@ -112,7 +113,7 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
         (cat: any) => ({
           id: cat.id,
           name: cat.name,
-          nameAr: cat.name, // Backend should provide Arabic version
+          nameAr: cat.nameAr || cat.name, // Use Arabic name from backend
           slug: cat.slug,
           isActive: cat.isActive,
         })

@@ -21,7 +21,8 @@ export interface ListingCardProps {
   className?: string;
   priority?: boolean; // For LCP optimization
   isLoading?: boolean; // Skeleton loading state
-  userId?: string; // NEW: ID of the user who owns the listing
+  userId?: string; // ID of the user who owns the listing
+  categorySlug?: string; // Category slug for URL structure /{category}/{id}
   // Deprecated: isLiked and onLike - now using wishlist store directly
 }
 
@@ -41,7 +42,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   priority = false,
   isLoading = false,
   userId,
+  categorySlug,
 }) => {
+  // Build listing URL - use category-based URL (fallback to 'car' if no category)
+  const listingUrl = `/${categorySlug || 'car'}/${id}`;
   const handleCardClick = () => {
     onClick?.(id);
   };
@@ -74,7 +78,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           ${className}
         `.trim()}
       onClick={handleCardClick}
-    >    <Link href={`/listing/${id}`} className={styles.cardLink}>
+    >    <Link href={listingUrl} className={styles.cardLink}>
         {/* Image Gallery Section */}
         <div className={styles.imageContainer}>
           <ImageGallery
@@ -117,7 +121,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                     metadata={{
                       title: title,
                       description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
-                      url: typeof window !== 'undefined' ? `${window.location.origin}/listing/${id}` : '',
+                      url: typeof window !== 'undefined' ? `${window.location.origin}${listingUrl}` : '',
                       image: images?.[0],
                       siteName: 'السوق السوري للسيارات',
                       type: 'product',

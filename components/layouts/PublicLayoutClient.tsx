@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import Header from "../Header/Header";
+import { BottomNav } from '../BottomNav';
 import { NotificationToast } from '../slices';
 import { AuthModal } from '../AuthModal';
 import { ForceModal } from '../ForceModal';
@@ -11,6 +12,7 @@ import { useForceModalStore } from '@/stores/forceModalStore';
 import React from 'react';
 import { ReactivateContent } from '../ForceModal/contents';
 import { UserStatus } from '@/common/enums';
+import styles from './PublicLayoutClient.module.scss';
 
 interface PublicLayoutClientProps {
   children: React.ReactNode;
@@ -38,13 +40,13 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
   }
 
   return (
-    <div>
+    <div className={styles.layout}>
       <Header />
       <NotificationToast />
       <AuthModal />
       <ForceModal />
-      <main>{children}</main>
-      {/* Footer will be added later */}
+      <main className={styles.main}>{children}</main>
+      <BottomNav />
     </div>
   );
 }

@@ -1,0 +1,17 @@
+// Bottom nav height (64px + safe area)
+$bottom-nav-height: 64px;
+
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+
+  // Add bottom padding on mobile to account for BottomNav
+  @media (max-width: $breakpoint-md) {
+    padding-bottom: calc($bottom-nav-height + env(safe-area-inset-bottom, 0));
+  }
+}

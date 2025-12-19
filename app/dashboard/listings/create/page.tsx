@@ -54,7 +54,7 @@ export default function CreateListingPage() {
     <Container className={styles.container}>
       <div className={styles.categorySelectionPage}>
         <div className={styles.header}>
-          <Text variant="h1">إنشاء إعلان جديد</Text>
+          <Text variant="h2">إنشاء إعلان جديد</Text>
           <Text variant="paragraph" className={styles.subtitle}>
             ما الذي تريد بيعه؟
           </Text>

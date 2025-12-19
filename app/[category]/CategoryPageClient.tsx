@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { notFound } from "next/navigation";
+import React, { useEffect, useState, useRef } from "react";
+import { notFound, useRouter } from "next/navigation";
 import Container from "../../components/slices/Container/Container";
 import Filter from "../../components/Filter/Filter";
 import ListingArea from "../../components/ListingArea/ListingArea";
 import { Loading } from "../../components/slices/Loading/Loading";
+import { MobileBackButton } from "../../components/slices";
 import {
   useCategoriesStore,
   useFiltersStore,
 } from "../../stores";
-import type { Category } from "../../stores/types";
+import type { Category } from "../../types/listing";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
@@ -31,9 +32,11 @@ export default function CategoryPageClient({
   categorySlug,
   searchParams,
 }: CategoryPageClientProps) {
+  const router = useRouter();
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
+  const initializedRef = useRef(false);
 
   // Store hooks - minimal usage, let components handle their own store coordination
   const {
@@ -44,10 +47,15 @@ export default function CategoryPageClient({
     setSelectedCategory,
   } = useCategoriesStore();
 
-  const { fetchFilterData, setFilters } = useFiltersStore();
+  const { fetchFilterData } = useFiltersStore();
 
   // Simple category initialization - let stores handle the rest
   useEffect(() => {
+    // Prevent re-initialization on function reference changes
+    if (initializedRef.current && currentCategory) {
+      return;
+    }
+
     const initializePage = async () => {
       // Ensure categories are loaded
       if (categories.length === 0 && !categoriesLoading) {
@@ -80,10 +88,12 @@ export default function CategoryPageClient({
       fetchFilterData(categorySlug);
 
       setIsCategoryLoading(false);
+      initializedRef.current = true;
     };
 
     initializePage();
-  }, [categorySlug, categories.length, categoriesLoading, getCategoryBySlug, setSelectedCategory, fetchFilterData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categorySlug, categories.length, categoriesLoading]);
 
 
   // Check for 404
@@ -106,20 +116,30 @@ export default function CategoryPageClient({
     return null;
   }
 
-  return (
-    <Container className={styles.categoryPage}>
-      {/* Main Content */}
-      <div className={styles.content}>
-        {/* Filters Sidebar */}
-        <div className={styles.filtersSection}>
-          <Filter />
-        </div>
+  // Handle back navigation
+  const handleBack = () => {
+    router.push('/');
+  };
 
-        {/* Listings Area */}
-        <div className={styles.listingsSection}>
-          <ListingArea />
+  return (
+    <>
+      {/* Mobile Header - only visible on mobile */}
+      <MobileBackButton onClick={handleBack} title={currentCategory.nameAr} />
+
+      <Container className={styles.categoryPage}>
+        {/* Main Content */}
+        <div className={styles.content}>
+          {/* Filters Sidebar */}
+          <div className={styles.filtersSection}>
+            <Filter />
+          </div>
+
+          {/* Listings Area */}
+          <div className={styles.listingsSection}>
+            <ListingArea />
+          </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </>
   );
 }
