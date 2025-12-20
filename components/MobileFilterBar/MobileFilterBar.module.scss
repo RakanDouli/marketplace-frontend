@@ -98,8 +98,8 @@
   font-weight: 600;
 }
 
-// Chips Container - Horizontal scroll
-.chipsContainer {
+// Filters List - Horizontal scroll
+.filtersList {
   display: flex;
   gap: $space-xs;
   overflow-x: auto;
@@ -114,8 +114,8 @@
   }
 }
 
-// Filter Chip
-.chip {
+// Filter Tag
+.filterTag {
   display: flex;
   align-items: center;
   gap: $space-xs;
@@ -127,13 +127,13 @@
   flex-shrink: 0;
 }
 
-.chipText {
+.filterValue {
   color: $text;
   margin: 0;
   font-size: $font-xl;
 }
 
-.chipRemove {
+.removeButton {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -265,17 +265,17 @@ export const MobileFilterBar: React.FC<MobileFilterBarProps> = ({
           )}
         </button>
 
-        {/* Applied Filters Chips - Horizontal Scroll */}
+        {/* Applied Filters - Horizontal Scroll */}
         {activeFilters.length > 0 && (
-          <div ref={chipsContainerRef} className={styles.chipsContainer}>
+          <div ref={chipsContainerRef} className={styles.filtersList}>
             {activeFilters.map((filter) => (
-              <div key={filter.key} className={styles.chip}>
-                <Text variant="small" className={styles.chipText}>
+              <div key={filter.key} className={styles.filterTag}>
+                <Text variant="small" className={styles.filterValue}>
                   {filter.value}
                 </Text>
                 <button
                   type="button"
-                  className={styles.chipRemove}
+                  className={styles.removeButton}
                   onClick={() => handleRemoveFilter(filter.key)}
                   aria-label={t('search.removeFilter')}
                 >
