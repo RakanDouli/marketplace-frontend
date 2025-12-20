@@ -7,16 +7,20 @@ import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton } from '@/components/slices';
+import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton } from '@/components/slices';
 import { ChevronLeft, Eye } from 'lucide-react';
+import { formatPrice } from '@/utils/formatPrice';
+import { formatDate } from '@/utils/formatDate';
 import { LocationMap } from '@/components/LocationMap';
 import { BiddingSection } from '@/components/BiddingSection';
 
 import { AdContainer } from '@/components/ads';
 import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
 import { ListingInfoCard } from '@/components/listing/ListingInfoCard';
+import { ListingActionBar } from '@/components/listing/ListingActionBar';
 import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
+import { useUserAuthStore } from '@/stores/userAuthStore';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -28,6 +32,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   const router = useRouter();
   const { currentListing, isLoading, error, fetchListingById } = useListingsStore();
   const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
+  const { user: currentUser } = useUserAuthStore();
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
@@ -190,175 +195,224 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   return (
     <>
-      {/* Mobile Back Button Header - Outside Container for full-width sticky */}
+      {/* Mobile Back Button Header - Fixed position, hides on scroll down */}
       <MobileBackButton onClick={handleBack} title={listing.title} />
+      {/* Spacer for fixed header (mobile only) */}
+      <div className={styles.mobileHeaderSpacer} />
 
       <Container>
-      {/* Top Banner Ad (below gallery) */}
-      <AdContainer placement="detail_top" />
-      <div className={styles.listingDetail}>
-        {/* Breadcrumbs with Back Button (desktop only) */}
-        <div className={styles.breadcrumbsContainer}>
-          <nav className={styles.breadcrumbs}>
-            <Link href="/">الرئيسية</Link>
-            <ChevronLeft size={16} />
-            {listing.category && (
-              <>
-                <Link href={`/${listing.category.slug}`}>{listing.category.name}</Link>
-                <ChevronLeft size={16} />
-              </>
-            )}
-            <span>{listing.title}</span>
-          </nav>
-          <Button
-            variant="link"
-            onClick={handleBack}
-            className={styles.backButton}
-          >
-            العودة
-            <ChevronLeft />
-          </Button>
-        </div>
+        {/* Top Banner Ad (below gallery) */}
+        <AdContainer placement="detail_top" />
+        <div className={styles.listingDetail}>
+          {/* Breadcrumbs with Back Button (desktop only) */}
+          <div className={styles.breadcrumbsContainer}>
+            <nav className={styles.breadcrumbs}>
+              <Link href="/">الرئيسية</Link>
+              <ChevronLeft size={16} />
+              {listing.category && (
+                <>
+                  <Link href={`/${listing.category.slug}`}>{listing.category.name}</Link>
+                  <ChevronLeft size={16} />
+                </>
+              )}
+              <span>{listing.title}</span>
+            </nav>
+            <Button
+              variant="link"
+              onClick={handleBack}
+              className={styles.backButton}
+            >
+              العودة
+              <ChevronLeft />
+            </Button>
+          </div>
 
 
-        <div className={styles.layout}>
-          {/* Left side - Gallery and Details */}
-          <div className={styles.mainContent}>
-            {/* Image Gallery */}
-            <ImageGallery
-              images={listing.imageKeys || []}
-              alt={listing.title}
-              viewMode="large"
-              aspectRatio="4 / 3"
-              priority
-            />
+          <div className={styles.layout}>
+            {/* Main Content - Gallery + Details */}
+            <div className={styles.mainContent}>
+              {/* Gallery */}
+              <ImageGallery
+                images={listing.imageKeys || []}
+                alt={listing.title}
+                viewMode="large"
+                aspectRatio="4 / 3"
+                priority
+                enablePreview
+              />
+              {/* View Count */}
+              {listing.viewCount !== undefined && (
+                <div className={styles.viewCount}>
+                  <Eye size={16} />
+                  <Text variant="small">{listing.viewCount} مشاهدة</Text>
+                </div>
+              )}
+              {/* Mobile Info Card - Only visible on mobile, under gallery */}
+              <div className={styles.mobileInfoCard}>
+                <div className={styles.mobileCardHeader}>
+                  <div className={styles.mobileActions}>
+                    <ShareButton
+                      metadata={{
+                        title: listing.title,
+                        description: listing.description || '',
+                        url: typeof window !== 'undefined' ? window.location.href : '',
+                        image: listing.imageKeys?.[0],
+                        siteName: 'السوق السوري للسيارات',
+                        type: 'product',
+                        price: listing.priceMinor?.toString(),
+                        currency: 'USD',
+                      }}
+                    />
+                    <FavoriteButton
+                      listingId={listing.id}
+                      listingUserId={listing.user?.id}
+                    />
+                  </div>
+                  <Text variant="h2" className={styles.mobileTitle}>{listing.title}</Text>
 
-            {/* View Count */}
-            {listing.viewCount !== undefined && (
-              <div className={styles.viewCount}>
-                <Eye size={16} />
-                <Text variant="small">{listing.viewCount} مشاهدة</Text>
-              </div>
-            )}
-
-            {/* Title */}
-            <Text variant="h2" className={styles.title}>
-              {listing.title}
-            </Text>
-
-            {/* Ungrouped Specifications - Individual Fields */}
-            {!attributesLoading && ungroupedSpecs.length > 0 && (
-              <div className={styles.section}>
-                <div className={styles.specsList}>
-                  {ungroupedSpecs.map((spec) => (
-                    <div key={spec.key} className={styles.specRow}>
-                      <span className={styles.specLabel}>{spec.label}</span>
-                      <span className={styles.specValue}>{spec.value}</span>
-                    </div>
-                  ))}
+                </div>
+                <Text variant="h3" className={styles.mobilePrice}>
+                  {listing.priceMinor ? formatPrice(listing.priceMinor) : 'السعر غير محدد'}
+                </Text>
+                <div className={styles.mobileMeta}>
+                  {listing.createdAt && (
+                    <span>{formatDate(listing.createdAt)}</span>
+                  )}
+                  {listing.viewCount !== undefined && (
+                    <span>{listing.viewCount} مشاهدة</span>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Dynamically Grouped Specifications */}
-            {!attributesLoading && sortedGroups.length > 0 && (
-              <>
-                {sortedGroups.map(([groupName, groupData]) => (
-                  <Collapsible
-                    key={groupName}
-                    title={groupName}
-                    className={styles.specGroup}
-                  >
-                    <div className={styles.specsList}>
-                      {groupData.specs.map((spec) => (
-                        <div key={spec.key} className={styles.specRow}>
-                          <span className={styles.specLabel}>{spec.label}</span>
-                          <span className={styles.specValue}>{spec.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </Collapsible>
-                ))}
-              </>
-            )}
+              {/* Title - Hidden on mobile (shown in mobileInfoCard) */}
+              <Text variant="h2" className={styles.title}>
+                {listing.title}
+              </Text>
 
-            {/* Ad before description */}
-            <AdContainer placement="detail_before_description" />
+              {/* Ungrouped Specifications - Individual Fields */}
+              {!attributesLoading && ungroupedSpecs.length > 0 && (
+                <div className={styles.section}>
+                  <div className={styles.specsList}>
+                    {ungroupedSpecs.map((spec) => (
+                      <div key={spec.key} className={styles.specRow}>
+                        <span className={styles.specLabel}>{spec.label}</span>
+                        <span className={styles.specValue}>{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {/* Description - Moved after attributes */}
-            {listing.description && (
+              {/* Dynamically Grouped Specifications */}
+              {!attributesLoading && sortedGroups.length > 0 && (
+                <>
+                  {sortedGroups.map(([groupName, groupData]) => (
+                    <Collapsible
+                      key={groupName}
+                      title={groupName}
+                      className={styles.specGroup}
+                    >
+                      <div className={styles.specsList}>
+                        {groupData.specs.map((spec) => (
+                          <div key={spec.key} className={styles.specRow}>
+                            <span className={styles.specLabel}>{spec.label}</span>
+                            <span className={styles.specValue}>{spec.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </Collapsible>
+                  ))}
+                </>
+              )}
+
+              {/* Ad before description */}
+              <AdContainer placement="detail_before_description" />
+
+              {/* Description - Moved after attributes */}
+              {listing.description && (
+                <div className={styles.section}>
+                  <Text variant="h3" className={styles.sectionTitle}>الوصف</Text>
+                  <Text variant="paragraph">{listing.description}</Text>
+                </div>
+              )}
+
+              {/* Loading attributes */}
+              {attributesLoading && (
+                <div className={styles.section}>
+                  <Loading type="svg" />
+                </div>
+              )}
+
+              {/* Location with Map */}
+              {hasLocation && listing.location && (
+                <div className={styles.section}>
+                  <Text variant="h3" className={styles.sectionTitle}>الموقع</Text>
+                  <LocationMap location={listing.location} />
+                </div>
+              )}
+
+              {/* Owner Info Section */}
               <div className={styles.section}>
-                <Text variant="h3" className={styles.sectionTitle}>الوصف</Text>
-                <Text variant="paragraph">{listing.description}</Text>
+                <OwnerInfoSection
+                  userId={listing.user?.id || ''}
+                  listingId={listing.id}
+                />
               </div>
-            )}
 
-            {/* Loading attributes */}
-            {attributesLoading && (
-              <div className={styles.section}>
-                <Loading type="svg" />
-              </div>
-            )}
-
-            {/* Location with Map */}
-            {hasLocation && listing.location && (
-              <div className={styles.section}>
-                <Text variant="h3" className={styles.sectionTitle}>الموقع</Text>
-                <LocationMap location={listing.location} />
-              </div>
-            )}
-
-            {/* Owner Info Section */}
-            <div className={styles.section}>
-              <OwnerInfoSection
-                userId={listing.user?.id || ''}
-                listingId={listing.id}
+              {/* Report Listing Button */}
+              <ReportButton
+                entityType="listing"
+                entityId={listing.id}
+                entityTitle={listing.title}
+                reportedUserId={listing.user?.id || ''}
+                reportedUserName={listing.user?.name || 'غير محدد'}
+                ownerId={listing.user?.id}
               />
             </div>
 
-            {/* Report Listing Button */}
-            <ReportButton
-              entityType="listing"
-              entityId={listing.id}
-              entityTitle={listing.title}
-              reportedUserId={listing.user?.id || ''}
-              reportedUserName={listing.user?.name || 'غير محدد'}
-              ownerId={listing.user?.id}
-            />
+            {/* Right side - Seller Card (Sticky) */}
+            <aside className={styles.sidebar}>
+              <div className={styles.infoCardWrapper}>
+                <ListingInfoCard
+                  onContactClick={() => setIsContactModalOpen(true)}
+                />
+              </div>
+              {/* Bidding Section */}
+              {listing.allowBidding && (
+                <BiddingSection
+                  listingId={listing.id}
+                  listingOwnerId={listing.user?.id || ''}
+                  allowBidding={listing.allowBidding}
+                  biddingStartPrice={listing.biddingStartPrice || null}
+                />
+              )}
+            </aside>
           </div>
 
-          {/* Right side - Seller Card (Sticky) */}
-          <aside className={styles.sidebar}>
-            <ListingInfoCard
-              onContactClick={() => setIsContactModalOpen(true)}
-            />
-            {/* Bidding Section */}
-            {listing.allowBidding && (
-              <BiddingSection
-                listingId={listing.id}
-                listingOwnerId={listing.user?.id || ''}
-                allowBidding={listing.allowBidding}
-                biddingStartPrice={listing.biddingStartPrice || null}
-              />
-            )}
-          </aside>
         </div>
 
-      </div>
+        {/* Bottom Ad */}
+        <AdContainer placement="detail_bottom" />
 
-      {/* Bottom Ad */}
-      <AdContainer placement="detail_bottom" />
+        {/* Contact Seller Modal */}
+        {currentListing && (
+          <ContactSellerModal
+            isVisible={isContactModalOpen}
+            onClose={() => setIsContactModalOpen(false)}
+            listingId={currentListing.id}
+            listingTitle={currentListing.title}
+            sellerId={currentListing.user?.id || ''}
+          />
+        )}
 
-      {/* Contact Seller Modal */}
-      {currentListing && (
-        <ContactSellerModal
-          isVisible={isContactModalOpen}
-          onClose={() => setIsContactModalOpen(false)}
-          listingId={currentListing.id}
-          listingTitle={currentListing.title}
-          sellerId={currentListing.user?.id || ''}
-        />
-      )}
+        {/* Mobile Action Bar - Above BottomNav */}
+        {currentListing && (
+          <ListingActionBar
+            phone={currentListing.user?.phone || currentListing.user?.contactPhone}
+            onMessageClick={() => setIsContactModalOpen(true)}
+            isOwnListing={currentUser?.id === currentListing.user?.id}
+          />
+        )}
       </Container>
     </>
   );

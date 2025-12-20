@@ -2,8 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, User } from "lucide-react";
-import { ImageGallery, Text, ShareButton, FavoriteButton } from "../";
+import { Text, ShareButton, FavoriteButton } from "../";
+import { optimizeListingImage } from "@/utils/cloudflare-images";
 import styles from "./ListingCard.module.scss";
 
 export interface ListingCardProps {
@@ -79,22 +81,35 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         `.trim()}
       onClick={handleCardClick}
     >    <Link href={listingUrl} className={styles.cardLink}>
-        {/* Image Gallery Section */}
+        {/* Single Image - No gallery swiper (encourages clicking into detail page) */}
         <div className={styles.imageContainer}>
-          <ImageGallery
-            images={images || []}
-            alt={title}
-            aspectRatio="3 / 2"
-            className={styles.image}
-            viewMode={viewMode === "grid" ? "small" : "card"}
-            priority={priority}
-            skeleton={isLoading}
-            sizes={
-              viewMode === "list"
-                ? "(max-width: 768px) 100vw, 300px"
-                : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            }
-          />
+          {isLoading ? (
+            <div className={styles.imageSkeleton} />
+          ) : images && images.length > 0 ? (
+            <Image
+              src={optimizeListingImage(images[0], 'card')}
+              alt={title}
+              fill
+              sizes={
+                viewMode === "list"
+                  ? "(max-width: 768px) 100vw, 300px"
+                  : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              }
+              className={styles.image}
+              priority={priority}
+            />
+          ) : (
+            <div className={styles.noImage}>
+              <span>لا توجد صورة</span>
+            </div>
+          )}
+
+          {/* Image count badge */}
+          {!isLoading && images && images.length > 1 && (
+            <div className={styles.imageCount}>
+              <span>{images.length}</span>
+            </div>
+          )}
 
           {/* Favorite Button */}
           {!isLoading && (
@@ -159,7 +174,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           {/* Grid View Specs - Compact single line with | separator (like AutoScout24) */}
           {viewMode === "grid" && specs && Object.keys(specs).length > 0 && (
             <div className={styles.specsCompact}>
-              <Text variant="xs" className={styles.specsCompactText} skeleton={isLoading} skeletonWidth="80%">
+              <Text variant="small" className={styles.specsCompactText} skeleton={isLoading} skeletonWidth="80%">
                 {Object.entries(specs)
                   .filter(([key]) => key !== 'accountType' && key !== 'account_type')
                   .map(([, value]) => {

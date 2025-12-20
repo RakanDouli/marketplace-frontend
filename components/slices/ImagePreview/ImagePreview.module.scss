@@ -99,32 +99,22 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 48px;
-  height: 48px;
-  border-radius: $radius-full;
+  opacity: 1;
+  width: 28px;
+  height: 28px;
+  transform: translateY(-50%) scale(1);
+  color: $text-light;
+  background: $text-dark;
   display: flex;
-  align-items: center;
+  border-radius: $radius-md;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 10;
-  backdrop-filter: blur(8px);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-
-  &:active {
-    transform: translateY(-50%) scale(0.95);
-  }
-
-  @media (max-width: $breakpoint-sm) {
-    width: 40px;
-    height: 40px;
+  align-items: center;
+  margin: $space-xs;
+  @media (max-width: $breakpoint-md) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
   }
 }
 

@@ -302,10 +302,21 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       {/* Applied Filters */}
       <AppliedFilters />
 
-      {/* Loading state */}
+      {/* Loading state - Show skeleton cards */}
       {loading && (
-        <div className={styles.loadingState}>
-          <Loading type="svg" />
+        <div className={`${styles.listingsContainer} ${styles[viewMode]}`}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <ListingCard
+              key={`skeleton-${index}`}
+              id=""
+              title=""
+              price=""
+              location=""
+              accountType="individual"
+              viewMode={viewMode}
+              isLoading={true}
+            />
+          ))}
         </div>
       )}
 

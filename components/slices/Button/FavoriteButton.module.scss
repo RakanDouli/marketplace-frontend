@@ -6,7 +6,6 @@
   background: $bg;
   border: 1px solid $border;
   border-radius: $radius-md;
-  min-width: 40px;
   &:hover:not(:disabled) {
     background: $bg;
     border-color: $error;

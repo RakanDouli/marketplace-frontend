@@ -1,11 +1,21 @@
 @import "../../../styles/variables.scss";
 
+// Spacer for fixed MobileBackButton (mobile only)
+.mobileHeaderSpacer {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: block;
+    height: $mobile-back-button-height;
+  }
+}
+
 .listingDetail {
   margin: 0 auto;
   padding: $space-md $space-lg;
 
   @media (max-width: $breakpoint-md) {
-    padding: $space-sm;
+    padding: $space-sm 0;
   }
 }
 
@@ -79,6 +89,7 @@
 
   @media (max-width: $breakpoint-lg) {
     grid-template-columns: 1fr;
+    gap: $space-md;
   }
 }
 
@@ -174,10 +185,10 @@
     border-bottom: none;
   }
 
-  @media (max-width: $breakpoint-md) {
-    grid-template-columns: 1fr;
-    gap: $space-xs;
-  }
+  // @media (max-width: $breakpoint-md) {
+  //   grid-template-columns: 1fr;
+  //   gap: $space-xs;
+  // }
 }
 
 .specLabel {
@@ -208,10 +219,78 @@
 
 // Sidebar
 .sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
   @media (min-width: $breakpoint-lg) {
     position: sticky;
     top: calc($space-lg + 60px);
     align-self: start;
+  }
+}
+
+// Info Card Wrapper - Hidden on mobile (replaced by mobileInfoCard)
+.infoCardWrapper {
+  @media (max-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+// Mobile Info Card - Only visible on mobile, under gallery
+.mobileInfoCard {
+  display: none;
+
+  @media (max-width: $breakpoint-lg) {
+    display: flex;
+    flex-direction: column;
+    gap: $space-sm;
+    padding: $space-md;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: $radius-md;
+    background-color: $bg;
+  }
+}
+
+.mobileCardHeader {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-sm;
+}
+
+.mobileTitle {
+  margin: 0;
+  flex: 1;
+}
+
+.mobileActions {
+  display: flex;
+  gap: $space-xs;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobilePrice {
+  color: $primary;
+  margin: 0;
+}
+
+.mobileMeta {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  color: $text-muted;
+  font-size: $font-sm;
+}
+
+// Title - Hidden on mobile (shown in mobileInfoCard)
+.title {
+  @media (max-width: $breakpoint-lg) {
+    display: none;
   }
 }
 

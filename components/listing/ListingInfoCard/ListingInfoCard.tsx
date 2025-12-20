@@ -111,9 +111,11 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           {priceMinor ? formatPrice(priceMinor) : 'السعر غير محدد'}
         </Text>
       </div>
-      {/* Owner Info Component - Replaces old seller info fields */}
+      {/* Owner Info Component - Hidden on mobile (shown in main content) */}
       {user?.id && (
-        <OwnerCard userId={user.id} listingId={listingId} />
+        <div className={styles.ownerSection}>
+          <OwnerCard userId={user.id} listingId={listingId} />
+        </div>
       )}
 
       {/* Contact Buttons */}

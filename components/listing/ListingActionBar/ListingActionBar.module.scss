@@ -1,0 +1,52 @@
+@import "../../../styles/variables.scss";
+
+// Sticky Action Bar - Only visible on mobile
+// Syncs with BottomNav visibility on scroll
+.actionBar {
+  position: fixed;
+  bottom: $bottom-nav-height; // Above BottomNav
+  left: 0;
+  right: 0;
+  z-index: $z-nav - 1;
+  background: $surface;
+  border-top: 1px solid $border;
+  padding: $space-sm $space-md;
+  padding-bottom: calc($space-sm + env(safe-area-inset-bottom, 0));
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // Hide on desktop - buttons show in sidebar
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+
+  // When BottomNav is visible - sit above it
+  &.visible {
+    bottom: $bottom-nav-height;
+  }
+
+  // When BottomNav hides on scroll - move to bottom
+  &.hidden {
+    bottom: 0;
+  }
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+// All buttons equal flex, icons only
+.actionButton {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    margin: 0;
+  }
+}

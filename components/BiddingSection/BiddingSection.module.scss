@@ -99,10 +99,10 @@
     justify-content: center;
   }
 
-  .bidRow {
-    grid-template-columns: 1fr;
-    gap: $space-xs;
-  }
+  // .bidRow {
+  //   grid-template-columns: 1fr;
+  //   gap: $space-xs;
+  // }
 
   .bidAmount,
   .bidDate {

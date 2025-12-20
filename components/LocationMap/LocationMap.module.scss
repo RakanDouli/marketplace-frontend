@@ -24,6 +24,9 @@
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid $border;
+  div {
+    z-index: 1;
+  }
 }
 
 // .openInMaps {

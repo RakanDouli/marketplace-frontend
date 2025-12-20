@@ -14,6 +14,19 @@
       transform: translateY(-50%) scale(1);
     }
   }
+
+  // Clickable gallery for preview
+  &.clickable {
+    cursor: pointer;
+
+    .image {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover .image {
+      transform: scale(1.02);
+    }
+  }
 }
 
 .image {

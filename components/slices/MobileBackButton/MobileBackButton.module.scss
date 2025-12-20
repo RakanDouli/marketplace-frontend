@@ -1,15 +1,28 @@
 // Mobile Header - Reusable component
 // Shows back button + optional title
 // Only visible on mobile
+// Hides on scroll down, shows on scroll up (like BottomNav)
 
 .mobileHeader {
   display: flex;
   flex-direction: column;
   background: $primary;
-  color: white;
-  position: sticky;
+  color: $text-light;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: $z-nav;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // Scroll visibility states
+  &.visible {
+    transform: translateY(0);
+  }
+
+  &.hidden {
+    transform: translateY(-100%);
+  }
 
   // Hide on desktop
   @media (min-width: $breakpoint-md) {
@@ -20,23 +33,22 @@
 // Header bar with back button and title
 .headerBar {
   display: flex;
-  flex-direction: row-reverse; // In RTL, this puts back button on LEFT side
   align-items: center;
+  justify-content: space-between;
   gap: $space-sm;
-  padding: $space-md;
-  min-height: 56px;
+  padding: $space-sm;
+  min-height: $mobile-back-button-height;
 }
 
 .backButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.15);
+  width: 35px;
+  height: 35px;
   border: none;
   border-radius: $radius-full;
-  color: white;
+  color: $text-light;
   cursor: pointer;
   transition: background 0.2s ease;
   flex-shrink: 0;
@@ -52,11 +64,11 @@
 }
 
 .title {
-  flex: 1;
-  font-size: $font-lg;
-  font-weight: $weight-semibold;
-  margin: 0;
-  white-space: nowrap;
+  padding: 0 $space-sm;
+  color: $text-light;
+  margin-bottom: 0 !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }

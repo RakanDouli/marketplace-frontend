@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Filter as FilterIcon, X, RotateCcw } from "lucide-react";
+import { Filter as FilterIcon, X, RotateCcw, SlidersHorizontal } from "lucide-react";
 import {
   SedanIcon,
   SuvIcon,
@@ -331,7 +331,7 @@ export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
           variant="outline"
           aria-label={t("search.filters")}
         >
-          <FilterIcon size={24} />
+          <SlidersHorizontal size={24} />
           {t("search.filters")}
         </Button>
       )}

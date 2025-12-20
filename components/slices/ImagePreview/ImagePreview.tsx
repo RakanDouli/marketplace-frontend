@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, Download, Trash2, MoreVertical } from 'lucide-react';
 import { Button, Text, Dropdown, DropdownMenuItem } from '@/components/slices';
 import styles from './ImagePreview.module.scss';
@@ -50,6 +51,12 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   className = '',
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [mounted, setMounted] = useState(false);
+
+  // For SSR compatibility - only render portal after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Adjust currentIndex if it's out of bounds after images array changes
   useEffect(() => {
@@ -89,11 +96,15 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
 
   if (images.length === 0) return null;
 
+  // Don't render on server or before mount
+  if (!mounted) return null;
+
   // Safety check: ensure currentIndex is valid
   const safeIndex = Math.min(currentIndex, images.length - 1);
   const currentImage = images[safeIndex];
 
-  return (
+  // Use portal to render at document body level (above all stacking contexts)
+  return createPortal(
     <div
       className={`${styles.overlay} ${className}`}
       onClick={onClose}
@@ -220,6 +231,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

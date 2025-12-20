@@ -34,11 +34,16 @@
   margin: 0;
 }
 
-// Buttons
+// Buttons - Hidden on mobile (moved to ListingActionBar)
 .buttons {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+
+  // Hide on mobile - buttons are in sticky action bar
+  @media (max-width: 768px) {
+    display: none;
+  }
 
   button {
     width: 100%;
@@ -49,6 +54,13 @@
 .phoneButtons {
   display: flex;
   gap: 0.5rem;
+}
+
+// Owner Card Section - Hidden on mobile (shown in main content)
+.ownerSection {
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 // Info Card
