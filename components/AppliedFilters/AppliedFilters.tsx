@@ -6,6 +6,7 @@ import { Button } from "../slices";
 import { Text } from "../slices";
 import { AttributeType } from "../../common/enums";
 import styles from "./AppliedFilters.module.scss";
+import { ClosedCaption, Trash2, X } from "lucide-react";
 
 export function AppliedFilters() {
   const { t } = useTranslation();
@@ -242,24 +243,25 @@ export function AppliedFilters() {
     <div className={styles.appliedFilters}>
       <div className={styles.filtersList}>
         {activeFilters.map((filter) => (
-          <div key={filter.key} className={styles.filterTag}>
+          <div key={filter.key} onClick={() => handleRemoveFilter(filter.key)} className={styles.filterTag}>
             <Text variant="small" className={styles.filterValue}>
               {filter.value}
             </Text>
-            <button
-              onClick={() => handleRemoveFilter(filter.key)}
+            <span
+
               className={styles.removeButton}
               aria-label={t("search.removeFilter")}
             >
-              ✕
-            </button>
+              <X size={14} />
+            </span>
           </div>
         ))}
       </div>
       {/* <div className={styles.header}> */}
       {activeFilters.length > 0 && (
-        <span onClick={handleClearAllFilters} className={styles.clearAll}>
+        <span onClick={handleClearAllFilters} className={styles.clearButton}>
           {t("search.clearAllFilters")}
+          <Trash2 size={14} />
         </span>
       )}
       {/* </div> */}

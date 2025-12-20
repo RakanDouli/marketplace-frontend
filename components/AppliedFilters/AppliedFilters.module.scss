@@ -7,11 +7,9 @@
   margin-bottom: $space-sm;
   gap: $space-md;
 
+  // Hide on mobile - MobileFilterBar shows applied filters instead
   @media (max-width: $breakpoint-md) {
-    flex-direction: row;
-    justify-content: normal;
-    align-items: flex-start;
-    gap: $space-sm;
+    display: none;
   }
 }
 
@@ -35,13 +33,22 @@
   margin: 0;
 }
 
-.clearAll {
+.clearButton {
+  flex-shrink: 0;
+  display: flex;
+  padding: $space-xs;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  background: transparent;
+  border: none;
   color: $primary;
   font-size: $font-sm;
-  padding: $space-xs $space-sm;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
-    background: $bg;
+    text-decoration: underline;
   }
 }
 
@@ -54,12 +61,16 @@
 .filterTag {
   display: flex;
   align-items: center;
-  background: $bg;
-  border: 1px solid $border;
 
+  cursor: pointer;
+  border: 1px solid $border;
+  justify-content: center;
+  // min-width: 20px;
+  // height: 20px;
   padding: $space-xs $space-sm;
-  gap: $space-xs;
-  transition: all 0.2s ease;
+  background: $bg;
+  color: $text;
+  border-radius: $radius-full;
 
   &:hover {
     background: $surface;
@@ -77,6 +88,7 @@
   color: $text;
   margin: 0;
   font-weight: 600;
+  font-size: $font-md;
 }
 
 .removeButton {
@@ -85,7 +97,7 @@
   color: $text;
   font-size: $font-sm;
   font-weight: bold;
-  cursor: pointer;
+
   padding: 2px;
   border-radius: 50%;
   width: 18px;

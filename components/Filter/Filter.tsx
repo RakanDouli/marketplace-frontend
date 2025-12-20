@@ -81,17 +81,35 @@ export interface FilterValues {
 
 export interface FilterProps {
   className?: string;
+  /** Controlled open state (for MobileFilterBar integration) */
+  isOpen?: boolean;
+  /** Callback when aside should close */
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const Filter: React.FC<FilterProps> = ({ className = "" }) => {
+export const Filter: React.FC<FilterProps> = ({
+  className = "",
+  isOpen: controlledIsOpen,
+  onOpenChange,
+}) => {
   const { t } = useTranslation();
   const params = useParams();
 
   // Get categorySlug from URL params (self-sufficient)
   const categorySlug = params?.category as string;
 
-  // Manage own visibility state (self-sufficient)
-  const [isOpen, setIsOpen] = useState(false);
+  // Support both controlled and uncontrolled modes
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setInternalIsOpen(open);
+    }
+  };
 
   // Custom hooks for filter management
   const filterActions = useFilterActions(categorySlug);

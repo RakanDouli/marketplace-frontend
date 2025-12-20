@@ -7,6 +7,7 @@ import Filter from "../../components/Filter/Filter";
 import ListingArea from "../../components/ListingArea/ListingArea";
 import { Loading } from "../../components/slices/Loading/Loading";
 import { MobileBackButton } from "../../components/slices";
+import { MobileFilterBar } from "../../components/MobileFilterBar";
 import {
   useCategoriesStore,
   useFiltersStore,
@@ -36,6 +37,7 @@ export default function CategoryPageClient({
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const initializedRef = useRef(false);
 
   // Store hooks - minimal usage, let components handle their own store coordination
@@ -126,12 +128,21 @@ export default function CategoryPageClient({
       {/* Mobile Header - only visible on mobile */}
       <MobileBackButton onClick={handleBack} title={currentCategory.nameAr} />
 
+      {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
+      <MobileFilterBar onFilterClick={() => setIsFilterOpen(true)} />
+
+      {/* Spacer for fixed mobile headers */}
+      <div className={styles.mobileHeaderSpacer} />
+
       <Container className={styles.categoryPage}>
         {/* Main Content */}
         <div className={styles.content}>
           {/* Filters Sidebar */}
           <div className={styles.filtersSection}>
-            <Filter />
+            <Filter
+              isOpen={isFilterOpen}
+              onOpenChange={setIsFilterOpen}
+            />
           </div>
 
           {/* Listings Area */}

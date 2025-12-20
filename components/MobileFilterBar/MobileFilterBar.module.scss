@@ -1,0 +1,174 @@
+@import "../../styles/variables.scss";
+
+// Mobile Filter Bar - Always visible on mobile
+// Shows: Filter button + Applied chips + Clear all
+// Moves between two positions:
+// - belowHeader: Below MobileBackButton (when header visible)
+// - atTop: At top of screen (when header hidden on scroll)
+
+.mobileFilterBar {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: calc($z-nav - 1);
+    background: $bg;
+
+    display: flex;
+    flex-direction: column;
+
+    border-bottom: 1px solid $border;
+    transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  // Position below MobileBackButton (when header is visible)
+  &.belowHeader {
+    top: $mobile-back-button-height;
+  }
+
+  // Position at top (when header is hidden on scroll)
+  // When scrolling down, hide the top row (move bar up so only bottom row visible)
+  &.atTop {
+    top: - calc($mobile-filter-bar-height-with-top-row / 2);
+  }
+}
+
+// Top row: Total count + Clear all
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $space-sm;
+  height: $mobile-filter-bar-height-with-top-row / 2;
+}
+
+.totalCount {
+  color: $text;
+  font-weight: 600;
+  margin: 0;
+}
+
+// Bottom row: Filter button + Chips
+.bottomRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: 0 $space-sm;
+  height: $mobile-filter-bar-height-with-top-row / 2;
+}
+
+// Filter Button - Dark background like image
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  background: $primary;
+  color: $bg;
+  border: none;
+  border-radius: $radius-sm;
+  font-size: $font-2xl;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: lighten(#1f2937, 10%);
+  }
+
+  &:active {
+    background: lighten(#1f2937, 5%);
+  }
+}
+
+.filterCount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 $space-xs;
+  background: $bg;
+  color: $text;
+  border-radius: $radius-full;
+  font-size: $font-md;
+  font-weight: 600;
+}
+
+// Chips Container - Horizontal scroll
+.chipsContainer {
+  display: flex;
+  gap: $space-xs;
+  overflow-x: auto;
+  flex: 1;
+  padding: 2px 0;
+
+  // Hide scrollbar but allow scrolling
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Filter Chip
+.chip {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-full;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chipText {
+  color: $text;
+  margin: 0;
+  font-size: $font-xl;
+}
+
+.chipRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: $radius-full;
+  color: $text-muted;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $border;
+    color: $text;
+  }
+}
+
+// Clear All Button
+.clearButton {
+  flex-shrink: 0;
+  display: flex;
+  padding: $space-xs;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  background: transparent;
+  border: none;
+  color: $primary;
+  font-size: $font-md;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
