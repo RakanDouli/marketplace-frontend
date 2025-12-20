@@ -252,7 +252,7 @@ export function AppliedFilters() {
               className={styles.removeButton}
               aria-label={t("search.removeFilter")}
             >
-              <X size={14} />
+              <X size={16} />
             </span>
           </div>
         ))}

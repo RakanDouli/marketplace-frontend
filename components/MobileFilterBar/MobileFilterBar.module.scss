@@ -16,12 +16,12 @@
     right: 0;
     z-index: calc($z-nav - 1);
     background: $bg;
-
     display: flex;
     flex-direction: column;
-
+    box-shadow: $shadow-base;
     border-bottom: 1px solid $border;
     transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0 0 $radius-md $radius-md;
   }
 
   // Position below MobileBackButton (when header is visible)
@@ -32,7 +32,7 @@
   // Position at top (when header is hidden on scroll)
   // When scrolling down, hide the top row (move bar up so only bottom row visible)
   &.atTop {
-    top: - calc($mobile-filter-bar-height-with-top-row / 2);
+    top: -40px;
   }
 }
 
@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 $space-sm;
-  height: $mobile-filter-bar-height-with-top-row / 2;
+  height: 40px;
 }
 
 .totalCount {
@@ -57,7 +57,7 @@
   align-items: center;
   gap: $space-sm;
   padding: 0 $space-sm;
-  height: $mobile-filter-bar-height-with-top-row / 2;
+  height: 50px;
 }
 
 // Filter Button - Dark background like image
@@ -65,12 +65,12 @@
   display: flex;
   align-items: center;
   gap: $space-xs;
-  padding: $space-xs $space-sm;
+  padding: $space-sm;
   background: $primary;
   color: $bg;
   border: none;
-  border-radius: $radius-sm;
-  font-size: $font-2xl;
+  border-radius: $radius-md;
+  font-size: $font-md;
   font-weight: 500;
   cursor: pointer;
   flex-shrink: 0;
@@ -121,7 +121,7 @@
   gap: $space-xs;
   padding: $space-xs $space-sm;
   background: $bg;
-  border: 1px solid $border;
+  border: 1px solid $text;
   border-radius: $radius-full;
   white-space: nowrap;
   flex-shrink: 0;
@@ -130,7 +130,7 @@
 .filterValue {
   color: $text;
   margin: 0;
-  font-size: $font-xl;
+  font-size: $font-md;
 }
 
 .removeButton {
@@ -150,6 +150,10 @@
   &:hover {
     background: $border;
     color: $text;
+  }
+  svg {
+    border: 1px solid $text;
+    border-radius: $radius-full;
   }
 }
 

@@ -42,7 +42,7 @@
   background: transparent;
   border: none;
   color: $primary;
-  font-size: $font-sm;
+  font-size: $font-md;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -61,12 +61,8 @@
 .filterTag {
   display: flex;
   align-items: center;
-
   cursor: pointer;
-  border: 1px solid $border;
-  justify-content: center;
-  // min-width: 20px;
-  // height: 20px;
+  border: 1px solid $text;
   padding: $space-xs $space-sm;
   background: $bg;
   color: $text;
@@ -75,6 +71,10 @@
   &:hover {
     background: $surface;
     border-color: $text;
+  }
+  svg {
+    border: 1px solid $text;
+    border-radius: $radius-full;
   }
 }
 

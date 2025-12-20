@@ -279,7 +279,7 @@ export const MobileFilterBar: React.FC<MobileFilterBarProps> = ({
                   onClick={() => handleRemoveFilter(filter.key)}
                   aria-label={t('search.removeFilter')}
                 >
-                  <X size={14} />
+                  <X size={16} />
                 </button>
               </div>
             ))}
