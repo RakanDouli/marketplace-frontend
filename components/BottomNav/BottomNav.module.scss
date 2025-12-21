@@ -98,7 +98,7 @@
   height: 18px;
   padding: 0 4px;
   background: $error;
-  color: white;
+  color: $text-light;
   font-size: $font-xs;
   font-weight: $weight-bold;
   border-radius: $radius-full;
@@ -138,6 +138,11 @@
   @media (min-width: $breakpoint-md) {
     display: none;
   }
+
+  // Closing animation
+  &.closing {
+    animation: fadeOut 0.3s ease forwards;
+  }
 }
 
 .menuPanel {
@@ -146,9 +151,16 @@
   border-radius: $radius-xl $radius-xl 0 0;
   padding: $space-md;
   padding-bottom: calc($space-md + env(safe-area-inset-bottom, 0) + 64px); // Account for bottom nav
-  animation: slideUp 0.3s ease;
   max-height: 70vh;
   overflow-y: auto;
+  // Start from hidden state - animation will bring it in
+  transform: translateY(100%);
+  animation: slideUp 0.3s ease forwards;
+
+  // Closing animation
+  &.closing {
+    animation: slideDown 0.3s ease forwards;
+  }
 }
 
 .menuHeader {
@@ -162,20 +174,6 @@
   span {
     font-size: $font-lg;
     font-weight: $weight-semibold;
-    color: $text;
-  }
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  padding: $space-sm;
-  color: $text-secondary;
-  cursor: pointer;
-  border-radius: $radius-md;
-
-  &:hover {
-    background: $bg;
     color: $text;
   }
 }
@@ -270,5 +268,23 @@
   }
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }

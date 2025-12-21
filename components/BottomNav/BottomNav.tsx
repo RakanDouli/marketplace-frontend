@@ -7,7 +7,7 @@ import { Home, MessageCircle, Plus, User, Menu, X, Megaphone, Crown, Phone } fro
 import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCurrencyStore, CURRENCY_SYMBOLS, CURRENCY_LABELS, type Currency } from '@/stores/currencyStore';
-import { ThemeToggle } from '@/components/slices';
+import { Button, ThemeToggle } from '@/components/slices';
 import styles from './BottomNav.module.scss';
 
 interface NavItem {
@@ -19,15 +19,35 @@ interface NavItem {
   requiresAuth?: boolean;
 }
 
+const ANIMATION_DURATION = 300; // ms - match CSS animation duration
+
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
   const { user, openAuthModal } = useUserAuthStore();
   const { unreadCount } = useChatStore();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRenderMenu, setShouldRenderMenu] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const lastBrowsePathRef = useRef<string | null>(null);
+
+  // Handle menu open/close with animation
+  useEffect(() => {
+    if (isMenuOpen) {
+      setShouldRenderMenu(true);
+      setIsClosing(false);
+    } else if (shouldRenderMenu) {
+      // Start closing animation
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setShouldRenderMenu(false);
+        setIsClosing(false);
+      }, ANIMATION_DURATION);
+      return () => clearTimeout(timer);
+    }
+  }, [isMenuOpen]);
 
   // Handle scroll behavior - hide when scrolling down, show when scrolling up
   useEffect(() => {
@@ -185,15 +205,23 @@ export const BottomNav: React.FC = () => {
       </nav>
 
       {/* Menu Overlay */}
-      {isMenuOpen && (
-        <div className={styles.menuOverlay} onClick={() => setIsMenuOpen(false)}>
-          <div className={styles.menuPanel} onClick={(e) => e.stopPropagation()}>
+      {shouldRenderMenu && (
+        <div className={`${styles.menuOverlay} ${isClosing ? styles.closing : ''}`} onClick={() => setIsMenuOpen(false)}>
+          <div className={`${styles.menuPanel} ${isClosing ? styles.closing : ''}`} onClick={(e) => e.stopPropagation()}>
             {/* Menu Header */}
             <div className={styles.menuHeader}>
               <span>المزيد</span>
-              <button onClick={() => setIsMenuOpen(false)} className={styles.closeButton}>
+              {/* <button onClick={() => setIsMenuOpen(false)} className={styles.closeButton}>
                 <X size={20} />
-              </button>
+              </button> */}
+              <Button
+                variant='outline'
+                onClick={() => setIsMenuOpen(false)}
+                className={styles.closeButton}
+                aria-label="Close modal"
+                type="button"
+                icon={<X size={20} />}
+              />
             </div>
 
             {/* Menu Items */}

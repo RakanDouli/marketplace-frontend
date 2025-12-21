@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button, Text } from '../';
@@ -17,6 +17,8 @@ export interface ModalProps {
   description?: string;
 }
 
+const ANIMATION_DURATION = 300; // ms - match CSS animation duration
+
 export const Modal: React.FC<ModalProps> = ({
   isVisible,
   closeable = true,
@@ -27,6 +29,25 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   description,
 }) => {
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  // Handle open/close with animation
+  useEffect(() => {
+    if (isVisible) {
+      setShouldRender(true);
+      setIsClosing(false);
+    } else if (shouldRender) {
+      // Start closing animation
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+      }, ANIMATION_DURATION);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -35,7 +56,7 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
 
-    if (isVisible) {
+    if (shouldRender && !isClosing) {
       document.addEventListener('keydown', handleEscape);
       // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
@@ -45,9 +66,9 @@ export const Modal: React.FC<ModalProps> = ({
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isVisible, closeable, onClose]);
+  }, [shouldRender, isClosing, closeable, onClose]);
 
-  if (!isVisible) {
+  if (!shouldRender) {
     return null;
   }
 
@@ -65,7 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   const modalContent = (
     <div
-      className={styles.modalBg}
+      className={`${styles.modalBg} ${isClosing ? styles.closing : ''}`}
       onClick={handleBackgroundClick}
       role="dialog"
       aria-modal="true"
@@ -76,6 +97,7 @@ export const Modal: React.FC<ModalProps> = ({
         className={`
           ${styles.modal}
           ${styles[maxWidth]}
+          ${isClosing ? styles.closing : ''}
           ${className}
         `.trim()}
       >
@@ -84,14 +106,16 @@ export const Modal: React.FC<ModalProps> = ({
         {/* <div className={styles.modalHeader}> */}
 
         {closeable && (
-          <button
+          <Button
+            variant='outline'
             className={styles.modalClose}
             onClick={handleCloseClick}
             aria-label="Close modal"
             type="button"
-          >
-            <X size={20} />
-          </button>
+            icon={<X size={20} />}
+          />
+
+
         )}
 
         {/* </div> */}
