@@ -1,18 +1,5 @@
 @import "../../styles/variables.scss";
 
-// Mobile spacer for fixed header elements (MobileBackButton + MobileFilterBar)
-// Both are always visible on mobile, so we need space for both
-// Using larger height to account for top row when filters are applied
-.mobileHeaderSpacer {
-  display: none;
-
-  @media (max-width: $breakpoint-md) {
-    display: block;
-    // Use larger height to accommodate both rows of filter bar
-    height: calc($mobile-filter-bar-height-with-top-row);
-  }
-}
-
 .categoryPage {
   padding: $space-sm $space-md;
   max-width: $container-2xl;
@@ -40,7 +27,10 @@
 
   @media (max-width: $breakpoint-lg) {
     grid-template-columns: 1fr;
-    gap: $space-md;
+    gap: $space-xs;
+  }
+  @media (max-width: $breakpoint-sm) {
+    gap: 0;
   }
 }
 

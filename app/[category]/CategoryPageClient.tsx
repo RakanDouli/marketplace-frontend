@@ -131,10 +131,7 @@ export default function CategoryPageClient({
       {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
       <MobileFilterBar onFilterClick={() => setIsFilterOpen(true)} />
 
-      {/* Spacer for fixed mobile headers */}
-      <div className={styles.mobileHeaderSpacer} />
-
-      <Container className={styles.categoryPage}>
+      <div className={styles.categoryPage}>
         {/* Main Content */}
         <div className={styles.content}>
           {/* Filters Sidebar */}
@@ -150,7 +147,7 @@ export default function CategoryPageClient({
             <ListingArea />
           </div>
         </div>
-      </Container>
+      </div>
     </>
   );
 }

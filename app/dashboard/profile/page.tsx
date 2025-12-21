@@ -1,19 +1,19 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ListingsPanel } from '@/components/dashboard/ListingsPanel';
+import { PersonalInfoPanel } from '@/components/dashboard/PersonalInfoPanel';
 import { MobileBackButton } from '@/components/slices';
 
-export default function UserListingsPage() {
+export default function ProfilePage() {
   const router = useRouter();
 
   return (
     <>
       <MobileBackButton
         onClick={() => router.push('/dashboard')}
-        title="إعلاناتي"
+        title="معلومات الحساب"
       />
-      <ListingsPanel />
+      <PersonalInfoPanel />
     </>
   );
 }

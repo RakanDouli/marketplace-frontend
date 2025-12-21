@@ -8,6 +8,7 @@ import { useBidsStore } from '@/stores/bidsStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useCurrencyStore } from '@/stores/currencyStore';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/date';
 import styles from './BiddingSection.module.scss';
@@ -30,6 +31,8 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({
   const { bids, highestBid, isLoading, fetchHighestBid, fetchPublicListingBids, placeBid } = useBidsStore();
   const { getOrCreateThread, sendMessage } = useChatStore();
   const { addNotification } = useNotificationStore();
+  // Subscribe to currency changes so formatPrice updates when currency changes
+  const { preferredCurrency } = useCurrencyStore();
 
   const [bidAmount, setBidAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +128,22 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({
       await fetchHighestBid(listingId);
       await fetchPublicListingBids(listingId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل تقديم العرض');
+      // Map backend error messages to user-friendly Arabic messages
+      const errorMessage = err instanceof Error ? err.message : '';
+
+      if (errorMessage.includes('Bid amount too low') || errorMessage.includes('BID_TOO_LOW')) {
+        setError('المبلغ المقدم أقل من الحد الأدنى المطلوب');
+      } else if (errorMessage.includes('LISTING_NOT_FOUND')) {
+        setError('الإعلان غير موجود');
+      } else if (errorMessage.includes('LISTING_NOT_ACTIVE')) {
+        setError('الإعلان غير نشط');
+      } else if (errorMessage.includes('CANNOT_BID_OWN_LISTING')) {
+        setError('لا يمكنك تقديم عرض على إعلانك الخاص');
+      } else if (errorMessage.includes('BIDDING_NOT_ALLOWED')) {
+        setError('المزايدة غير مسموحة على هذا الإعلان');
+      } else {
+        setError('فشل تقديم العرض');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -176,3 +176,14 @@
     text-decoration: underline;
   }
 }
+
+// Spacer to push content below the fixed filter bar on mobile
+// Height = topRow (40px) + bottomRow (50px) = 90px
+.spacer {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: block;
+    height: 90px;
+  }
+}

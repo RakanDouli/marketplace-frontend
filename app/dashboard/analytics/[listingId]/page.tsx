@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Text, Loading, Button } from '@/components/slices';
+import { Text, Loading, Button, MobileBackButton } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
 import { BarChart3, Eye, Heart, TrendingUp, Calendar, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -148,15 +148,24 @@ export default function ListingAnalyticsPage() {
   };
 
   return (<>
-    {/* Back Button */}
-    <Button
-      variant='link'
-      href='/dashboard/analytics'
-      icon={<ArrowLeft size={18} />}
-      className={styles.backButton}
-    >
-      عودة إلى الإحصائيات
-    </Button>
+    {/* Mobile Back Button */}
+    <MobileBackButton
+      onClick={() => router.push('/dashboard/analytics')}
+      title="تفاصيل الإعلان"
+    />
+
+    {/* Desktop Back Button */}
+
+    <div className={styles.backButton}>
+      <Button
+        variant='outline'
+        href='/dashboard/analytics'
+        icon={<ArrowLeft size={18} />}
+
+      >
+        عودة إلى الإحصائيات
+      </Button>
+    </div>
 
     <div className={styles.dashboardPanel}>
 

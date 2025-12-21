@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Container, Aside, Button } from '@/components/slices';
+import { useRouter, usePathname } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import { Container, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { WarningBanner } from '@/components/WarningBanner';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { User, Package, CreditCard, LogOut, BarChart3, Menu, Crown, Heart, Ban } from 'lucide-react';
 import styles from './Dashboard.module.scss';
 
 export default function DashboardLayout({
@@ -16,9 +15,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, userPackage, logout } = useUserAuthStore();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const pathname = usePathname();
+  const { user } = useUserAuthStore();
   const [hydrated, setHydrated] = useState(false);
+
+  // Check if we're on a first-level sub-page (e.g., /dashboard/profile, /dashboard/analytics)
+  // but NOT deeper nested pages (e.g., /dashboard/analytics/[listingId])
+  // Those pages handle their own back navigation
+  const pathSegments = pathname.split('/').filter(Boolean); // ['dashboard', 'profile'] or ['dashboard', 'analytics', 'abc123']
+  const isFirstLevelSubPage = pathSegments.length === 2 && pathSegments[0] === 'dashboard';
 
   // Wait for Zustand persist to hydrate from localStorage
   useEffect(() => {
@@ -37,104 +42,31 @@ export default function DashboardLayout({
     return null;
   }
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
-  };
-
-  // Build menu items based on account type
-  const menuItems = [
-    {
-      icon: <User size={20} />,
-      label: 'معلومات الحساب',
-      href: '/dashboard',
-    },
-    {
-      icon: <Package size={20} />,
-      label: 'إعلاناتي',
-      href: '/dashboard/listings',
-    },
-    {
-      icon: <Heart size={20} />,
-      label: 'المفضلة',
-      href: '/dashboard/wishlist',
-    },
-    {
-      icon: <Ban size={20} />,
-      label: 'قائمه الحظر',
-      href: '/dashboard/blocked-users',
-    },
-    {
-      icon: <Crown size={20} />,
-      label: 'الاشتراك',
-      href: '/dashboard/subscription',
-    },
-    // Analytics - based on subscription plan's analyticsAccess
-    ...(userPackage?.userSubscription?.analyticsAccess
-      ? [
-        {
-          icon: <BarChart3 size={20} />,
-          label: 'الإحصائيات',
-          href: '/dashboard/analytics',
-        },
-      ]
-      : []),
-    {
-      icon: <CreditCard size={20} />,
-      label: 'المدفوعات',
-      href: '/dashboard/payments',
-    },
-  ];
-
   return (
     <>
       <UserTokenMonitor />
 
       <Container className={styles.dashboardContainer}>
-        {!isSidebarOpen && (
+        {/* Warning Banner - shows if user has active warning */}
+        <WarningBanner />
+
+        {/* Back button for first-level sub-pages only - desktop only (mobile uses MobileBackButton) */}
+        {isFirstLevelSubPage && (<div className={styles.backButton}>
+
+
           <Button
-            variant='outline'
-            className={styles.menuButton}
-            onClick={() => setIsSidebarOpen(true)}
-            icon={<Menu size={20} />}
-          >
+            variant="outline"
+            onClick={() => router.push('/dashboard')}
+            icon={<ArrowLeft size={20} />}
+          >عودة إلى لوحة التحكم
           </Button>
+        </div>
         )}
 
-        <div className={styles.dashboard}>
-          <Aside
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            fullHeight={true}
-            className={styles.aside}
-          >
-            <nav className={styles.nav}>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={styles.navItem}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </nav>
-
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              <LogOut size={20} />
-              <span>تسجيل الخروج</span>
-            </button>
-          </Aside>
-
-          {/* Main content */}
-          <main className={styles.content}>
-            {/* Warning Banner - shows if user has active warning */}
-            <WarningBanner />
-
-            {children}
-          </main>
-        </div>
+        {/* Main content - no sidebar, card-based navigation */}
+        <main className={styles.content}>
+          {children}
+        </main>
       </Container>
     </>
   );

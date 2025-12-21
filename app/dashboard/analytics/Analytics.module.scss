@@ -136,9 +136,9 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr;
-  }
+  // @media (max-width: $breakpoint-sm) {
+  //   grid-template-columns: 1fr;
+  // }
 }
 
 .statCard {
@@ -149,6 +149,10 @@
   border-radius: $radius-lg;
   border: 1px solid $border;
 
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-sm;
+    flex-direction: column;
+  }
   // No hover - these are not clickable
 }
 
@@ -190,7 +194,7 @@
   flex-direction: column;
   gap: $space-md;
   padding: $space-lg;
-  background: $surface;
+
   border-radius: $radius-lg;
   border: 1px solid $border;
   cursor: pointer;
@@ -208,7 +212,6 @@
   align-items: flex-start;
   gap: $space-sm;
 }
-
 
 .listingStats {
   display: flex;

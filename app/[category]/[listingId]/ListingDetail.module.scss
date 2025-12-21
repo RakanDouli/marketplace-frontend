@@ -1,15 +1,5 @@
 @import "../../../styles/variables.scss";
 
-// Spacer for fixed MobileBackButton (mobile only)
-.mobileHeaderSpacer {
-  display: none;
-
-  @media (max-width: $breakpoint-md) {
-    display: block;
-    height: $mobile-back-button-height;
-  }
-}
-
 .listingDetail {
   margin: 0 auto;
   padding: $space-md $space-lg;

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck, Star, Container } from 'lucide-react';
+import { Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck, Star, Container, ChevronLeft, ArrowLeft, MoreHorizontal } from 'lucide-react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
@@ -510,42 +510,6 @@ export const MessagesClient: React.FC = () => {
 
               return (
                 <div className={styles.chatHeader}>
-                  {isMobile && (
-                    <button className={styles.backButton} onClick={() => setActiveThread(null)}>
-                      <ChevronRight size={20} />
-                    </button>
-                  )}
-
-                  {listing && (
-                    <div className={styles.listingInfo}>
-                      {thumbnailUrl && (
-                        <Link href={`/${listing.category?.slug || 'car'}/${listing.id}`} className={styles.listingImage}>
-                          <Image
-                            src={thumbnailUrl}
-                            alt={listing.title}
-                            aspectRatio="1/1"
-                          />
-                        </Link>
-                      )}
-                      <div className={styles.listingDetails}>
-                        <Link href={`/${listing.category?.slug || 'car'}/${listing.id}`} className={styles.listingTitleLink}>
-                          <Text variant="paragraph" className={styles.listingTitle}>
-                            {listing.title}
-                          </Text>
-                        </Link>
-                        {typingUserName ? (
-                          <Text variant="small" className={styles.typingIndicator}>
-                            {typingUserName} يكتب...
-                          </Text>
-                        ) : listing.prices && listing.prices.length > 0 ? (
-                          <Text variant="small" color="secondary">
-                            {formatPrice(listing.priceMinor)}
-                          </Text>
-                        ) : null}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Thread Actions Dropdown */}
                   <Dropdown
                     isOpen={threadMenuOpen}
@@ -585,6 +549,42 @@ export const MessagesClient: React.FC = () => {
                       }}
                     />
                   </Dropdown>
+                  {listing && (
+                    <div className={styles.listingInfo}>
+                      {thumbnailUrl && (
+                        <Link href={`/${listing.category?.slug || 'car'}/${listing.id}`} className={styles.listingImage}>
+                          <Image
+                            src={thumbnailUrl}
+                            alt={listing.title}
+                            aspectRatio="1/1"
+                          />
+                        </Link>
+                      )}
+                      <div className={styles.listingDetails}>
+                        <Link href={`/${listing.category?.slug || 'car'}/${listing.id}`} className={styles.listingTitleLink}>
+                          <Text variant="paragraph" className={styles.listingTitle}>
+                            {listing.title}
+                          </Text>
+                        </Link>
+                        {typingUserName ? (
+                          <Text variant="small" className={styles.typingIndicator}>
+                            {typingUserName} يكتب...
+                          </Text>
+                        ) : listing.prices && listing.prices.length > 0 ? (
+                          <Text variant="small" color="secondary">
+                            {formatPrice(listing.priceMinor)}
+                          </Text>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                  {isMobile && (
+                    <button className={styles.backButton} onClick={() => setActiveThread(null)}>
+                      <ArrowLeft size={30} />
+                    </button>
+                  )}
+
+
                 </div>
               );
             })()}
@@ -843,7 +843,7 @@ export const MessagesClient: React.FC = () => {
                   onChange={handleImageSelect}
                 />
 
-                {/* Attach / Review Request Dropdown */}
+                {/* Options Dropdown (Attach / Review Request) */}
                 <Dropdown
                   isOpen={attachDropdownOpen}
                   onClose={() => setAttachDropdownOpen(false)}
@@ -857,7 +857,7 @@ export const MessagesClient: React.FC = () => {
                       disabled={isSending || isUploadingImages}
                       title="خيارات"
                     >
-                      <Paperclip size={20} />
+                      <MoreHorizontal size={20} />
                       {selectedImages.length > 0 && (
                         <span className={styles.imageCount}>{selectedImages.length}</span>
                       )}

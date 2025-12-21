@@ -139,9 +139,14 @@ export const Input = forwardRef<
     const renderInput = () => {
       // Price input with currency selector
       if (type === "price") {
-        const { exchangeRates, getRate } = useCurrencyStore();
-        const [selectedCurrency, setSelectedCurrency] = useState<Currency>("USD");
+        const { exchangeRates, getRate, preferredCurrency, setPreferredCurrency } = useCurrencyStore();
+        const [selectedCurrency, setSelectedCurrency] = useState<Currency>(preferredCurrency);
         const [displayValue, setDisplayValue] = useState<string>('');
+
+        // Sync local currency with global preferred currency when it changes externally
+        useEffect(() => {
+          setSelectedCurrency(preferredCurrency);
+        }, [preferredCurrency]);
 
         // Convert USD dollars (from props.value) to display currency
         useEffect(() => {
@@ -214,7 +219,10 @@ export const Input = forwardRef<
         };
 
         const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-          setSelectedCurrency(e.target.value as Currency);
+          const newCurrency = e.target.value as Currency;
+          setSelectedCurrency(newCurrency);
+          // Sync with global currency store so the entire page updates
+          setPreferredCurrency(newCurrency);
         };
 
         // Show conversion preview

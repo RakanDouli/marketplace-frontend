@@ -26,7 +26,8 @@
 }
 
 .threadsHeader {
-  padding: $space-lg;
+  padding: $space-md;
+  height: 83px;
   border-bottom: 1px solid $border;
 }
 
@@ -144,7 +145,8 @@
   display: flex;
   align-items: center;
   gap: $space-md;
-  padding: $space-md $space-lg;
+  justify-content: space-between;
+  padding: $space-md;
   border-bottom: 1px solid $border;
   background: $surface;
   position: relative;
@@ -227,7 +229,7 @@
   gap: $space-sm;
   border: none;
   background: transparent;
-  color: $primary;
+  color: $text;
   cursor: pointer;
   font-size: $font-base;
 
@@ -334,8 +336,11 @@
 
 // Chat input wrapper
 .chatInputWrapper {
+  position: relative;
   background: $surface;
   border-top: 1px solid $border;
+  // Allow dropdown to overflow and show above on mobile
+  overflow: visible;
 }
 
 // Multiple Image Previews Grid
@@ -424,9 +429,11 @@
 }
 
 .chatInputForm {
+  position: relative;
   display: flex;
   gap: $space-sm;
   padding: $space-md;
+  overflow: visible;
 }
 
 .input {

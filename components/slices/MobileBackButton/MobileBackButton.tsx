@@ -44,20 +44,24 @@ export const MobileBackButton: React.FC<MobileBackButtonProps> = ({
   }, []);
 
   return (
-    <div className={`${styles.mobileHeader} ${className} ${isVisible ? styles.visible : styles.hidden}`}>
-      <div className={styles.headerBar}>
-        {title && <Text variant='h4' className={styles.title}>{title}</Text>}
+    <>
+      <div className={`${styles.mobileHeader} ${className} ${isVisible ? styles.visible : styles.hidden}`}>
+        <div className={styles.headerBar}>
+          {title && <Text variant='h4' className={styles.title}>{title}</Text>}
 
-        <button
-          type="button"
-          className={styles.backButton}
-          onClick={onClick}
-          aria-label="الرجوع"
-        >
-          <ArrowLeft size={24} />
-        </button>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={onClick}
+            aria-label="الرجوع"
+          >
+            <ArrowLeft size={24} />
+          </button>
+        </div>
       </div>
-    </div>
+      {/* Spacer to prevent content from going under the fixed header on mobile */}
+      <div className={styles.spacer} />
+    </>
   );
 };
 

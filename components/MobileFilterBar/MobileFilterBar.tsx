@@ -233,9 +233,10 @@ export const MobileFilterBar: React.FC<MobileFilterBarProps> = ({
   const totalResults = pagination?.total || 0;
 
   return (
-    <div className={`${styles.mobileFilterBar} ${isVisible ? styles.belowHeader : styles.atTop}`}>
-      {/* Line 1: Total count + Clear all (clear button only shows when filters applied) */}
-      <div className={styles.topRow}>
+    <>
+      <div className={`${styles.mobileFilterBar} ${isVisible ? styles.belowHeader : styles.atTop}`}>
+        {/* Line 1: Total count + Clear all (clear button only shows when filters applied) */}
+        <div className={styles.topRow}>
         <Text variant="small" className={styles.totalCount}>
           {totalResults} {t('search.results')}
         </Text>
@@ -286,7 +287,10 @@ export const MobileFilterBar: React.FC<MobileFilterBarProps> = ({
           </div>
         )}
       </div>
-    </div>
+      </div>
+      {/* Spacer to prevent content from going under the fixed filter bar on mobile */}
+      <div className={styles.spacer} />
+    </>
   );
 };
 

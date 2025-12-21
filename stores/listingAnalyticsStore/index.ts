@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { GET_MY_LISTING_ANALYTICS_QUERY, GET_MY_ANALYTICS_SUMMARY_QUERY } from './listingAnalyticsStore.gql';
 import type { ListingAnalytics, AnalyticsSummary } from './types';
+import { useUserAuthStore } from '@/stores/userAuthStore';
 
 interface ListingAnalyticsStore {
   // State
@@ -26,6 +27,13 @@ export const useListingAnalyticsStore = create<ListingAnalyticsStore>((set) => (
 
   // Fetch analytics for a specific listing
   fetchListingAnalytics: async (listingId: string, days = 30) => {
+    // Check access at store level
+    const { userPackage } = useUserAuthStore.getState();
+    if (!userPackage?.userSubscription?.analyticsAccess) {
+      console.warn('⚠️ No analytics access - skipping fetch');
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
     try {
@@ -50,6 +58,13 @@ export const useListingAnalyticsStore = create<ListingAnalyticsStore>((set) => (
 
   // Fetch analytics summary for all user's listings
   fetchAnalyticsSummary: async (days = 30) => {
+    // Check access at store level
+    const { userPackage } = useUserAuthStore.getState();
+    if (!userPackage?.userSubscription?.analyticsAccess) {
+      console.warn('⚠️ No analytics access - skipping fetch');
+      return;
+    }
+
     set({ isLoading: true, error: null });
 
     try {

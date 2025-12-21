@@ -59,9 +59,14 @@
   text-align: center;
 }
 
+// Desktop back button - hidden on mobile (MobileBackButton handles mobile)
 .backButton {
   width: max-content;
   margin: 0 auto 0 0;
+  padding-bottom: $space-md;
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
 }
 
 // ===================================

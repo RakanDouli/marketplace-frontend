@@ -197,8 +197,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     <>
       {/* Mobile Back Button Header - Fixed position, hides on scroll down */}
       <MobileBackButton onClick={handleBack} title={listing.title} />
-      {/* Spacer for fixed header (mobile only) */}
-      <div className={styles.mobileHeaderSpacer} />
 
       <Container>
         {/* Top Banner Ad (below gallery) */}

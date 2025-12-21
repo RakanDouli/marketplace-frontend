@@ -14,7 +14,7 @@
   border: 1px solid $border;
   border-radius: $radius-md;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  z-index: 150; // Above bottom nav ($z-nav: 100)
   overflow: hidden;
 
   // Horizontal alignment

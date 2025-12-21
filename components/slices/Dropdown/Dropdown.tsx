@@ -98,7 +98,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
       }
 
       // Check vertical overflow
-      const spaceBelow = viewportHeight - dropdownRect.bottom;
+      // Account for bottom nav on mobile (64px) + some padding
+      const isMobile = viewportWidth < 768;
+      const bottomOffset = isMobile ? 80 : 0; // 64px nav + 16px padding
+      const spaceBelow = viewportHeight - dropdownRect.bottom - bottomOffset;
       const spaceAbove = dropdownRect.top;
 
       if (spaceBelow < menuRect.height && spaceAbove > spaceBelow) {

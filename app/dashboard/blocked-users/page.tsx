@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Ban, UserCircle } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { Container, Text, Button, Loading } from '@/components/slices';
+import { Container, Text, Button, Loading, MobileBackButton } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { formatDate } from '@/utils/formatDate';
 import styles from './blocked-users.module.scss';
@@ -52,79 +52,85 @@ export default function BlockedUsersPage() {
   }
 
   return (
-    <Container>
-      <div className={styles.blockedUsersPage}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.titleRow}>
-            <Ban size={28} />
-            <Text variant="h2">المحظورون</Text>
+    <>
+      <MobileBackButton
+        onClick={() => router.push('/dashboard')}
+        title="قائمه الحظر"
+      />
+      <>
+        <div className={styles.blockedUsersPage}>
+          {/* Header */}
+          <div className={styles.header}>
+            <div className={styles.titleRow}>
+              <Ban size={28} />
+              <Text variant="h2">المحظورون</Text>
+            </div>
+            {!isLoading && !error && blockedUsers.length > 0 && (
+              <Text variant="small" color="secondary">
+                {blockedUsers.length} {blockedUsers.length === 1 ? 'مستخدم' : 'مستخدمين'}
+              </Text>
+            )}
           </div>
+
+          {/* Loading State */}
+          {isLoading && (
+            <Loading type="svg" />
+          )}
+
+          {/* Error State */}
+          {!isLoading && error && (
+            <div className={styles.emptyState}>
+              <Text variant="paragraph" color="error">
+                {error}
+              </Text>
+              <Button onClick={() => fetchBlockedUsers()}>إعادة المحاولة</Button>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !error && blockedUsers.length === 0 && (
+            <div className={styles.emptyState}>
+              <Ban size={64} className={styles.emptyIcon} />
+              <Text variant="h3">لا يوجد مستخدمين محظورين</Text>
+              <Text variant="paragraph" color="secondary" className={styles.emptyDescription}>
+                يمكنك حظر المستخدمين من صفحة المحادثات أو صفحة الإعلان
+              </Text>
+              <Button onClick={() => router.push('/messages')}>الذهاب إلى المحادثات</Button>
+            </div>
+          )}
+
+          {/* Success State - List of Blocked Users */}
           {!isLoading && !error && blockedUsers.length > 0 && (
-            <Text variant="small" color="secondary">
-              {blockedUsers.length} {blockedUsers.length === 1 ? 'مستخدم' : 'مستخدمين'}
-            </Text>
+            <div className={styles.blockedUsersList}>
+              {blockedUsers.map((blockedUser) => (
+                <div key={blockedUser.id} className={styles.blockedUserCard}>
+                  <div className={styles.userInfo}>
+                    <UserCircle size={48} className={styles.userIcon} />
+                    <div className={styles.userDetails}>
+                      <Text variant="h4">
+                        {blockedUser.blockedUser.companyName || blockedUser.blockedUser.name || blockedUser.blockedUser.email}
+                      </Text>
+                      <Text variant="small" color="secondary">
+                        {blockedUser.blockedUser.email}
+                      </Text>
+                      <Text variant="small" color="secondary">
+                        تم الحظر: {formatDate(blockedUser.blockedAt)}
+                      </Text>
+                    </div>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleUnblock(blockedUser.blockedUserId)}
+                    disabled={unblockingUserId === blockedUser.blockedUserId}
+                  >
+                    {unblockingUserId === blockedUser.blockedUserId ? 'جاري الإلغاء...' : 'إلغاء الحظر'}
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <Loading type="svg" />
-        )}
-
-        {/* Error State */}
-        {!isLoading && error && (
-          <div className={styles.emptyState}>
-            <Text variant="paragraph" color="error">
-              {error}
-            </Text>
-            <Button onClick={() => fetchBlockedUsers()}>إعادة المحاولة</Button>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && blockedUsers.length === 0 && (
-          <div className={styles.emptyState}>
-            <Ban size={64} className={styles.emptyIcon} />
-            <Text variant="h3">لا يوجد مستخدمين محظورين</Text>
-            <Text variant="paragraph" color="secondary" className={styles.emptyDescription}>
-              يمكنك حظر المستخدمين من صفحة المحادثات أو صفحة الإعلان
-            </Text>
-            <Button onClick={() => router.push('/messages')}>الذهاب إلى المحادثات</Button>
-          </div>
-        )}
-
-        {/* Success State - List of Blocked Users */}
-        {!isLoading && !error && blockedUsers.length > 0 && (
-          <div className={styles.blockedUsersList}>
-            {blockedUsers.map((blockedUser) => (
-              <div key={blockedUser.id} className={styles.blockedUserCard}>
-                <div className={styles.userInfo}>
-                  <UserCircle size={48} className={styles.userIcon} />
-                  <div className={styles.userDetails}>
-                    <Text variant="h4">
-                      {blockedUser.blockedUser.companyName || blockedUser.blockedUser.name || blockedUser.blockedUser.email}
-                    </Text>
-                    <Text variant="small" color="secondary">
-                      {blockedUser.blockedUser.email}
-                    </Text>
-                    <Text variant="small" color="secondary">
-                      تم الحظر: {formatDate(blockedUser.blockedAt)}
-                    </Text>
-                  </div>
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => handleUnblock(blockedUser.blockedUserId)}
-                  disabled={unblockingUserId === blockedUser.blockedUserId}
-                >
-                  {unblockingUserId === blockedUser.blockedUserId ? 'جاري الإلغاء...' : 'إلغاء الحظر'}
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </Container>
+      </>
+    </>
   );
 }

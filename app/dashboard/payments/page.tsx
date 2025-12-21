@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Text, Button, Loading } from '@/components/slices';
+import { useRouter } from 'next/navigation';
+import { Text, Button, Loading, MobileBackButton } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { formatAdPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
@@ -77,6 +78,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function PaymentsPage() {
+  const router = useRouter();
   const { user } = useUserAuthStore();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,125 +149,137 @@ export default function PaymentsPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.payments}>
-        <div className={styles.loading}>
-          <Loading type="svg" />
-          <Text variant="paragraph">جاري تحميل البيانات المالية...</Text>
+      <>
+        <MobileBackButton
+          onClick={() => router.push('/dashboard')}
+          title="المدفوعات"
+        />
+        <div className={styles.payments}>
+          <div className={styles.loading}>
+            <Loading type="svg" />
+            <Text variant="paragraph">جاري تحميل البيانات المالية...</Text>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className={styles.payments}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div>
-          <Text variant="h2">سجل المدفوعات</Text>
-          <Text variant="paragraph" color="secondary">
-            عرض سجل مدفوعات الاشتراكات والإيصالات
-          </Text>
-        </div>
-      </div>
-
-      {/* Overview Cards */}
-      <div className={styles.overviewGrid}>
-        <div className={styles.overviewCard}>
-          <div className={styles.overviewIcon}>
-            <CreditCard size={24} />
-          </div>
-          <div className={styles.overviewContent}>
-            <Text variant="small" color="secondary">إجمالي المدفوعات</Text>
-            <Text variant="h3">{formatAdPrice(totalSpent, 'USD')}</Text>
-          </div>
-        </div>
-
-        <div className={styles.overviewCard}>
-          <div className={styles.overviewIcon}>
-            <RefreshCw size={24} />
-          </div>
-          <div className={styles.overviewContent}>
-            <Text variant="small" color="secondary">العمليات المكتملة</Text>
-            <Text variant="h3">{completedCount}</Text>
-          </div>
-        </div>
-
-        <div className={styles.overviewCard}>
-          <div className={styles.overviewIcon}>
-            <Receipt size={24} />
-          </div>
-          <div className={styles.overviewContent}>
-            <Text variant="small" color="secondary">العمليات المعلقة</Text>
-            <Text variant="h3">{pendingCount}</Text>
-          </div>
-        </div>
-      </div>
-
-      {/* Transactions List */}
-      <div className={styles.section}>
-        <Text variant="h3">سجل العمليات</Text>
-
-        {transactions.length === 0 ? (
-          <div className={styles.empty}>
-            <CreditCard size={48} className={styles.emptyIcon} />
-            <Text variant="h4">لا توجد عمليات</Text>
+    <>
+      <MobileBackButton
+        onClick={() => router.push('/dashboard')}
+        title="المدفوعات"
+      />
+      <div className={styles.payments}>
+        {/* Header */}
+        <div className={styles.header}>
+          <div>
+            <Text variant="h2">سجل المدفوعات</Text>
             <Text variant="paragraph" color="secondary">
-              سيظهر هنا سجل جميع مدفوعات الاشتراكات والإيصالات
+              عرض سجل مدفوعات الاشتراكات والإيصالات
             </Text>
           </div>
-        ) : (
-          <div className={styles.transactionsList}>
-            {transactions.map((transaction) => (
-              <div key={transaction.id} className={styles.transactionItem}>
-                <div className={styles.transactionMain}>
-                  <div className={styles.transactionInfo}>
-                    <div className={styles.transactionHeader}>
-                      <Text variant="paragraph" weight="medium">
-                        {transaction.description || TYPE_LABELS[transaction.transactionType]}
+        </div>
+
+        {/* Overview Cards */}
+        <div className={styles.overviewGrid}>
+          <div className={styles.overviewCard}>
+            <div className={styles.overviewIcon}>
+              <CreditCard size={24} />
+            </div>
+            <div className={styles.overviewContent}>
+              <Text variant="small" color="secondary">إجمالي المدفوعات</Text>
+              <Text variant="h3">{formatAdPrice(totalSpent, 'USD')}</Text>
+            </div>
+          </div>
+
+          <div className={styles.overviewCard}>
+            <div className={styles.overviewIcon}>
+              <RefreshCw size={24} />
+            </div>
+            <div className={styles.overviewContent}>
+              <Text variant="small" color="secondary">العمليات المكتملة</Text>
+              <Text variant="h3">{completedCount}</Text>
+            </div>
+          </div>
+
+          <div className={styles.overviewCard}>
+            <div className={styles.overviewIcon}>
+              <Receipt size={24} />
+            </div>
+            <div className={styles.overviewContent}>
+              <Text variant="small" color="secondary">العمليات المعلقة</Text>
+              <Text variant="h3">{pendingCount}</Text>
+            </div>
+          </div>
+        </div>
+
+        {/* Transactions List */}
+        <div className={styles.section}>
+          <Text variant="h3">سجل العمليات</Text>
+
+          {transactions.length === 0 ? (
+            <div className={styles.empty}>
+              <CreditCard size={48} className={styles.emptyIcon} />
+              <Text variant="h4">لا توجد عمليات</Text>
+              <Text variant="paragraph" color="secondary">
+                سيظهر هنا سجل جميع مدفوعات الاشتراكات والإيصالات
+              </Text>
+            </div>
+          ) : (
+            <div className={styles.transactionsList}>
+              {transactions.map((transaction) => (
+                <div key={transaction.id} className={styles.transactionItem}>
+                  <div className={styles.transactionMain}>
+                    <div className={styles.transactionInfo}>
+                      <div className={styles.transactionHeader}>
+                        <Text variant="paragraph" weight="medium">
+                          {transaction.description || TYPE_LABELS[transaction.transactionType]}
+                        </Text>
+                        <span className={`${styles.typeBadge} ${styles[transaction.transactionType]}`}>
+                          {TYPE_LABELS[transaction.transactionType]}
+                        </span>
+                      </div>
+                      <Text variant="small" color="secondary">
+                        {formatDate(transaction.createdAt)}
                       </Text>
-                      <span className={`${styles.typeBadge} ${styles[transaction.transactionType]}`}>
-                        {TYPE_LABELS[transaction.transactionType]}
+                      {transaction.notes && (
+                        <Text variant="small" color="secondary">
+                          {transaction.notes}
+                        </Text>
+                      )}
+                    </div>
+
+                    <div className={styles.transactionDetails}>
+                      <Text variant="h4">
+                        {formatAdPrice(Number(transaction.amount), transaction.currency)}
+                      </Text>
+                      <span className={`${styles.status} ${styles[transaction.status]}`}>
+                        {STATUS_LABELS[transaction.status]}
                       </span>
                     </div>
-                    <Text variant="small" color="secondary">
-                      {formatDate(transaction.createdAt)}
-                    </Text>
-                    {transaction.notes && (
-                      <Text variant="small" color="secondary">
-                        {transaction.notes}
-                      </Text>
-                    )}
                   </div>
 
-                  <div className={styles.transactionDetails}>
-                    <Text variant="h4">
-                      {formatAdPrice(Number(transaction.amount), transaction.currency)}
-                    </Text>
-                    <span className={`${styles.status} ${styles[transaction.status]}`}>
-                      {STATUS_LABELS[transaction.status]}
-                    </span>
-                  </div>
+                  {/* Receipt download button - only for completed transactions */}
+                  {transaction.isSuccessful && (
+                    <div className={styles.transactionActions}>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        icon={<Download size={16} />}
+                        onClick={() => handleDownloadReceipt(transaction.id)}
+                        disabled={downloadingId === transaction.id}
+                      >
+                        {downloadingId === transaction.id ? 'جاري التحميل...' : 'تحميل الإيصال'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
-
-                {/* Receipt download button - only for completed transactions */}
-                {transaction.isSuccessful && (
-                  <div className={styles.transactionActions}>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      icon={<Download size={16} />}
-                      onClick={() => handleDownloadReceipt(transaction.id)}
-                      disabled={downloadingId === transaction.id}
-                    >
-                      {downloadingId === transaction.id ? 'جاري التحميل...' : 'تحميل الإيصال'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

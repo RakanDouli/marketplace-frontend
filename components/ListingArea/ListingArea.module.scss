@@ -5,9 +5,9 @@
   display: flex;
   flex-direction: column;
   gap: $space-md;
-  @media (max-width: $breakpoint-lg) {
-    margin-top: $space-md;
-  }
+  // @media (max-width: $breakpoint-lg) {
+  //   margin-top: $space-md;
+  // }
 }
 
 .header {

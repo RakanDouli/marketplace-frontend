@@ -1,7 +1,7 @@
 'use client';
 
-import { PersonalInfoPanel } from '@/components/dashboard/PersonalInfoPanel';
+import { UserDashboardCards } from '@/components/dashboard/UserDashboardCards';
 
-export default function AccountPage() {
-  return <PersonalInfoPanel />;
+export default function DashboardPage() {
+  return <UserDashboardCards />;
 }

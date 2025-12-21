@@ -5,7 +5,7 @@ import { formatPrice } from '@/utils/formatPrice';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { useWishlistStore } from '@/stores/wishlistStore';
-import { Container, ListingCard, Text, Button } from '@/components/slices';
+import { Container, ListingCard, Text, Button, MobileBackButton } from '@/components/slices';
 import styles from './wishlist.module.scss';
 
 export default function WishlistPage() {
@@ -17,7 +17,12 @@ export default function WishlistPage() {
   }, [loadMyWishlist]);
 
   return (
-    <Container>
+    <>
+      <MobileBackButton
+        onClick={() => router.push('/dashboard')}
+        title="المفضلة"
+      />
+      <Container>
       <div className={styles.wishlistPage}>
         {/* Header - Always visible */}
         <div className={styles.header}>
@@ -95,5 +100,6 @@ export default function WishlistPage() {
         )}
       </div>
     </Container>
+    </>
   );
 }

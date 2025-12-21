@@ -131,7 +131,7 @@
   gap: $space-sm;
   height: 100%;
 
-  @media (max-width: $breakpoint-lg) {
+  @media (max-width: $breakpoint-md) {
     display: none;
   }
 }

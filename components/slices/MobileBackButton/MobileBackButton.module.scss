@@ -72,3 +72,14 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+// Spacer to push content below the fixed header on mobile
+// Uses the same height as the header bar
+.spacer {
+  height: $mobile-back-button-height;
+
+  // Hide on desktop (since the header is also hidden)
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+}

@@ -1,86 +1,21 @@
 @import "../../styles/variables";
 
 .dashboardContainer {
-  padding: $space-md 0;
-  position: relative;
+  align-items: flex-start;
+  min-height: 100%;
 }
-
-// Mobile menu button (like filter button)
-.menuButton {
-  position: relative;
-  display: none;
-  padding: $space-md;
-  margin-bottom: $space-md !important;
-  @media (max-width: $breakpoint-lg) {
-    display: flex;
-  }
+body.dashboardContainer {
+  background-color: $bg !important;
 }
-
-.dashboard {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: $space-lg;
-
-  @media (max-width: $breakpoint-lg) {
-    grid-template-columns: 1fr;
-  }
-}
-
-// Aside - Desktop: sticky sidebar
-
-.nav {
+// Back button - desktop only (hidden on mobile, MobileBackButton handles that)
+.backButton {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  background: $bg;
-}
+  justify-content: end;
+  margin-bottom: $space-md;
 
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  padding: $space-sm;
-  border-radius: $radius-md;
-  text-decoration: none;
-  color: $text;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: $surface;
+  // Hide on mobile (MobileBackButton handles mobile)
+  @media (max-width: $breakpoint-md) {
+    display: none;
   }
-
-  &.active {
-    background: $primary;
-    color: $text-inverse;
-  }
-}
-
-.initials {
-  font-size: $font-xl;
-  font-weight: $weight-bold;
-  user-select: none;
-}
-
-.logoutButton {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  padding: $space-md;
-  border-radius: $radius-md;
-  background: none;
-  border: none;
-  color: $error;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: auto;
-
-  &:hover {
-    background: rgba($error, 0.1);
-  }
-}
-
-// Content area
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
 }
