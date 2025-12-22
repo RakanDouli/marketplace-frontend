@@ -843,6 +843,23 @@ export const MessagesClient: React.FC = () => {
                   onChange={handleImageSelect}
                 />
 
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={(!messageText.trim() && selectedImages.length === 0) || isSending}
+                  className={styles.sendButton}
+                >
+                  {isSending ? 'جاري الإرسال...' : <Send size={20} />}
+                </Button>
+                <input
+                  type="text"
+                  placeholder="اكتب رسالتك..."
+                  className={styles.input}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  disabled={isSending}
+                />
                 {/* Options Dropdown (Attach / Review Request) */}
                 <Dropdown
                   isOpen={attachDropdownOpen}
@@ -856,8 +873,9 @@ export const MessagesClient: React.FC = () => {
                       onClick={() => setAttachDropdownOpen(!attachDropdownOpen)}
                       disabled={isSending || isUploadingImages}
                       title="خيارات"
+                      icon={<MoreVertical size={20} />}
                     >
-                      <MoreHorizontal size={20} />
+
                       {selectedImages.length > 0 && (
                         <span className={styles.imageCount}>{selectedImages.length}</span>
                       )}
@@ -880,23 +898,6 @@ export const MessagesClient: React.FC = () => {
                   />
                 </Dropdown>
 
-                <input
-                  type="text"
-                  placeholder="اكتب رسالتك..."
-                  className={styles.input}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  disabled={isSending}
-                />
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={(!messageText.trim() && selectedImages.length === 0) || isSending}
-                  className={styles.sendButton}
-                >
-                  {isSending ? 'جاري الإرسال...' : <Send size={20} />}
-                </Button>
               </form>
             </div>
           </>

@@ -357,7 +357,9 @@
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   }
 }
-
+.attachButton {
+  height: 100%;
+}
 .imagePreviewItem {
   position: relative;
   aspect-ratio: 1;
