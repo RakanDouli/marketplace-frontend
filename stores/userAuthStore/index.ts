@@ -11,7 +11,7 @@ import { UserStatus } from '@/common/enums';
 
 // Constants
 const ONE_HOUR_MS = 60 * 60 * 1000;
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
 
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {

@@ -6,7 +6,7 @@ import {
   CAN_REVIEW_USER_QUERY,
 } from './reviews.gql';
 
-const GRAPHQL_ENDPOINT = 'http://localhost:4000/graphql';
+const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
 
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {

@@ -3,8 +3,10 @@ import { GET_OWNER_DATA_QUERY } from './listingOwner.gql';
 import { AccountType } from '@/common/enums';
 
 // Helper function for GraphQL API calls
+const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
+
 const makeGraphQLCall = async (query: string, variables: any = {}) => {
-  const response = await fetch("http://localhost:4000/graphql", {
+  const response = await fetch(GRAPHQL_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

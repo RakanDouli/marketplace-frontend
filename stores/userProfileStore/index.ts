@@ -11,9 +11,11 @@ import {
 } from './userProfile.gql';
 import { uploadToCloudflare } from '@/utils/cloudflare-upload';
 
+const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
+
 // Helper function for GraphQL API calls
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
-  const response = await fetch("http://localhost:4000/graphql", {
+  const response = await fetch(GRAPHQL_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

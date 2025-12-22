@@ -33,7 +33,7 @@ interface CurrencyStore {
   convertPrice: (amountUSD: number, toCurrency?: Currency) => number;
 }
 
-const GRAPHQL_ENDPOINT = 'http://localhost:4000/graphql';
+const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
 
 async function fetchRate(from: Currency, to: Currency): Promise<number> {
   try {
