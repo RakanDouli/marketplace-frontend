@@ -32,7 +32,7 @@
   padding: $space-md;
   background: $info-bg;
   border: 1px solid $info;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   text-align: center;
   margin-bottom: $space-lg;
 }
@@ -60,12 +60,12 @@
 
   &::-webkit-scrollbar-track {
     background: $bg;
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
   }
 
   &::-webkit-scrollbar-thumb {
     background: $border;
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
 
     &:hover {
       background: $text-secondary;
@@ -80,7 +80,7 @@
   padding: $space-md;
   background: $bg;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   align-items: center;
 
   &:hover {

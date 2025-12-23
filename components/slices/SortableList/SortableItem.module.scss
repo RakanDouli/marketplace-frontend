@@ -1,7 +1,7 @@
 @import "@/styles/variables";
 
 .sortableItem {
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   // padding: $space-sm;
   // margin-bottom: $space-sm;
   transition: all 0.2s ease;
@@ -156,7 +156,7 @@
   background: $warning-bg;
   color: $warning;
   padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   font-size: $font-xs;
   font-weight: $weight-medium;
 }
@@ -212,7 +212,7 @@
   height: 24px;
   color: $text-muted;
   cursor: pointer;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   transition: all 0.2s ease;
 
   &:hover {
@@ -240,7 +240,7 @@
   min-width: 140px;
   background: $bg;
   border: 1px solid $border;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   box-shadow: $shadow-lg;
   padding: $space-xs;
   margin-top: $space-xs;
@@ -253,7 +253,7 @@
   text-align: right;
   background: none;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   color: $text;
   font-size: $font-sm;
   cursor: pointer;
@@ -317,7 +317,7 @@
 .attributeItem {
   background: $surface;
   border: 1px solid $border;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   // overflow: hidden;
   // .itemContent {
   //   // background: $surface;
@@ -372,7 +372,7 @@
 
     // .itemContent {
     //   overflow: hidden;
-    //   border-radius: $radius-base;
+    //   border-radius: $radius-md;
     // }
   }
 }

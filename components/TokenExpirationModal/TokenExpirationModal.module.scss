@@ -1,4 +1,4 @@
-@import '../../styles/variables.scss';
+@import "../../styles/variables.scss";
 
 .tokenModal {
   z-index: $z-modal;
@@ -76,7 +76,7 @@
   position: relative;
   height: 4px;
   background: $surface;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   overflow: hidden;
   margin-top: $space-md;
 }
@@ -84,7 +84,7 @@
 .progressBar {
   height: 100%;
   background: $warning;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
 }
 
 @keyframes spin {

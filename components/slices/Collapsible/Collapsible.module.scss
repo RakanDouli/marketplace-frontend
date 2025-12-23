@@ -83,7 +83,7 @@
 
 .bordered {
   border: 1px solid $border;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   margin-bottom: $space-sm;
 
   .trigger {
@@ -91,7 +91,7 @@
     border-radius: $radius-base $radius-base 0 0;
 
     &:last-child {
-      border-radius: $radius-base;
+      border-radius: $radius-md;
     }
   }
 

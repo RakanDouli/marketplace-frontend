@@ -87,7 +87,7 @@
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   user-select: none;
 
   @media (max-width: $breakpoint-sm) {
@@ -165,7 +165,7 @@
   width: 60px;
   height: 60px;
   flex-shrink: 0;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;

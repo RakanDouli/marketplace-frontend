@@ -12,7 +12,7 @@
 //   background: $primary;
 //   color: $text-inverse;
 //   border: none;
-//   border-radius: $radius-sm;
+//   border-radius: $radius-md;
 //   cursor: pointer;
 //   transition: all 0.2s ease;
 //   font-size: $font-base;
@@ -29,7 +29,7 @@
   padding: $space-xs;
   background: none;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -43,7 +43,7 @@
 .avatarInitials {
   width: 36px;
   height: 36px;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   flex-shrink: 0;
 }
 
@@ -52,7 +52,7 @@
 
   .avatar {
     object-fit: cover;
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
   }
 }
 
@@ -111,7 +111,7 @@
   padding: $space-sm $space-md;
   background: none;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   text-align: right;
   cursor: pointer;
   transition: all 0.2s ease;

@@ -119,6 +119,6 @@
   &.active {
     background: var(--primary);
     width: 28px;
-    border-radius: 5px;
+    border-radius: $space-md;
   }
 }

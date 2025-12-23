@@ -85,7 +85,7 @@
   padding: $space-sm $space-md;
   background: transparent;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   font-size: $font-sm;
   font-weight: $weight-medium;
   color: $text-secondary;
@@ -194,7 +194,7 @@
 // Type Badge
 .typeBadge {
   padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   font-size: $font-xs;
   font-weight: $weight-medium;
 
@@ -217,7 +217,7 @@
 // Status Badge
 .status {
   padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   font-size: $font-sm;
   font-weight: $weight-medium;
 

@@ -1,4 +1,4 @@
-@import '@/styles/variables';
+@import "@/styles/variables";
 
 .content {
   display: flex;
@@ -14,7 +14,7 @@
 .note {
   padding: $space-md;
   background-color: var(--surface-alt);
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   text-align: right;
   line-height: 1.6;
 }

@@ -14,7 +14,7 @@
   gap: $space-md;
   padding: $space-lg;
   background: $bg;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
   box-shadow: $shadow-sm;
 
@@ -36,7 +36,7 @@
 .avatar {
   width: 160px;
   height: 160px;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,7 +89,7 @@
   gap: $space-md;
   padding: $space-lg;
   background: $bg;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
   box-shadow: $shadow-sm;
   @media (max-width: $breakpoint-sm) {
@@ -125,7 +125,7 @@
   gap: $space-xs;
   padding: $space-md;
   background: rgba($surface, 0.5);
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid rgba($border, 0.5);
   transition: all 0.2s ease;
 }
@@ -155,7 +155,7 @@
   padding: $space-md $space-lg;
   background: $warning-bg;
   border: 1px solid $warning-border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   box-shadow: $shadow-sm;
 
   @media (max-width: $breakpoint-sm) {
@@ -185,7 +185,7 @@
   padding: $space-md;
   background: $surface;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   transition: all 0.2s ease;
 
   // &:hover {
@@ -226,7 +226,7 @@
     align-items: center;
     gap: $space-sm;
     padding: $space-sm;
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
 
     &.included {
       background: rgba($success, 0.1);
@@ -316,7 +316,7 @@
   gap: $space-md;
   padding: $space-md;
   background: rgba($primary, 0.05);
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid rgba($primary, 0.1);
 }
 
@@ -330,7 +330,7 @@
   width: 100%;
   height: 8px;
   background: rgba($border, 0.3);
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   overflow: hidden;
 }
 

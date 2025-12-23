@@ -475,7 +475,7 @@
   background: transparent;
   color: $text-secondary;
   cursor: pointer;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   transition: background 0.2s ease;
 
   &:hover {
@@ -495,7 +495,7 @@
   width: 100%;
   padding: $space-sm;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   font-family: inherit;
   font-size: $font-base;
   color: inherit;
@@ -519,7 +519,7 @@
 .editButton {
   padding: $space-xs $space-md;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   background: transparent;
   color: inherit;
   font-size: $font-sm;

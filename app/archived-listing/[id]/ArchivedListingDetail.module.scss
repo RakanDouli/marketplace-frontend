@@ -4,7 +4,7 @@
 .archiveBanner {
   background: $error-bg;
   border: 1px solid $error;
-  border-radius: 8px;
+  border-radius: $radius-md;
   padding: 16px;
   margin-bottom: 16px;
   text-align: center;

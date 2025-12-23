@@ -47,7 +47,7 @@
 .imageCard {
   position: relative;
   aspect-ratio: 1;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   overflow: hidden;
   background-color: $surface;
   transition: transform 0.2s ease;
@@ -84,7 +84,7 @@
   gap: $space-xs;
   background-color: $surface;
   border: 2px dashed $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   cursor: pointer;
   transition: all 0.2s ease;
   color: $text-secondary;

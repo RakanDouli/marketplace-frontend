@@ -62,13 +62,13 @@
 // Info/Warning boxes
 .infoBox {
   padding: $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   background-color: rgba(var(--warning-rgb), 0.1);
 }
 
 .warningBox {
   padding: $space-sm;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   background-color: rgba(var(--error-rgb), 0.1);
 
   p {
@@ -84,7 +84,7 @@
   flex-direction: column;
   background-color: $surface;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   li {
     margin-bottom: $space-xs;
     font-size: $font-sm;

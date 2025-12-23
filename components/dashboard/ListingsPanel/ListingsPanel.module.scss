@@ -8,7 +8,7 @@
   flex-direction: column;
   gap: $space-md;
   padding: $space-md;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   background: $bg;
 }
 
@@ -48,7 +48,7 @@
   padding: $space-md;
   background-color: $error-bg;
   border: 1px solid $error;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   color: $error;
 
   svg {
@@ -65,7 +65,7 @@
   padding: $space-sm $space-md;
   background-color: $warning-bg;
   border: 1px solid $warning;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   color: $warning;
 
   svg {
@@ -78,7 +78,7 @@
   padding: $space-md;
   background-color: $surface;
   border: 1px solid $border;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
 }
 
 .usageStat {
@@ -96,14 +96,14 @@
 .progressBar {
   height: 8px;
   background-color: $border;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   overflow: hidden;
 }
 
 .progress {
   height: 100%;
   background-color: $primary;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   transition: width 0.3s ease;
 
   &.warning {
@@ -121,7 +121,7 @@
   flex-direction: column;
   gap: $space-md;
   padding: $space-sm;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   border: 1px solid $border;
 }
 
@@ -137,7 +137,7 @@
     float: right;
     padding: $space-xs $space-sm;
     border: 1px solid $border;
-    border-radius: $radius-base;
+    border-radius: $radius-md;
   }
 }
 
@@ -152,7 +152,7 @@
   color: $primary;
   padding: $space-xs $space-sm;
   border: 1px solid $border;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
 }
 
 // Grid Layout for Listing Cards
@@ -191,7 +191,7 @@
   padding: $space-sm;
   background: $warning-bg;
   border: 1px solid $warning;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   text-align: center;
   margin-top: -$space-xs; // Overlap slightly with card
   margin-bottom: $space-xs;
@@ -236,7 +236,7 @@
   font-size: $font-xs;
   font-weight: $weight-medium;
   padding: $space-xs $space-sm;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   backdrop-filter: blur(8px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -277,7 +277,7 @@
 // Status Badges
 .statusBadge {
   padding: $space-xs $space-sm;
-  border-radius: $radius-base;
+  border-radius: $radius-md;
   text-align: center;
   min-width: fit-content;
   display: inline-block;

@@ -16,16 +16,16 @@
   background-color: $border;
   animation: pulse 1.5s ease-in-out infinite;
   display: inline-block;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
 
   &.text {
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
     transform: scale(1, 0.6);
     transform-origin: 0 50%;
   }
 
   &.rectangular {
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
   }
 
   &.circular {

@@ -65,7 +65,7 @@
   margin-bottom: $space-xl;
   padding: $space-lg;
   background: $bg;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
 }
 
@@ -117,7 +117,7 @@
 .specificationsSection {
   margin-bottom: $space-xl;
   padding: $space-lg;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
   background: $bg;
 }
@@ -141,7 +141,7 @@
   align-items: center;
   padding: $space-sm $space-md;
   background: $bg;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
 
   .specLabel {
@@ -162,7 +162,7 @@
 .editSection {
   margin-bottom: $space-lg;
   padding: $space-lg;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
   background: $surface;
 }
@@ -176,7 +176,7 @@
 .biddingSection {
   margin-top: $space-md;
   padding: $space-md;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
   border: 1px solid $border;
   background: $bg;
 }
@@ -213,7 +213,7 @@
   padding: $space-md;
   background: $bg;
   border: 1px solid $border;
-  border-radius: $radius-sm;
+  border-radius: $radius-md;
 
   .statusLabel {
     margin-bottom: $space-xs;
@@ -230,7 +230,7 @@
   .systemStatus {
     padding: $space-sm;
     background: $bg;
-    border-radius: $radius-sm;
+    border-radius: $radius-md;
     text-align: center;
   }
 }

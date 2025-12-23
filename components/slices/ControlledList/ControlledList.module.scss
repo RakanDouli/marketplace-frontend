@@ -4,7 +4,7 @@
 //   width: 100%;
 //   background: $surface;
 //   border: 1px dashed $text-muted;
-//   border-radius: $radius-base;
+//   border-radius: $radius-md;
 //   padding: $space-md;
 //   min-height: 200px;
 //   overflow: visible;
@@ -13,7 +13,7 @@
 
 // .listItem {
 //   border: 1px dashed $primary;
-//   border-radius: $radius-base;
+//   border-radius: $radius-md;
 //   padding: $space-sm;
 //   margin-bottom: $space-sm;
 //   position: relative;
@@ -182,7 +182,7 @@
 //   z-index: $z-modal !important;
 //   margin-top: $space-sm;
 //   background: $surface !important;
-//   border-radius: $radius-base;
+//   border-radius: $radius-md;
 //   box-shadow: $shadow-lg;
 //   border: 1px solid $border;
 // }
