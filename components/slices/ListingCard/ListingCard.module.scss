@@ -45,6 +45,38 @@
     }
   }
 
+  // Compact view - minimal card for sliders (image, title, price only)
+  &.compact {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .imageContainer {
+      aspect-ratio: 4 / 3;
+    }
+
+    .content {
+      padding: $space-sm;
+      display: flex;
+      flex-direction: column;
+      gap: $space-xs;
+    }
+
+    .title {
+      font-size: $font-sm;
+      min-height: auto;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .priceValue {
+      font-size: $font-base;
+    }
+  }
+
   // List view - horizontal layout with more info
   &.list {
     display: flex;

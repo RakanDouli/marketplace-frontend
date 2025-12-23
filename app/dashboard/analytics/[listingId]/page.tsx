@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Text, Loading, Button, MobileBackButton } from '@/components/slices';
+import { Text, Loading, Button, MobileBackButton, Grid, StatCard } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
 import { BarChart3, Eye, Heart, TrendingUp, Calendar, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -213,60 +213,29 @@ export default function ListingAnalyticsPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Eye size={20} />
-          </div>
-          <div className={styles.statContent}>
-            <Text variant="small" color="secondary">المشاهدات</Text>
-            <Text variant="h2">
-              {formatNumber(listingAnalytics.viewCount)}
-            </Text>
-            {listingAnalytics.viewsToday > 0 && (
-              <Text variant="small" color="success">
-                +{formatNumber(listingAnalytics.viewsToday)} اليوم
-              </Text>
-            )}
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Heart size={20} />
-          </div>
-          <div className={styles.statContent}>
-            <Text variant="small" color="secondary">المفضلة</Text>
-            <Text variant="h2">
-              {formatNumber(listingAnalytics.wishlistCount)}
-            </Text>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Calendar size={20} />
-          </div>
-          <div className={styles.statContent}>
-            <Text variant="small" color="secondary">أيام في السوق</Text>
-            <Text variant="h2">
-              {formatNumber(listingAnalytics.daysOnMarket)}
-            </Text>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <TrendingUp size={20} />
-          </div>
-          <div className={styles.statContent}>
-            <Text variant="small" color="secondary">معدل التفاعل</Text>
-            <Text variant="h2">
-              {listingAnalytics.engagementRate.toFixed(1)}%
-            </Text>
-          </div>
-        </div>
-      </div>
+      <Grid columns={4} gap="md">
+        <StatCard
+          title="المشاهدات"
+          value={formatNumber(listingAnalytics.viewCount)}
+          subtitle={listingAnalytics.viewsToday > 0 ? `+${formatNumber(listingAnalytics.viewsToday)} اليوم` : undefined}
+          icon={<Eye size={24} />}
+        />
+        <StatCard
+          title="المفضلة"
+          value={formatNumber(listingAnalytics.wishlistCount)}
+          icon={<Heart size={24} />}
+        />
+        <StatCard
+          title="أيام في السوق"
+          value={formatNumber(listingAnalytics.daysOnMarket)}
+          icon={<Calendar size={24} />}
+        />
+        <StatCard
+          title="معدل التفاعل"
+          value={`${listingAnalytics.engagementRate.toFixed(1)}%`}
+          icon={<TrendingUp size={24} />}
+        />
+      </Grid>
 
       {/* Performance Indicator Bar (Google-style) */}
       {listingAnalytics.performanceIndicator && (

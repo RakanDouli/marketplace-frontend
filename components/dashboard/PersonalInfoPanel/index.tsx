@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Text, Button } from '@/components/slices';
+import { Text, Button, Image } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useUserProfileStore } from '@/stores/userProfileStore';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -176,7 +176,7 @@ export const PersonalInfoPanel: React.FC = () => {
             }}
           >
             {user.avatar ? (
-              <img src={getAvatarUrl(user.avatar, 'card') || ''} alt={user.name || ''} />
+              <Image src={getAvatarUrl(user.avatar, 'card') || ''} alt={user.name || ''} aspectRatio="1/1" />
             ) : (
               <span className={styles.initials}>
                 {getInitials(user.name, user.email)}

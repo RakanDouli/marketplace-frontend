@@ -79,54 +79,6 @@
 }
 
 // ===================================
-// Stats Grid
-// ===================================
-
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: $space-md;
-
-  @media (max-width: $breakpoint-md) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.statCard {
-  display: flex;
-  gap: $space-md;
-  padding: $space-lg;
-  background: $surface;
-  border-radius: $radius-lg;
-  border: 1px solid $border;
-
-  // No hover - these are not clickable
-}
-
-.statIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: $radius-md;
-  background: rgba($primary, 0.08);
-  color: $primary;
-  flex-shrink: 0;
-}
-
-.statContent {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-// ===================================
 // Comparison Card
 // ===================================
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Star, BadgeCheck } from 'lucide-react';
-import { Button } from '@/components/slices';
+import { Button, Image } from '@/components/slices';
 import { AccountType } from '@/common/enums';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
@@ -47,7 +47,7 @@ export const OwnerCard: React.FC<OwnerCardProps> = ({
     <div className={styles.card}>
       {/* Avatar */}
       {avatarUrl ? (
-        <img src={avatarUrl} alt={displayName} className={styles.avatar} />
+        <Image src={avatarUrl} alt={displayName} className={styles.avatar} aspectRatio="1/1" />
       ) : (
         <div className={styles.initials} style={{ backgroundColor: avatarBgColor }}>
           {initials}

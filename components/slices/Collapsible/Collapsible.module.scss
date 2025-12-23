@@ -41,14 +41,17 @@
   font-size: $font-base;
 }
 
-.chevron {
+.toggleIcon {
   display: flex;
   align-items: center;
-  color: $text-muted;
-  transition: transform 0.2s ease;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: $text;
+  transition: all 0.2s ease;
 
   &.open {
-    transform: rotate(0deg);
+    color: $text;
   }
 }
 
@@ -114,5 +117,21 @@
 
   .contentInner {
     padding: $space-lg;
+  }
+}
+
+// Compact variant - no horizontal padding (for filters)
+.compact {
+  .trigger {
+    padding: $space-sm 0;
+    border-bottom: 1px solid $border;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+
+  .contentInner {
+    padding: $space-sm 0;
   }
 }

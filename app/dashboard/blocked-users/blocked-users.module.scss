@@ -62,15 +62,11 @@
   justify-content: space-between;
   align-items: center;
   padding: $space-lg;
-  background: var(--color-background-surface);
-  border: 1px solid var(--color-border);
+
+  background: $bg;
+  border: 1px solid $border;
   border-radius: $radius-md;
   transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
 }
 
 .userInfo {
@@ -99,14 +95,10 @@
     flex-direction: column;
     gap: $space-md;
     align-items: stretch;
-
-    button {
-      width: 100%;
-    }
   }
 
-  .userInfo {
-    flex-direction: column;
-    text-align: center;
-  }
+  // .userInfo {
+  //   flex-direction: column;
+  //   text-align: center;
+  // }
 }

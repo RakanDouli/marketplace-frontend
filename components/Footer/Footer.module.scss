@@ -1,0 +1,131 @@
+@import "@/styles/variables";
+
+.footer {
+  background: $surface;
+  border-top: 1px solid $border;
+  padding: $space-xl 0 $space-lg;
+  margin-top: auto;
+
+  // Add padding for bottom nav on mobile
+  @media (max-width: $breakpoint-md) {
+    padding-bottom: calc($space-lg + 80px);
+  }
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: $space-xl;
+  margin-bottom: $space-xl;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+    gap: $space-lg;
+  }
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  text-decoration: none;
+  color: $text;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.logoIcon {
+  // Icon sizing handled separately
+}
+
+.logoText {
+  // Font handled by Text component
+}
+
+.sectionTitle {
+  margin-bottom: $space-md;
+  color: $text;
+}
+
+.linksSection,
+.contactSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.link {
+  color: $text-secondary;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  color: $text-secondary;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  svg {
+    color: $primary;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    gap: $space-md;
+    text-align: center;
+  }
+}
+
+.legalLinks {
+  display: flex;
+  gap: $space-md;
+}
+
+.legalLink {
+  color: $text-muted;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary;
+  }
+}

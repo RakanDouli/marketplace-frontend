@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { RiAddFill, RiCloseLargeFill } from 'react-icons/ri';
 import styles from './Collapsible.module.scss';
 
 interface CollapsibleProps {
@@ -9,7 +9,7 @@ interface CollapsibleProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   icon?: React.ReactNode;
-  variant?: 'default' | 'bordered' | 'card';
+  variant?: 'default' | 'bordered' | 'card' | 'compact';
   className?: string;
   onToggle?: (isOpen: boolean) => void;
 }
@@ -44,8 +44,8 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
           {icon && <span className={styles.icon}>{icon}</span>}
           <span className={styles.title}>{title}</span>
         </div>
-        <span className={`${styles.chevron} ${isOpen ? styles.open : ''}`}>
-          {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+        <span className={`${styles.toggleIcon} ${isOpen ? styles.open : ''}`}>
+          {isOpen ? <RiCloseLargeFill size={24} /> : <RiAddFill size={24} />}
         </span>
       </button>
 

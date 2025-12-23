@@ -668,7 +668,7 @@ export const Filter: React.FC<FilterProps> = ({
                           key={`group-${item.groupOrder}-${item.groupName}`}
                           title={item.groupName || ''}
                           defaultOpen={true}
-                          variant="default"
+                          variant="compact"
                         >
                           {item.attributes.map(renderAttribute)}
                         </Collapsible>

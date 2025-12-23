@@ -120,8 +120,8 @@ function PaymentSuccessContent() {
           <CheckCircle size={80} />
         </div>
 
-        <h1 className={styles.resultTitle}>{message.title}</h1>
-        <p className={styles.resultMessage}>{message.description}</p>
+        <Text variant="h1" className={styles.resultTitle}>{message.title}</Text>
+        <Text variant="paragraph" className={styles.resultMessage}>{message.description}</Text>
 
         {/* Action buttons - hidden for ad campaigns */}
         {message.showButtons && (

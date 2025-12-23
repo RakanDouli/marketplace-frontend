@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useForceModalStore } from '@/stores/forceModalStore';
+import { Text } from '@/components/slices';
 import styles from './ForceModal.module.scss';
 
 /**
@@ -57,9 +58,9 @@ export const ForceModal: React.FC = () => {
         {/* Modal Content */}
         <div className={styles.modalContent}>
           {title && (
-            <h2 id="force-modal-title" className={styles.modalTitle}>
+            <Text variant="h2" id="force-modal-title" className={styles.modalTitle}>
               {title}
-            </h2>
+            </Text>
           )}
           {content}
         </div>

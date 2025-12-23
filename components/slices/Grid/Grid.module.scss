@@ -1,0 +1,97 @@
+@import "@/styles/variables";
+
+.grid {
+  display: grid;
+  width: 100%;
+}
+
+// Gap variants
+.gapsm {
+  gap: $space-sm;
+}
+
+.gapmd {
+  gap: $space-md;
+}
+
+.gaplg {
+  gap: $space-lg;
+}
+
+.gapxl {
+  gap: $space-xl;
+}
+
+// Column variants (desktop)
+.cols1 {
+  grid-template-columns: 1fr;
+}
+
+.cols2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.cols3 {
+  grid-template-columns: repeat(3, 1fr);
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cols4 {
+  grid-template-columns: repeat(4, 1fr);
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cols5 {
+  grid-template-columns: repeat(5, 1fr);
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cols6 {
+  grid-template-columns: repeat(6, 1fr);
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Mobile column overrides (at breakpoint-sm)
+.mobile1 {
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mobile2 {
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mobile3 {
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.mobile4 {
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

@@ -810,7 +810,7 @@ export const MessagesClient: React.FC = () => {
                 <div className={styles.imagePreviewsGrid}>
                   {imagePreviewUrls.map((url, index) => (
                     <div key={index} className={styles.imagePreviewItem}>
-                      <img src={url} alt={`معاينة ${index + 1}`} />
+                      <Image src={url} alt={`معاينة ${index + 1}`} aspectRatio="1/1" />
                       <button
                         type="button"
                         className={styles.removeImageButton}

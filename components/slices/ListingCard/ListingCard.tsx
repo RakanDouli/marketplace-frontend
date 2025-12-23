@@ -13,13 +13,13 @@ export interface ListingCardProps {
   title: string;
   price: string;
   currency?: string; // Optional - defaults to 'USD' for SEO/share metadata
-  location: string;
-  accountType: "individual" | "dealer" | "business"; // Changed from sellerType to accountType
+  location?: string;
+  accountType?: "individual" | "dealer" | "business"; // Changed from sellerType to accountType
   specs?: Record<string, any>; // Dynamic specs from backend
   images?: string[];
   description?: string;
   onClick?: (id: string) => void;
-  viewMode?: "grid" | "list";
+  viewMode?: "grid" | "list" | "compact"; // compact = minimal card for sliders (image, title, price only)
   className?: string;
   priority?: boolean; // For LCP optimization
   isLoading?: boolean; // Skeleton loading state
@@ -63,12 +63,12 @@ export const ListingCard: React.FC<ListingCardProps> = ({
     }
 
     // Fallback to English labels if not in specs
-    const accountTypeLabels = {
+    const accountTypeLabels: Record<string, string> = {
       individual: "فردي",
       dealer: "تاجر",
       business: "شركة",
     };
-    return accountTypeLabels[accountType] || accountType;
+    return (accountType && accountTypeLabels[accountType]) || accountType || "فردي";
   };
 
   return (
@@ -121,106 +121,114 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
         {/* Content Section */}
         <div className={styles.content}>
-          {/* Title with Share Button (only in list view) */}
-          {viewMode === 'list' ? (
-            <div className={styles.titleRow}>
+          {/* Compact View - Only title and price */}
+          {viewMode === 'compact' ? (
+            <>
               <Text variant="h4" className={styles.title} skeleton={isLoading}>
                 {title}
               </Text>
-              {!isLoading && (
-                <div
-                  className={styles.shareButtonWrapper}
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <ShareButton
-                    metadata={{
-                      title: title,
-                      description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
-                      url: typeof window !== 'undefined' ? `${window.location.origin}${listingUrl}` : '',
-                      image: images?.[0],
-                      siteName: 'السوق السوري للسيارات',
-                      type: 'product',
-                      price: price,
-                      currency: currency,
-                    }}
-                    variant="outline"
-                  />
+              <div className={styles.price}>
+                <Text variant="h4" className={styles.priceValue} skeleton={isLoading} skeletonWidth="60%">
+                  {price}
+                </Text>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Title with Share Button (only in list view) */}
+              {viewMode === 'list' ? (
+                <div className={styles.titleRow}>
+                  <Text variant="h4" className={styles.title} skeleton={isLoading}>
+                    {title}
+                  </Text>
+                  {!isLoading && (
+                    <div
+                      className={styles.shareButtonWrapper}
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      <ShareButton
+                        metadata={{
+                          title: title,
+                          description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
+                          url: typeof window !== 'undefined' ? `${window.location.origin}${listingUrl}` : '',
+                          image: images?.[0],
+                          siteName: 'السوق السوري للسيارات',
+                          type: 'product',
+                          price: price,
+                          currency: currency,
+                        }}
+                        variant="outline"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Text variant="h4" className={styles.title} skeleton={isLoading}>
+                  {title}
+                </Text>
+              )}
+
+              {/* Price */}
+              <div className={styles.price}>
+                <Text variant="h4" className={styles.priceValue} skeleton={isLoading} skeletonWidth="60%">
+                  {price}
+                </Text>
+              </div>
+
+              {/* Location - Always show */}
+              {location && (
+                <div className={styles.spec}>
+                  {!isLoading && <MapPin size={16} className={styles.specIcon} />}
+                  <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="50%">
+                    {location}
+                  </Text>
                 </div>
               )}
-            </div>
-          ) : (
-            <Text variant="h4" className={styles.title} skeleton={isLoading}>
-              {title}
-            </Text>
+
+              {/* Grid View Specs - Compact single line with | separator (like AutoScout24) */}
+              {viewMode === "grid" && specs && Object.keys(specs).length > 0 && (
+                <div className={styles.specsCompact}>
+                  <Text variant="small" className={styles.specsCompactText} skeleton={isLoading} skeletonWidth="80%">
+                    {Object.entries(specs)
+                      .filter(([key]) => key !== 'accountType' && key !== 'account_type')
+                      .map(([, value]) => {
+                        if (!value) return null;
+                        const displayValue = typeof value === 'object' ? value.value : value;
+                        if (!displayValue || displayValue === "") return null;
+                        return displayValue;
+                      })
+                      .filter(Boolean)
+                      .join(' | ')}
+                  </Text>
+                </div>
+              )}
+
+              {/* List View Specs - Detailed layout */}
+              {viewMode === "list" && specs && Object.keys(specs).length > 0 && (
+                <div className={styles.specsList}>
+                  {Object.entries(specs)
+                    .filter(([key]) => key !== 'accountType' && key !== 'account_type')
+                    .map(([key, value]) => {
+                      if (!value) return null;
+                      const displayLabel = typeof value === 'object' ? value.label : key;
+                      const displayValue = typeof value === 'object' ? value.value : value;
+                      if (!displayValue || displayValue === "") return null;
+
+                      return (
+                        <div key={key} className={styles.specList}>
+                          <Text variant="xs" className={styles.specLabel}>
+                            {displayLabel}:
+                          </Text>
+                          <Text variant="xs" className={styles.specText}>
+                            {displayValue}
+                          </Text>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </>
           )}
-
-          {/* Price */}
-          <div className={styles.price}>
-            <Text variant="h4" className={styles.priceValue} skeleton={isLoading} skeletonWidth="60%">
-              {price}
-            </Text>
-          </div>
-
-          {/* Location - Always show */}
-          {location && (
-            <div className={styles.spec}>
-              {!isLoading && <MapPin size={16} className={styles.specIcon} />}
-              <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="50%">
-                {location}
-              </Text>
-            </div>
-          )}
-
-          {/* Grid View Specs - Compact single line with | separator (like AutoScout24) */}
-          {viewMode === "grid" && specs && Object.keys(specs).length > 0 && (
-            <div className={styles.specsCompact}>
-              <Text variant="small" className={styles.specsCompactText} skeleton={isLoading} skeletonWidth="80%">
-                {Object.entries(specs)
-                  .filter(([key]) => key !== 'accountType' && key !== 'account_type')
-                  .map(([, value]) => {
-                    if (!value) return null;
-                    const displayValue = typeof value === 'object' ? value.value : value;
-                    if (!displayValue || displayValue === "") return null;
-                    return displayValue;
-                  })
-                  .filter(Boolean)
-                  .join(' | ')}
-              </Text>
-            </div>
-          )}
-
-          {/* List View Specs - Detailed layout */}
-          {viewMode === "list" && specs && Object.keys(specs).length > 0 && (
-            <div className={styles.specsList}>
-              {Object.entries(specs)
-                .filter(([key]) => key !== 'accountType' && key !== 'account_type')
-                .map(([key, value]) => {
-                  if (!value) return null;
-                  const displayLabel = typeof value === 'object' ? value.label : key;
-                  const displayValue = typeof value === 'object' ? value.value : value;
-                  if (!displayValue || displayValue === "") return null;
-
-                  return (
-                    <div key={key} className={styles.specList}>
-                      <Text variant="xs" className={styles.specLabel}>
-                        {displayLabel}:
-                      </Text>
-                      <Text variant="xs" className={styles.specText}>
-                        {displayValue}
-                      </Text>
-                    </div>
-                  );
-                })}
-            </div>
-          )}
-
-          {/* Account Type - At the end with border-top */}
-          {/* <div className={styles.sellerSection}>
-            {!isLoading && <User size={16} className={styles.specIcon} />}
-            <Text variant="xs" className={styles.specText} skeleton={isLoading} skeletonWidth="40%">
-              {getAccountTypeLabel()}
-            </Text>
-          </div> */}
         </div>
       </Link>
     </div>

@@ -1,0 +1,102 @@
+@import "@/styles/variables";
+
+.cta {
+  padding: $space-xxl 0;
+  position: relative;
+  overflow: hidden;
+}
+
+// Variants - use theme bg colors
+.primary {
+  background: $surface;
+  color: $text;
+
+  .subtitle {
+    color: $primary;
+  }
+}
+
+.secondary {
+  background: $surface;
+  color: $text;
+
+  .subtitle {
+    color: $primary;
+  }
+}
+
+.gradient {
+  background: $primary;
+  color: $text-light;
+
+  .subtitle {
+    color: $text-light;
+  }
+
+  .title {
+    color: $text-light;
+  }
+
+  .description {
+    color: $text-light;
+  }
+}
+
+// Alignment
+.alignCenter {
+  .content {
+    text-align: center;
+    align-items: center;
+  }
+}
+
+.alignLeft {
+  .content {
+    text-align: right; // RTL
+    align-items: flex-start;
+  }
+}
+
+.alignRight {
+  .content {
+    text-align: left; // RTL
+    align-items: flex-end;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.subtitle {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.description {
+  max-width: 600px;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-md;
+  margin-top: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    width: 100%;
+
+    a {
+      width: 100%;
+    }
+  }
+}

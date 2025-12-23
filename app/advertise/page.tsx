@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Monitor, Smartphone, Eye, MapPin, BarChart, Clock } from 'lucide-react';
-import { Container, Text, Slider, Collapsible, TextSection, Loading } from '@/components/slices';
+import { Container, Text, Slider, Collapsible, TextSection, Loading, Grid, FeatureCard } from '@/components/slices';
 import { PricingCard, ContactAdModal } from '@/components/pricing';
 import type { FeatureItem } from '@/components/pricing';
 import { useAdPackagesStore } from '@/stores/adPackagesStore';
@@ -130,36 +130,32 @@ export default function AdvertisePage() {
       <Container >
 
         {/* Why Advertise Section */}
-        <div className={styles.benefits}>
-          <div className={styles.benefit}>
-            <BarChart size={32} />
-            <Text variant="h4">100k+ زائر شهرياً</Text>
-            <Text variant="small" color="secondary">
-              وصول واسع لجمهورك المستهدف
-            </Text>
-          </div>
-          <div className={styles.benefit}>
-            <MapPin size={32} />
-            <Text variant="h4">مشترو سيارات مستهدفون</Text>
-            <Text variant="small" color="secondary">
-              جمهور مهتم بالسيارات فعلياً
-            </Text>
-          </div>
-          <div className={styles.benefit}>
-            <BarChart size={32} />
-            <Text variant="h4">تقارير شفافة</Text>
-            <Text variant="small" color="secondary">
-              تتبع أداء حملتك بالتفصيل
-            </Text>
-          </div>
-          <div className={styles.benefit}>
-            <Eye size={32} />
-            <Text variant="h4">أسعار تنافسية</Text>
-            <Text variant="small" color="secondary">
-              أفضل قيمة مقابل المال
-            </Text>
-          </div>
-        </div>
+        <Grid columns={4} className={styles.benefits}>
+          <FeatureCard
+            icon={<BarChart size={32} />}
+            title="100k+ زائر شهرياً"
+            description="وصول واسع لجمهورك المستهدف"
+            variant="card"
+          />
+          <FeatureCard
+            icon={<MapPin size={32} />}
+            title="مشترو سيارات مستهدفون"
+            description="جمهور مهتم بالسيارات فعلياً"
+            variant="card"
+          />
+          <FeatureCard
+            icon={<BarChart size={32} />}
+            title="تقارير شفافة"
+            description="تتبع أداء حملتك بالتفصيل"
+            variant="card"
+          />
+          <FeatureCard
+            icon={<Eye size={32} />}
+            title="أسعار تنافسية"
+            description="أفضل قيمة مقابل المال"
+            variant="card"
+          />
+        </Grid>
 
         {/* Ad Packages */}
         <div className={styles.packagesSection}>

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import Header from "../Header/Header";
+import { Footer } from '../Footer';
 import { BottomNav } from '../BottomNav';
 import { NotificationToast } from '../slices';
 import { AuthModal } from '../AuthModal';
@@ -46,6 +47,7 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
       <AuthModal />
       <ForceModal />
       <main className={styles.main}>{children}</main>
+      <Footer />
       <BottomNav />
     </div>
   );

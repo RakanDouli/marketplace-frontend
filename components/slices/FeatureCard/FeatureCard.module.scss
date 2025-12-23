@@ -1,0 +1,118 @@
+@import "@/styles/variables";
+
+.feature {
+  display: flex;
+  gap: $space-sm;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+// Default variant - centered, vertical layout
+.default {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: $space-lg;
+
+  .icon {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+// Card variant - centered with background and border
+.card {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: $space-lg;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+
+  .icon {
+    width: 64px;
+    height: 64px;
+    background: $surface;
+    border-radius: $radius-full;
+  }
+}
+
+// Icon-row variant - horizontal layout with icon on side
+.icon-row {
+  flex-direction: row;
+  align-items: flex-start;
+  padding: $space-md;
+
+  .icon {
+    width: 48px;
+    height: 48px;
+    background: $surface;
+    border-radius: $radius-md;
+  }
+
+  .content {
+    text-align: start;
+  }
+}
+
+// Color variants
+.color-bg {
+  background: $bg;
+}
+
+.color-surface {
+  background: $surface;
+}
+
+.color-primary {
+  background: $primary;
+  border-color: $primary;
+
+  .icon {
+    color: $text-light;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .content {
+    color: $text-light;
+
+    h4,
+    p,
+    span {
+      color: $text-light;
+    }
+  }
+}
+
+.color-accent {
+  background: $accent;
+  border-color: $accent;
+
+  .icon {
+    color: $text-light;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .content {
+    color: $text-light;
+
+    h4,
+    p,
+    span {
+      color: $text-light;
+    }
+  }
+}

@@ -94,6 +94,34 @@ export const Header: React.FC = () => {
               </div>
             </Link>
 
+            {/* Desktop Navigation */}
+            <nav className={styles.nav}>
+              <Link
+                href="/listings"
+                className={`${styles.navLink} ${pathname === '/listings' ? styles.active : ''}`}
+              >
+                تصفح الإعلانات
+              </Link>
+              <Link
+                href="/user-subscriptions"
+                className={`${styles.navLink} ${pathname === '/user-subscriptions' ? styles.active : ''}`}
+              >
+                باقات الاشتراك
+              </Link>
+              <Link
+                href="/advertise"
+                className={`${styles.navLink} ${pathname === '/advertise' ? styles.active : ''}`}
+              >
+                أعلن معنا
+              </Link>
+              <Link
+                href="/contact"
+                className={`${styles.navLink} ${pathname === '/contact' ? styles.active : ''}`}
+              >
+                اتصل بنا
+              </Link>
+            </nav>
+
             {/* Desktop Actions */}
             <div className={styles.actions}>
               {user && (

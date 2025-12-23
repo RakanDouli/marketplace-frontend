@@ -1,0 +1,62 @@
+@import "../../../styles/variables";
+
+.statCard {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-sm;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: $surface;
+  border-radius: $radius-full;
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.title {
+  color: $text-secondary;
+  font-weight: $weight-medium;
+}
+
+.value {
+  color: $text;
+  font-weight: $weight-bold;
+  font-size: $font-2xl;
+  line-height: $line-tight;
+}
+
+.subtitle {
+  font-size: $font-xs;
+}
+
+.loadingWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+
+.error {
+  color: $error;
+}

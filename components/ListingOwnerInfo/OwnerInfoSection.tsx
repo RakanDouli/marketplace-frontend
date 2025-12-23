@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Star, Building2, Calendar, Globe, Mail, Phone, BadgeCheck } from 'lucide-react';
 import { useListingOwnerStore } from '@/stores/listingOwnerStore';
-import { Button, Loading, Text } from '@/components/slices';
+import { Button, Loading, Text, Image } from '@/components/slices';
 import { AccountType } from '@/common/enums';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
@@ -75,7 +75,7 @@ export const OwnerInfoSection: React.FC<ListingOwnerInfoProps> = ({ userId, list
         <div className={styles.profile}>
           {/* Avatar */}
           {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName} className={styles.avatar} />
+            <Image src={avatarUrl} alt={displayName} className={styles.avatar} aspectRatio="1/1" />
           ) : (
             <div className={styles.initials} style={{ backgroundColor: avatarBgColor }}>
               {initials}

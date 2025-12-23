@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Text, Loading, Button, MobileBackButton } from '@/components/slices';
+import { Text, Loading, Button, MobileBackButton, Grid, StatCard } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
 import { Eye, Heart, TrendingUp, BarChart3 } from 'lucide-react';
@@ -194,65 +194,30 @@ export default function AnalyticsPage() {
             <Text variant="small" color="secondary">{getDateRangeLabel()}</Text>
           </div>
 
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <Eye size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">إجمالي المشاهدات</Text>
-                <Text variant="h2">
-                  {formatNumber(analyticsSummary.totalViews)}
-                </Text>
-                {analyticsSummary.totalViewsToday > 0 && (
-                  <Text variant="small" color="success">
-                    +{formatNumber(analyticsSummary.totalViewsToday)} اليوم
-                  </Text>
-                )}
-              </div>
-            </div>
-
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <Heart size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">المفضلة</Text>
-                <Text variant="h3">
-                  {formatNumber(analyticsSummary.totalWishlists)}
-                </Text>
-                {analyticsSummary.totalWishlistsToday > 0 && (
-                  <Text variant="small" color="success">
-                    +{formatNumber(analyticsSummary.totalWishlistsToday)} اليوم
-                  </Text>
-                )}
-              </div>
-            </div>
-
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <TrendingUp size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">الإعلانات النشطة</Text>
-                <Text variant="h3">
-                  {formatNumber(analyticsSummary.activeListingsCount)}
-                </Text>
-              </div>
-            </div>
-
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <BarChart3 size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">معدل التفاعل</Text>
-                <Text variant="h3">
-                  {analyticsSummary.avgEngagementRate.toFixed(1)}%
-                </Text>
-              </div>
-            </div>
-          </div>
+          <Grid columns={4} gap="md">
+            <StatCard
+              title="إجمالي المشاهدات"
+              value={formatNumber(analyticsSummary.totalViews)}
+              subtitle={analyticsSummary.totalViewsToday > 0 ? `+${formatNumber(analyticsSummary.totalViewsToday)} اليوم` : undefined}
+              icon={<Eye size={24} />}
+            />
+            <StatCard
+              title="المفضلة"
+              value={formatNumber(analyticsSummary.totalWishlists)}
+              subtitle={analyticsSummary.totalWishlistsToday > 0 ? `+${formatNumber(analyticsSummary.totalWishlistsToday)} اليوم` : undefined}
+              icon={<Heart size={24} />}
+            />
+            <StatCard
+              title="الإعلانات النشطة"
+              value={formatNumber(analyticsSummary.activeListingsCount)}
+              icon={<TrendingUp size={24} />}
+            />
+            <StatCard
+              title="معدل التفاعل"
+              value={`${analyticsSummary.avgEngagementRate.toFixed(1)}%`}
+              icon={<BarChart3 size={24} />}
+            />
+          </Grid>
         </div>
 
         {/* Top Performers - Listing Selector */}
@@ -265,7 +230,7 @@ export default function AnalyticsPage() {
               </Text>
             </div>
 
-            <div className={styles.listingsGrid}>
+            <Grid columns={3} gap="md">
               {analyticsSummary.topPerformers.map((listing) => (
                 <div
                   key={listing.id}
@@ -300,7 +265,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ))}
-            </div>
+            </Grid>
           </div>
         )}
       </div>

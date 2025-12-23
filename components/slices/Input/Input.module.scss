@@ -350,4 +350,42 @@ textarea.input {
     background-color: transparent !important;
     color: $text !important;
   }
+
+  // Custom dropdown indicator (+ / ✕)
+  :global(.react-select__dropdown-indicator) {
+    padding: 0 !important;
+    color: $text !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+
+    svg {
+      display: none !important;
+    }
+
+    &::after {
+      content: '+';
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1;
+    }
+  }
+
+  :global(.react-select__control--menu-is-open) {
+    :global(.react-select__dropdown-indicator) {
+      &::after {
+        content: '×';
+        font-size: 26px;
+        font-weight: 300;
+      }
+    }
+  }
+
+  // Hide the separator
+  :global(.react-select__indicator-separator) {
+    display: none !important;
+  }
 }

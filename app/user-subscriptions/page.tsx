@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Text, Loading, Slider, Collapsible, TextSection } from "@/components/slices";
+import { Container, Text, Loading, Slider, Collapsible, TextSection, Grid, FeatureCard } from "@/components/slices";
 import { PricingCard } from "@/components/pricing";
 import type { FeatureItem } from "@/components/pricing";
 import { useUserAuthStore } from "@/stores/userAuthStore";
@@ -166,36 +166,32 @@ export default function UserSubscriptionsPage() {
 
       <Container>
         {/* Benefits Section */}
-        <div className={styles.benefits}>
-          <div className={styles.benefit}>
-            <Zap size={32} />
-            <Text variant="h4">نشر سريع</Text>
-            <Text variant="small" color="secondary">
-              انشر إعلاناتك بضغطة زر
-            </Text>
-          </div>
-          <div className={styles.benefit}>
-            <Shield size={32} />
-            <Text variant="h4">حماية كاملة</Text>
-            <Text variant="small" color="secondary">
-              تحقق من جميع الإعلانات
-            </Text>
-          </div>
-          <div className={styles.benefit}>
-            <Users size={32} />
-            <Text variant="h4">وصول أوسع</Text>
-            <Text variant="small" color="secondary">
-              آلاف المشترين المحتملين
-            </Text>
-          </div>
-          <div className={styles.benefit}>
-            <Clock size={32} />
-            <Text variant="h4">دعم على مدار الساعة</Text>
-            <Text variant="small" color="secondary">
-              فريق دعم متاح دائماً
-            </Text>
-          </div>
-        </div>
+        <Grid columns={4} className={styles.benefits}>
+          <FeatureCard
+            icon={<Zap size={32} />}
+            title="نشر سريع"
+            description="انشر إعلاناتك بضغطة زر"
+            variant="card"
+          />
+          <FeatureCard
+            icon={<Shield size={32} />}
+            title="حماية كاملة"
+            description="تحقق من جميع الإعلانات"
+            variant="card"
+          />
+          <FeatureCard
+            icon={<Users size={32} />}
+            title="وصول أوسع"
+            description="آلاف المشترين المحتملين"
+            variant="card"
+          />
+          <FeatureCard
+            icon={<Clock size={32} />}
+            title="دعم على مدار الساعة"
+            description="فريق دعم متاح دائماً"
+            variant="card"
+          />
+        </Grid>
 
         {/* Billing Cycle Toggle */}
         {hasYearlyPricing && (

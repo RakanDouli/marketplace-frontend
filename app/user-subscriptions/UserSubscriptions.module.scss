@@ -5,29 +5,7 @@
 }
 
 .benefits {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-lg;
   margin-bottom: $space-xl;
-
-  @media (max-width: $breakpoint-md) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.benefit {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: $space-sm;
-  padding: $space-lg;
-  background: $surface;
-  border-radius: $radius-md;
 }
 
 // Billing Cycle Toggle
@@ -42,6 +20,9 @@
   width: fit-content;
   margin-left: auto;
   margin-right: auto;
+  @media (max-width: $breakpoint-md) {
+    margin-bottom: $space-md;
+  }
 }
 
 .toggleOption {
@@ -63,8 +44,8 @@
   }
 
   &.active {
-    background: $bg;
-    color: $primary;
+    background: $primary;
+    color: $text-light;
     box-shadow: $shadow-sm;
   }
 }
@@ -82,6 +63,10 @@
   flex-direction: column;
   gap: $space-lg;
   margin-bottom: $space-xl;
+  @media (max-width: $breakpoint-sm) {
+    margin-bottom: $space-md;
+    gap: $space-md;
+  }
 }
 
 .faq {
