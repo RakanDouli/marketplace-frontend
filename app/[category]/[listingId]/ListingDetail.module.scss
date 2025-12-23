@@ -2,11 +2,11 @@
 
 .listingDetail {
   margin: 0 auto;
-  padding: $space-md $space-lg;
+  // padding: $space-md $space-lg;
 
-  @media (max-width: $breakpoint-md) {
-    padding: $space-sm 0;
-  }
+  // @media (max-width: $breakpoint-md) {
+  //   padding: $space-sm 0;
+  // }
 }
 
 // Breadcrumbs Container (hidden on mobile - use MobileBackButton instead)

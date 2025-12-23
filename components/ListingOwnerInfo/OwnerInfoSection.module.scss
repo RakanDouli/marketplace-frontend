@@ -39,6 +39,13 @@
   justify-content: center;
 }
 
+.initials {
+  font-size: $font-xl;
+  font-weight: 600;
+  color: $text;
+  text-transform: uppercase;
+}
+
 // Info column
 .info {
   flex: 1;

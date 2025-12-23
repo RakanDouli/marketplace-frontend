@@ -75,7 +75,13 @@ export const OwnerInfoSection: React.FC<ListingOwnerInfoProps> = ({ userId, list
         <div className={styles.profile}>
           {/* Avatar */}
           {avatarUrl ? (
-            <Image src={avatarUrl} alt={displayName} className={styles.avatar} aspectRatio="1/1" />
+            <Image
+              src={avatarUrl}
+              alt={displayName}
+              containerClassName={styles.avatar}
+              aspectRatio="1/1"
+              variant="small"
+            />
           ) : (
             <div className={styles.initials} style={{ backgroundColor: avatarBgColor }}>
               {initials}

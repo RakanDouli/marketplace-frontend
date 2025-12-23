@@ -8,31 +8,11 @@ import { Grid } from "../Grid/Grid";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
 import { useFiltersStore } from "@/stores/filtersStore";
-import { cachedGraphQLRequest } from "@/utils/graphql-cache";
+import { useRelatedListingsStore, RelatedListing, RelatedType } from "@/stores/relatedListingsStore";
 import { formatPrice } from "@/utils/formatPrice";
 import styles from "./RelatedListings.module.scss";
 
-// GraphQL query for related listings
-const RELATED_LISTINGS_QUERY = `
-  query RelatedListings($listingId: ID!, $type: String!, $limit: Int) {
-    relatedListings(listingId: $listingId, type: $type, limit: $limit) {
-      id
-      title
-      priceMinor
-      imageKeys
-      categoryId
-      accountType
-      location
-      specs
-      specsDisplay
-      user {
-        id
-      }
-    }
-  }
-`;
-
-export type RelatedType = 'SAME_BRAND' | 'SIMILAR_PRICE';
+export type { RelatedType };
 export type DisplayMode = 'slider' | 'grid';
 
 export interface RelatedListingsProps {
@@ -42,19 +22,6 @@ export interface RelatedListingsProps {
   displayMode?: DisplayMode;
   limit?: number;
   className?: string;
-}
-
-interface Listing {
-  id: string;
-  title: string;
-  priceMinor: number;
-  imageKeys?: string[];
-  categoryId?: string;
-  accountType?: string;
-  location?: { province?: string; city?: string };
-  specs?: string | Record<string, any>;
-  specsDisplay?: string | Record<string, any>;
-  user?: { id: string };
 }
 
 export const RelatedListings: React.FC<RelatedListingsProps> = ({
@@ -67,16 +34,17 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
 }) => {
   const { getCategoryById } = useCategoriesStore();
   const { attributes } = useFiltersStore();
-  const [listings, setListings] = useState<Listing[]>([]);
+  const { fetchRelatedListings } = useRelatedListingsStore();
+  const [listings, setListings] = useState<RelatedListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter specs based on showInGrid attribute flags
-  const filterSpecsForGrid = (allSpecs: Record<string, any>): Record<string, any> => {
+  const filterSpecsForGrid = (allSpecs: Record<string, unknown>): Record<string, unknown> => {
     if (!attributes || attributes.length === 0) {
       return allSpecs;
     }
 
-    const filteredSpecs: Record<string, any> = {};
+    const filteredSpecs: Record<string, unknown> = {};
     Object.entries(allSpecs).forEach(([specKey, specValue]) => {
       const attribute = attributes.find(
         (attr) => attr.key === specKey || attr.name === specKey
@@ -90,36 +58,22 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
     return filteredSpecs;
   };
 
-  // Fetch related listings
+  // Fetch related listings via store
   useEffect(() => {
-    const fetchRelatedListings = async () => {
+    const loadListings = async () => {
       if (!listingId) {
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
-      try {
-        const data = await cachedGraphQLRequest(
-          RELATED_LISTINGS_QUERY,
-          {
-            listingId,
-            type,
-            limit,
-          },
-          { ttl: 3 * 60 * 1000 } // 3 minute cache
-        );
-        setListings(data.relatedListings || []);
-      } catch (error) {
-        console.error("Failed to fetch related listings:", error);
-        setListings([]);
-      } finally {
-        setIsLoading(false);
-      }
+      const results = await fetchRelatedListings(listingId, type, limit);
+      setListings(results);
+      setIsLoading(false);
     };
 
-    fetchRelatedListings();
-  }, [listingId, type, limit]);
+    loadListings();
+  }, [listingId, type, limit, fetchRelatedListings]);
 
   // Don't render if loading or no listings (backend returns [] if < 3)
   if (isLoading || listings.length === 0) {
@@ -132,13 +86,13 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
       const listingCategory = listing.categoryId ? getCategoryById(listing.categoryId) : null;
 
       // Parse specsDisplay/specs from JSON string if needed
-      let parsedSpecs: Record<string, any> = {};
+      let parsedSpecs: Record<string, unknown> = {};
       try {
         const specsSource = listing.specsDisplay || listing.specs;
         if (typeof specsSource === 'string') {
           parsedSpecs = JSON.parse(specsSource);
         } else if (specsSource && typeof specsSource === 'object') {
-          parsedSpecs = specsSource;
+          parsedSpecs = specsSource as Record<string, unknown>;
         }
       } catch {
         parsedSpecs = {};

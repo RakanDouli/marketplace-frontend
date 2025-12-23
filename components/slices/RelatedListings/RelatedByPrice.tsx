@@ -5,6 +5,7 @@ import { RelatedListings } from "./RelatedListings";
 
 export interface RelatedByPriceProps {
   listingId: string;
+  displayMode?: 'slider' | 'grid';
   className?: string;
 }
 
@@ -15,6 +16,7 @@ export interface RelatedByPriceProps {
  */
 export const RelatedByPrice: React.FC<RelatedByPriceProps> = ({
   listingId,
+  displayMode = 'grid',
   className = "",
 }) => {
   return (
@@ -22,7 +24,7 @@ export const RelatedByPrice: React.FC<RelatedByPriceProps> = ({
       listingId={listingId}
       type="SIMILAR_PRICE"
       title="قد يعجبك أيضاً"
-      displayMode="grid"
+      displayMode={displayMode}
       limit={8}
       className={className}
     />
