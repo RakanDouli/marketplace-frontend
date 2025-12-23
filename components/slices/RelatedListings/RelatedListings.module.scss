@@ -1,0 +1,19 @@
+@import "@/styles/variables";
+
+.section {
+  padding: $space-xl 0;
+  background: $bg;
+  border-top: 1px solid $border;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-lg;
+
+  h3 {
+    font-size: $font-xl;
+    font-weight: 600;
+  }
+}

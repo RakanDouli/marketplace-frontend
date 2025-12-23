@@ -7,7 +7,7 @@ import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton } from '@/components/slices';
+import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice } from '@/components/slices';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
@@ -391,27 +391,38 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
         {/* Bottom Ad */}
         <AdContainer placement="detail_bottom" />
-
-        {/* Contact Seller Modal */}
-        {currentListing && (
-          <ContactSellerModal
-            isVisible={isContactModalOpen}
-            onClose={() => setIsContactModalOpen(false)}
-            listingId={currentListing.id}
-            listingTitle={currentListing.title}
-            sellerId={currentListing.user?.id || ''}
-          />
-        )}
-
-        {/* Mobile Action Bar - Above BottomNav */}
-        {currentListing && (
-          <ListingActionBar
-            phone={currentListing.user?.phone || currentListing.user?.contactPhone}
-            onMessageClick={() => setIsContactModalOpen(true)}
-            isOwnListing={currentUser?.id === currentListing.user?.id}
-          />
-        )}
       </Container>
+
+      {/* Related Listings Sections - Outside Container for full-width background */}
+      {listing && (
+        <>
+          {/* More from [Brand] - Slider */}
+          <RelatedByBrand listingId={listing.id} />
+
+          {/* You may also like - Grid */}
+          <RelatedByPrice listingId={listing.id} />
+        </>
+      )}
+
+      {/* Contact Seller Modal */}
+      {currentListing && (
+        <ContactSellerModal
+          isVisible={isContactModalOpen}
+          onClose={() => setIsContactModalOpen(false)}
+          listingId={currentListing.id}
+          listingTitle={currentListing.title}
+          sellerId={currentListing.user?.id || ''}
+        />
+      )}
+
+      {/* Mobile Action Bar - Above BottomNav */}
+      {currentListing && (
+        <ListingActionBar
+          phone={currentListing.user?.phone || currentListing.user?.contactPhone}
+          onMessageClick={() => setIsContactModalOpen(true)}
+          isOwnListing={currentUser?.id === currentListing.user?.id}
+        />
+      )}
     </>
   );
 };

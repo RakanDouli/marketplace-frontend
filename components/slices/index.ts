@@ -66,3 +66,5 @@ export { FeaturedListings } from "./FeaturedListings";
 export type { FeaturedListingsProps } from "./FeaturedListings";
 export { StatCard } from "./StatCard";
 export type { StatCardProps } from "./StatCard";
+export { RelatedListings, RelatedByBrand, RelatedByPrice } from "./RelatedListings";
+export type { RelatedListingsProps, RelatedType, DisplayMode, RelatedByBrandProps, RelatedByPriceProps } from "./RelatedListings";
