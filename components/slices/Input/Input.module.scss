@@ -148,6 +148,14 @@ textarea.input {
   margin-top: $space-xs;
 }
 
+// Character counter
+.charCounter {
+  font-size: $font-xs;
+  color: $text-muted;
+  text-align: left;
+  margin-top: $space-xs;
+}
+
 // Switch component
 .switchWrapper {
   display: flex;

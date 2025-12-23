@@ -19,6 +19,7 @@ import {
   validateListingForm,
   validateAttribute,
   hasValidationErrors,
+  ListingValidationConfig,
   type ValidationErrors,
 } from '@/lib/validation/listingValidation';
 import styles from './EditListingModal.module.scss';
@@ -723,6 +724,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               placeholder="أدخل عنوان الإعلان"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              maxLength={ListingValidationConfig.title.maxLength}
               required
             />
 
@@ -732,6 +734,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               placeholder="أدخل وصف تفصيلي للإعلان"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              maxLength={ListingValidationConfig.description.maxLength}
               rows={5}
             />
 

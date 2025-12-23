@@ -388,6 +388,7 @@ export default function CreateListingDetailsPage() {
                   onChange={(e) => setFormField('title', e.target.value)}
                   onBlur={() => handleBlur('title')}
                   error={getError('title', !formData.title.trim() ? 'العنوان مطلوب' : undefined)}
+                  maxLength={ListingValidationConfig.title.maxLength}
                   required
                 />
 
@@ -398,6 +399,7 @@ export default function CreateListingDetailsPage() {
                   placeholder="أضف وصفاً تفصيلياً عن المنتج..."
                   value={formData.description}
                   onChange={(e) => setFormField('description', e.target.value)}
+                  maxLength={ListingValidationConfig.description.maxLength}
                   rows={6}
                 />
 

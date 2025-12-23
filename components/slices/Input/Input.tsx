@@ -62,6 +62,10 @@ export interface InputProps
   isLoading?: boolean;
   /** Callback when creating a new option (for creatable selects) */
   onCreateOption?: (inputValue: string) => void;
+  /** Max length for text/textarea with character counter */
+  maxLength?: number;
+  /** Show character counter (auto-enabled when maxLength is set) */
+  showCounter?: boolean;
 }
 
 export const Input = forwardRef<
@@ -86,6 +90,8 @@ export const Input = forwardRef<
       creatable = false,
       isLoading = false,
       onCreateOption,
+      maxLength,
+      showCounter,
       ...props
     },
     ref
@@ -343,6 +349,7 @@ export const Input = forwardRef<
             ref={ref as React.RefObject<HTMLTextAreaElement>}
             className={inputClasses}
             rows={rows}
+            maxLength={maxLength}
             onFocus={handleFocus}
             onBlur={handleBlur}
             {...textareaProps}
@@ -439,6 +446,7 @@ export const Input = forwardRef<
           ref={ref as React.RefObject<HTMLInputElement>}
           type={type}
           className={inputClasses}
+          maxLength={maxLength}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...inputProps}
@@ -482,6 +490,13 @@ export const Input = forwardRef<
 
         {helpText && !displayError && (
           <span className={styles.helpText}>{helpText}</span>
+        )}
+
+        {/* Character counter for text/textarea with maxLength */}
+        {maxLength && (showCounter !== false) && (type === 'text' || type === 'textarea') && (
+          <span className={styles.charCounter}>
+            {String(props.value || '').length} / {maxLength}
+          </span>
         )}
       </div>
     );
