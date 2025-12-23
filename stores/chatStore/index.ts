@@ -226,7 +226,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
         { ttl: 0 }
       );
       set({ unreadCount: data.myUnreadCount });
-    } catch (error) {
+    } catch (error: any) {
+      // Check if error is auth-related (expired token)
+      const errorMessage = error?.message || '';
+      const isAuthError = errorMessage.includes('Token has expired') ||
+                          errorMessage.includes('UNAUTHENTICATED') ||
+                          errorMessage.includes('Unauthorized');
+
+      if (isAuthError) {
+        // Silently ignore - token monitor will handle showing auth modal
+        console.debug('Chat unread count: Auth token expired, skipping');
+        return;
+      }
+
+      // Log other errors
       console.error('Error fetching unread count:', error);
     }
   },

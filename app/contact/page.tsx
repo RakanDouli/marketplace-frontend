@@ -87,7 +87,7 @@ export default function ContactPage() {
 
       <Container>
         {/* Contact Cards */}
-        <Grid columns={4} className={styles.contactCards}>
+        <Grid columns={4} mobileColumns={1} className={styles.contactCards}>
           {contactInfo.map((info, index) => (
             <FeatureCard
               key={index}
