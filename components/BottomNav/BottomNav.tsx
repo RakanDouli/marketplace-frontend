@@ -13,13 +13,13 @@ import styles from './BottomNav.module.scss';
 interface NavItem {
   id: string;
   icon: React.ReactNode;
-  label: string;
   href: string;
   badge?: number;
   requiresAuth?: boolean;
 }
 
 const ANIMATION_DURATION = 300; // ms - match CSS animation duration
+const NAV_ITEMS_COUNT = 5; // 4 nav items + 1 menu button
 
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -39,7 +39,6 @@ export const BottomNav: React.FC = () => {
       setShouldRenderMenu(true);
       setIsClosing(false);
     } else if (shouldRenderMenu) {
-      // Start closing animation
       setIsClosing(true);
       const timer = setTimeout(() => {
         setShouldRenderMenu(false);
@@ -47,93 +46,82 @@ export const BottomNav: React.FC = () => {
       }, ANIMATION_DURATION);
       return () => clearTimeout(timer);
     }
-  }, [isMenuOpen]);
+  }, [isMenuOpen, shouldRenderMenu]);
 
-  // Handle scroll behavior - hide when scrolling down, show when scrolling up
+  // Handle scroll behavior
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY.current;
+      if (ticking) return;
 
-      // Show nav when at top or scrolling up
-      if (currentScrollY < 50 || scrollDelta < -5) {
-        setIsVisible(true);
-      }
-      // Hide nav when scrolling down
-      else if (scrollDelta > 5) {
-        setIsVisible(false);
-      }
+      ticking = true;
+      requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const scrollDelta = currentScrollY - lastScrollY.current;
 
-      lastScrollY.current = currentScrollY;
+        if (currentScrollY < 100) {
+          setIsVisible(true);
+        } else if (scrollDelta < -15) {
+          setIsVisible(true);
+        } else if (scrollDelta > 15) {
+          setIsVisible(false);
+        }
+
+        lastScrollY.current = currentScrollY;
+        ticking = false;
+      });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Track browse-related paths (category pages and listing detail pages)
+  // Track browse-related paths
   useEffect(() => {
     const nonBrowsePaths = ['/dashboard', '/messages', '/advertise', '/user-subscriptions', '/contact', '/mock-payment'];
     const isNonBrowsePath = pathname === '/' || nonBrowsePaths.some(path =>
       pathname === path || pathname.startsWith(path + '/')
     );
 
-    // If we're on a browse-related page (category or listing detail), save it
     if (!isNonBrowsePath && pathname.length > 1) {
       lastBrowsePathRef.current = pathname;
     }
   }, [pathname]);
 
-  // Smart home href - returns to last browsed page or home
   const homeHref = lastBrowsePathRef.current || '/';
 
   const navItems: NavItem[] = [
     {
       id: 'home',
-      icon: <Home size={22} />,
-      label: 'الرئيسية',
+      icon: <Home size={24} />,
       href: homeHref,
     },
     {
       id: 'sell',
-      icon: <Plus size={24} />,
-      label: 'بيع',
+      icon: <Plus size={26} />,
       href: '/dashboard/listings/create',
       requiresAuth: true,
     },
     {
       id: 'messages',
-      icon: <MessageCircle size={22} />,
-      label: 'رسائل',
+      icon: <MessageCircle size={24} />,
       href: '/messages',
       badge: unreadCount > 0 ? unreadCount : undefined,
       requiresAuth: true,
     },
     {
       id: 'profile',
-      icon: <User size={22} />,
-      label: 'حسابي',
+      icon: <User size={24} />,
       href: '/dashboard',
       requiresAuth: true,
     },
   ];
 
   const menuItems = [
-    {
-      icon: <Megaphone size={20} />,
-      label: 'أعلن معنا',
-      href: '/advertise',
-    },
-    {
-      icon: <Crown size={20} />,
-      label: 'باقات الاشتراك',
-      href: '/user-subscriptions',
-    },
-    {
-      icon: <Phone size={20} />,
-      label: 'تواصل معنا',
-      href: '/contact',
-    },
+    { icon: <Megaphone size={20} />, label: 'أعلن معنا', href: '/advertise' },
+    { icon: <Crown size={20} />, label: 'باقات الاشتراك', href: '/user-subscriptions' },
+    { icon: <Phone size={20} />, label: 'تواصل معنا', href: '/contact' },
   ];
 
   const handleCurrencyChange = (currency: Currency) => {
@@ -141,7 +129,6 @@ export const BottomNav: React.FC = () => {
   };
 
   const isActive = (id: string, href: string) => {
-    // Home - active on home OR any browse-related page (category/listing detail)
     if (id === 'home') {
       const nonBrowsePaths = ['/dashboard', '/messages', '/advertise', '/user-subscriptions', '/contact', '/mock-payment'];
       const isOnNonBrowsePage = nonBrowsePaths.some(path =>
@@ -149,21 +136,40 @@ export const BottomNav: React.FC = () => {
       );
       return pathname === '/' || (!isOnNonBrowsePage && pathname.length > 1);
     }
-    // Profile - exact /dashboard match (not sub-routes)
     if (id === 'profile') {
       return pathname === '/dashboard' || pathname === '/dashboard/';
     }
-    // For other paths, use startsWith
     return pathname.startsWith(href);
   };
+
+  // Calculate active index for sliding indicator
+  const getActiveIndex = (): number => {
+    if (isMenuOpen) return 4; // Menu is last item
+    for (let i = 0; i < navItems.length; i++) {
+      if (isActive(navItems[i].id, navItems[i].href)) {
+        return i;
+      }
+    }
+    return 0; // Default to home
+  };
+
+  const activeIndex = getActiveIndex();
 
   return (
     <>
       {/* Bottom Navigation Bar */}
       <nav className={`${styles.bottomNav} ${isVisible ? styles.visible : styles.hidden}`}>
-        {navItems.map((item) => {
-          // If requires auth and user not logged in, show login modal
+        {/* Sliding Indicator */}
+        <div
+          className={styles.indicator}
+          style={{
+            transform: `translateX(calc(${activeIndex} * -100%))`,
+          }}
+        />
+
+        {navItems.map((item, index) => {
           const needsAuth = item.requiresAuth && !user;
+          const itemIsActive = isActive(item.id, item.href);
 
           const handleClick = (e: React.MouseEvent) => {
             if (needsAuth) {
@@ -176,8 +182,9 @@ export const BottomNav: React.FC = () => {
             <Link
               key={item.id}
               href={needsAuth ? '#' : item.href}
-              className={`${styles.navItem} ${isActive(item.id, item.href) ? styles.active : ''}`}
+              className={`${styles.navItem} ${itemIsActive ? styles.active : ''}`}
               onClick={handleClick}
+              data-index={index}
             >
               <span className={styles.iconWrapper}>
                 {item.icon}
@@ -187,7 +194,6 @@ export const BottomNav: React.FC = () => {
                   </span>
                 )}
               </span>
-              <span className={styles.label}>{item.label}</span>
             </Link>
           );
         })}
@@ -196,11 +202,11 @@ export const BottomNav: React.FC = () => {
         <button
           className={`${styles.navItem} ${styles.menuButton} ${isMenuOpen ? styles.active : ''}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
+          data-index={4}
         >
           <span className={styles.iconWrapper}>
-            {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </span>
-          <span className={styles.label}>المزيد</span>
         </button>
       </nav>
 
@@ -208,12 +214,8 @@ export const BottomNav: React.FC = () => {
       {shouldRenderMenu && (
         <div className={`${styles.menuOverlay} ${isClosing ? styles.closing : ''}`} onClick={() => setIsMenuOpen(false)}>
           <div className={`${styles.menuPanel} ${isClosing ? styles.closing : ''}`} onClick={(e) => e.stopPropagation()}>
-            {/* Menu Header */}
             <div className={styles.menuHeader}>
               <span>المزيد</span>
-              {/* <button onClick={() => setIsMenuOpen(false)} className={styles.closeButton}>
-                <X size={20} />
-              </button> */}
               <Button
                 variant='outline'
                 onClick={() => setIsMenuOpen(false)}
@@ -224,7 +226,6 @@ export const BottomNav: React.FC = () => {
               />
             </div>
 
-            {/* Menu Items */}
             <div className={styles.menuItems}>
               {menuItems.map((item) => (
                 <Link
@@ -239,10 +240,8 @@ export const BottomNav: React.FC = () => {
               ))}
             </div>
 
-            {/* Divider */}
             <div className={styles.divider} />
 
-            {/* Currency Selector */}
             <div className={styles.settingsSection}>
               <span className={styles.settingsLabel}>العملة</span>
               <div className={styles.currencyButtons}>
@@ -258,7 +257,6 @@ export const BottomNav: React.FC = () => {
               </div>
             </div>
 
-            {/* Theme Toggle */}
             <div className={styles.settingsSection}>
               <span className={styles.settingsLabel}>المظهر</span>
               <ThemeToggle />

@@ -1,13 +1,33 @@
-@import "../../styles/variables";
+@import "@/styles/variables";
 
-.header {
-  text-align: center;
-  margin-bottom: $space-xxl;
+.SubscriptionsPage {
+  background-color: $bg !important;
 }
 
-.subtitle {
-  color: $text-muted;
-  margin-top: $space-md;
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-lg;
+  margin-bottom: $space-xl;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.benefit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-sm;
+  padding: $space-lg;
+  background: $surface;
+  border-radius: $radius-md;
 }
 
 // Billing Cycle Toggle
@@ -57,20 +77,29 @@
   font-size: $font-xs;
 }
 
-.plansGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: $space-xl;
+.plansSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+  margin-bottom: $space-xl;
+}
+
+.faq {
   margin-top: $space-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  width: 100%;
 }
 
 @media (max-width: $breakpoint-md) {
   .container {
     padding: $space-lg $space-sm;
-  }
-
-  .plansGrid {
-    grid-template-columns: 1fr;
-    gap: $space-lg;
   }
 }

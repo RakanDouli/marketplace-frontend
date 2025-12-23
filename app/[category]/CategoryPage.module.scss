@@ -1,11 +1,8 @@
 @import "../../styles/variables.scss";
 
 .categoryPage {
-  padding: $space-sm $space-md;
-  max-width: $container-2xl;
-  margin: 0 auto;
   @media (max-width: $breakpoint-sm) {
-    padding: $space-md $space-sm;
+    padding: 0 $space-sm !important;
   }
 }
 

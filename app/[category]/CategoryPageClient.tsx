@@ -124,30 +124,30 @@ export default function CategoryPageClient({
   };
 
   return (
-    <>
+    <Container className={styles.categoryPage}>
       {/* Mobile Header - only visible on mobile */}
       <MobileBackButton onClick={handleBack} title={currentCategory.nameAr} />
 
       {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
       <MobileFilterBar onFilterClick={() => setIsFilterOpen(true)} />
 
-      <div className={styles.categoryPage}>
-        {/* Main Content */}
-        <div className={styles.content}>
-          {/* Filters Sidebar */}
-          <div className={styles.filtersSection}>
-            <Filter
-              isOpen={isFilterOpen}
-              onOpenChange={setIsFilterOpen}
-            />
-          </div>
+      {/* <div className={styles.categoryPage}> */}
+      {/* Main Content */}
+      <div className={styles.content}>
+        {/* Filters Sidebar */}
+        <div className={styles.filtersSection}>
+          <Filter
+            isOpen={isFilterOpen}
+            onOpenChange={setIsFilterOpen}
+          />
+        </div>
 
-          {/* Listings Area */}
-          <div className={styles.listingsSection}>
-            <ListingArea />
-          </div>
+        {/* Listings Area */}
+        <div className={styles.listingsSection}>
+          <ListingArea />
         </div>
       </div>
-    </>
+      {/* </div> */}
+    </Container>
   );
 }

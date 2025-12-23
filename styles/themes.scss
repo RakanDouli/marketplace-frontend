@@ -25,8 +25,8 @@
   // --bg-body-dark: #1e1e1e; // Medium gray (universal surface)
   // --bg-dark: #121212; // Very dark gray (dark theme main)
 
-  --bg-light: #ffffff; // Pure white (light theme main)
-  --bg-body-light: #f5f5f7; // Medium gray (universal surface)
+  --bg-light: hsla(0, 0%, 100%, 1); // Pure white (light theme main)
+  --bg-body-light: hsla(0, 0%, 98%, 1); // Medium gray (universal surface)
   --bg-body-dark: #1e293b; // Medium gray (universal surface)
   --bg-dark: #0f172a; // Very dark gray (dark theme main)
 

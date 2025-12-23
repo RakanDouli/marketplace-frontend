@@ -1,34 +1,58 @@
-// Bottom Navigation - Mobile App Style
+// Bottom Navigation - Mobile App Style with Sliding Indicator
 
 .bottomNav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: calc(70px + env(safe-area-inset-bottom, 0));
+  padding-bottom: env(safe-area-inset-bottom, 0);
   background: $bg;
-  border: 1px solid $border;
+  border-top: 1px solid $border;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: stretch; // No gap, items fill space
   z-index: $z-nav;
-  padding-bottom: env(safe-area-inset-bottom, 0); // iOS safe area
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: $radius-md $radius-md 0 0;
-  box-shadow: $shadow-base;
+  border-radius: $radius-lg $radius-lg 0 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  will-change: bottom;
+  transition: bottom 0.25s ease-out;
+
   // Hide on desktop
   @media (min-width: $breakpoint-md) {
     display: none;
   }
 
-  // Hidden state (scrolling down)
-  &.hidden {
-    transform: translateY(100%);
+  &.visible {
+    bottom: 0;
   }
 
-  // Visible state (scrolling up or at top)
-  &.visible {
-    transform: translateY(0);
+  &.hidden {
+    bottom: calc(-70px - env(safe-area-inset-bottom, 0) - 10px);
+  }
+}
+
+// Sliding circle indicator behind active icon
+.indicator {
+  position: absolute;
+  width: calc(100% / 5); // 5 items
+  height: 100%;
+  top: 0;
+  right: 0;
+  transition: transform 0.25s ease-out; // Smooth and fast
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // The circle dot
+  &::before {
+    content: "";
+    width: 48px;
+    height: 48px;
+    background: $primary;
+    border-radius: $radius-full;
+    box-shadow: 0 4px 12px rgba($primary, 0.4);
   }
 }
 
@@ -37,19 +61,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: $space-xs;
-  padding: $space-sm $space-md;
+  flex: 1; // Equal flex for all 5 items
+  height: 100%;
   color: $text-secondary;
   text-decoration: none;
   transition:
     color 0.2s ease,
     transform 0.15s ease;
-  min-width: 60px;
   background: transparent;
   border: none;
   cursor: pointer;
-  border-radius: $radius-lg;
   position: relative;
+  padding: 0;
+  margin: 0;
+  z-index: 1; // Above the indicator
 
   &:hover,
   &:focus {
@@ -61,21 +86,7 @@
   }
 
   &.active {
-    color: $primary;
-
-    .iconWrapper {
-      background: $primary;
-      color: $text-light;
-      border-radius: $radius-full;
-      padding: $space-sm;
-    }
-
-    .label {
-      opacity: 0;
-      visibility: hidden;
-      height: 0;
-      margin: 0;
-    }
+    color: $text-light; // White icon on primary circle
   }
 }
 
@@ -84,16 +95,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    padding 0.2s ease;
+  width: 48px;
+  height: 48px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .badge {
   position: absolute;
-  top: -6px;
-  right: -10px;
+  top: 2px;
+  right: 2px;
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
@@ -107,22 +117,7 @@
   justify-content: center;
 }
 
-.label {
-  font-size: 11px;
-  font-weight: $weight-medium;
-  opacity: 1;
-  visibility: visible;
-  height: auto;
-  transition:
-    opacity 0.2s ease,
-    visibility 0.2s ease,
-    height 0.2s ease;
-}
-
-// Menu Button
-.menuButton {
-  // Same as navItem
-}
+// Menu Button - inherits from .navItem
 
 // Menu Overlay
 .menuOverlay {
@@ -134,12 +129,10 @@
   align-items: flex-end;
   animation: fadeIn 0.2s ease;
 
-  // Hide on desktop
   @media (min-width: $breakpoint-md) {
     display: none;
   }
 
-  // Closing animation
   &.closing {
     animation: fadeOut 0.3s ease forwards;
   }
@@ -150,14 +143,12 @@
   background: $surface;
   border-radius: $radius-xl $radius-xl 0 0;
   padding: $space-md;
-  padding-bottom: calc($space-md + env(safe-area-inset-bottom, 0) + 64px); // Account for bottom nav
+  padding-bottom: calc($space-md + env(safe-area-inset-bottom, 0) + 70px);
   max-height: 70vh;
   overflow-y: auto;
-  // Start from hidden state - animation will bring it in
   transform: translateY(100%);
   animation: slideUp 0.3s ease forwards;
 
-  // Closing animation
   &.closing {
     animation: slideDown 0.3s ease forwards;
   }
