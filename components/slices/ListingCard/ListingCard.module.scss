@@ -9,7 +9,7 @@
 .card {
   background-color: $bg;
   border: 1px solid $border;
-  border-radius: $radius-md;
+  border-radius: $radius-xl;
   overflow: hidden;
   transition: all 0.2s ease;
 
@@ -26,16 +26,9 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-
-    // > div:first-of-type {
-    //   // border: 2px solid red;
-    //   // aspect-ratio: 1/1;
-    // }
-
     .content {
       flex: 1;
       padding: $space-md;
-
       display: flex;
       flex-direction: column;
       gap: $shadow-sm;
@@ -126,12 +119,14 @@
   overflow: hidden;
   background-color: $surface;
   aspect-ratio: 3 / 2;
+  display: block;
+  padding: $space-sm !important;
+  border-radius: $radius-lg;
 }
 
 .image {
   object-fit: cover;
   transition: transform 0.3s ease;
-
   .card:hover & {
     transform: scale(1.05);
   }
