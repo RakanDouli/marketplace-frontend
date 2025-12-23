@@ -9,6 +9,7 @@ import styles from "./Image.module.scss";
 export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
   skeletonClassName?: string;
   containerClassName?: string;
+  containerStyle?: React.CSSProperties; // Additional container styles
   showSkeleton?: boolean;
   aspectRatio?: string; // e.g., "16/9", "4/3", "1/1"
   priority?: boolean; // For LCP optimization
@@ -18,6 +19,7 @@ export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
 export const Image: React.FC<ImageProps> = ({
   skeletonClassName = "",
   containerClassName = "",
+  containerStyle,
   showSkeleton = true,
   aspectRatio,
   priority = false,
@@ -63,10 +65,13 @@ export const Image: React.FC<ImageProps> = ({
     setHasError(true);
   };
 
-  const containerStyles = aspectRatio ? { aspectRatio } : {};
+  const containerStyles = {
+    ...(aspectRatio ? { aspectRatio } : {}),
+    ...containerStyle,
+  };
 
   return (
-    <div 
+    <div
       className={`${styles.imageContainer} ${containerClassName}`.trim()}
       style={containerStyles}
     >

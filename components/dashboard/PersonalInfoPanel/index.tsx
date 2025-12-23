@@ -176,7 +176,12 @@ export const PersonalInfoPanel: React.FC = () => {
             }}
           >
             {user.avatar ? (
-              <Image src={getAvatarUrl(user.avatar, 'card') || ''} alt={user.name || ''} aspectRatio="1/1" />
+              <Image
+                src={getAvatarUrl(user.avatar, 'card') || ''}
+                alt={user.name || ''}
+                aspectRatio="1/1"
+                containerStyle={{ width: '100%', height: '100%' }}
+              />
             ) : (
               <span className={styles.initials}>
                 {getInitials(user.name, user.email)}

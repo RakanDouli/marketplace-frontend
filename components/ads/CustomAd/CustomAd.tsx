@@ -144,11 +144,10 @@ export const CustomAd: React.FC<CustomAdProps> = ({
             alt={campaign.description || campaign.campaignName}
             width={currentDimensions.width}
             height={currentDimensions.height}
-            className={styles.adImage}
+            containerClassName={styles.adImage}
             style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }}
             priority
             sizes={`(max-width: 768px) ${dimensions?.mobile?.width || 300}px, ${currentDimensions.width}px`}
-
           />
         )}
       </div>
