@@ -6,6 +6,10 @@
   flex-direction: column;
   gap: $space-xs;
   width: 100%;
+  &:focus-visible {
+    outline: $primary;
+  }
+  outline: $primary;
 }
 
 // Label
@@ -82,7 +86,7 @@
   // Sizes
   &--sm {
     font-size: $font-sm;
-    padding: $space-xs $space-sm;
+    padding: calc($space-sm + 2px);
   }
 
   &--md {
@@ -312,16 +316,18 @@ textarea.input {
   :global(.react-select__control) {
     min-height: 44px !important;
     background-color: $bg !important;
-    border-color: $border !important;
+    border: none !important;
+    border-bottom: 1px solid $border !important;
+    border-radius: 0 !important;
     color: $text !important;
 
     &:hover {
-      border-color: $primary !important;
+      border-bottom-color: $primary !important;
     }
 
     &.react-select__control--is-focused {
-      border-color: $primary !important;
-      box-shadow: 0 0 0 3px rgba($primary, 0.1) !important;
+      border-bottom-color: $primary !important;
+      box-shadow: none !important;
     }
   }
 
@@ -359,41 +365,50 @@ textarea.input {
     color: $text !important;
   }
 
-  // Custom dropdown indicator (+ / ✕)
+  // Dropdown indicator arrow
   :global(.react-select__dropdown-indicator) {
-    padding: 0 !important;
-    color: $text !important;
-    transition: all 0.2s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 40px !important;
-    height: 40px !important;
-
-    svg {
-      display: none !important;
-    }
-
-    &::after {
-      content: "+";
-      font-size: 24px;
-      font-weight: 400;
-      line-height: 1;
-    }
+    color: $text-muted !important;
+    transition: transform 0.2s ease !important;
   }
 
   :global(.react-select__control--menu-is-open) {
     :global(.react-select__dropdown-indicator) {
-      &::after {
-        content: "×";
-        font-size: 26px;
-        font-weight: 300;
-      }
+      transform: rotate(180deg);
     }
   }
 
   // Hide the separator
   :global(.react-select__indicator-separator) {
     display: none !important;
+  }
+}
+
+// Portal menu styles (renders at document.body level, outside .selectWrapper)
+:global(.react-select__menu-portal) {
+  z-index: 9999 !important;
+
+  :global(.react-select__menu) {
+    background-color: $bg !important;
+    border: 1px solid $border !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  :global(.react-select__menu-list) {
+    background-color: $bg !important;
+  }
+
+  :global(.react-select__option--is-selected) {
+    background-color: $primary !important;
+    color: $text-inverse !important;
+  }
+
+  :global(.react-select__option--is-focused:not(.react-select__option--is-selected)) {
+    background-color: $surface !important;
+    color: $text !important;
+  }
+
+  :global(.react-select__option:not(.react-select__option--is-selected):not(.react-select__option--is-focused)) {
+    background-color: transparent !important;
+    color: $text !important;
   }
 }

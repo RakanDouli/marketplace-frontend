@@ -47,11 +47,11 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  color: $text;
-  transition: all 0.2s ease;
+  color: $text-muted;
+  transition: transform 0.2s ease;
 
   &.open {
-    color: $text;
+    transform: rotate(180deg);
   }
 }
 

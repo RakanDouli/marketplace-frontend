@@ -2,7 +2,7 @@
 
 .container {
   display: flex;
-  height: calc(100vh - $header-height);
+  height: calc(100vh - ($header-height + $pre-header-height));
   background: $bg;
 }
 
