@@ -35,10 +35,13 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   const { user: currentUser } = useUserAuthStore();
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     if (listingId) {
-      fetchListingById(listingId);
+      fetchListingById(listingId).finally(() => {
+        setHasFetched(true);
+      });
     }
   }, [listingId, fetchListingById]);
 
@@ -135,7 +138,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     });
   }, [groupedSpecs]);
 
-  if (isLoading) {
+  // Show loading until fetch completes
+  if (isLoading || !hasFetched) {
     return (
       <div className={styles.loadingContainer}>
         <Loading type="svg" />
@@ -143,8 +147,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     );
   }
 
-  // Show 404 page if listing not found or error occurred
-  if (error || (!isLoading && !currentListing)) {
+  // Show 404 page if listing not found or error occurred (only after fetch attempted)
+  if (error || !currentListing) {
     notFound();
   }
 

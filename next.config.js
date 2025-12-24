@@ -9,7 +9,7 @@ const nextConfig = {
     'http://192.168.178.175:3001',
   ],
   images: {
-    domains: ["localhost", "imagedelivery.net", "images.unsplash.com", "your-domain.com", "hepesfbyhjydndmihvvv.supabase.co"],
+    domains: ["localhost", "imagedelivery.net", "images.unsplash.com", "your-domain.com", "hepesfbyhjydndmihvvv.supabase.co", "via.placeholder.com"],
     formats: ["image/webp", "image/avif"],
     qualities: [75, 85], // Support both default (75) and Unsplash default (85)
   },
