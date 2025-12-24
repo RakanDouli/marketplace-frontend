@@ -11,7 +11,6 @@ export const Footer: React.FC = () => {
 
   const quickLinks = [
     { href: "/", label: "الرئيسية" },
-    { href: "/listings", label: "تصفح الإعلانات" },
     { href: "/user-subscriptions", label: "باقات الاشتراك" },
     { href: "/advertise", label: "أعلن معنا" },
     { href: "/contact", label: "اتصل بنا" },

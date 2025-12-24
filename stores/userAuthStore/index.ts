@@ -219,7 +219,7 @@ interface UserAuthActions {
   refreshUserData: () => Promise<void>;
 
   // Modal control
-  openAuthModal: (view?: 'login' | 'signup' | 'magic-link') => void;
+  openAuthModal: (view?: 'login' | 'signup' | 'magic-link', closeable?: boolean) => void;
   closeAuthModal: () => void;
   switchAuthView: (view: 'login' | 'signup' | 'magic-link') => void;
 
@@ -253,6 +253,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
       error: null,
       showAuthModal: false,
       authModalView: 'login',
+      authModalCloseable: true,
       showExpirationWarning: false,
 
       // Login with email/password
@@ -318,6 +319,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
               isLoading: false,
               error: null,
               showAuthModal: false,
+              authModalCloseable: true,
             });
 
             // Load user data after successful login
@@ -417,6 +419,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
             isLoading: false,
             error: null,
             showAuthModal: false,
+            authModalCloseable: true,
           });
 
         } catch (error) {
@@ -485,6 +488,7 @@ export const useUserAuthStore = create<UserAuthStore>()(
           isAuthenticated: false,
           error: null,
           showAuthModal: false,
+          authModalCloseable: true,
         });
       },
 
@@ -526,12 +530,12 @@ export const useUserAuthStore = create<UserAuthStore>()(
       },
 
       // Modal control
-      openAuthModal: (view = 'login') => {
-        set({ showAuthModal: true, authModalView: view, error: null });
+      openAuthModal: (view = 'login', closeable = true) => {
+        set({ showAuthModal: true, authModalView: view, authModalCloseable: closeable, error: null });
       },
 
       closeAuthModal: () => {
-        set({ showAuthModal: false, error: null });
+        set({ showAuthModal: false, authModalCloseable: true, error: null });
       },
 
       switchAuthView: (view) => {

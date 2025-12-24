@@ -9,10 +9,10 @@ import { MagicLinkForm } from './MagicLinkForm';
 import styles from './AuthModal.module.scss';
 
 export const AuthModal: React.FC = () => {
-  const { showAuthModal, authModalView, closeAuthModal, switchAuthView } = useUserAuthStore();
+  const { showAuthModal, authModalView, authModalCloseable, closeAuthModal, switchAuthView } = useUserAuthStore();
 
   return (
-    <Modal isVisible={showAuthModal} onClose={closeAuthModal} className={styles.authModal}>
+    <Modal isVisible={showAuthModal} onClose={closeAuthModal} closeable={authModalCloseable} className={styles.authModal}>
       <div className={styles.modalContent}>
         {/* Header with tabs */}
         <div className={styles.header}>

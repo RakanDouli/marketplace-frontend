@@ -97,12 +97,6 @@ export const Header: React.FC = () => {
             {/* Desktop Navigation */}
             <nav className={styles.nav}>
               <Link
-                href="/listings"
-                className={`${styles.navLink} ${pathname === '/listings' ? styles.active : ''}`}
-              >
-                تصفح الإعلانات
-              </Link>
-              <Link
                 href="/user-subscriptions"
                 className={`${styles.navLink} ${pathname === '/user-subscriptions' ? styles.active : ''}`}
               >

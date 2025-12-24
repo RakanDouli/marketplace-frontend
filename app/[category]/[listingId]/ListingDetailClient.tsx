@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, notFound } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
@@ -143,46 +143,13 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     );
   }
 
-  if (error) {
-    return (
-      <Container>
-        <div className={styles.errorContainer}>
-          <Text variant="h1">هذه الصفحة غير موجودة</Text>
-          <Text variant="paragraph" color="secondary">
-            عذراً، لم نتمكن من العثور على الإعلان الذي تبحث عنه. قد يكون قد تم حذفه أو أن الرابط غير صحيح.
-          </Text>
-          <div className={styles.errorActions}>
-            <Button onClick={handleBack} variant="secondary">
-              العودة للقائمة
-            </Button>
-            <Button onClick={() => router.push('/')} variant="primary">
-              العودة للرئيسية
-            </Button>
-          </div>
-        </div>
-      </Container>
-    );
+  // Show 404 page if listing not found or error occurred
+  if (error || (!isLoading && !currentListing)) {
+    notFound();
   }
 
   if (!currentListing) {
-    return (
-      <Container>
-        <div className={styles.errorContainer}>
-          <Text variant="h1">هذه الصفحة غير موجودة</Text>
-          <Text variant="paragraph" color="secondary">
-            عذراً، لم نتمكن من العثور على الإعلان الذي تبحث عنه. قد يكون قد تم حذفه أو أن الرابط غير صحيح.
-          </Text>
-          <div className={styles.errorActions}>
-            <Button onClick={handleBack} variant="secondary">
-              العودة للقائمة
-            </Button>
-            <Button onClick={() => router.push('/')} variant="primary">
-              العودة للرئيسية
-            </Button>
-          </div>
-        </div>
-      </Container>
-    );
+    return null;
   }
 
   const listing = currentListing;

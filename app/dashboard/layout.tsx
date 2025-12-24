@@ -16,7 +16,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useUserAuthStore();
+  const { user, openAuthModal, closeAuthModal } = useUserAuthStore();
   const [hydrated, setHydrated] = useState(false);
 
   // Check if we're on a first-level sub-page (e.g., /dashboard/profile, /dashboard/analytics)
@@ -30,16 +30,28 @@ export default function DashboardLayout({
     setHydrated(true);
   }, []);
 
-  // Authentication guard - redirect to home if not authenticated (after hydration)
+  // Show non-closable auth modal if not authenticated (after hydration)
+  // User must login or use browser back button to leave
   useEffect(() => {
     if (hydrated && !user) {
-      router.push('/');
+      openAuthModal('login', false);
     }
-  }, [user, hydrated, router]);
 
-  // Show nothing while waiting for hydration or if not authenticated
+    // Close modal and reset closeable state when leaving dashboard
+    return () => {
+      if (!user) {
+        closeAuthModal();
+      }
+    };
+  }, [user, hydrated, openAuthModal, closeAuthModal]);
+
+  // Show placeholder while waiting for hydration or if not authenticated
   if (!hydrated || !user) {
-    return null;
+    return (
+      <div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Auth modal is triggered by useEffect */}
+      </div>
+    );
   }
 
   return (

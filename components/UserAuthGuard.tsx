@@ -1,17 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { TokenExpirationModal } from '@/components/TokenExpirationModal';
-import { Loading } from '@/components';
 
 interface UserAuthGuardProps {
   children: React.ReactNode;
 }
 
 export default function UserAuthGuard({ children }: UserAuthGuardProps) {
-  const router = useRouter();
   const {
     isAuthenticated,
     user,
@@ -19,7 +16,9 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
     extendSession,
     logout,
     startExpirationWarning,
-    dismissExpirationWarning
+    dismissExpirationWarning,
+    openAuthModal,
+    closeAuthModal
   } = useUserAuthStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -30,12 +29,20 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
     setHydrated(true);
   }, []);
 
-  // Redirect to home if not authenticated (after hydration)
+  // Show non-closable auth modal if not authenticated (after hydration)
+  // User must login or use browser back button to leave
   useEffect(() => {
     if (hydrated && !isAuthenticated) {
-      router.push('/');
+      openAuthModal('login', false);
     }
-  }, [hydrated, isAuthenticated, router]);
+
+    // Close modal and reset closeable state when leaving protected page
+    return () => {
+      if (!isAuthenticated) {
+        closeAuthModal();
+      }
+    };
+  }, [hydrated, isAuthenticated, openAuthModal, closeAuthModal]);
 
   // Token expiration monitoring with smart setTimeout
   useEffect(() => {
@@ -116,9 +123,18 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
     setIsExpirationModalVisible(false);
   };
 
-  // Show nothing while waiting for hydration or if not authenticated
-  if (!hydrated || !isAuthenticated || !user) {
+  // Show nothing while waiting for hydration
+  if (!hydrated) {
     return null;
+  }
+
+  // If not authenticated, show empty page (auth modal will be shown via useEffect)
+  if (!isAuthenticated || !user) {
+    return (
+      <div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Auth modal is already triggered by useEffect */}
+      </div>
+    );
   }
 
   return (

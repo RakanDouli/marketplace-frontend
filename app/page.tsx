@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   Container,
   TextSection,
@@ -13,7 +12,6 @@ import {
 } from "@/components/slices";
 import { AdContainer } from "@/components/ads";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useUserAuthStore } from "@/stores/userAuthStore";
 import {
   Search,
   Shield,
@@ -28,20 +26,6 @@ import styles from "./Home.module.scss";
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const router = useRouter();
-  const { user, openAuthModal } = useUserAuthStore();
-
-  const handleBrowseCars = () => {
-    router.push("/listings");
-  };
-
-  const handleAddListing = () => {
-    if (!user) {
-      openAuthModal("login");
-    } else {
-      router.push("/listings/create");
-    }
-  };
 
   const features = [
     {
@@ -102,10 +86,10 @@ export default function HomePage() {
             nostyle
           >
             <div className={styles.heroButtons}>
-              <Button variant="primary" size="lg" onClick={handleBrowseCars}>
+              <Button variant="primary" size="lg" href="/cars">
                 {t("nav.listings")}
               </Button>
-              <Button variant="secondary" size="lg" onClick={handleAddListing}>
+              <Button variant="secondary" size="lg" href="/dashboard/listings/create">
                 {t("nav.sell")}
               </Button>
             </div>
@@ -178,7 +162,7 @@ export default function HomePage() {
         subtitle="ابدأ الآن"
         description="انشر إعلانك مجاناً واوصل لآلاف المشترين المحتملين في سوريا"
         buttons={[
-          { label: "أضف إعلانك الآن", href: "/listings/create", variant: "secondary" },
+          { label: "أضف إعلانك الآن", href: "/dashboard/listings/create", variant: "secondary" },
           { label: "تعرف على الباقات", href: "/user-subscriptions", variant: "outline" },
         ]}
         variant="gradient"

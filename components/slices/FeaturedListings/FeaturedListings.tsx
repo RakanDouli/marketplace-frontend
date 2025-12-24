@@ -78,8 +78,8 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   // Dynamic title - "categoryNameAr جديدة" (e.g. "سيارات جديدة")
   const displayTitle = title || (category?.nameAr ? `${category.nameAr} جديدة` : "إعلانات جديدة");
 
-  // Dynamic link - use category slug
-  const viewAllLink = category?.slug ? `/${category.slug}` : "/listings";
+  // Dynamic link - use category slug (fallback to /cars as default category)
+  const viewAllLink = category?.slug ? `/${category.slug}` : "/cars";
 
   // Initialize categories if not loaded
   useEffect(() => {
