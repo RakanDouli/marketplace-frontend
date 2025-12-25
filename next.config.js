@@ -36,6 +36,23 @@ const nextConfig = {
         hostname: 'localhost',
         pathname: '/**',
       },
+      // Production domain
+      {
+        protocol: 'https',
+        hostname: 'api.akarkar.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'akarkar.com',
+        pathname: '/**',
+      },
+      // Staging server (Hetzner)
+      {
+        protocol: 'http',
+        hostname: '46.224.146.155',
+        pathname: '/**',
+      },
     ],
     formats: ["image/webp", "image/avif"],
   },
