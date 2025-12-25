@@ -22,8 +22,21 @@ const nextConfig = {
         pathname: '/**',
       },
       {
+        // Staging Supabase
         protocol: 'https',
-        hostname: '*.supabase.co',
+        hostname: 'zokgmrriwhllyapgtuiu.supabase.co',
+        pathname: '/**',
+      },
+      {
+        // Production Supabase
+        protocol: 'https',
+        hostname: 'vmnpvmsbmmjeiseowpju.supabase.co',
+        pathname: '/**',
+      },
+      {
+        // Development Supabase
+        protocol: 'https',
+        hostname: 'hepesfbyhjydndmihvvv.supabase.co',
         pathname: '/**',
       },
       {
