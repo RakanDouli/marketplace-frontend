@@ -2,10 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { MapPin, User } from "lucide-react";
-import { Text, ShareButton, FavoriteButton } from "../";
-import { optimizeListingImage } from "@/utils/cloudflare-images";
+import { MapPin } from "lucide-react";
+import { Text, ShareButton, FavoriteButton, Image } from "../";
 import styles from "./ListingCard.module.scss";
 
 export interface ListingCardProps {
@@ -87,15 +85,16 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             <div className={styles.imageSkeleton} />
           ) : images && images.length > 0 ? (
             <Image
-              src={optimizeListingImage(images[0], 'card')}
+              src={images[0]}
               alt={title}
-              fill
+              variant="card"
+              aspectRatio="4/3"
               sizes={
                 viewMode === "list"
                   ? "(max-width: 768px) 100vw, 300px"
                   : "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
               }
-              className={styles.image}
+              containerClassName={styles.image}
               priority={priority}
             />
           ) : (
