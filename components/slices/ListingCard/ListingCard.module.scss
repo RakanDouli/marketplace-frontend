@@ -97,12 +97,17 @@
 
     .content {
       flex: 1;
+      margin: auto 0;
       padding: $space-md $space-lg;
-      display: flex;
-      flex-direction: column;
+      // display: flex;
+      // flex-direction: column;
       gap: $space-sm;
+      // border: 1px solid red;
+      // .title {
+      //   border: 1px solid red;
+      // }
       @media (max-width: $breakpoint-md) {
-        padding: $space-md $space-sm;
+        padding: $space-md !important;
       }
     }
     .specsList {
@@ -160,41 +165,64 @@
   font-size: $font-sm;
 }
 .favorite {
-  button {
-    position: absolute;
-    z-index: 1;
-    top: $space-sm;
-    left: $space-sm;
-    padding: $space-xs;
-    min-width: 0;
-  }
-}
-.imageCount {
   position: absolute;
+  z-index: 1;
   bottom: $space-sm;
   right: $space-sm;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: $text-light;
-  padding: 0 $space-sm;
-  border-radius: $radius-md;
-
-  backdrop-filter: blur(4px);
+  display: flex;
+  gap: $space-sm;
+  button {
+    width: $space-lg;
+    max-width: $space-lg;
+    height: $space-lg;
+    z-index: 1 !important;
+  }
+  // button {
+  //   position: absolute;
+  //   z-index: 1;
+  //   bottom: $space-sm;
+  //   right: $space-sm;
+  //   padding: $space-xs;
+  //   min-width: 0;
+  // }
 }
+// .shareButtonWrapper {
+//   button {
+//     position: absolute;
+//     z-index: 1;
+//     bottom: $space-sm;
+//     right: $space-sm;
+//     padding: $space-xs;
+//     min-width: 0;
+//   }
+// }
+// .imageCount {
+//   display: none;
+//   position: absolute;
+//   bottom: $space-sm;
+//   right: $space-sm;
+//   background-color: rgba(0, 0, 0, 0.7);
+//   color: $text-light;
+//   padding: 0 $space-sm;
+//   border-radius: $radius-md;
+
+//   backdrop-filter: blur(4px);
+// }
 
 .content {
   overflow: hidden;
 
-  .titleRow {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: $space-sm;
-    margin-bottom: $space-xs;
-  }
+  // .titleRow {
+  //   display: flex;
+  //   align-items: flex-start;
+  //   justify-content: space-between;
+  //   gap: $space-sm;
+  //   margin-bottom: $space-xs;
+  // }
 
-  .shareButtonWrapper {
-    flex-shrink: 0;
-  }
+  // .shareButtonWrapper {
+  //   flex-shrink: 0;
+  // }
 
   .title {
     font-weight: $weight-semibold;
@@ -202,7 +230,7 @@
     margin: 0;
     flex: 1;
     line-height: $line-tight;
-    min-height: 40px;
+    min-height: 43px;
     // text-overflow: ellipsis;
     // white-space: nowrap;
     // overflow: hidden;

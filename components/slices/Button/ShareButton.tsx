@@ -1,24 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Share } from 'lucide-react';
-import { Button } from '@/components/slices';
+import { Share2 } from 'lucide-react';
 import { ShareModal, ShareMetadata } from '@/components/ShareModal/ShareModal';
+import { Button } from './Button';
 
 interface ShareButtonProps {
   metadata: ShareMetadata;
-  variant?: 'primary' | 'secondary' | 'outline';
-  icon?: boolean;
 }
 
-export const ShareButton: React.FC<ShareButtonProps> = ({
-  metadata,
-  variant = 'outline',
-  icon = true
-}) => {
+export const ShareButton: React.FC<ShareButtonProps> = ({ metadata }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleButtonClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     // Check if we're on mobile (native share works better on mobile)
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -41,13 +38,11 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
   return (
     <>
       <Button
-        variant={variant}
-        onClick={handleButtonClick}
-        icon={icon ? <Share size={20} /> : undefined}
+        variant="outline"
+        onClick={handleClick}
         aria-label="مشاركة"
-      >
-        {!icon && 'مشاركة'}
-      </Button>
+        icon={<Share2 size={20} />}
+      />
 
       <ShareModal
         isVisible={isModalOpen}

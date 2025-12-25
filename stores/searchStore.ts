@@ -298,9 +298,10 @@ export const useSearchStore = create<SearchStore>()(
 
       // Handle account type as top-level filter
       // Extract from specs.accountType if present, otherwise use top-level accountType
+      // Convert to uppercase for GraphQL enum (INDIVIDUAL, DEALER, BUSINESS)
       const accountTypeValue = appliedFilters.specs?.accountType || appliedFilters.accountType;
       if (accountTypeValue) {
-        backendFilters.accountType = accountTypeValue;
+        backendFilters.accountType = accountTypeValue.toUpperCase();
       }
 
       // Handle brandId and modelId (legacy top-level filters now moved to specs)

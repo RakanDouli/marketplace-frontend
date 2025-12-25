@@ -26,10 +26,10 @@
   display: flex;
   align-items: center;
   gap: $space-sm;
-  padding: $space-xs;
+  padding: $space-xs $space-sm;
   background: none;
   border: 1px solid $border;
-  border-radius: $radius-md;
+  border-radius: $radius-full;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -43,7 +43,7 @@
 .avatarInitials {
   width: 36px;
   height: 36px;
-  border-radius: $radius-md;
+  border-radius: $radius-full;
   flex-shrink: 0;
 }
 

@@ -219,9 +219,9 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.city = finalFilters.city;
       }
 
-      // Seller type filter
+      // Seller type filter - convert to uppercase for GraphQL enum
       if (finalFilters.accountType) {
-        graphqlFilter.accountType = finalFilters.accountType;
+        graphqlFilter.accountType = finalFilters.accountType.toUpperCase();
       }
 
       // Dynamic attribute filters - use specs object directly (now using backend format)

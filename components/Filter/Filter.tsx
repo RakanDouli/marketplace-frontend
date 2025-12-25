@@ -1,19 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Filter as FilterIcon, X, RotateCcw, SlidersHorizontal } from "lucide-react";
-import {
-  SedanIcon,
-  SuvIcon,
-  HatchbackIcon,
-  CoupeIcon,
-  ConvertibleIcon,
-  WagonIcon,
-  PickupIcon,
-} from "../icons/CarIcons";
+import { SlidersHorizontal } from "lucide-react";
+import { IconGridSelector } from "../IconGridSelector";
 import { Aside, Text, Button, Collapsible } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
-import { Input } from "../slices/Input/Input";
 import {
   useTranslation,
   useFilterActions,
@@ -26,26 +17,14 @@ import {
   useSearchStore,
 } from "../../stores";
 import {
-  CURRENCY_LABELS,
-} from "../../utils/currency";
+  RangeFilter,
+  SelectFilter,
+  MultiSelectFilter,
+  SearchFilter,
+  PriceFilter,
+} from "./components";
 import styles from "./Filter.module.scss";
-import { AppliedFilters } from "../AppliedFilters/AppliedFilters";
 
-// Car body type icons mapping with custom SVG icons
-const getCarBodyTypeIcon = (key: string) => {
-  const iconMap: Record<string, React.ReactNode> = {
-    sedan: <SedanIcon size={18} />,
-    hatchback: <HatchbackIcon size={18} />,
-    suv: <SuvIcon size={18} />,
-    pickup: <PickupIcon size={18} />,
-    coupe: <CoupeIcon size={18} />,
-    convertible: <ConvertibleIcon size={18} />,
-    wagon: <WagonIcon size={18} />,
-    van: <WagonIcon size={18} />, // Using wagon icon for van
-    truck: <PickupIcon size={18} />, // Using pickup icon for truck
-  };
-  return iconMap[key] || <SedanIcon size={18} />;
-};
 
 export interface FilterValues {
   // Standard filters
@@ -123,11 +102,7 @@ export const Filter: React.FC<FilterProps> = ({
     applyDrafts,
     hasPriceDraftChanges,
     hasRangeDraftChanges,
-    hasSearchDraftChanges,
-    getStoreFilters,
   } = useSearchStore();
-
-  // Note: isLoading already available from useFiltersStore above - reusing DRY
 
   // Store hooks
   const {
@@ -135,7 +110,6 @@ export const Filter: React.FC<FilterProps> = ({
     fetchFilterData,
   } = useFiltersStore();
   const {
-    pagination,
     isLoading: listingsLoading,
     fetchListingsByCategory,
   } = useListingsStore();
@@ -150,7 +124,6 @@ export const Filter: React.FC<FilterProps> = ({
   const getDraftPriceMin = () => draftFilters.priceMinMinor ? draftFilters.priceMinMinor.toString() : "";
   const getDraftPriceMax = () => draftFilters.priceMaxMinor ? draftFilters.priceMaxMinor.toString() : "";
   const getDraftCurrency = () => draftFilters.priceCurrency || "USD";
-  const getDraftSearch = () => draftFilters.search || "";
 
   const setDraftPriceMin = (value: string) => {
     const dollarValue = value ? parseFloat(value) : undefined;
@@ -164,10 +137,6 @@ export const Filter: React.FC<FilterProps> = ({
 
   const setDraftCurrency = (value: string) => {
     setDraftFilter("priceCurrency", value);
-  };
-
-  const setDraftSearch = (value: string) => {
-    setDraftFilter("search", value);
   };
 
   // Helper for range inputs
@@ -195,25 +164,25 @@ export const Filter: React.FC<FilterProps> = ({
     setDraftSpecFilter(attributeKey, cleanValue.length > 0 ? newValue : undefined);
   };
 
+  const { handleSpecChange } = filterActions;
+
   const {
-    handleSpecChange,
-    handleClearAll,
-  } = filterActions;
+    getFilterableAttributes,
+    getSelectedOptions,
+    getSingleSelectorValue,
+  } = attributeFilters;
 
   // Organize attributes: mix of standalone fields and groups
-  // groupOrder determines position for BOTH individual fields and groups
   const getOrganizedAttributes = () => {
     const attributes = getFilterableAttributes();
 
-    // Group by groupOrder AND group name to properly separate standalone items from grouped items
+    // Group by groupOrder AND group name
     const itemsByKey: Record<string, typeof attributes> = {};
 
     attributes.forEach(attr => {
-      // Create a unique key for each group or standalone item
-      // Format: "groupOrder|groupName" or "groupOrder|standalone-attributeId" for standalone items
       const key = attr.group && attr.group.trim() !== ''
-        ? `${attr.groupOrder}|${attr.group}` // Grouped item
-        : `${attr.groupOrder}|standalone-${attr.id}`; // Standalone item
+        ? `${attr.groupOrder}|${attr.group}`
+        : `${attr.groupOrder}|standalone-${attr.id}`;
 
       if (!itemsByKey[key]) {
         itemsByKey[key] = [];
@@ -221,7 +190,7 @@ export const Filter: React.FC<FilterProps> = ({
       itemsByKey[key].push(attr);
     });
 
-    // Create ordered array of items (groups or standalone fields)
+    // Create ordered array
     const orderedItems: Array<{
       type: 'standalone' | 'group';
       groupOrder: number;
@@ -231,7 +200,6 @@ export const Filter: React.FC<FilterProps> = ({
 
     Object.entries(itemsByKey)
       .sort(([keyA], [keyB]) => {
-        // Extract groupOrder from key (before the pipe)
         const orderA = Number(keyA.split('|')[0]);
         const orderB = Number(keyB.split('|')[0]);
         return orderA - orderB;
@@ -239,14 +207,12 @@ export const Filter: React.FC<FilterProps> = ({
       .forEach(([key, attrs]) => {
         const firstAttr = attrs[0];
         if (!firstAttr.group || firstAttr.group.trim() === '') {
-          // Standalone attribute
           orderedItems.push({
             type: 'standalone',
             groupOrder: firstAttr.groupOrder,
-            attributes: [firstAttr], // Only one attribute for standalone
+            attributes: [firstAttr],
           });
         } else {
-          // Grouped attributes - add as a single group item
           orderedItems.push({
             type: 'group',
             groupOrder: firstAttr.groupOrder,
@@ -261,12 +227,8 @@ export const Filter: React.FC<FilterProps> = ({
 
   // Apply handler - triggers both draft apply and backend fetch
   const handleApplyFilter = async () => {
-    console.log('🔍 Applying filter:', { draftFilters });
-
-    // Apply drafts to appliedFilters
     applyDrafts();
 
-    // Build store filters from draftFilters directly (to avoid state timing issues)
     const storeFilters: any = { categoryId: categorySlug };
 
     // Price filters
@@ -274,15 +236,13 @@ export const Filter: React.FC<FilterProps> = ({
     if (draftFilters.priceMaxMinor) storeFilters.priceMaxMinor = draftFilters.priceMaxMinor;
     if (draftFilters.priceCurrency) storeFilters.priceCurrency = draftFilters.priceCurrency;
 
-    // Search - top-level filter (searches title, brand, model)
-    // Check both specs.search and top-level search for compatibility
+    // Search
     const searchValue = draftFilters.specs?.search || draftFilters.search;
     if (searchValue && typeof searchValue === 'string' && searchValue.trim()) {
       storeFilters.search = searchValue.trim();
     }
 
-    // Location - send as top-level filters for JSONB location structure
-    // Check both specs.location (from attribute selector) and top-level province
+    // Location
     const provinceValue = draftFilters.specs?.location || draftFilters.province;
     if (provinceValue) {
       storeFilters.province = provinceValue;
@@ -291,8 +251,7 @@ export const Filter: React.FC<FilterProps> = ({
       storeFilters.city = draftFilters.city;
     }
 
-    // Account Type - send as top-level filter (it's a column, not in specs JSONB)
-    // Check both specs.sellerType (from attribute selector) and top-level sellerType
+    // Account Type
     const sellerTypeValue = draftFilters.specs?.accountType || draftFilters.accountType;
     if (sellerTypeValue) {
       storeFilters.accountType = sellerTypeValue;
@@ -311,37 +270,138 @@ export const Filter: React.FC<FilterProps> = ({
     // Sort
     if (draftFilters.sort) storeFilters.sort = draftFilters.sort;
 
-    // All other specs (excluding search, location, and sellerType since they're top-level)
+    // All other specs
     if (draftFilters.specs && Object.keys(draftFilters.specs).length > 0) {
       if (!storeFilters.specs) storeFilters.specs = {};
       Object.entries(draftFilters.specs).forEach(([key, value]) => {
-        // Skip search, location, and sellerType - they're already handled as top-level
         if (key !== 'search' && key !== 'location' && key !== 'sellerType') {
           storeFilters.specs[key] = value;
         }
       });
     }
 
-    console.log('🔍 Sending to backend:', storeFilters);
     await fetchListingsByCategory(categorySlug, storeFilters, "grid");
   };
 
-  const {
-    getFilterableAttributes,
-    isOptionSelectedInMulti,
-    getSelectedOptions,
-    shouldDisableOption,
-    getSingleSelectorValue,
-    getSelectionCounterText,
-    toggleMultiSelection,
-    handleCheckboxChange,
-  } = attributeFilters;
+  // Render a single attribute filter
+  const renderAttribute = (attribute: any) => {
+    // SELECTOR (single dropdown)
+    if (attribute.type === AttributeType.SELECTOR && attribute.processedOptions) {
+      return (
+        <SelectFilter
+          key={attribute.id}
+          attributeKey={attribute.key}
+          label={attribute.name}
+          options={attribute.processedOptions}
+          value={getSingleSelectorValue(attribute.key)}
+          onChange={(value) => handleSpecChange(attribute.key, value)}
+        />
+      );
+    }
 
-  const totalResults = pagination.total;
+    // MULTI_SELECTOR (checkboxes or icon grid)
+    if (attribute.type === AttributeType.MULTI_SELECTOR && attribute.processedOptions) {
+      // Special icon-based selector for body_type
+      if (attribute.key === "body_type") {
+        return (
+          <div key={attribute.id} className={styles.filterSection}>
+            <Text variant="small" className={styles.sectionTitle}>
+              {attribute.name}
+            </Text>
+            <IconGridSelector
+              selected={getSelectedOptions(attribute.key)}
+              onChange={(newSelected) => handleSpecChange(
+                attribute.key,
+                newSelected.length > 0 ? newSelected : undefined
+              )}
+              maxSelections={attribute.maxSelections}
+              iconBasePath="/images/car-types"
+              options={attribute.processedOptions.map((opt: any) => ({
+                key: opt.key,
+                label: opt.value,
+                count: opt.count,
+              }))}
+            />
+          </div>
+        );
+      }
+
+      // Regular multi-select checkboxes
+      return (
+        <MultiSelectFilter
+          key={attribute.id}
+          attributeKey={attribute.key}
+          label={attribute.name}
+          options={attribute.processedOptions}
+          selected={getSelectedOptions(attribute.key)}
+          onChange={(newSelected) => handleSpecChange(
+            attribute.key,
+            newSelected.length > 0 ? newSelected : undefined
+          )}
+          maxSelections={attribute.maxSelections}
+        />
+      );
+    }
+
+    // CURRENCY (price filter with currency selector)
+    if (attribute.type === AttributeType.CURRENCY) {
+      return (
+        <PriceFilter
+          key={attribute.id}
+          label={attribute.name}
+          minValue={getDraftPriceMin()}
+          maxValue={getDraftPriceMax()}
+          currency={getDraftCurrency()}
+          onMinChange={setDraftPriceMin}
+          onMaxChange={setDraftPriceMax}
+          onCurrencyChange={setDraftCurrency}
+          onApply={handleApplyFilter}
+          applyDisabled={!hasPriceDraftChanges()}
+          isLoading={listingsLoading}
+        />
+      );
+    }
+
+    // RANGE (min-max numeric inputs)
+    if (attribute.type === AttributeType.RANGE) {
+      return (
+        <RangeFilter
+          key={attribute.id}
+          attributeKey={attribute.key}
+          label={attribute.name}
+          minValue={getDraftRangeValue(attribute.key, "min")}
+          maxValue={getDraftRangeValue(attribute.key, "max")}
+          onMinChange={(value) => updateDraftRangeInput(attribute.key, "min", value)}
+          onMaxChange={(value) => updateDraftRangeInput(attribute.key, "max", value)}
+          onApply={handleApplyFilter}
+          applyDisabled={!hasRangeDraftChanges(attribute.key)}
+          isLoading={listingsLoading}
+        />
+      );
+    }
+
+    // TEXT (search input)
+    if (attribute.type === AttributeType.TEXT) {
+      return (
+        <SearchFilter
+          key={attribute.id}
+          attributeKey={attribute.key}
+          label={attribute.name}
+          value={(draftFilters.specs?.[attribute.key] as string) || ''}
+          onChange={(value) => setDraftSpecFilter(attribute.key, value || undefined)}
+          onApply={handleApplyFilter}
+          applyDisabled={!(draftFilters.specs?.[attribute.key] as string)?.trim()}
+          isLoading={listingsLoading}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
     <>
-      {/* Floating Filter Button for opening filters */}
+      {/* Floating Filter Button */}
       {!isOpen && (
         <Button
           className={styles.floatingFilterButton}
@@ -363,321 +423,23 @@ export const Filter: React.FC<FilterProps> = ({
         )}
         {!filtersLoading && (
           <>
-            {/* Brand and Model are now handled through dynamic attributes below */}
+            {getOrganizedAttributes().map((item) => {
+              if (item.type === 'standalone') {
+                return renderAttribute(item.attributes[0]);
+              }
 
-            {/* Location and Account Type are now handled through dynamic attributes below */}
-
-            {/* Dynamic Attributes - Mix of standalone fields and groups */}
-            {(() => {
-              const orderedItems = getOrganizedAttributes();
-
-              // Render helper function for a single attribute
-              const renderAttribute = (attribute: any) => {
-                return (
-                  <div key={attribute.id} className={styles.filterSection}>
-                    <Text variant="small" className={styles.sectionTitle}>
-                      {attribute.name}
-                    </Text>
-
-                    {(attribute.type === AttributeType.SELECTOR ||
-                      attribute.type === AttributeType.MULTI_SELECTOR) &&
-                      attribute.processedOptions && (
-                        <>
-                          {attribute.key === "body_type" ? (
-                            // Special icon-based selector for car body types
-                            <div className={styles.iconSelector}>
-                              {/* Selection Counter for Limited Multi-Selectors */}
-                              {attribute.maxSelections && (
-                                <div className={styles.selectionCounter}>
-                                  <Text variant="xs">
-                                    {getSelectionCounterText(
-                                      attribute.key,
-                                      attribute.maxSelections
-                                    )}
-                                  </Text>
-                                </div>
-                              )}
-                              {attribute.processedOptions.map((option: any) => {
-                                const currentSelected = getSelectedOptions(
-                                  attribute.key
-                                );
-                                const isSelected = isOptionSelectedInMulti(
-                                  attribute.key,
-                                  option.key
-                                );
-                                const shouldDisable = shouldDisableOption(
-                                  attribute.key,
-                                  option.key,
-                                  attribute.maxSelections || undefined
-                                );
-
-                                return (
-                                  <button
-                                    key={option.key}
-                                    type="button"
-                                    disabled={!!shouldDisable}
-                                    className={`${styles.iconOption} ${isSelected ? styles.selected : ""
-                                      } ${shouldDisable ? styles.disabled : ""
-                                      }`}
-                                    onClick={() => {
-                                      if (shouldDisable) return;
-
-                                      const newSelected = toggleMultiSelection(
-                                        attribute.key,
-                                        option.key,
-                                        currentSelected
-                                      );
-
-                                      handleSpecChange(
-                                        attribute.key,
-                                        newSelected
-                                      );
-                                    }}
-                                  >
-                                    {getCarBodyTypeIcon(option.key)}
-                                    <span className={styles.optionLabel}>
-                                      {option.value}
-                                      {option.count !== undefined && (
-                                        <span className={styles.optionCount}>
-                                          ({option.count})
-                                        </span>
-                                      )}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : attribute.type === AttributeType.MULTI_SELECTOR ? (
-                            // Multi-select checkboxes for other MULTI_SELECTOR attributes
-                            <div className={styles.checkboxGroup}>
-                              {/* Selection Counter for Limited Multi-Selectors */}
-                              {attribute.maxSelections && (
-                                <div className={styles.selectionCounter}>
-                                  <Text variant="xs">
-                                    {getSelectionCounterText(
-                                      attribute.key,
-                                      attribute.maxSelections
-                                    )}
-                                  </Text>
-                                </div>
-                              )}
-
-                              {attribute.processedOptions.map((option: any) => {
-                                const currentSelected = getSelectedOptions(
-                                  attribute.key
-                                );
-                                const isSelected = isOptionSelectedInMulti(
-                                  attribute.key,
-                                  option.key
-                                );
-                                const shouldDisable = shouldDisableOption(
-                                  attribute.key,
-                                  option.key,
-                                  attribute.maxSelections || undefined
-                                );
-
-                                return (
-                                  <label
-                                    key={option.key}
-                                    className={`${styles.checkboxOption} ${shouldDisable ? styles.disabled : ""
-                                      }`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      disabled={!!shouldDisable}
-                                      onChange={(e) => {
-                                        if (shouldDisable) return;
-
-                                        const newSelected =
-                                          handleCheckboxChange(
-                                            attribute.key,
-                                            option.key,
-                                            e.target.checked,
-                                            currentSelected
-                                          );
-
-                                        handleSpecChange(
-                                          attribute.key,
-                                          newSelected
-                                        );
-                                      }}
-                                    />
-                                    <span className={styles.checkboxLabel}>
-                                      {option.value}
-                                      {option.count !== undefined && (
-                                        <span className={styles.optionCount}>
-                                          ({option.count})
-                                        </span>
-                                      )}
-                                    </span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            // Regular dropdown for single SELECTOR attributes
-                            <Input
-                              type="select"
-                              value={getSingleSelectorValue(attribute.key)}
-                              onChange={(e) =>
-                                handleSpecChange(
-                                  attribute.key,
-                                  e.target.value || undefined
-                                )
-                              }
-                              options={[
-                                {
-                                  value: "",
-                                  label: t("search.selectOption"),
-                                },
-                                ...attribute.processedOptions.map(
-                                  (option: any) => ({
-                                    value: option.key,
-                                    label: `${option.value}${option.count !== undefined
-                                      ? ` (${option.count})`
-                                      : ""
-                                      }`,
-                                  })
-                                ),
-                              ]}
-                            />
-                          )}
-                        </>
-                      )}
-
-                    {attribute.type === AttributeType.CURRENCY && (
-                      <div className={styles.rangeInputs}>
-                        <div className={styles.rangeInputFields}>
-                          <Input
-                            type="number"
-                            placeholder={t("search.minPrice")}
-                            value={getDraftPriceMin()}
-                            onChange={(e) => setDraftPriceMin(e.target.value)}
-                            size="sm"
-                          />
-                          <Input
-                            type="number"
-                            placeholder={t("search.maxPrice")}
-                            value={getDraftPriceMax()}
-                            onChange={(e) => setDraftPriceMax(e.target.value)}
-                            size="sm"
-                          />
-                        </div>
-                        <Input
-                          type="select"
-                          value={getDraftCurrency()}
-                          onChange={(e) => setDraftCurrency(e.target.value)}
-                          size="sm"
-                          options={[
-                            { value: "USD", label: CURRENCY_LABELS.USD },
-                            { value: "SYP", label: CURRENCY_LABELS.SYP },
-                            { value: "EUR", label: CURRENCY_LABELS.EUR },
-                          ]}
-                        />
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          loading={listingsLoading}
-                          disabled={!hasPriceDraftChanges()}
-                          onClick={handleApplyFilter}
-                          className={styles.applyButton}
-                        >
-                          {t("common.apply")}
-                        </Button>
-                      </div>
-                    )}
-
-                    {attribute.type === AttributeType.RANGE && (
-                      <div className={styles.rangeInputs}>
-                        <div className={styles.rangeInputFields}>
-                          <Input
-                            type="number"
-                            placeholder={`${t("search.min")} ${attribute.name}`}
-                            value={getDraftRangeValue(attribute.key, "min")}
-                            onChange={(e) =>
-                              updateDraftRangeInput(
-                                attribute.key,
-                                "min",
-                                e.target.value
-                              )
-                            }
-                            size="sm"
-                          />
-                          <Input
-                            type="number"
-                            placeholder={`${t("search.max")} ${attribute.name}`}
-                            value={getDraftRangeValue(attribute.key, "max")}
-                            onChange={(e) =>
-                              updateDraftRangeInput(
-                                attribute.key,
-                                "max",
-                                e.target.value
-                              )
-                            }
-                            size="sm"
-                          />
-                        </div>
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          loading={listingsLoading}
-                          disabled={!hasRangeDraftChanges(attribute.key)}
-                          onClick={handleApplyFilter}
-                          className={styles.applyButton}
-                        >
-                          {t("common.apply")}
-                        </Button>
-                      </div>
-                    )}
-
-                    {attribute.type === AttributeType.TEXT && (
-                      <div className={styles.rangeInputs}>
-                        <Input
-                          type="text"
-                          placeholder={attribute.name}
-                          value={(draftFilters.specs?.[attribute.key] as string) || ''}
-                          onChange={(e) => setDraftSpecFilter(attribute.key, e.target.value || undefined)}
-                        />
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          loading={listingsLoading}
-                          disabled={!(draftFilters.specs?.[attribute.key] as string)?.trim()}
-                          onClick={handleApplyFilter}
-                          className={styles.applyButton}
-                        >
-                          {t("common.apply")}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                );
-              };
-
+              // Grouped fields
               return (
-                <>
-                  {orderedItems.map((item) => {
-                    if (item.type === 'standalone') {
-                      // Render standalone field directly
-                      return renderAttribute(item.attributes[0]);
-                    } else {
-                      // Render grouped fields inside Collapsible
-                      return (
-                        <Collapsible
-                          key={`group-${item.groupOrder}-${item.groupName}`}
-                          title={item.groupName || ''}
-                          defaultOpen={true}
-                          variant="compact"
-                        >
-                          {item.attributes.map(renderAttribute)}
-                        </Collapsible>
-                      );
-                    }
-                  })}
-                </>
+                <Collapsible
+                  key={`group-${item.groupOrder}-${item.groupName}`}
+                  title={item.groupName || ''}
+                  defaultOpen={true}
+                  variant="compact"
+                >
+                  {item.attributes.map(renderAttribute)}
+                </Collapsible>
               );
-            })()}
+            })}
           </>
         )}
       </Aside>

@@ -105,15 +105,27 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           )}
 
           {/* Image count badge */}
-          {!isLoading && images && images.length > 1 && (
+          {/* {!isLoading && images && images.length > 1 && (
             <div className={styles.imageCount}>
               <span>{images.length}</span>
             </div>
-          )}
+          )} */}
 
           {/* Favorite Button */}
           {!isLoading && (
             <div className={styles.favorite}>
+              <ShareButton
+                metadata={{
+                  title: title,
+                  description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
+                  url: typeof window !== 'undefined' ? `${window.location.origin}${listingUrl}` : '',
+                  image: images?.[0],
+                  siteName: 'السوق السوري للسيارات',
+                  type: 'product',
+                  price: price,
+                  currency: currency,
+                }}
+              />
               <FavoriteButton listingId={id} listingUserId={userId} />
             </div>
           )}
@@ -135,38 +147,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             </>
           ) : (
             <>
-              {/* Title with Share Button (only in list view) */}
-              {viewMode === 'list' ? (
-                <div className={styles.titleRow}>
-                  <Text variant="h4" className={styles.title} skeleton={isLoading}>
-                    {title}
-                  </Text>
-                  {!isLoading && (
-                    <div
-                      className={styles.shareButtonWrapper}
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      <ShareButton
-                        metadata={{
-                          title: title,
-                          description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
-                          url: typeof window !== 'undefined' ? `${window.location.origin}${listingUrl}` : '',
-                          image: images?.[0],
-                          siteName: 'السوق السوري للسيارات',
-                          type: 'product',
-                          price: price,
-                          currency: currency,
-                        }}
-                        variant="outline"
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Text variant="h4" className={styles.title} skeleton={isLoading}>
-                  {title}
-                </Text>
-              )}
+
+              <Text variant="h4" className={styles.title} skeleton={isLoading}>
+                {title}
+              </Text>
+
 
               {/* Price */}
               <div className={styles.price}>

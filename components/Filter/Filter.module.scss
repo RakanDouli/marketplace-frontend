@@ -214,6 +214,15 @@
       cursor: not-allowed;
     }
   }
+
+  // Empty state for options with 0 count (dimmed but clickable)
+  &.empty {
+    opacity: 0.4;
+
+    .checkboxLabel {
+      color: $text-muted;
+    }
+  }
 }
 
 // Selection counter for limited multi-selectors

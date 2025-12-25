@@ -436,7 +436,7 @@ export const Input = forwardRef<
             onFocus={handleFocus}
             onBlur={handleBlur}
             disabled={phoneProps.disabled}
-            className={inputClasses}
+            // className={inputClasses}
             id={phoneProps.id || phoneProps.name || generatedId}
             name={phoneProps.name || phoneProps.id || generatedId}
           />

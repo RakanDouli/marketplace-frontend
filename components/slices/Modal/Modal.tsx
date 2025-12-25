@@ -73,12 +73,16 @@ export const Modal: React.FC<ModalProps> = ({
   }
 
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (e.target === e.currentTarget && closeable && onClose) {
       onClose();
     }
   };
 
-  const handleCloseClick = () => {
+  const handleCloseClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (closeable && onClose) {
       onClose();
     }
@@ -100,6 +104,7 @@ export const Modal: React.FC<ModalProps> = ({
           ${isClosing ? styles.closing : ''}
           ${className}
         `.trim()}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
 

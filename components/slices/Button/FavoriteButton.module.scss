@@ -5,7 +5,7 @@
   padding: $space-sm;
   background: $bg;
   border: 1px solid $border;
-  border-radius: $radius-md;
+  border-radius: $radius-full;
   &:hover:not(:disabled) {
     background: $bg;
     border-color: $error;
@@ -15,6 +15,6 @@
   &.favorited {
     color: $error;
     border-color: $error;
-    background: rgba(239, 68, 68, 0.1); // Light red background when favorited
+    background: $bg; // Light red background when favorited
   }
 }
