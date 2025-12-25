@@ -96,6 +96,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               }
               containerClassName={styles.image}
               priority={priority}
+              showSkeleton={false}
             />
           ) : (
             <div className={styles.noImage}>
