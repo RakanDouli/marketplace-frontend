@@ -60,26 +60,28 @@ const DEV_CREDENTIALS = [
 
 export const LoginForm: React.FC = () => {
   const { login, isLoading, error, switchAuthView } = useUserAuthStore();
-  const isProduction = process.env.NODE_ENV === 'production';
+  // Show dev credentials on development and staging, hide on production
+  const appEnv = process.env.NEXT_PUBLIC_APP_ENV || 'development';
+  const showDevCredentials = appEnv !== 'production';
 
   const [selectedOption, setSelectedOption] = useState(0);
   const [formData, setFormData] = useState({
-    email: isProduction ? '' : DEV_CREDENTIALS[0].email,
-    password: isProduction ? '' : DEV_CREDENTIALS[0].password,
+    email: showDevCredentials ? DEV_CREDENTIALS[0].email : '',
+    password: showDevCredentials ? DEV_CREDENTIALS[0].password : '',
   });
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [formError, setFormError] = useState<string>('');
 
-  // Update form when option changes (development only)
+  // Update form when option changes (development/staging only)
   useEffect(() => {
-    if (!isProduction) {
+    if (showDevCredentials) {
       const option = DEV_CREDENTIALS[selectedOption];
       setFormData({
         email: option.email,
         password: option.password,
       });
     }
-  }, [selectedOption, isProduction]);
+  }, [selectedOption, showDevCredentials]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -118,8 +120,8 @@ export const LoginForm: React.FC = () => {
 
   return (
     <div className={styles.form}>
-      {/* Development credential selector */}
-      {!isProduction && (
+      {/* Development/Staging credential selector */}
+      {showDevCredentials && (
         <div className={styles.devSelector}>
           <label className={styles.label}>
             <Text variant="xs">اختر حساب من قاعدة البيانات:</Text>

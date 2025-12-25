@@ -9,9 +9,35 @@ const nextConfig = {
     'http://192.168.178.175:3001',
   ],
   images: {
-    domains: ["localhost", "imagedelivery.net", "images.unsplash.com", "your-domain.com", "hepesfbyhjydndmihvvv.supabase.co", "via.placeholder.com"],
+    // Use remotePatterns instead of deprecated domains
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'imagedelivery.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '/**',
+      },
+    ],
     formats: ["image/webp", "image/avif"],
-    qualities: [75, 85], // Support both default (75) and Unsplash default (85)
   },
   // Enable SCSS support
   sassOptions: {
