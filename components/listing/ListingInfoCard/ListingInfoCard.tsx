@@ -61,7 +61,15 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
   //   companyName: user?.companyName, website: user?.website, phone: user?.phone,
   // });
 
+  const { openAuthModal } = useUserAuthStore();
+
   const handleContactClick = () => {
+    // Check if user is logged in - open auth modal if not
+    if (!currentUser) {
+      openAuthModal('login');
+      return;
+    }
+
     const sellerId = user?.id;
     if (sellerId && isUserBlocked(sellerId)) {
       addNotification({
