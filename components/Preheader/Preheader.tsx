@@ -15,7 +15,7 @@ export const Preheader: React.FC = () => {
 
   return (
     <div className={styles.preheader}>
-      <Container padding={false}>
+      <Container paddingY="none">
         <div className={styles.preheaderContent}>
           <FxRateTicker className={styles.ticker} />
           <div className={styles.currencySelector}>

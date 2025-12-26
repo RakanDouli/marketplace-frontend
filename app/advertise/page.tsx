@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Monitor, Smartphone, Eye, MapPin, BarChart, Clock } from 'lucide-react';
-import { Container, Text, Slider, Collapsible, TextSection, Loading, Grid, FeatureCard } from '@/components/slices';
+import { Container, Text, Slider, TextSection, Loading, Grid, FeatureCard, FAQ } from '@/components/slices';
 import { PricingCard, ContactAdModal } from '@/components/pricing';
 import type { FeatureItem } from '@/components/pricing';
 import { useAdPackagesStore } from '@/stores/adPackagesStore';
@@ -127,108 +127,82 @@ export default function AdvertisePage() {
         nostyle
       />
 
-      <Container >
-
-        {/* Why Advertise Section */}
-        <Grid columns={4} className={styles.benefits}>
-          <FeatureCard
-            icon={<BarChart size={32} />}
-            title="100k+ زائر شهرياً"
-            description="وصول واسع لجمهورك المستهدف"
-            variant="card"
-          />
-          <FeatureCard
-            icon={<MapPin size={32} />}
-            title="مشترو سيارات مستهدفون"
-            description="جمهور مهتم بالسيارات فعلياً"
-            variant="card"
-          />
-          <FeatureCard
-            icon={<BarChart size={32} />}
-            title="تقارير شفافة"
-            description="تتبع أداء حملتك بالتفصيل"
-            variant="card"
-          />
-          <FeatureCard
-            icon={<Eye size={32} />}
-            title="أسعار تنافسية"
-            description="أفضل قيمة مقابل المال"
-            variant="card"
-          />
-        </Grid>
-
-        {/* Ad Packages */}
-        <div className={styles.packagesSection}>
-          <Text variant="h2">حزم الإعلانات المتاحة</Text>
-          {packages.length > 0 && (
-            <Slider
-              slidesToShow={3}
-              slidesToShowTablet={2}
-              slidesToShowMobile={1}
-              showArrows={true}
-              showDots={true}
-            >
-              {packages.map((pkg) => (
-                <PricingCard
-                  key={pkg.id}
-                  title={pkg.packageName}
-                  description={pkg.description}
-                  price={pkg.basePrice}
-                  currency={pkg.currency}
-                  billingCycle="days"
-                  durationDays={pkg.durationDays}
-                  features={getFeatureList(pkg)}
-                  badge={getBadge(pkg)}
-                  badgeColor={getBadgeColor(pkg)}
-                  highlighted={pkg.placement === AdPlacement.DETAIL_TOP || pkg.placement === AdPlacement.DETAIL_BEFORE_DESCRIPTION}
-                  buttonText="تواصل معنا"
-                  buttonVariant="outline"
-                  metadata={getMetadata(pkg)}
-                  onButtonClick={() => handleContactClick(pkg)}
-                />
-              ))}
-            </Slider>
-          )}
-        </div>
-
-        {/* FAQ Section */}
-        <div className={styles.faq}>
-          <Text variant="h2">الأسئلة الشائعة</Text>
-
-          <div className={styles.faqList}>
-            <Collapsible title="كيف يتم الدفع؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                يتم الدفع بعد التواصل مع فريق الإعلانات وتحديد تفاصيل الحملة. نقبل الدفع عبر التحويل البنكي أو PayPal.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="ما هي مواصفات الإعلانات؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نتبع معايير IAB العالمية. كل حزمة لها مواصفات محددة (الأبعاد، الحجم، النوع). سيتم إرسال التفاصيل الكاملة بعد التواصل.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="هل أحصل على تقارير أداء؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، ستحصل على رابط خاص لتتبع أداء حملتك (الظهور، النقرات، معدل التحويل) بشكل يومي.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="هل يمكنني تخصيص الحزمة؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، نوفر حزم مخصصة للشركات الكبرى. تواصل معنا لمناقشة احتياجاتك الخاصة.
-              </Text>
-            </Collapsible>
-          </div>
-        </div>
-
-        {/* Contact Modal */}
-        <ContactAdModal
-          package={selectedPackage}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+      {/* Why Advertise Section */}
+      <Grid title="لماذا تعلن معنا؟" columns={4} paddingY="lg">
+        <FeatureCard
+          icon={<BarChart size={32} />}
+          title="100k+ زائر شهرياً"
+          description="وصول واسع لجمهورك المستهدف"
+          variant="card"
         />
-      </Container>
+        <FeatureCard
+          icon={<MapPin size={32} />}
+          title="مشترو سيارات مستهدفون"
+          description="جمهور مهتم بالسيارات فعلياً"
+          variant="card"
+        />
+        <FeatureCard
+          icon={<BarChart size={32} />}
+          title="تقارير شفافة"
+          description="تتبع أداء حملتك بالتفصيل"
+          variant="card"
+        />
+        <FeatureCard
+          icon={<Eye size={32} />}
+          title="أسعار تنافسية"
+          description="أفضل قيمة مقابل المال"
+          variant="card"
+        />
+      </Grid>
+
+
+      {/* Ad Packages Slider */}
+      <Slider
+        title="حزم الإعلانات المتاحة"
+        slidesToShow={3}
+        slidesToShowTablet={2}
+        slidesToShowMobile={1}
+        showArrows={true}
+        showDots={true}
+      >
+        {packages.map((pkg) => (
+          <PricingCard
+            key={pkg.id}
+            title={pkg.packageName}
+            description={pkg.description}
+            price={pkg.basePrice}
+            currency={pkg.currency}
+            billingCycle="days"
+            durationDays={pkg.durationDays}
+            features={getFeatureList(pkg)}
+            badge={getBadge(pkg)}
+            badgeColor={getBadgeColor(pkg)}
+            highlighted={pkg.placement === AdPlacement.DETAIL_TOP || pkg.placement === AdPlacement.DETAIL_BEFORE_DESCRIPTION}
+            buttonText="تواصل معنا"
+            buttonVariant="outline"
+            metadata={getMetadata(pkg)}
+            onButtonClick={() => handleContactClick(pkg)}
+          />
+        ))}
+      </Slider>
+
+      {/* Contact Modal */}
+      <ContactAdModal
+        package={selectedPackage}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* FAQ Section */}
+      <FAQ
+        title="الأسئلة الشائعة"
+        items={[
+          { question: "كيف يتم الدفع؟", answer: "يتم الدفع بعد التواصل مع فريق الإعلانات وتحديد تفاصيل الحملة. نقبل الدفع عبر التحويل البنكي أو PayPal." },
+          { question: "ما هي مواصفات الإعلانات؟", answer: "نتبع معايير IAB العالمية. كل حزمة لها مواصفات محددة (الأبعاد، الحجم، النوع). سيتم إرسال التفاصيل الكاملة بعد التواصل." },
+          { question: "هل أحصل على تقارير أداء؟", answer: "نعم، ستحصل على رابط خاص لتتبع أداء حملتك (الظهور، النقرات، معدل التحويل) بشكل يومي." },
+          { question: "هل يمكنني تخصيص الحزمة؟", answer: "نعم، نوفر حزم مخصصة للشركات الكبرى. تواصل معنا لمناقشة احتياجاتك الخاصة." },
+        ]}
+      />
     </div>
   );
 }

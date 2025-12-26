@@ -13,13 +13,12 @@
   display: flex;
   justify-content: center;
   gap: $space-xs;
-  margin-bottom: $space-xl;
+
   padding: $space-xs;
   background: $surface;
   border-radius: $radius-lg;
   width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
+
   @media (max-width: $breakpoint-md) {
     margin-bottom: $space-md;
   }

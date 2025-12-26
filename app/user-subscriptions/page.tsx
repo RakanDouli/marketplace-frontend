@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Text, Loading, Slider, Collapsible, TextSection, Grid, FeatureCard } from "@/components/slices";
+import { Loading, Slider, TextSection, Grid, FeatureCard, FAQ } from "@/components/slices";
 import { PricingCard } from "@/components/pricing";
 import type { FeatureItem } from "@/components/pricing";
 import { useUserAuthStore } from "@/stores/userAuthStore";
@@ -164,37 +164,38 @@ export default function UserSubscriptionsPage() {
         nostyle
       />
 
-      <Container>
-        {/* Benefits Section */}
-        <Grid columns={4} className={styles.benefits}>
-          <FeatureCard
-            icon={<Zap size={32} />}
-            title="نشر سريع"
-            description="انشر إعلاناتك بضغطة زر"
-            variant="card"
-          />
-          <FeatureCard
-            icon={<Shield size={32} />}
-            title="حماية كاملة"
-            description="تحقق من جميع الإعلانات"
-            variant="card"
-          />
-          <FeatureCard
-            icon={<Users size={32} />}
-            title="وصول أوسع"
-            description="آلاف المشترين المحتملين"
-            variant="card"
-          />
-          <FeatureCard
-            icon={<Clock size={32} />}
-            title="دعم على مدار الساعة"
-            description="فريق دعم متاح دائماً"
-            variant="card"
-          />
-        </Grid>
+      {/* Benefits Section */}
+      <Grid title="لماذا تختارنا؟" columns={4} paddingY="lg">
+        <FeatureCard
+          icon={<Zap size={32} />}
+          title="نشر سريع"
+          description="انشر إعلاناتك بضغطة زر"
+          variant="card"
+        />
+        <FeatureCard
+          icon={<Shield size={32} />}
+          title="حماية كاملة"
+          description="تحقق من جميع الإعلانات"
+          variant="card"
+        />
+        <FeatureCard
+          icon={<Users size={32} />}
+          title="وصول أوسع"
+          description="آلاف المشترين المحتملين"
+          variant="card"
+        />
+        <FeatureCard
+          icon={<Clock size={32} />}
+          title="دعم على مدار الساعة"
+          description="فريق دعم متاح دائماً"
+          variant="card"
+        />
+      </Grid>
 
-        {/* Billing Cycle Toggle */}
-        {hasYearlyPricing && (
+      {/* Plans Slider */}
+      <Slider
+        title="الخطط المتاحة"
+        action={hasYearlyPricing ? (
           <div className={styles.billingToggle}>
             <button
               className={`${styles.toggleOption} ${billingCycle === 'monthly' ? styles.active : ''}`}
@@ -210,83 +211,49 @@ export default function UserSubscriptionsPage() {
               <span className={styles.savingsBadge}>وفر أكثر</span>
             </button>
           </div>
-        )}
+        ) : undefined}
+        slidesToShow={3}
+        slidesToShowTablet={2}
+        slidesToShowMobile={1}
+        showArrows={true}
+        showDots={true}
+      >
+        {publicPlans.map((plan) => {
+          const isCurrentPlan = currentSubscriptionName === plan.name;
 
-        {/* Plans Section */}
-        <div className={styles.plansSection}>
-          <Text variant="h2">الخطط المتاحة</Text>
-          {publicPlans.length > 0 && (
-            <Slider
-              slidesToShow={3}
-              slidesToShowTablet={2}
-              slidesToShowMobile={1}
-              showArrows={true}
-              showDots={true}
-            >
-              {publicPlans.map((plan) => {
-                const isCurrentPlan = currentSubscriptionName === plan.name;
+          return (
+            <PricingCard
+              key={plan.id}
+              title={plan.title}
+              description={plan.description}
+              monthlyPrice={plan.monthlyPrice}
+              yearlyPrice={plan.yearlyPrice}
+              yearlySavingsPercent={getYearlySavings(plan)}
+              billingCycle={billingCycle}
+              features={getFeatureList(plan)}
+              badge={getBadge(plan)}
+              badgeColor={getBadgeColor(plan)}
+              highlighted={plan.sortOrder === 2}
+              buttonText={getButtonText(plan)}
+              buttonVariant={isCurrentPlan ? 'outline' : 'primary'}
+              onButtonClick={() => handleSelectPlan(plan)}
+              disabled={isCurrentPlan}
+            />
+          );
+        })}
+      </Slider>
 
-                return (
-                  <PricingCard
-                    key={plan.id}
-                    title={plan.title}
-                    description={plan.description}
-                    monthlyPrice={plan.monthlyPrice}
-                    yearlyPrice={plan.yearlyPrice}
-                    yearlySavingsPercent={getYearlySavings(plan)}
-                    billingCycle={billingCycle}
-                    features={getFeatureList(plan)}
-                    badge={getBadge(plan)}
-                    badgeColor={getBadgeColor(plan)}
-                    highlighted={plan.sortOrder === 2}
-                    buttonText={getButtonText(plan)}
-                    buttonVariant={isCurrentPlan ? 'outline' : 'primary'}
-                    onButtonClick={() => handleSelectPlan(plan)}
-                    disabled={isCurrentPlan}
-                  />
-                );
-              })}
-            </Slider>
-          )}
-        </div>
-
-        {/* FAQ Section */}
-        <div className={styles.faq}>
-          <Text variant="h2">الأسئلة الشائعة</Text>
-
-          <div className={styles.faqList}>
-            <Collapsible title="هل يمكنني تغيير الباقة لاحقاً؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، يمكنك ترقية أو تخفيض باقتك في أي وقت. سيتم احتساب الفرق تناسبياً.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="ماذا يحدث عند انتهاء الاشتراك؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                ستنتقل تلقائياً إلى الباقة المجانية وستبقى إعلاناتك الحالية منشورة حسب حدود الباقة المجانية.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="هل الدفع آمن؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، نستخدم أحدث تقنيات التشفير لحماية بياناتك. جميع المعاملات تتم عبر بوابات دفع موثوقة.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="هل يمكنني استرداد المبلغ؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، نوفر ضمان استرداد المبلغ خلال 7 أيام من الاشتراك إذا لم تكن راضياً عن الخدمة.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="ما الفرق بين الباقات؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                كل باقة تختلف في عدد الإعلانات المسموحة، عدد الصور، إمكانية رفع فيديو، والأولوية في نتائج البحث. اختر الباقة التي تناسب حجم نشاطك.
-              </Text>
-            </Collapsible>
-          </div>
-        </div>
-      </Container>
+      {/* FAQ Section */}
+      <FAQ
+        title="الأسئلة الشائعة"
+        items={[
+          { question: "هل يمكنني تغيير الباقة لاحقاً؟", answer: "نعم، يمكنك ترقية أو تخفيض باقتك في أي وقت. سيتم احتساب الفرق تناسبياً." },
+          { question: "ماذا يحدث عند انتهاء الاشتراك؟", answer: "ستنتقل تلقائياً إلى الباقة المجانية وستبقى إعلاناتك الحالية منشورة حسب حدود الباقة المجانية." },
+          { question: "هل الدفع آمن؟", answer: "نعم، نستخدم أحدث تقنيات التشفير لحماية بياناتك. جميع المعاملات تتم عبر بوابات دفع موثوقة." },
+          { question: "هل يمكنني استرداد المبلغ؟", answer: "نعم، نوفر ضمان استرداد المبلغ خلال 7 أيام من الاشتراك إذا لم تكن راضياً عن الخدمة." },
+          { question: "ما الفرق بين الباقات؟", answer: "كل باقة تختلف في عدد الإعلانات المسموحة، عدد الصور، إمكانية رفع فيديو، والأولوية في نتائج البحث. اختر الباقة التي تناسب حجم نشاطك." },
+        ]}
+      />
     </div>
   );
 }

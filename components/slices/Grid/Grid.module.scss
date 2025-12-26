@@ -1,5 +1,14 @@
 @import "@/styles/variables";
 
+// Header with title and action (same as Slider)
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-lg;
+  gap: $space-md;
+}
+
 .grid {
   display: grid;
   width: 100%;

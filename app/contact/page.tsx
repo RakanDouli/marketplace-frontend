@@ -1,54 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { Container, Text, TextSection, Collapsible, Grid, FeatureCard } from "@/components/slices";
-import { Input } from "@/components/slices/Input/Input";
-import { Button } from "@/components/slices/Button/Button";
-import { Phone, Mail, MapPin, Clock, Send, MessageCircle, Building2 } from "lucide-react";
-import { useNotificationStore } from "@/stores/notificationStore";
+import React from "react";
+import { Container, Text, TextSection, Grid, FeatureCard, FAQ, ContactForm } from "@/components/slices";
+import { Phone, Mail, MapPin, Clock, Building2 } from "lucide-react";
 import styles from "./Contact.module.scss";
 
 export default function ContactPage() {
-  const { addNotification } = useNotificationStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    addNotification({
-      type: "success",
-      title: "تم إرسال رسالتك",
-      message: "شكراً لتواصلك معنا، سنرد عليك في أقرب وقت ممكن",
-    });
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
-    });
-    setIsSubmitting(false);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
   const contactInfo = [
     {
       icon: <Phone size={24} />,
@@ -85,109 +42,33 @@ export default function ContactPage() {
         nostyle
       />
 
-      <Container>
-        {/* Contact Cards */}
-        <Grid columns={4} mobileColumns={1} className={styles.contactCards}>
-          {contactInfo.map((info, index) => (
-            <FeatureCard
-              key={index}
-              icon={info.icon}
-              title={info.title}
-              variant="card"
-            >
-              {info.href ? (
-                <a href={info.href} className={styles.cardValue}>
-                  {info.value}
-                </a>
-              ) : (
-                <Text variant="small" color="secondary">
-                  {info.value}
-                </Text>
-              )}
-            </FeatureCard>
-          ))}
-        </Grid>
+      {/* Contact Cards */}
+      <Grid title="تواصل معنا" columns={4} mobileColumns={1} paddingY="lg" className={styles.contactCards}>
+        {contactInfo.map((info, index) => (
+          <FeatureCard
+            key={index}
+            icon={info.icon}
+            title={info.title}
+            variant="card"
+          >
+            {info.href ? (
+              <a href={info.href} className={styles.cardValue}>
+                {info.value}
+              </a>
+            ) : (
+              <Text variant="small" color="secondary">
+                {info.value}
+              </Text>
+            )}
+          </FeatureCard>
+        ))}
+      </Grid>
 
-        {/* Main Content Grid */}
+      {/* Main Content Grid */}
+      <Container paddingY="lg">
         <div className={styles.mainContent}>
           {/* Contact Form */}
-          <div className={styles.formSection}>
-            <div className={styles.formHeader}>
-              <MessageCircle size={24} />
-              <Text variant="h2">أرسل لنا رسالة</Text>
-            </div>
-
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <div className={styles.formGrid}>
-                <Input
-                  label="الاسم الكامل"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="أدخل اسمك الكامل"
-                  required
-                />
-                <Input
-                  label="البريد الإلكتروني"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="example@email.com"
-                  required
-                />
-              </div>
-
-              <div className={styles.formGrid}>
-                <Input
-                  label="رقم الهاتف"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+963 XXX XXX XXX"
-                />
-                <Input
-                  label="الموضوع"
-                  name="subject"
-                  type="select"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">اختر الموضوع</option>
-                  <option value="general">استفسار عام</option>
-                  <option value="support">دعم فني</option>
-                  <option value="ads">الإعلانات</option>
-                  <option value="subscriptions">الاشتراكات</option>
-                  <option value="complaint">شكوى</option>
-                  <option value="suggestion">اقتراح</option>
-                </Input>
-              </div>
-
-              <Input
-                label="الرسالة"
-                name="message"
-                type="textarea"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="اكتب رسالتك هنا..."
-                rows={5}
-                required
-              />
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                loading={isSubmitting}
-                icon={<Send size={18} />}
-                className={styles.submitButton}
-              >
-                إرسال الرسالة
-              </Button>
-            </form>
-          </div>
+          <ContactForm />
 
           {/* Business Info */}
           <div className={styles.infoSection}>
@@ -207,44 +88,19 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
-
-        {/* FAQ Section */}
-        <div className={styles.faq}>
-          <Text variant="h2">الأسئلة الشائعة</Text>
-
-          <div className={styles.faqList}>
-            <Collapsible title="كيف يمكنني نشر إعلان؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                لنشر إعلان، قم بتسجيل الدخول إلى حسابك، ثم اضغط على "أضف إعلان" واتبع الخطوات لإضافة تفاصيل سيارتك والصور.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="هل الموقع مجاني؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، يمكنك التسجيل وتصفح الإعلانات مجاناً. نوفر أيضاً باقات اشتراك متميزة للبائعين المحترفين.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="كيف أتواصل مع البائع؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                يمكنك التواصل مع البائع مباشرة عبر نظام المراسلة في الموقع بعد تسجيل الدخول.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="كم يستغرق الرد على استفساراتي؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نسعى للرد على جميع الاستفسارات خلال 24 ساعة في أيام العمل.
-              </Text>
-            </Collapsible>
-
-            <Collapsible title="هل يمكنني تعديل إعلاني بعد النشر؟" variant="bordered">
-              <Text variant="paragraph" color="secondary">
-                نعم، يمكنك تعديل إعلانك في أي وقت من لوحة التحكم الخاصة بك.
-              </Text>
-            </Collapsible>
-          </div>
-        </div>
       </Container>
+
+      {/* FAQ Section */}
+      <FAQ
+        title="الأسئلة الشائعة"
+        items={[
+          { question: "كيف يمكنني نشر إعلان؟", answer: "لنشر إعلان، قم بتسجيل الدخول إلى حسابك، ثم اضغط على \"أضف إعلان\" واتبع الخطوات لإضافة تفاصيل سيارتك والصور." },
+          { question: "هل الموقع مجاني؟", answer: "نعم، يمكنك التسجيل وتصفح الإعلانات مجاناً. نوفر أيضاً باقات اشتراك متميزة للبائعين المحترفين." },
+          { question: "كيف أتواصل مع البائع؟", answer: "يمكنك التواصل مع البائع مباشرة عبر نظام المراسلة في الموقع بعد تسجيل الدخول." },
+          { question: "كم يستغرق الرد على استفساراتي؟", answer: "نسعى للرد على جميع الاستفسارات خلال 24 ساعة في أيام العمل." },
+          { question: "هل يمكنني تعديل إعلاني بعد النشر؟", answer: "نعم، يمكنك تعديل إعلانك في أي وقت من لوحة التحكم الخاصة بك." },
+        ]}
+      />
     </div>
   );
 }

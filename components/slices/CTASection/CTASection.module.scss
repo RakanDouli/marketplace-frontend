@@ -1,14 +1,14 @@
 @import "@/styles/variables";
 
+// Note: padding and background are now handled by Container props
+
 .cta {
-  padding: $space-xxl 0;
   position: relative;
   overflow: hidden;
 }
 
-// Variants - use theme bg colors
+// Variants - text colors only (background handled by Container)
 .primary {
-  background: $surface;
   color: $text;
 
   .subtitle {
@@ -17,7 +17,6 @@
 }
 
 .secondary {
-  background: $surface;
   color: $text;
 
   .subtitle {
@@ -26,7 +25,6 @@
 }
 
 .gradient {
-  background: $primary;
   color: $text-light;
 
   .subtitle {

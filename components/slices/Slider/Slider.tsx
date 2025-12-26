@@ -1,27 +1,45 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Container, ContainerProps } from '../Container/Container';
+import { Text } from '../Text/Text';
 import styles from './Slider.module.scss';
 
 interface SliderProps {
   children: React.ReactNode;
+  // Header
+  title?: string;
+  action?: React.ReactNode;
+  // Slider settings
   slidesToShow?: number;
   slidesToShowTablet?: number;
   slidesToShowMobile?: number;
   showArrows?: boolean;
   showDots?: boolean;
+  // Container props
+  paddingY?: ContainerProps["paddingY"];
+  background?: ContainerProps["background"];
+  outerBackground?: ContainerProps["outerBackground"];
   className?: string;
 }
 
 export const Slider: React.FC<SliderProps> = ({
   children,
+  // Header
+  title,
+  action,
+  // Slider settings
   slidesToShow = 3,
   slidesToShowTablet = 2,
   slidesToShowMobile = 1,
   showArrows = true,
   showDots = true,
-  className,
+  // Container props
+  paddingY = "xl",
+  background = "transparent",
+  outerBackground = "transparent",
+  className = "",
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [slidesPerView, setSlidesPerView] = useState(slidesToShow);
@@ -88,7 +106,20 @@ export const Slider: React.FC<SliderProps> = ({
   }
 
   return (
-    <div className={`${styles.sliderContainer} ${className || ''}`}>
+    <Container
+      paddingY={paddingY}
+      background={background}
+      outerBackground={outerBackground}
+      className={className}
+    >
+      {/* Header with title and action */}
+      {(title || action) && (
+        <div className={styles.header}>
+          {title && <Text variant="h3">{title}</Text>}
+          {action}
+        </div>
+      )}
+
       <div className={styles.sliderWrapper}>
         {/* Previous Arrow - Left side (RTL: left arrow = go forward) */}
         {showArrows && totalSlides > slidesPerView && (
@@ -155,6 +186,6 @@ export const Slider: React.FC<SliderProps> = ({
           ))}
         </div>
       )}
-    </div>
+    </Container>
   );
 };

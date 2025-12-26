@@ -98,7 +98,7 @@ export default function HomePage() {
       </section>
 
       {/* Top Banner Ad */}
-      <Container size="lg" padding>
+      <Container size="lg" paddingY="md">
         <AdContainer placement="homepage_top" />
       </Container>
 
@@ -132,7 +132,7 @@ export default function HomePage() {
       />
 
       {/* Mid-Page Banner Ad */}
-      <Container size="lg" padding>
+      <Container size="lg" paddingY="md">
         <AdContainer placement="homepage_mid" />
       </Container>
 

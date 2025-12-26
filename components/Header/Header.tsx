@@ -84,7 +84,7 @@ export const Header: React.FC = () => {
         <Preheader />
 
         {/* Main header content */}
-        <Container padding={false}>
+        <Container paddingY="none">
           <div className={styles.container}>
             {/* Logo */}
             <Link href="/" className={styles.logo}>

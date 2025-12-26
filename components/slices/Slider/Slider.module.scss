@@ -1,9 +1,12 @@
 @import "@/styles/variables";
 
-.sliderContainer {
-  position: relative;
-  width: 100%;
-  overflow: visible;
+// Header with title and action
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-lg;
+  gap: $space-md;
 }
 
 .sliderWrapper {

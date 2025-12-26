@@ -1,5 +1,5 @@
 import React from "react";
-import { Container } from "../Container/Container";
+import { Container, ContainerProps } from "../Container/Container";
 import { Text } from "@/components/slices";
 import { Image } from "@/components/slices";
 import styles from "./TextSection.module.scss";
@@ -16,7 +16,6 @@ export interface TextSectionProps {
   flex?: "row" | "row-reverse" | "column" | "column-reverse";
   nostyle?: boolean;
 
-
   // Image
   imageUrl?: string;
   imageAlt?: string;
@@ -24,6 +23,10 @@ export interface TextSectionProps {
   imageHeight?: number;
 
   // Container props passthrough
+  paddingY?: ContainerProps["paddingY"];
+  paddingX?: ContainerProps["paddingX"];
+  background?: ContainerProps["background"];
+  outerBackground?: ContainerProps["outerBackground"];
   backgroundImage?: string;
   backgroundColor?: string;
 
@@ -45,6 +48,10 @@ export const TextSection: React.FC<TextSectionProps> = ({
   imageAlt = "",
   imageWidth = 600,
   imageHeight = 400,
+  paddingY = "lg",
+  paddingX = "md",
+  background = "transparent",
+  outerBackground = "transparent",
   backgroundImage,
   backgroundColor,
   children,
@@ -52,13 +59,17 @@ export const TextSection: React.FC<TextSectionProps> = ({
 }) => {
   return (
     <Container
+      paddingY={paddingY}
+      paddingX={paddingX}
+      background={background}
+      outerBackground={outerBackground}
       backgroundImage={backgroundImage}
       backgroundColor={backgroundColor}
     >
       <div
         className={`
-          ${styles.textSection} 
-          ${flex ? styles[`flex_${flex}`] : ""} 
+          ${styles.textSection}
+          ${flex ? styles[`flex_${flex}`] : ""}
           ${nostyle ? "" : styles.textSectionBg}
           ${className}
         `.trim()}

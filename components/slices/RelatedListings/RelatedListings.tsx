@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Container } from "../Container/Container";
-import { Text } from "../Text/Text";
 import { Slider } from "../Slider";
 import { Grid } from "../Grid/Grid";
 import { ListingCard } from "../ListingCard/ListingCard";
@@ -10,7 +8,6 @@ import { useCategoriesStore } from "@/stores/categoriesStore";
 import { useFiltersStore } from "@/stores/filtersStore";
 import { useRelatedListingsStore, RelatedListing, RelatedType } from "@/stores/relatedListingsStore";
 import { formatPrice } from "@/utils/formatPrice";
-import styles from "./RelatedListings.module.scss";
 
 export type { RelatedType };
 export type DisplayMode = 'slider' | 'grid';
@@ -118,30 +115,38 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
     });
   };
 
-  return (
-    <section className={`${styles.section} ${className}`}>
-      <Container>
-        <div className={styles.header}>
-          <Text variant="h3">{title}</Text>
-        </div>
+  // Slider mode - Slider has its own Container
+  if (displayMode === 'slider') {
+    return (
+      <Slider
+        title={title}
+        slidesToShow={4}
+        slidesToShowTablet={2}
+        slidesToShowMobile={1}
+        showArrows={true}
+        showDots={true}
+        paddingY='lg'
+        outerBackground="surface"
+        className={className}
+      >
+        {renderListingCards()}
+      </Slider>
+    );
+  }
 
-        {displayMode === 'slider' ? (
-          <Slider
-            slidesToShow={4}
-            slidesToShowTablet={2}
-            slidesToShowMobile={1}
-            showArrows={true}
-            showDots={true}
-          >
-            {renderListingCards()}
-          </Slider>
-        ) : (
-          <Grid columns={4} mobileColumns={2} gap="md">
-            {renderListingCards()}
-          </Grid>
-        )}
-      </Container>
-    </section>
+  // Grid mode - Grid has its own Container when title provided
+  return (
+    <Grid
+      title={title}
+      columns={4}
+      mobileColumns={2}
+      gap="sm"
+      paddingY='lg'
+      outerBackground="surface"
+      className={className}
+    >
+      {renderListingCards()}
+    </Grid>
   );
 };
 

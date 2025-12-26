@@ -1,0 +1,11 @@
+@import "@/styles/variables";
+
+.title {
+  margin-bottom: $space-lg;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}

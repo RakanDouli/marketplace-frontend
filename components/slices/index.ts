@@ -68,3 +68,7 @@ export { StatCard } from "./StatCard";
 export type { StatCardProps } from "./StatCard";
 export { RelatedListings, RelatedByBrand, RelatedByPrice } from "./RelatedListings";
 export type { RelatedListingsProps, RelatedType, DisplayMode, RelatedByBrandProps, RelatedByPriceProps } from "./RelatedListings";
+export { FAQ } from "./FAQ";
+export type { FAQProps, FAQItem } from "./FAQ";
+export { ContactForm } from "./ContactForm";
+export type { ContactFormProps, ContactFormData, ContactFormSubject } from "./ContactForm";

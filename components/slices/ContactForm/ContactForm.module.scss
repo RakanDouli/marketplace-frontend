@@ -1,0 +1,39 @@
+@import "@/styles/variables";
+
+.contactForm {
+  background: $surface;
+  border-radius: $radius-lg;
+  padding: $space-xl;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  margin-bottom: $space-lg;
+
+  svg {
+    color: $primary;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.submitButton {
+  align-self: flex-start;
+  margin-top: $space-md;
+}
