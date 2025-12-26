@@ -1,14 +1,12 @@
 "use client";
 
 import {
-  Container,
   TextSection,
   Button,
   Grid,
   FeatureCard,
   CTASection,
   FeaturedListings,
-  Text,
 } from "@/components/slices";
 import { AdContainer } from "@/components/ads";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -76,54 +74,40 @@ export default function HomePage() {
   return (
     <main className={styles.homePage}>
       {/* Hero Section */}
-      <section className={styles.hero}>
-        <Container>
-          <TextSection
-            title={t("homepage.hero.title")}
-            subtitle={t("homepage.hero.subtitle")}
-            body={t("homepage.hero.description")}
-            align="center"
-            nostyle
-          >
-            <div className={styles.heroButtons}>
-              <Button variant="primary" size="lg" href="/cars">
-                {t("nav.listings")}
-              </Button>
-              <Button variant="secondary" size="lg" href="/dashboard/listings/create">
-                {t("nav.sell")}
-              </Button>
-            </div>
-          </TextSection>
-        </Container>
-      </section>
+      <TextSection
+        title={t("homepage.hero.title")}
+        subtitle={t("homepage.hero.subtitle")}
+        body={t("homepage.hero.description")}
+        align="center"
+        paddingY="xl"
+        outerBackground="surface"
+        nostyle
+      >
+        <div className={styles.heroButtons}>
+          <Button variant="primary" size="lg" href="/cars">
+            {t("nav.listings")}
+          </Button>
+          <Button variant="secondary" size="lg" href="/dashboard/listings/create">
+            {t("nav.sell")}
+          </Button>
+        </div>
+      </TextSection>
 
       {/* Top Banner Ad */}
-      <Container size="lg" paddingY="md">
-        <AdContainer placement="homepage_top" />
-      </Container>
+      <AdContainer placement="homepage_top" />
 
       {/* Features Section */}
-      <section className={styles.featuresSection}>
-        <Container>
-          <div className={styles.sectionHeader}>
-            <Text variant="h2">لماذا تختارنا؟</Text>
-            <Text variant="paragraph" color="secondary">
-              نوفر لك أفضل تجربة لبيع وشراء السيارات في سوريا
-            </Text>
-          </div>
-          <Grid columns={4}>
-            {features.map((feature, index) => (
-              <FeatureCard
-                key={index}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-                variant="card"
-              />
-            ))}
-          </Grid>
-        </Container>
-      </section>
+      <Grid title="لماذا تختارنا؟" columns={4} paddingY="lg">
+        {features.map((feature, index) => (
+          <FeatureCard
+            key={index}
+            icon={feature.icon}
+            title={feature.title}
+            description={feature.description}
+            variant="card"
+          />
+        ))}
+      </Grid>
 
       {/* Featured Listings - Cars */}
       <FeaturedListings
@@ -132,29 +116,20 @@ export default function HomePage() {
       />
 
       {/* Mid-Page Banner Ad */}
-      <Container size="lg" paddingY="md">
-        <AdContainer placement="homepage_mid" />
-      </Container>
+      <AdContainer placement="homepage_mid" />
 
       {/* Stats Section */}
-      <section className={styles.statsSection}>
-        <Container>
-          <div className={styles.sectionHeader}>
-            <Text variant="h2">أرقامنا تتحدث</Text>
-          </div>
-          <Grid columns={4}>
-            {stats.map((stat, index) => (
-              <FeatureCard
-                key={index}
-                icon={stat.icon}
-                title={stat.title}
-                description={stat.description}
-                variant="default"
-              />
-            ))}
-          </Grid>
-        </Container>
-      </section>
+      <Grid title="أرقامنا تتحدث" columns={4} paddingY="lg" outerBackground="surface">
+        {stats.map((stat, index) => (
+          <FeatureCard
+            key={index}
+            icon={stat.icon}
+            title={stat.title}
+            description={stat.description}
+            variant="default"
+          />
+        ))}
+      </Grid>
 
       {/* CTA Section - Sell Your Car */}
       <CTASection

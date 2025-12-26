@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Container, ContainerProps } from '@/components/slices/Container/Container';
 import styles from './GoogleAdSense.module.scss';
 
 export interface GoogleAdSenseProps {
@@ -10,6 +11,9 @@ export interface GoogleAdSenseProps {
   responsive?: boolean;
   style?: React.CSSProperties;
   className?: string;
+  // Container props - only applied when ad is visible
+  paddingY?: ContainerProps["paddingY"];
+  size?: ContainerProps["size"];
 }
 
 /**
@@ -25,6 +29,8 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   responsive = true,
   style,
   className,
+  paddingY = 'md',
+  size = 'lg',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const insRef = useRef<HTMLModElement>(null);
@@ -113,8 +119,8 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
     return null;
   }
 
-  // Render container but keep it hidden until ad is confirmed
-  return (
+  // The ad content (hidden until loaded)
+  const adContent = (
     <div
       ref={containerRef}
       className={`${styles.googleAdSense} ${className || ''}`}
@@ -140,4 +146,17 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
       />
     </div>
   );
+
+  // Wrap in Container ONLY when ad is visible (to respect max-width limits)
+  // When hidden, render without Container to avoid empty padding
+  if (isVisible) {
+    return (
+      <Container paddingY={paddingY} size={size}>
+        {adContent}
+      </Container>
+    );
+  }
+
+  // Render hidden ad content without Container wrapper
+  return adContent;
 };

@@ -2,20 +2,27 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAdsStore, AdPackageInstance, AdSenseSettings } from '@/stores/adsStore';
+import { Container, ContainerProps } from '@/components/slices/Container/Container';
 import { CustomAd } from '../CustomAd';
 import { GoogleAdSense } from '../GoogleAdSense';
 
 export interface AdContainerProps {
   placement: string; // For tracking purposes (e.g., "homepage-top", "listings-between")
+  // Container props
+  paddingY?: ContainerProps["paddingY"];
+  size?: ContainerProps["size"];
   className?: string;
 }
 
 export const AdContainer: React.FC<AdContainerProps> = ({
   placement,
+  paddingY = "md",
+  size = "lg",
   className,
 }) => {
   const [selectedPackage, setSelectedPackage] = useState<AdPackageInstance | null>(null);
   const [adSenseSettings, setAdSenseSettings] = useState<AdSenseSettings | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const { fetchAllAds, getAdsByPlacement, fetchAdSenseSettings, trackImpression, trackClick } = useAdsStore();
 
   // Helper: Calculate days until package ends
@@ -107,16 +114,23 @@ export const AdContainer: React.FC<AdContainerProps> = ({
         // Use priority-based weighted selection
         const selectedPkg = selectPackageByPriority(packages);
         setSelectedPackage(selectedPkg);
+        setHasLoaded(true);
         return;
       }
 
       // Step 3: No custom ads - try Google AdSense fallback
       const settings = await fetchAdSenseSettings();
       setAdSenseSettings(settings);
+      setHasLoaded(true);
     };
 
     loadAd();
   }, [placement, fetchAllAds, getAdsByPlacement, fetchAdSenseSettings]);
+
+  // Don't render anything until we've checked for ads
+  if (!hasLoaded) {
+    return null;
+  }
 
   // Handle impression tracking - Pass both campaignId AND campaignPackageId
   const handleImpression = () => {
@@ -161,15 +175,20 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     };
 
     return (
-      <CustomAd
-        campaign={campaignForAd as any}
-        onImpression={handleImpression}
-        onClick={handleClick}
-        className={className}
-      />
+      <Container paddingY={paddingY} size={size}>
+        <CustomAd
+          campaign={campaignForAd as any}
+          onImpression={handleImpression}
+          onClick={handleClick}
+          className={className}
+        />
+      </Container>
     );
   }
+
   // No custom ad - try Google AdSense fallback (only if valid ID format)
+  // NOTE: GoogleAdSense handles its own Container - it wraps in Container only when ad loads successfully
+  // This ensures no empty padding when ad fails to load, but respects max-width when ad is visible
   if (adSenseSettings && isAdSenseConfigured(adSenseSettings.clientId)) {
     // Use image slot by default (Google AdSense auto-detects format/dimensions)
     // Admin can disable image/video slots independently via toggles
@@ -184,11 +203,13 @@ export const AdContainer: React.FC<AdContainerProps> = ({
           format="horizontal"
           responsive={true}
           className={className}
+          paddingY={paddingY}
+          size={size}
         />
       );
     }
   }
 
-  // No custom ad and no valid AdSense - render nothing (no empty space)
+  // No custom ad and no valid AdSense - render nothing (height = 0)
   return null;
 };

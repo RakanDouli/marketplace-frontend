@@ -6,32 +6,10 @@
   gap: 0;
 }
 
-.hero {
-  padding: $space-xxl 0;
-  background: $surface;
-}
-
 .heroButtons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: $space-md;
   margin-top: $space-lg;
-}
-
-.sectionHeader {
-  text-align: center;
-  margin-bottom: $space-xl;
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-}
-
-.featuresSection {
-  padding: $space-xl 0;
-}
-
-.statsSection {
-  padding: $space-xl 0;
-  background: $surface;
 }
