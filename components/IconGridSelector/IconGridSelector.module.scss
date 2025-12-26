@@ -62,8 +62,13 @@
 }
 
 .icon {
-  object-fit: contain;
+  color: $text; // SVG uses currentColor, so it inherits this
   transition: transform 0.2s ease;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .label {

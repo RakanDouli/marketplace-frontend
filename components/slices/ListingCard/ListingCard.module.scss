@@ -99,13 +99,7 @@
       flex: 1;
       margin: auto 0;
       padding: $space-md $space-lg;
-      // display: flex;
-      // flex-direction: column;
       gap: $space-sm;
-      // border: 1px solid red;
-      // .title {
-      //   border: 1px solid red;
-      // }
       @media (max-width: $breakpoint-md) {
         padding: $space-md !important;
       }

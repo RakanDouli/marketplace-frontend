@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
 import { Text } from "../slices";
 import styles from "./IconGridSelector.module.scss";
 
@@ -28,6 +27,34 @@ export interface IconGridSelectorProps {
   /** Whether to show counts */
   showCounts?: boolean;
 }
+
+// Component to load and render SVG inline (for currentColor support)
+const InlineSvg: React.FC<{ src: string; size: number; className?: string }> = ({ src, size, className }) => {
+  const [svgContent, setSvgContent] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(src)
+      .then((res) => res.text())
+      .then((text) => {
+        // Replace any fill colors with currentColor to inherit from CSS
+        const processed = text
+          .replace(/fill="[^"]*"/g, 'fill="currentColor"')
+          .replace(/stroke="[^"]*"/g, 'stroke="currentColor"');
+        setSvgContent(processed);
+      })
+      .catch(() => setSvgContent(null));
+  }, [src]);
+
+  if (!svgContent) return null;
+
+  return (
+    <div
+      className={className}
+      style={{ width: size, height: size }}
+      dangerouslySetInnerHTML={{ __html: svgContent }}
+    />
+  );
+};
 
 export const IconGridSelector: React.FC<IconGridSelectorProps> = ({
   selected = [],
@@ -70,7 +97,7 @@ export const IconGridSelector: React.FC<IconGridSelectorProps> = ({
 
   const getIconSrc = (option: IconGridOption) => {
     if (option.iconPath) return option.iconPath;
-    if (iconBasePath) return `${iconBasePath}/${option.key}.png`;
+    if (iconBasePath) return `${iconBasePath}/${option.key}.svg`;
     return null;
   };
 
@@ -99,11 +126,9 @@ export const IconGridSelector: React.FC<IconGridSelectorProps> = ({
               onClick={() => handleToggle(option.key)}
             >
               {iconSrc && (
-                <Image
+                <InlineSvg
                   src={iconSrc}
-                  alt={option.label}
-                  width={iconSize}
-                  height={iconSize}
+                  size={iconSize}
                   className={styles.icon}
                 />
               )}
