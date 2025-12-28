@@ -11,6 +11,7 @@ const CATEGORIES_QUERY = `
       nameAr
       slug
       isActive
+      icon
     }
   }
 `;
@@ -116,6 +117,7 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
           nameAr: cat.nameAr || cat.name, // Use Arabic name from backend
           slug: cat.slug,
           isActive: cat.isActive,
+          icon: cat.icon, // SVG icon from backend
         })
       );
 

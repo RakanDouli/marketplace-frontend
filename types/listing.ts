@@ -95,6 +95,7 @@ export interface Category {
   parentId?: string | null;
   level: number;
   imageUrl?: string | null;
+  icon?: string; // SVG icon code
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

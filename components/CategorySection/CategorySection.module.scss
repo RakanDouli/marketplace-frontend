@@ -69,3 +69,23 @@
     font-size: $font-xs;
   }
 }
+
+// SVG icon container for backend-provided icons
+.svgIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 32px;
+    height: 32px;
+    stroke: currentColor;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
