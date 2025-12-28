@@ -9,6 +9,8 @@ import {
   FeaturedListings,
 } from "@/components/slices";
 import { AdContainer } from "@/components/ads";
+import { HomeSearchBar } from "@/components/HomeSearchBar";
+import { CategorySection } from "@/components/CategorySection";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   Search,
@@ -73,6 +75,12 @@ export default function HomePage() {
 
   return (
     <main className={styles.homePage}>
+
+      {/* Search Bar */}
+      <HomeSearchBar />
+
+      {/* Category Section */}
+      <CategorySection />
       {/* Hero Section */}
       <TextSection
         title={t("homepage.hero.title")}

@@ -346,6 +346,11 @@ export const useSearchStore = create<SearchStore>()(
         storeFilters.categoryId = appliedFilters.categoryId;
       }
 
+      // Search filter
+      if (appliedFilters.search) {
+        storeFilters.search = appliedFilters.search;
+      }
+
       // Price filters
       if (appliedFilters.priceMinMinor) {
         storeFilters.priceMinMinor = appliedFilters.priceMinMinor;

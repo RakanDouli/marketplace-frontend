@@ -73,6 +73,59 @@
   overflow: hidden;
 }
 
+// Search input wrapper (replaces title when showSearch is true)
+.searchWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+}
+
+// Override Input component styles for mobile header
+.searchInput {
+  flex: 1;
+
+  // Target the Input wrapper
+  > div {
+    gap: 0;
+  }
+
+  // Target the input with icon wrapper
+  :global(.inputWithIcon) {
+    width: 100%;
+  }
+
+  // Target the actual input element
+  input {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: $radius-md !important;
+    color: $text-light !important;
+    font-size: $font-md;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    &:focus {
+      background: $bg !important;
+      border-color: $border !important;
+      box-shadow: none !important;
+      color: $text !important;
+    }
+  }
+
+  // Target the icon inside input
+  :global(.inputIcon) {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+}
+
 // Spacer to push content below the fixed header on mobile
 // Uses the same height as the header bar
 .spacer {

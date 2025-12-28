@@ -1,0 +1,43 @@
+@import "../../styles/variables.scss";
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-full;
+  padding: $space-md;
+  box-shadow: $shadow-md;
+
+  @media (max-width: $breakpoint-md) {
+    flex-direction: column;
+    gap: $space-md;
+    padding: $space-lg $space-md;
+    border-radius: $radius-lg;
+  }
+}
+
+// Dropdown wrapper - uses Input component internally
+.selectWrapper {
+  flex-shrink: 0;
+  min-width: 140px;
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+  }
+}
+
+// Search input wrapper - uses Input component internally
+.inputWrapper {
+  flex: 1;
+  min-width: 200px;
+
+  // Override Input component border-radius to full
+  input {
+    border-radius: $radius-full !important;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+  }
+}

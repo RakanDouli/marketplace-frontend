@@ -66,6 +66,8 @@ export interface InputProps
   maxLength?: number;
   /** Show character counter (auto-enabled when maxLength is set) */
   showCounter?: boolean;
+  /** Icon to display inside the input (right side for RTL) */
+  icon?: React.ReactNode;
 }
 
 export const Input = forwardRef<
@@ -92,6 +94,7 @@ export const Input = forwardRef<
       onCreateOption,
       maxLength,
       showCounter,
+      icon,
       ...props
     },
     ref
@@ -118,7 +121,7 @@ export const Input = forwardRef<
       styles[`input--${size}`],
       hasAnyError ? styles["input--error"] : "",
       isFocused ? styles["input--focused"] : "",
-      className,
+      icon ? styles["input--withIcon"] : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -446,7 +449,7 @@ export const Input = forwardRef<
       // Default: regular input (text, email, password, etc.)
       const inputProps = props as React.InputHTMLAttributes<HTMLInputElement>;
 
-      return (
+      const inputElement = (
         <input
           ref={ref as React.RefObject<HTMLInputElement>}
           type={type}
@@ -461,6 +464,18 @@ export const Input = forwardRef<
           inputMode={type === 'number' ? 'numeric' : undefined} // Mobile keyboard hint
         />
       );
+
+      // Wrap with icon container if icon is provided
+      if (icon) {
+        return (
+          <div className={styles.inputWithIcon}>
+            <span className={styles.inputIcon}>{icon}</span>
+            {inputElement}
+          </div>
+        );
+      }
+
+      return inputElement;
     };
 
     return (

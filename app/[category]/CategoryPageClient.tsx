@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { notFound, useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import Container from "../../components/slices/Container/Container";
 import Filter from "../../components/Filter/Filter";
 import ListingArea from "../../components/ListingArea/ListingArea";
 import { Loading } from "../../components/slices/Loading/Loading";
-import { MobileBackButton } from "../../components/slices";
+import { MobileBackButton, Input, Button } from "../../components/slices";
 import { MobileFilterBar } from "../../components/MobileFilterBar";
 import {
   useCategoriesStore,
   useFiltersStore,
+  useSearchStore,
+  useListingsStore,
 } from "../../stores";
 import type { Category } from "../../types/listing";
 import styles from "./CategoryPage.module.scss";
@@ -49,7 +52,46 @@ export default function CategoryPageClient({
     setSelectedCategory,
   } = useCategoriesStore();
 
-  const { fetchFilterData } = useFiltersStore();
+  const { fetchFilterData, currentCategorySlug } = useFiltersStore();
+
+  // Search store for search functionality
+  const {
+    appliedFilters,
+    setFilter,
+    getStoreFilters,
+    getBackendFilters,
+  } = useSearchStore();
+
+  const { fetchListingsByCategory, setPagination } = useListingsStore();
+  const { updateFiltersWithCascading } = useFiltersStore();
+
+  // Local search state for controlled input
+  const [localSearch, setLocalSearch] = useState(appliedFilters.search || '');
+
+  // Sync local search with store on mount and when store changes
+  useEffect(() => {
+    setLocalSearch(appliedFilters.search || '');
+  }, [appliedFilters.search]);
+
+  // Handle search submit
+  const handleSearchSubmit = useCallback(async () => {
+    if (!currentCategorySlug) return;
+
+    // Update search filter
+    setFilter('search', localSearch.trim() || undefined);
+
+    // Trigger listing refresh
+    try {
+      const backendFilters = { categoryId: currentCategorySlug, ...getBackendFilters() };
+      await updateFiltersWithCascading(currentCategorySlug, backendFilters);
+
+      const storeFilters = { categoryId: currentCategorySlug, ...getStoreFilters() };
+      setPagination({ page: 1 });
+      await fetchListingsByCategory(currentCategorySlug, storeFilters, 'grid');
+    } catch (error) {
+      console.error('Error applying search:', error);
+    }
+  }, [localSearch, currentCategorySlug, setFilter, getBackendFilters, getStoreFilters, updateFiltersWithCascading, setPagination, fetchListingsByCategory]);
 
   // Simple category initialization - let stores handle the rest
   useEffect(() => {
@@ -125,13 +167,41 @@ export default function CategoryPageClient({
 
   return (
     <Container className={styles.categoryPage}>
-      {/* Mobile Header - only visible on mobile */}
-      <MobileBackButton onClick={handleBack} title={currentCategory.nameAr} />
+      {/* Mobile Header with Search - only visible on mobile */}
+      <MobileBackButton
+        onClick={handleBack}
+        showSearch
+        searchValue={localSearch}
+        onSearchChange={setLocalSearch}
+        onSearchSubmit={handleSearchSubmit}
+        searchPlaceholder={`ابحث في ${currentCategory.nameAr}...`}
+      />
 
       {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
       <MobileFilterBar onFilterClick={() => setIsFilterOpen(true)} />
 
-      {/* <div className={styles.categoryPage}> */}
+      {/* Desktop Search Bar - only visible on desktop */}
+      <div className={styles.desktopSearchBar}>
+        <div className={styles.inputWrapper}>
+          <Input
+            type="search"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
+            placeholder={`ابحث في ${currentCategory.nameAr}...`}
+            aria-label="بحث"
+            icon={<Search size={18} />}
+          />
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleSearchSubmit}
+          icon={<Search size={20} />}
+        >
+          بحث
+        </Button>
+      </div>
+
       {/* Main Content */}
       <div className={styles.content}>
         {/* Filters Sidebar */}
@@ -147,7 +217,6 @@ export default function CategoryPageClient({
           <ListingArea />
         </div>
       </div>
-      {/* </div> */}
     </Container>
   );
 }

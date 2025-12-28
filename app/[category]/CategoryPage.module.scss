@@ -15,6 +15,35 @@
   }
 }
 
+// Desktop Search Bar - hidden on mobile (MobileBackButton handles mobile search)
+// Matches HomeSearchBar styling with pill shape
+.desktopSearchBar {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-bottom: $space-lg;
+  padding: $space-md;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-full;
+  box-shadow: $shadow-md;
+
+  @media (max-width: $breakpoint-md) {
+    display: none; // Hidden on mobile - MobileBackButton has search
+  }
+}
+
+// Search input wrapper - uses Input component internally
+.inputWrapper {
+  flex: 1;
+  min-width: 200px;
+
+  // Override Input component border-radius to full
+  input {
+    border-radius: $radius-full !important;
+  }
+}
+
 .content {
   display: grid;
   grid-template-columns: 280px 1fr;

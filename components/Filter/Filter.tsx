@@ -285,6 +285,11 @@ export const Filter: React.FC<FilterProps> = ({
 
   // Render a single attribute filter
   const renderAttribute = (attribute: any) => {
+    // Skip search attribute - it's now in the header (MobileBackButton on mobile, desktop search bar)
+    if (attribute.key === 'search') {
+      return null;
+    }
+
     // SELECTOR (single dropdown)
     if (attribute.type === AttributeType.SELECTOR && attribute.processedOptions) {
       return (

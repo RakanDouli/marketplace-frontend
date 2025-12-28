@@ -112,6 +112,57 @@
   &--focused {
     border-color: $primary;
   }
+
+  // With icon - add padding for icon on the start side (right in RTL)
+  &--withIcon {
+    padding-inline-start: calc($space-md + 20px);
+  }
+}
+
+// Input with icon wrapper
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.inputIcon {
+  position: absolute;
+  inset-inline-start: $space-sm;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: flex;
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  padding-right: $space-sm;
+}
+
+// Hide icon when input is focused
+.inputWithIcon:focus-within .inputIcon {
+  opacity: 0;
+}
+
+// Remove extra padding when focused (icon hidden)
+.inputWithIcon:focus-within .input--withIcon {
+  padding-inline-start: $space-md;
+}
+
+// Style the native search clear button (x)
+.input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: $primary;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E") center/contain no-repeat;
+  cursor: pointer;
 }
 
 // Textarea

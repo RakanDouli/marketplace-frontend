@@ -1,0 +1,71 @@
+@import "../../styles/variables.scss";
+
+.categoryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: $space-md;
+  padding: $space-lg $space-md $space-xl;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 140px;
+
+  &:hover {
+    border-color: $primary;
+    box-shadow: $shadow-md;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-md $space-sm $space-lg;
+    min-height: 120px;
+    gap: $space-sm;
+  }
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: $radius-full;
+  color: $primary;
+  transition: all 0.2s ease;
+
+  .categoryCard:hover & {
+    background: $primary;
+    color: white;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    width: 48px;
+    height: 48px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+.categoryName {
+  color: $text;
+  font-weight: $weight-medium;
+  text-align: center;
+  line-height: $line-tight;
+
+  @media (max-width: $breakpoint-md) {
+    font-size: $font-xs;
+  }
+}
