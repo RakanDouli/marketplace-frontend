@@ -60,12 +60,15 @@
 
     &:hover {
       background-color: $primary;
-      color: $text-inverse;
+      color: $text-light !important;
 
       .round {
         background: $secondary;
         animation: rippleEffect 1.5s ease forwards;
       }
+    }
+    &:active {
+      color: $text-light !important;
     }
   }
 
