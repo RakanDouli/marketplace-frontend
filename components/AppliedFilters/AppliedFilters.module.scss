@@ -72,10 +72,10 @@
     background: $surface;
     border-color: $text;
   }
-  svg {
-    border: 1px solid $text;
-    border-radius: $radius-full;
-  }
+  // svg {
+  //   border: 1px solid $text;
+  //   border-radius: $radius-full;
+  // }
 }
 
 .filterLabel {

@@ -1,11 +1,13 @@
 @import "../styles/variables";
 
 .notFound {
-  min-height: 100vh;
   display: flex;
   align-items: center;
-  padding: $space-xl 0;
-  background-color: $bg;
+  // padding: $space-lg 0;
+  // background-color: $bg;
+  @media (max-width: $breakpoint-md) {
+    min-height: 100vh !important;
+  }
 }
 
 .content {
@@ -13,7 +15,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: $space-sm;
+  gap: $space-md;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -21,28 +23,28 @@
 .errorCode {
   line-height: 0.8;
   opacity: 0.9;
-  animation: pulse 2s ease-in-out infinite;
+  // animation: pulse 2s ease-in-out infinite;
   width: 300px;
   margin-bottom: $space-md;
 }
 
-.errorCodeText {
-  font-size: clamp(6rem, 12vw, 12rem) !important;
-  background: linear-gradient(135deg, $primary 0%, $secondary 100%) !important;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
+// .errorCodeText {
+//   font-size: clamp(6rem, 12vw, 12rem) !important;
+//   background: linear-gradient(135deg, $primary 0%, $secondary 100%) !important;
+//   background-clip: text !important;
+//   -webkit-background-clip: text !important;
+//   -webkit-text-fill-color: transparent !important;
+// }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.9;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
+// @keyframes pulse {
+//   0%,
+//   100% {
+//     opacity: 0.9;
+//   }
+//   50% {
+//     opacity: 0.6;
+//   }
+// }
 
 .message {
   display: flex;
@@ -78,20 +80,21 @@
 }
 
 .suggestions {
-  margin-top: $space-md;
+  margin: $space-md 0;
   // border-top: 1px solid $border;
   width: 100%;
 }
 
 .suggestionsTitle {
-  margin-bottom: $space-md;
+  margin: $space-md 0;
   font-weight: $weight-medium;
 }
 
 .suggestionsList {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
+  gap: $space-md;
+  padding: $space-sm 0;
   align-items: center;
   a {
     margin: 0 !important;

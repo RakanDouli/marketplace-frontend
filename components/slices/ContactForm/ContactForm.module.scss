@@ -3,7 +3,10 @@
 .contactForm {
   background: $surface;
   border-radius: $radius-lg;
-  padding: $space-xl;
+  padding: $space-lg;
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-lg $space-md;
+  }
 }
 
 .header {

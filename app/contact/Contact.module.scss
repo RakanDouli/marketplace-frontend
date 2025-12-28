@@ -20,51 +20,60 @@
 .mainContent {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: $space-xl;
+
   margin-bottom: $space-xl;
-
-  @media (max-width: $breakpoint-md) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.formSection {
-  background: $surface;
-  border-radius: $radius-lg;
-  padding: $space-xl;
-}
-
-.formHeader {
-  display: flex;
-  align-items: center;
-  gap: $space-md;
-  margin-bottom: $space-lg;
-
-  svg {
-    color: $primary;
-  }
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
   gap: $space-lg;
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-md;
-
   @media (max-width: $breakpoint-sm) {
+    gap: $space-md;
     grid-template-columns: 1fr;
+
+    // Reverse order on mobile
+    > :first-child {
+      order: 2;
+    }
+    > :last-child {
+      order: 1;
+    }
   }
 }
 
-.submitButton {
-  align-self: flex-start;
-  margin-top: $space-md;
-}
+// .formSection {
+//   background: $surface;
+//   border-radius: $radius-lg;
+//   padding: $space-xl;
+// }
+
+// .formHeader {
+//   display: flex;
+//   align-items: center;
+//   gap: $space-md;
+//   margin-bottom: $space-lg;
+
+//   svg {
+//     color: $primary;
+//   }
+// }
+
+// .form {
+//   display: flex;
+//   flex-direction: column;
+//   gap: $space-lg;
+// }
+
+// .formGrid {
+//   display: grid;
+//   grid-template-columns: 1fr 1fr;
+//   gap: $space-md;
+
+//   @media (max-width: $breakpoint-sm) {
+//     grid-template-columns: 1fr;
+//   }
+// }
+
+// .submitButton {
+//   align-self: flex-start;
+//   margin-top: $space-md;
+// }
 
 .infoSection {
   display: flex;
@@ -75,7 +84,14 @@
 .infoCard {
   background: $surface;
   border-radius: $radius-lg;
-  padding: $space-xl;
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: $space-lg;
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-lg $space-md;
+  }
 }
 
 .infoHeader {
