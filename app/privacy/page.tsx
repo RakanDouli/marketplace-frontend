@@ -1,0 +1,196 @@
+import React from "react";
+import { Container, Text } from "@/components/slices";
+import styles from "./Privacy.module.scss";
+
+export default function PrivacyPage() {
+  return (
+    <div className={styles.privacyPage}>
+      <Container paddingY="xl">
+        <div className={styles.header}>
+          <Text variant="h1">سياسة الخصوصية</Text>
+          <Text variant="small" color="secondary">
+            آخر تحديث: ديسمبر 2024
+          </Text>
+        </div>
+
+        <div className={styles.content}>
+          {/* Introduction */}
+          <section className={styles.section}>
+            <Text variant="h2">1. مقدمة</Text>
+            <Text variant="paragraph">
+              نحن في عقاركار نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية. توضح هذه السياسة كيفية جمع واستخدام وحماية معلوماتك عند استخدام موقعنا وخدماتنا.
+            </Text>
+          </section>
+
+          {/* Information We Collect */}
+          <section className={styles.section}>
+            <Text variant="h2">2. المعلومات التي نجمعها</Text>
+            <Text variant="paragraph">
+              نجمع الأنواع التالية من المعلومات:
+            </Text>
+
+            <Text variant="h3">معلومات التسجيل:</Text>
+            <ul className={styles.list}>
+              <li>الاسم الكامل</li>
+              <li>البريد الإلكتروني</li>
+              <li>رقم الهاتف</li>
+              <li>الموقع الجغرافي (المحافظة/المدينة)</li>
+            </ul>
+
+            <Text variant="h3">معلومات الإعلانات:</Text>
+            <ul className={styles.list}>
+              <li>تفاصيل المنتجات المعروضة</li>
+              <li>الصور المرفقة</li>
+              <li>معلومات التسعير</li>
+            </ul>
+
+            <Text variant="h3">معلومات الاستخدام:</Text>
+            <ul className={styles.list}>
+              <li>سجل التصفح داخل الموقع</li>
+              <li>الإعلانات التي تمت مشاهدتها</li>
+              <li>عنوان IP وبيانات الجهاز</li>
+            </ul>
+          </section>
+
+          {/* How We Use Information */}
+          <section className={styles.section}>
+            <Text variant="h2">3. كيف نستخدم معلوماتك</Text>
+            <Text variant="paragraph">
+              نستخدم المعلومات المجمعة للأغراض التالية:
+            </Text>
+            <ul className={styles.list}>
+              <li>تقديم وتحسين خدماتنا</li>
+              <li>التواصل معك بشأن حسابك وإعلاناتك</li>
+              <li>إرسال إشعارات مهمة عن الموقع</li>
+              <li>تحسين تجربة المستخدم</li>
+              <li>منع الاحتيال والأنشطة المشبوهة</li>
+              <li>الامتثال للمتطلبات القانونية</li>
+            </ul>
+          </section>
+
+          {/* Message Privacy */}
+          <section className={styles.section}>
+            <Text variant="h2">4. خصوصية الرسائل</Text>
+            <div className={styles.warningBox}>
+              <Text variant="h3">تحذير مهم:</Text>
+              <Text variant="paragraph">
+                الرسائل المتبادلة عبر نظام المحادثات في الموقع مخزنة على خوادمنا. ننصحك بشدة بما يلي:
+              </Text>
+              <ul className={styles.list}>
+                <li><strong>لا تشارك معلومات بطاقتك البنكية</strong> أو أرقام الحسابات المصرفية</li>
+                <li><strong>لا ترسل كلمات مرور</strong> أو رموز تحقق</li>
+                <li><strong>لا تشارك معلومات شخصية حساسة</strong> كالهوية أو جواز السفر</li>
+                <li><strong>لا توافق على طلبات تحويل أموال</strong> قبل معاينة المنتج</li>
+              </ul>
+              <Text variant="paragraph">
+                أي معلومات تشاركها في المحادثات هي مسؤوليتك الشخصية. نحن غير مسؤولين عن أي سوء استخدام لهذه المعلومات.
+              </Text>
+            </div>
+          </section>
+
+          {/* Data Sharing */}
+          <section className={styles.section}>
+            <Text variant="h2">5. مشاركة البيانات</Text>
+            <Text variant="paragraph">
+              نحن لا نبيع بياناتك الشخصية لأطراف ثالثة. قد نشارك معلوماتك في الحالات التالية فقط:
+            </Text>
+            <ul className={styles.list}>
+              <li>مع المستخدمين الآخرين عند التواصل بشأن إعلان (رقم الهاتف إذا اخترت إظهاره)</li>
+              <li>مع مزودي الخدمات الذين يساعدوننا في تشغيل الموقع</li>
+              <li>عند الطلب من جهات قانونية مختصة</li>
+              <li>لحماية حقوقنا ومنع الاحتيال</li>
+            </ul>
+          </section>
+
+          {/* Data Security */}
+          <section className={styles.section}>
+            <Text variant="h2">6. أمان البيانات</Text>
+            <Text variant="paragraph">
+              نتخذ إجراءات أمنية لحماية بياناتك:
+            </Text>
+            <ul className={styles.list}>
+              <li>تشفير البيانات أثناء النقل (SSL/TLS)</li>
+              <li>تخزين كلمات المرور بشكل مشفر</li>
+              <li>مراقبة دورية للأنشطة المشبوهة</li>
+              <li>تحديثات أمنية منتظمة للنظام</li>
+            </ul>
+            <Text variant="paragraph">
+              رغم جهودنا، لا يمكن ضمان أمان 100% لأي نظام على الإنترنت. أنت مسؤول عن حماية بيانات تسجيل الدخول الخاصة بك.
+            </Text>
+          </section>
+
+          {/* Cookies */}
+          <section className={styles.section}>
+            <Text variant="h2">7. ملفات تعريف الارتباط (Cookies)</Text>
+            <Text variant="paragraph">
+              نستخدم ملفات تعريف الارتباط لـ:
+            </Text>
+            <ul className={styles.list}>
+              <li>تذكر تسجيل دخولك</li>
+              <li>حفظ تفضيلاتك (مثل اللغة والمظهر)</li>
+              <li>تحليل استخدام الموقع لتحسين الخدمة</li>
+              <li>عرض إعلانات مخصصة (إذا كانت مفعلة)</li>
+            </ul>
+            <Text variant="paragraph">
+              يمكنك تعطيل ملفات تعريف الارتباط من إعدادات متصفحك، لكن قد يؤثر ذلك على بعض وظائف الموقع.
+            </Text>
+          </section>
+
+          {/* User Rights */}
+          <section className={styles.section}>
+            <Text variant="h2">8. حقوقك</Text>
+            <Text variant="paragraph">
+              لديك الحقوق التالية بشأن بياناتك:
+            </Text>
+            <ul className={styles.list}>
+              <li><strong>حق الوصول:</strong> يمكنك طلب نسخة من بياناتك الشخصية</li>
+              <li><strong>حق التصحيح:</strong> يمكنك تحديث معلوماتك من إعدادات الحساب</li>
+              <li><strong>حق الحذف:</strong> يمكنك طلب حذف حسابك وبياناتك</li>
+              <li><strong>حق الاعتراض:</strong> يمكنك إلغاء الاشتراك من الرسائل التسويقية</li>
+            </ul>
+            <Text variant="paragraph">
+              لممارسة أي من هذه الحقوق، تواصل معنا عبر صفحة الاتصال.
+            </Text>
+          </section>
+
+          {/* Data Retention */}
+          <section className={styles.section}>
+            <Text variant="h2">9. الاحتفاظ بالبيانات</Text>
+            <Text variant="paragraph">
+              نحتفظ ببياناتك طالما حسابك نشط أو حسب الحاجة لتقديم خدماتنا. بعد حذف الحساب:
+            </Text>
+            <ul className={styles.list}>
+              <li>يتم حذف معظم البيانات الشخصية خلال 30 يوماً</li>
+              <li>قد نحتفظ ببعض البيانات للأغراض القانونية</li>
+              <li>الإعلانات المحذوفة تبقى في النسخ الاحتياطية لفترة محدودة</li>
+            </ul>
+          </section>
+
+          {/* Children */}
+          <section className={styles.section}>
+            <Text variant="h2">10. الأطفال</Text>
+            <Text variant="paragraph">
+              خدماتنا غير موجهة للأشخاص تحت سن 18 عاماً. إذا علمنا أن طفلاً قد سجل في الموقع، سنقوم بحذف حسابه فوراً.
+            </Text>
+          </section>
+
+          {/* Changes */}
+          <section className={styles.section}>
+            <Text variant="h2">11. التغييرات على السياسة</Text>
+            <Text variant="paragraph">
+              قد نقوم بتحديث سياسة الخصوصية من وقت لآخر. سنُعلمك بأي تغييرات جوهرية عبر البريد الإلكتروني أو إشعار على الموقع. ننصحك بمراجعة هذه الصفحة بشكل دوري.
+            </Text>
+          </section>
+
+          {/* Contact */}
+          <section className={styles.section}>
+            <Text variant="h2">12. الاتصال بنا</Text>
+            <Text variant="paragraph">
+              إذا كان لديك أي أسئلة أو مخاوف بشأن سياسة الخصوصية أو كيفية معالجة بياناتك، يمكنك التواصل معنا عبر صفحة الاتصال.
+            </Text>
+          </section>
+        </div>
+      </Container>
+    </div>
+  );
+}

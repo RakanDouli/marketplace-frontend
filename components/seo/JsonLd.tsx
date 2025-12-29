@@ -243,7 +243,7 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'عقركار',
+    name: 'عقاركار',
     alternateName: 'Akarkar',
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
@@ -267,7 +267,7 @@ export function generateWebsiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'عقركار',
+    name: 'عقاركار',
     alternateName: 'Akarkar',
     url: baseUrl,
     potentialAction: {

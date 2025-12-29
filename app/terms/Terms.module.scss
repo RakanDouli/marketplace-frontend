@@ -1,0 +1,58 @@
+@import "styles/variables.scss";
+
+.termsPage {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $space-xl;
+  padding-bottom: $space-lg;
+  border-bottom: 1px solid var(--border);
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: $space-xl;
+
+  h2 {
+    color: var(--primary);
+    margin-bottom: $space-md;
+    padding-bottom: $space-sm;
+    border-bottom: 2px solid var(--primary);
+    display: inline-block;
+  }
+
+  p {
+    line-height: 1.8;
+    margin-bottom: $space-md;
+    color: var(--text-secondary);
+  }
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: $space-md 0;
+
+  li {
+    position: relative;
+    padding-right: $space-lg;
+    margin-bottom: $space-sm;
+    line-height: 1.7;
+    color: var(--text-secondary);
+
+    &::before {
+      content: "•";
+      position: absolute;
+      right: 0;
+      color: var(--primary);
+      font-weight: bold;
+    }
+  }
+}
