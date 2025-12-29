@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Home, MessageCircle, Plus, User, Menu, X, Megaphone, Crown, Phone } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useCurrencyStore, CURRENCY_SYMBOLS, CURRENCY_LABELS, type Currency } from '@/stores/currencyStore';
 import { Button, ThemeToggle } from '@/components/slices';
 import styles from './BottomNav.module.scss';
@@ -26,6 +27,10 @@ export const BottomNav: React.FC = () => {
   const { user, openAuthModal } = useUserAuthStore();
   const { unreadCount } = useChatStore();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyStore();
+  const { categories } = useCategoriesStore();
+
+  // Get category slugs dynamically from store
+  const categorySlugs = categories.map(cat => cat.slug);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRenderMenu, setShouldRenderMenu] = useState(false);
@@ -77,17 +82,16 @@ export const BottomNav: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Track browse-related paths
+  // Track browse-related paths (only category/listing pages)
   useEffect(() => {
-    const nonBrowsePaths = ['/dashboard', '/messages', '/advertise', '/user-subscriptions', '/contact', '/mock-payment'];
-    const isNonBrowsePath = pathname === '/' || nonBrowsePaths.some(path =>
-      pathname === path || pathname.startsWith(path + '/')
-    );
+    // Only save paths for category pages (from store)
+    const firstSegment = pathname.split('/')[1];
+    const isBrowsePath = categorySlugs.includes(firstSegment);
 
-    if (!isNonBrowsePath && pathname.length > 1) {
+    if (isBrowsePath) {
       lastBrowsePathRef.current = pathname;
     }
-  }, [pathname]);
+  }, [pathname, categorySlugs]);
 
   const homeHref = lastBrowsePathRef.current || '/';
 
@@ -130,11 +134,10 @@ export const BottomNav: React.FC = () => {
 
   const isActive = (id: string, href: string) => {
     if (id === 'home') {
-      const nonBrowsePaths = ['/dashboard', '/messages', '/advertise', '/user-subscriptions', '/contact', '/mock-payment'];
-      const isOnNonBrowsePage = nonBrowsePaths.some(path =>
-        pathname === path || pathname.startsWith(path + '/')
-      );
-      return pathname === '/' || (!isOnNonBrowsePage && pathname.length > 1);
+      // Home is active on homepage OR any category/listing page
+      const firstSegment = pathname.split('/')[1];
+      const isBrowsePath = categorySlugs.includes(firstSegment);
+      return pathname === '/' || isBrowsePath;
     }
     if (id === 'profile') {
       return pathname === '/dashboard' || pathname === '/dashboard/';

@@ -5,33 +5,15 @@ import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useSearchStore } from '@/stores/searchStore';
-import { useFiltersStore } from '@/stores/filtersStore';
+import { useMetadataStore } from '@/stores/metadataStore';
 import { Container, Button, Input } from '@/components/slices';
 import styles from './HomeSearchBar.module.scss';
-
-// Syrian provinces - fallback if not fetched from backend
-const SYRIAN_PROVINCES = [
-  { key: 'damascus', value: 'دمشق' },
-  { key: 'aleppo', value: 'حلب' },
-  { key: 'homs', value: 'حمص' },
-  { key: 'hama', value: 'حماة' },
-  { key: 'latakia', value: 'اللاذقية' },
-  { key: 'tartous', value: 'طرطوس' },
-  { key: 'daraa', value: 'درعا' },
-  { key: 'sweida', value: 'السويداء' },
-  { key: 'quneitra', value: 'القنيطرة' },
-  { key: 'idlib', value: 'إدلب' },
-  { key: 'raqqa', value: 'الرقة' },
-  { key: 'deir_ez_zor', value: 'دير الزور' },
-  { key: 'hasakah', value: 'الحسكة' },
-  { key: 'rif_damascus', value: 'ريف دمشق' },
-];
 
 export const HomeSearchBar: React.FC = () => {
   const router = useRouter();
   const { categories } = useCategoriesStore();
   const { setFilter, setSpecFilter, clearAllFilters } = useSearchStore();
-  const { attributes } = useFiltersStore();
+  const { provinces, fetchLocationMetadata } = useMetadataStore();
 
   // Local state for form inputs
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -48,11 +30,12 @@ export const HomeSearchBar: React.FC = () => {
     }
   }, [activeCategories, selectedCategory]);
 
-  // Get location options from attributes or use fallback
-  const locationAttribute = attributes.find(attr => attr.key === 'location');
-  const locationOptions = locationAttribute?.options?.length
-    ? locationAttribute.options
-    : SYRIAN_PROVINCES;
+  // Fetch provinces if not loaded
+  useEffect(() => {
+    if (provinces.length === 0) {
+      fetchLocationMetadata();
+    }
+  }, [provinces.length, fetchLocationMetadata]);
 
   // Handle search submission
   const handleSearch = () => {
@@ -127,9 +110,9 @@ export const HomeSearchBar: React.FC = () => {
             onChange={(e) => setSelectedLocation(e.target.value)}
             options={[
               { value: '', label: 'كل المحافظات' },
-              ...locationOptions.map((option: any) => ({
-                value: option.key,
-                label: option.value,
+              ...provinces.map((province) => ({
+                value: province.key,
+                label: province.nameAr,
               })),
             ]}
             aria-label="اختر المحافظة"

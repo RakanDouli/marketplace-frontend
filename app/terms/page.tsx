@@ -1,34 +1,34 @@
 import React from "react";
-import { Container, Text } from "@/components/slices";
+import { Container, Text, TextSection } from "@/components/slices";
 import styles from "./Terms.module.scss";
 
 export default function TermsPage() {
   return (
     <div className={styles.termsPage}>
-      <Container paddingY="xl">
-        <div className={styles.header}>
-          <Text variant="h1">الشروط والأحكام</Text>
-          <Text variant="small" color="secondary">
-            آخر تحديث: ديسمبر 2024
-          </Text>
-        </div>
+      <TextSection
+        title="الشروط والأحكام"
+        subtitle="آخر تحديث: ديسمبر 2024"
+        align="center"
+        nostyle
+      />
 
+      <Container paddingY="lg">
         <div className={styles.content}>
           {/* Introduction */}
           <section className={styles.section}>
-            <Text variant="h2">1. مقدمة</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">1. مقدمة</Text>
+            <Text variant="paragraph" color="secondary">
               مرحباً بك في عقاركار. باستخدامك لموقعنا وخدماتنا، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية قبل استخدام الموقع.
             </Text>
-            <Text variant="paragraph">
+            <Text variant="paragraph" color="secondary">
               عقاركار هو منصة إلكترونية تتيح للمستخدمين نشر إعلانات لبيع وشراء السيارات والعقارات والمنتجات الأخرى. نحن نوفر فقط المنصة للتواصل بين البائعين والمشترين.
             </Text>
           </section>
 
           {/* Platform Role */}
           <section className={styles.section}>
-            <Text variant="h2">2. دور المنصة</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">2. دور المنصة</Text>
+            <Text variant="paragraph" color="secondary">
               عقاركار هي منصة وسيطة فقط وليست طرفاً في أي معاملة تتم بين المستخدمين. نحن:
             </Text>
             <ul className={styles.list}>
@@ -42,8 +42,8 @@ export default function TermsPage() {
 
           {/* User Responsibilities */}
           <section className={styles.section}>
-            <Text variant="h2">3. مسؤوليات المستخدم</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">3. مسؤوليات المستخدم</Text>
+            <Text variant="paragraph" color="secondary">
               بتسجيلك في الموقع، فإنك تتعهد بما يلي:
             </Text>
             <ul className={styles.list}>
@@ -59,8 +59,8 @@ export default function TermsPage() {
 
           {/* Prohibited Content */}
           <section className={styles.section}>
-            <Text variant="h2">4. المحتوى المحظور</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">4. المحتوى المحظور</Text>
+            <Text variant="paragraph" color="secondary">
               يُمنع نشر الإعلانات التالية على المنصة:
             </Text>
             <ul className={styles.list}>
@@ -76,8 +76,8 @@ export default function TermsPage() {
 
           {/* Transaction Safety */}
           <section className={styles.section}>
-            <Text variant="h2">5. سلامة المعاملات</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">5. سلامة المعاملات</Text>
+            <Text variant="paragraph" color="secondary">
               لحماية نفسك أثناء التعامل، ننصحك بما يلي:
             </Text>
             <ul className={styles.list}>
@@ -92,8 +92,8 @@ export default function TermsPage() {
 
           {/* Account Suspension */}
           <section className={styles.section}>
-            <Text variant="h2">6. تعليق وإنهاء الحسابات</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">6. تعليق وإنهاء الحسابات</Text>
+            <Text variant="paragraph" color="secondary">
               نحتفظ بالحق في تعليق أو إنهاء حسابك في الحالات التالية:
             </Text>
             <ul className={styles.list}>
@@ -103,15 +103,15 @@ export default function TermsPage() {
               <li>الاشتباه في نشاط احتيالي</li>
               <li>عدم النشاط لفترة طويلة</li>
             </ul>
-            <Text variant="paragraph">
+            <Text variant="paragraph" color="secondary">
               نطبق نظام التحذيرات التالي: التحذير الأول ينتج عنه تنبيه، التحذير الثاني يؤدي لإيقاف الحساب 7 أيام، والتحذير الثالث يؤدي لحظر دائم.
             </Text>
           </section>
 
           {/* Liability Disclaimer */}
           <section className={styles.section}>
-            <Text variant="h2">7. إخلاء المسؤولية</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">7. إخلاء المسؤولية</Text>
+            <Text variant="paragraph" color="secondary">
               عقاركار غير مسؤولة عن:
             </Text>
             <ul className={styles.list}>
@@ -126,27 +126,27 @@ export default function TermsPage() {
 
           {/* Intellectual Property */}
           <section className={styles.section}>
-            <Text variant="h2">8. حقوق الملكية الفكرية</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">8. حقوق الملكية الفكرية</Text>
+            <Text variant="paragraph" color="secondary">
               جميع المحتويات الموجودة على الموقع، بما في ذلك التصميم والشعارات والنصوص والصور، هي ملكية خاصة لعقاركار ومحمية بموجب قوانين حقوق الملكية الفكرية.
             </Text>
-            <Text variant="paragraph">
+            <Text variant="paragraph" color="secondary">
               يُمنع نسخ أو إعادة إنتاج أو توزيع أي محتوى من الموقع دون إذن كتابي مسبق منا.
             </Text>
           </section>
 
           {/* Modifications */}
           <section className={styles.section}>
-            <Text variant="h2">9. التعديلات على الشروط</Text>
-            <Text variant="paragraph">
-              نحتفظ بالحق في تعديل هذه الشروط والأحكام في أي وقت. سيتم نشر أي تغييرات على هذه الصفحة مع تحديث تاريخ "آخر تحديث". استمرارك في استخدام الموقع بعد نشر التغييرات يعني موافقتك على الشروط المعدلة.
+            <Text variant="h3">9. التعديلات على الشروط</Text>
+            <Text variant="paragraph" color="secondary">
+              نحتفظ بالحق في تعديل هذه الشروط والأحكام في أي وقت. سيتم نشر أي تغييرات على هذه الصفحة مع تحديث تاريخ آخر تحديث. استمرارك في استخدام الموقع بعد نشر التغييرات يعني موافقتك على الشروط المعدلة.
             </Text>
           </section>
 
           {/* Contact */}
           <section className={styles.section}>
-            <Text variant="h2">10. الاتصال بنا</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">10. الاتصال بنا</Text>
+            <Text variant="paragraph" color="secondary">
               إذا كان لديك أي أسئلة حول هذه الشروط والأحكام، يمكنك التواصل معنا عبر صفحة الاتصال أو البريد الإلكتروني.
             </Text>
           </section>

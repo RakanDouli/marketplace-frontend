@@ -1,35 +1,35 @@
 import React from "react";
-import { Container, Text } from "@/components/slices";
+import { Container, Text, TextSection } from "@/components/slices";
 import styles from "./Privacy.module.scss";
 
 export default function PrivacyPage() {
   return (
     <div className={styles.privacyPage}>
-      <Container paddingY="xl">
-        <div className={styles.header}>
-          <Text variant="h1">سياسة الخصوصية</Text>
-          <Text variant="small" color="secondary">
-            آخر تحديث: ديسمبر 2024
-          </Text>
-        </div>
+      <TextSection
+        title="سياسة الخصوصية"
+        subtitle="آخر تحديث: ديسمبر 2024"
+        align="center"
+        nostyle
+      />
 
+      <Container paddingY="lg">
         <div className={styles.content}>
           {/* Introduction */}
           <section className={styles.section}>
-            <Text variant="h2">1. مقدمة</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">1. مقدمة</Text>
+            <Text variant="paragraph" color="secondary">
               نحن في عقاركار نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية. توضح هذه السياسة كيفية جمع واستخدام وحماية معلوماتك عند استخدام موقعنا وخدماتنا.
             </Text>
           </section>
 
           {/* Information We Collect */}
           <section className={styles.section}>
-            <Text variant="h2">2. المعلومات التي نجمعها</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">2. المعلومات التي نجمعها</Text>
+            <Text variant="paragraph" color="secondary">
               نجمع الأنواع التالية من المعلومات:
             </Text>
 
-            <Text variant="h3">معلومات التسجيل:</Text>
+            <Text variant="h4">معلومات التسجيل:</Text>
             <ul className={styles.list}>
               <li>الاسم الكامل</li>
               <li>البريد الإلكتروني</li>
@@ -37,14 +37,14 @@ export default function PrivacyPage() {
               <li>الموقع الجغرافي (المحافظة/المدينة)</li>
             </ul>
 
-            <Text variant="h3">معلومات الإعلانات:</Text>
+            <Text variant="h4">معلومات الإعلانات:</Text>
             <ul className={styles.list}>
               <li>تفاصيل المنتجات المعروضة</li>
               <li>الصور المرفقة</li>
               <li>معلومات التسعير</li>
             </ul>
 
-            <Text variant="h3">معلومات الاستخدام:</Text>
+            <Text variant="h4">معلومات الاستخدام:</Text>
             <ul className={styles.list}>
               <li>سجل التصفح داخل الموقع</li>
               <li>الإعلانات التي تمت مشاهدتها</li>
@@ -54,8 +54,8 @@ export default function PrivacyPage() {
 
           {/* How We Use Information */}
           <section className={styles.section}>
-            <Text variant="h2">3. كيف نستخدم معلوماتك</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">3. كيف نستخدم معلوماتك</Text>
+            <Text variant="paragraph" color="secondary">
               نستخدم المعلومات المجمعة للأغراض التالية:
             </Text>
             <ul className={styles.list}>
@@ -70,10 +70,10 @@ export default function PrivacyPage() {
 
           {/* Message Privacy */}
           <section className={styles.section}>
-            <Text variant="h2">4. خصوصية الرسائل</Text>
+            <Text variant="h3">4. خصوصية الرسائل</Text>
             <div className={styles.warningBox}>
-              <Text variant="h3">تحذير مهم:</Text>
-              <Text variant="paragraph">
+              <Text variant="h4">تحذير مهم:</Text>
+              <Text variant="paragraph" color="secondary">
                 الرسائل المتبادلة عبر نظام المحادثات في الموقع مخزنة على خوادمنا. ننصحك بشدة بما يلي:
               </Text>
               <ul className={styles.list}>
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
                 <li><strong>لا تشارك معلومات شخصية حساسة</strong> كالهوية أو جواز السفر</li>
                 <li><strong>لا توافق على طلبات تحويل أموال</strong> قبل معاينة المنتج</li>
               </ul>
-              <Text variant="paragraph">
+              <Text variant="paragraph" color="secondary">
                 أي معلومات تشاركها في المحادثات هي مسؤوليتك الشخصية. نحن غير مسؤولين عن أي سوء استخدام لهذه المعلومات.
               </Text>
             </div>
@@ -90,8 +90,8 @@ export default function PrivacyPage() {
 
           {/* Data Sharing */}
           <section className={styles.section}>
-            <Text variant="h2">5. مشاركة البيانات</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">5. مشاركة البيانات</Text>
+            <Text variant="paragraph" color="secondary">
               نحن لا نبيع بياناتك الشخصية لأطراف ثالثة. قد نشارك معلوماتك في الحالات التالية فقط:
             </Text>
             <ul className={styles.list}>
@@ -104,8 +104,8 @@ export default function PrivacyPage() {
 
           {/* Data Security */}
           <section className={styles.section}>
-            <Text variant="h2">6. أمان البيانات</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">6. أمان البيانات</Text>
+            <Text variant="paragraph" color="secondary">
               نتخذ إجراءات أمنية لحماية بياناتك:
             </Text>
             <ul className={styles.list}>
@@ -114,15 +114,15 @@ export default function PrivacyPage() {
               <li>مراقبة دورية للأنشطة المشبوهة</li>
               <li>تحديثات أمنية منتظمة للنظام</li>
             </ul>
-            <Text variant="paragraph">
+            <Text variant="paragraph" color="secondary">
               رغم جهودنا، لا يمكن ضمان أمان 100% لأي نظام على الإنترنت. أنت مسؤول عن حماية بيانات تسجيل الدخول الخاصة بك.
             </Text>
           </section>
 
           {/* Cookies */}
           <section className={styles.section}>
-            <Text variant="h2">7. ملفات تعريف الارتباط (Cookies)</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">7. ملفات تعريف الارتباط (Cookies)</Text>
+            <Text variant="paragraph" color="secondary">
               نستخدم ملفات تعريف الارتباط لـ:
             </Text>
             <ul className={styles.list}>
@@ -131,15 +131,15 @@ export default function PrivacyPage() {
               <li>تحليل استخدام الموقع لتحسين الخدمة</li>
               <li>عرض إعلانات مخصصة (إذا كانت مفعلة)</li>
             </ul>
-            <Text variant="paragraph">
+            <Text variant="paragraph" color="secondary">
               يمكنك تعطيل ملفات تعريف الارتباط من إعدادات متصفحك، لكن قد يؤثر ذلك على بعض وظائف الموقع.
             </Text>
           </section>
 
           {/* User Rights */}
           <section className={styles.section}>
-            <Text variant="h2">8. حقوقك</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">8. حقوقك</Text>
+            <Text variant="paragraph" color="secondary">
               لديك الحقوق التالية بشأن بياناتك:
             </Text>
             <ul className={styles.list}>
@@ -148,15 +148,15 @@ export default function PrivacyPage() {
               <li><strong>حق الحذف:</strong> يمكنك طلب حذف حسابك وبياناتك</li>
               <li><strong>حق الاعتراض:</strong> يمكنك إلغاء الاشتراك من الرسائل التسويقية</li>
             </ul>
-            <Text variant="paragraph">
+            <Text variant="paragraph" color="secondary">
               لممارسة أي من هذه الحقوق، تواصل معنا عبر صفحة الاتصال.
             </Text>
           </section>
 
           {/* Data Retention */}
           <section className={styles.section}>
-            <Text variant="h2">9. الاحتفاظ بالبيانات</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">9. الاحتفاظ بالبيانات</Text>
+            <Text variant="paragraph" color="secondary">
               نحتفظ ببياناتك طالما حسابك نشط أو حسب الحاجة لتقديم خدماتنا. بعد حذف الحساب:
             </Text>
             <ul className={styles.list}>
@@ -166,26 +166,29 @@ export default function PrivacyPage() {
             </ul>
           </section>
 
-          {/* Children */}
+          {/* Minors */}
           <section className={styles.section}>
-            <Text variant="h2">10. الأطفال</Text>
-            <Text variant="paragraph">
-              خدماتنا غير موجهة للأشخاص تحت سن 18 عاماً. إذا علمنا أن طفلاً قد سجل في الموقع، سنقوم بحذف حسابه فوراً.
+            <Text variant="h3">10. القاصرين</Text>
+            <Text variant="paragraph" color="secondary">
+              يمكن للأشخاص من جميع الأعمار تصفح الموقع. ومع ذلك، لإتمام عمليات البيع والشراء والتوقيع على العقود، يجب أن يكون عمر المستخدم 18 عاماً على الأقل أو أن يكون تحت إشراف ولي الأمر.
+            </Text>
+            <Text variant="paragraph" color="secondary">
+              نحن نستخدم نظام فحص آلي للمحتوى لضمان خلو الموقع من المحتوى غير اللائق أو المخالف.
             </Text>
           </section>
 
           {/* Changes */}
           <section className={styles.section}>
-            <Text variant="h2">11. التغييرات على السياسة</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">11. التغييرات على السياسة</Text>
+            <Text variant="paragraph" color="secondary">
               قد نقوم بتحديث سياسة الخصوصية من وقت لآخر. سنُعلمك بأي تغييرات جوهرية عبر البريد الإلكتروني أو إشعار على الموقع. ننصحك بمراجعة هذه الصفحة بشكل دوري.
             </Text>
           </section>
 
           {/* Contact */}
           <section className={styles.section}>
-            <Text variant="h2">12. الاتصال بنا</Text>
-            <Text variant="paragraph">
+            <Text variant="h3">12. الاتصال بنا</Text>
+            <Text variant="paragraph" color="secondary">
               إذا كان لديك أي أسئلة أو مخاوف بشأن سياسة الخصوصية أو كيفية معالجة بياناتك، يمكنك التواصل معنا عبر صفحة الاتصال.
             </Text>
           </section>
