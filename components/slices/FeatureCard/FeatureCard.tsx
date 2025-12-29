@@ -8,7 +8,7 @@ export interface FeatureCardProps {
   icon?: React.ReactNode;
   title?: string;
   description?: string;
-  variant?: "default" | "card" | "icon-row";
+  variant?: "default" | "card" | "icon-row" | "minimal";
   color?: "bg" | "surface" | "primary" | "accent";
   children?: React.ReactNode;
   className?: string;
