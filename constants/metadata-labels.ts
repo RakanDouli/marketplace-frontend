@@ -178,8 +178,8 @@ export const AD_FORMAT_LABELS: Record<string, string> = {
   leaderboard: "ليدربورد (728x90)",
   mobile_banner: "بانر موبايل (320x50)",
   large_mobile_banner: "بانر موبايل كبير (320x100)",
-  hd_player: "فيديو HD (1280x720)",
-  leaderboard_video: "فيديو ليدربورد (970x546)",
+  billboard_video: "فيديو بيلبورد (970x250)",
+  leaderboard_video: "فيديو ليدربورد (970x350)",
 };
 
 // ===== REPORTS METADATA LABELS =====

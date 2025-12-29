@@ -28,9 +28,9 @@ export enum AdFormat {
   MOBILE_BANNER = 'mobile_banner',           // 320x50
   LARGE_MOBILE_BANNER = 'large_mobile_banner', // 320x100
 
-  // Video formats
-  HD_PLAYER = 'hd_player',                   // 1280x720
-  LEADERBOARD_VIDEO = 'leaderboard_video',   // 970x546
+  // Video formats (compact, same size as banners)
+  BILLBOARD_VIDEO = 'billboard_video',       // 970x250
+  LEADERBOARD_VIDEO = 'leaderboard_video',   // 970x350
 }
 
 // Format dimensions (matching backend exactly)
@@ -55,13 +55,13 @@ const AD_FORMAT_DIMENSIONS: Record<AdFormat, { desktop: { width: number; height:
     desktop: { width: 320, height: 100 },
     mobile: { width: 320, height: 100 },
   },
-  [AdFormat.HD_PLAYER]: {
-    desktop: { width: 1280, height: 720 },
-    mobile: { width: 640, height: 360 },
+  [AdFormat.BILLBOARD_VIDEO]: {
+    desktop: { width: 970, height: 250 },
+    mobile: { width: 320, height: 100 },
   },
   [AdFormat.LEADERBOARD_VIDEO]: {
-    desktop: { width: 970, height: 546 },
-    mobile: { width: 640, height: 360 },
+    desktop: { width: 970, height: 350 },
+    mobile: { width: 320, height: 150 },
   },
 };
 
@@ -84,7 +84,7 @@ const BANNER_FORMATS: AdFormat[] = [
 ];
 
 const VIDEO_FORMATS: AdFormat[] = [
-  AdFormat.HD_PLAYER,
+  AdFormat.BILLBOARD_VIDEO,
   AdFormat.LEADERBOARD_VIDEO,
 ];
 
