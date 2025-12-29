@@ -6,7 +6,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 // GraphQL query to fetch all active listings
 const SITEMAP_LISTINGS_QUERY = `
   query SitemapListings {
-    listingsSearch(filter: { status: "active" }, limit: 10000) {
+    listingsSearch(filter: { status: ACTIVE }, limit: 10000) {
       id
       updatedAt
       category {
