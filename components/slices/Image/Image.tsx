@@ -12,7 +12,7 @@ export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
   containerStyle?: React.CSSProperties; // Additional container styles
   showSkeleton?: boolean;
   aspectRatio?: string; // e.g., "16/9", "4/3", "1/1"
-  priority?: boolean; // For LCP optimization
+  priority?: boolean; // For LCP optimization - also sets fetchpriority="high"
   variant?: "card" | "small" | "large" | "desktop" | "mobile" | "tablet" | "thumbnail" | "public"; // Cloudflare variant
 }
 
@@ -97,6 +97,7 @@ export const Image: React.FC<ImageProps> = ({
           src={processedSrc}
           alt={alt}
           priority={priority}
+          fetchPriority={priority ? "high" : "auto"} // LCP optimization
           className={`${styles.image} ${className} ${isLoading ? styles.loading : styles.loaded}`.trim()}
           onLoad={handleLoad}
           onError={handleError}

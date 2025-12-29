@@ -5,10 +5,14 @@
   border-top: 1px solid $border;
   padding: $space-xl 0 $space-lg;
   margin-top: auto;
+  // CLS optimization: Prevent layout shifts
+  contain: layout style;
+  min-height: 280px; // Reserve space for footer content
 
   // Add padding for bottom nav on mobile
   @media (max-width: $breakpoint-md) {
     padding-bottom: calc($space-lg + 80px);
+    min-height: 420px; // Taller on mobile due to stacked layout
   }
 }
 
@@ -53,6 +57,7 @@
 .sectionTitle {
   margin-bottom: $space-md;
   color: $text;
+  min-height: 24px; // Prevent CLS from font loading
 }
 
 .linksSection,
@@ -71,6 +76,7 @@
   color: $text-secondary;
   text-decoration: none;
   transition: color 0.2s ease;
+  min-height: 20px; // Prevent CLS from font loading
 
   &:hover {
     color: $primary;
@@ -90,6 +96,7 @@
   color: $text-secondary;
   text-decoration: none;
   transition: color 0.2s ease;
+  min-height: 24px; // Prevent CLS from font loading
 
   svg {
     color: $primary;
