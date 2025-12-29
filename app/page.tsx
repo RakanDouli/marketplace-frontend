@@ -119,7 +119,7 @@ export default function HomePage() {
 
       {/* Featured Listings - Cars */}
       <FeaturedListings
-        categorySlug="car"
+        categorySlug="cars"
         limit={8}
       />
 

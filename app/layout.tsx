@@ -7,6 +7,7 @@ import { generateDefaultMetadata } from '../utils/seo';
 import { PublicLayoutClient } from '../components/layouts/PublicLayoutClient';
 import { AdSenseScriptLoader } from '../components/ads/AdSenseScriptLoader';
 import { EnvironmentBadge } from '../components/EnvironmentBadge';
+import { JsonLd, generateOrganizationSchema, generateWebsiteSchema } from '../components/seo';
 
 export const metadata: Metadata = generateDefaultMetadata('ar');
 
@@ -21,6 +22,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* AdSense script is loaded dynamically by AdSenseScriptLoader with client ID from database */}
+        {/* Schema.org structured data for SEO */}
+        <JsonLd data={generateOrganizationSchema()} />
+        <JsonLd data={generateWebsiteSchema()} />
       </head>
       <body>
         <LanguageProvider defaultLanguage="ar">

@@ -21,6 +21,7 @@ import { ListingActionBar } from '@/components/listing/ListingActionBar';
 import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/components/seo';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -164,8 +165,18 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     listing.location.coordinates
   );
 
+  // Generate schema based on category (Vehicle for cars, Product for others)
+  const schemaData = useMemo(() => {
+    if (!listing) return null;
+    const isVehicle = categorySlug === 'cars' || listing.category?.slug === 'cars';
+    return isVehicle ? generateVehicleSchema(listing) : generateListingSchema(listing);
+  }, [listing, categorySlug]);
+
   return (
     <>
+      {/* Schema.org Structured Data for SEO */}
+      {schemaData && <JsonLd data={schemaData} />}
+
       {/* Mobile Back Button Header - Fixed position, hides on scroll down */}
       <MobileBackButton onClick={handleBack} title={listing.title} />
 
