@@ -154,14 +154,6 @@ export const PersonalInfoPanel: React.FC = () => {
     return url;
   };
 
-  console.log('🔍 Avatar buttons debug:', {
-    hasCustomBranding,
-    userPackage,
-    customBrandingValue: userPackage?.userSubscription?.customBranding,
-    avatar: user.avatar,
-    avatarUrl: getAvatarUrl(user.avatar),
-  });
-
   return (
     <div className={styles.panel}>
       {/* Profile Header with Avatar */}

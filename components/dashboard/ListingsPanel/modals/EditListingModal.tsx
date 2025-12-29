@@ -141,7 +141,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log('🔄 Fetching fresh listing data for ID:', listing.id);
         // Force fresh fetch by bypassing cache (ttl: 0) to ensure we get latest data
         const response = await cachedGraphQLRequest(
           `query GetMyListingById($id: ID!) {
@@ -160,15 +159,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         );
         const data: Listing = (response as any).myListingById;
         setDetailedListing(data);
-
-        // Debug: Log listing data
-        console.log('📋 Detailed Listing Data:', {
-          id: data.id,
-          status: data.status,
-          rejectionReason: data.rejectionReason,
-          rejectionMessage: data.rejectionMessage,
-
-        });
 
         // Parse specs from JSON string to object
         const parsedSpecs = data.specs
@@ -229,7 +219,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         });
         setAttributes((data as any).getAttributesByCategory || []);
       } catch (error) {
-        console.error('Error fetching attributes:', error);
+        // Silently fail - attributes are optional for editing
       }
     };
 
@@ -251,7 +241,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         }, { ttl: 0 });
         setBrands((data as any).brands || []);
       } catch (error) {
-        console.error('Error fetching brands:', error);
+        // Silently fail - brands are optional
       } finally {
         setIsLoadingBrands(false);
       }
@@ -273,7 +263,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         const data = await cachedGraphQLRequest(GET_MODELS_QUERY, { brandId });
         setModels((data as any).models || []);
       } catch (error) {
-        console.error('Error fetching models:', error);
+        // Silently fail - models are optional
       } finally {
         setIsLoadingModels(false);
       }
@@ -398,7 +388,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       setImageOperationSuccess(true);
       setTimeout(() => setImageOperationSuccess(false), 3000);
     } catch (error) {
-      console.error('Error uploading images:', error);
       addNotification({
         type: 'error',
         title: 'خطأ',
@@ -440,7 +429,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       setImageOperationSuccess(true);
       setTimeout(() => setImageOperationSuccess(false), 3000);
     } catch (error) {
-      console.error('Error deleting image:', error);
       addNotification({
         type: 'error',
         title: 'خطأ',
@@ -482,14 +470,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
       const value = formData.specs[attr.key];
 
-      // DEBUG: Log attribute validation details
-      console.log(`🔍 Validating attribute "${attr.name}" (${attr.key}):`, {
-        type: attr.type,
-        validation: attr.validation,
-        value: value,
-        valueType: typeof value,
-      });
-
       const attrError = validateAttribute(value, {
         key: attr.key,
         name: attr.name,
@@ -499,7 +479,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       });
 
       if (attrError) {
-        console.log(`❌ Attribute validation failed for "${attr.name}":`, attrError);
         errors.push(attrError);
       }
     });
@@ -516,22 +495,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setSubmitError(false);
     setSubmitSuccess(false);
 
-    // DEBUG: Log form data before validation
-    console.log('📝 EditListingModal - Form data before validation:', {
-      allowBidding: formData.allowBidding,
-      biddingStartPrice: formData.biddingStartPrice,
-      title: formData.title,
-      priceMinor: formData.priceMinor,
-    });
-
     // Validate form
     const validation = validateForm();
 
-    // DEBUG: Log validation result
-    console.log('✅ Validation result:', validation);
-
     if (!validation.isValid) {
-      console.log('❌ Validation failed, errors:', validation.errors);
       addNotification({
         type: 'error',
         title: 'خطأ في التحقق',
@@ -565,7 +532,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       // Close modal immediately (parent will show success toast)
       onClose();
     } catch (error) {
-      console.error('Error updating listing:', error);
       setSubmitError(true);
       addNotification({
         type: 'error',

@@ -96,14 +96,12 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
 
     // Skip if already initialized
     if (isInitialized) {
-      console.log("🚫 Categories already initialized, skipping fetch");
       return;
     }
 
     set({ isLoading: true, error: null });
 
     try {
-      console.log("🔄 Fetching categories for first time...");
       const data = await cachedGraphQLRequest(
         CATEGORIES_QUERY,
         {},
@@ -127,9 +125,7 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
         error: null,
         isInitialized: true,
       });
-      console.log("✅ Categories initialized successfully:", categories.length);
     } catch (error: any) {
-      console.error("❌ Failed to fetch categories:", error);
       set({
         isLoading: false,
         error: error.message || "Failed to load categories",
@@ -144,7 +140,6 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
     const { isInitialized } = get();
 
     if (isInitialized) {
-      console.log("🚫 Categories already initialized");
       return;
     }
 

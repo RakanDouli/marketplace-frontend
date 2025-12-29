@@ -46,7 +46,7 @@ class WebSocketManager {
       this.ws = new WebSocket(`${wsEndpoint}?token=${token}`);
       this.setupEventHandlers();
     } catch (error) {
-      console.error('WebSocket connection failed:', error);
+      // Connection failed - will attempt reconnect
       this.scheduleReconnect();
     }
   }
@@ -61,7 +61,7 @@ class WebSocketManager {
         return state?.token || '';
       }
     } catch (error) {
-      console.warn('Failed to get auth token for WebSocket');
+      // Silently fail - WebSocket will connect without auth
     }
     
     return '';
@@ -71,7 +71,6 @@ class WebSocketManager {
     if (!this.ws) return;
 
     this.ws.onopen = () => {
-      console.log('WebSocket connected');
       this.reconnectAttempts = 0;
       this.startHeartbeat();
     };
@@ -81,21 +80,20 @@ class WebSocketManager {
         const message: WebSocketMessage = JSON.parse(event.data);
         this.handleMessage(message);
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error);
+        // Silently fail - malformed message ignored
       }
     };
 
     this.ws.onclose = (event) => {
-      console.log('WebSocket disconnected:', event.code, event.reason);
       this.stopHeartbeat();
-      
+
       if (!event.wasClean && this.reconnectAttempts < this.maxReconnectAttempts) {
         this.scheduleReconnect();
       }
     };
 
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+    this.ws.onerror = () => {
+      // Error handled by onclose
     };
   }
 
@@ -118,15 +116,14 @@ class WebSocketManager {
 
   private scheduleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max WebSocket reconnect attempts reached');
+      // Max reconnect attempts reached - giving up
       return;
     }
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    
+
     setTimeout(() => {
-      console.log(`Attempting WebSocket reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
       this.connect();
     }, delay);
   }
@@ -155,9 +152,8 @@ class WebSocketManager {
   public sendMessage(type: string, data: any) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type, data, timestamp: new Date().toISOString() }));
-    } else {
-      console.warn('WebSocket not connected, message not sent:', { type, data });
     }
+    // If not connected, message is silently dropped - user can retry
   }
 
   public sendChatMessage(receiverId: string, message: string, listingId?: string) {

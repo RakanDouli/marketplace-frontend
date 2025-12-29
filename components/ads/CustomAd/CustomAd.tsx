@@ -80,7 +80,6 @@ export const CustomAd: React.FC<CustomAdProps> = ({
 
   // Don't render if no media URL or if media failed to load
   if (!mediaUrl || mediaError) {
-    console.log(`📢 CustomAd: Returning NULL - mediaUrl: ${mediaUrl}, mediaError: ${mediaError}, campaign: ${campaign.campaignName}`);
     return null;
   }
 
@@ -88,19 +87,6 @@ export const CustomAd: React.FC<CustomAdProps> = ({
   const currentDimensions = isMobile
     ? dimensions?.mobile || { width: 300, height: 250 }
     : dimensions?.desktop || { width: 970, height: 250 };
-
-  // Debug: Log dimensions
-  console.log('📐 CustomAd Dimensions Debug:', {
-    campaignId: campaign.id,
-    campaignName: campaign.campaignName,
-    isMobile,
-    allDimensions: dimensions,
-    currentDimensions,
-    desktopDimensions: dimensions?.desktop,
-    mobileDimensions: dimensions?.mobile,
-  });
-
-  console.log(`✅ CustomAd: Rendering ad - campaign: ${campaign.campaignName}, mediaUrl: ${mediaUrl}`);
 
   return (
     <div className={`${styles.customAd} ${className || ''}`}>
@@ -128,10 +114,7 @@ export const CustomAd: React.FC<CustomAdProps> = ({
             muted
             loop
             playsInline
-            onError={() => {
-              console.error('❌ CustomAd: Video failed to load:', mediaUrl);
-              setMediaError(true);
-            }}
+            onError={() => setMediaError(true)}
             style={{
               width: '100%',
               height: 'auto',

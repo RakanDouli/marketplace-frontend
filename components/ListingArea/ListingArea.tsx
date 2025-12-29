@@ -58,8 +58,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
 
   // Store-based handlers (previously passed as props)
   const handleCardClick = (listingId: string) => {
-    // TODO: Navigate to listing detail page
-    console.log("Navigate to listing:", listingId);
+    // Navigation is handled by ListingCard component's Link
   };
 
   // Filter toggle is now handled by Filter component itself (self-sufficient)
@@ -68,27 +67,23 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   useEffect(() => {
     const fetchInitialListings = async () => {
       if (!categorySlug) {
-        console.log("❌ No categorySlug available");
         return;
       }
 
       // Convert slug to ID using cached categories
       const category = getCategoryBySlug(categorySlug);
       if (!category) {
-        console.log("❌ Category not found for slug:", categorySlug);
         return;
       }
 
       try {
         // Get current filters from search store
         const storeFilters = { categoryId: category.id, ...getStoreFilters() };
-        console.log("📋 Fetching listings with filters:", storeFilters);
 
         // Fetch listings for the current category (pass slug for URL, but use ID in filters)
         await fetchListingsByCategory(categorySlug, storeFilters, viewType);
-        console.log("✅ Successfully fetched listings");
       } catch (error) {
-        console.error("❌ Error fetching initial listings:", error);
+        // Silently fail - error state is handled by store
       }
     };
 
@@ -235,7 +230,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       };
       await fetchListingsByCategory(categorySlug, storeFilters, viewType);
     } catch (error) {
-      console.error("❌ Error applying sort:", error);
+      // Silently fail - sort may still apply on next render
     }
   };
 
@@ -250,7 +245,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
       await fetchListingsByCategory(categorySlug, storeFilters, viewType);
     } catch (error) {
-      console.error("❌ Error loading page:", page, error);
+      // Silently fail - pagination error state handled by store
     }
   };
 

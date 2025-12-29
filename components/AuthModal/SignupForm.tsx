@@ -51,17 +51,13 @@ export const SignupForm: React.FC = () => {
     setValidationErrors(errors);
 
     if (hasValidationErrors(errors)) {
-      console.log('❌ Validation failed:', errors);
       return; // STOP - do not submit
     }
-
-    console.log('✅ Validation passed, submitting...');
 
     try {
       await signup(formData.email, formData.password, formData.name, formData.accountType);
       // Success - modal will close automatically via store
     } catch (signupError) {
-      console.error('Signup error:', signupError);
       // Show error in Form component (inside modal)
       setFormError(error || 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى');
     }

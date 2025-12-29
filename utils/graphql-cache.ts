@@ -73,7 +73,6 @@ class GraphQLCache {
 
     // If TTL is 0, bypass cache entirely (for user-specific data)
     if (ttl === 0) {
-      console.log(`⚡ GraphQL Cache: BYPASSING cache (ttl=0) for ${key.substring(0, 80)}...`);
       return this.makeRequest(query, variables);
     }
 
@@ -156,8 +155,7 @@ class GraphQLCache {
           }
         }
       } catch (error) {
-        // Ignore errors - public queries will still work without auth
-        console.warn('Could not get auth token:', error);
+        // Silently fail - public queries will still work without auth
       }
     }
 

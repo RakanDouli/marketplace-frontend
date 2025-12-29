@@ -106,7 +106,6 @@ export const SortableItem: React.FC<SortableItemProps> = ({
   const handleToggleCollapse = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Toggle clicked for group:', item.name, 'isCollapsed:', isCollapsed, 'children:', item.children?.length);
     if (isGroup && item.children && item.children.length > 0 && onToggleCollapse) {
       onToggleCollapse(item.id);
     }

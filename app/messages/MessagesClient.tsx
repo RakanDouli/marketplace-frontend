@@ -117,7 +117,6 @@ export const MessagesClient: React.FC = () => {
 
     // When unread count increases, refresh thread list to show updated threads
     if (unreadCount > 0) {
-      console.log('📬 Unread count changed to', unreadCount, '- refreshing threads');
       fetchMyThreads();
     }
   }, [unreadCount, user, fetchMyThreads]);
@@ -128,14 +127,12 @@ export const MessagesClient: React.FC = () => {
 
     // Refresh when activeThreadId becomes null (user closed a thread)
     if (activeThreadId === null) {
-      console.log('📬 Back to thread list - refreshing threads');
       fetchMyThreads();
     }
 
     // Also refresh when page becomes visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('📬 Page became visible - refreshing threads');
         fetchMyThreads();
       }
     };
@@ -160,7 +157,6 @@ export const MessagesClient: React.FC = () => {
         // Skip threads with blocked users
         const otherUserId = user?.id === thread.buyerId ? thread.sellerId : thread.buyerId;
         if (isUserBlocked(otherUserId)) {
-          console.log(`⛔ Skipping thread with blocked user ${otherUserId}`);
           continue;
         }
 
@@ -170,13 +166,11 @@ export const MessagesClient: React.FC = () => {
           threadsWithData.push({ ...thread, listing });
         } catch (error) {
           // Listing might be deleted/archived - skip this thread
-          console.log(`⚠️ Skipping thread for listing ${thread.listingId} (not found)`);
         }
       }
 
       // Only update state if component is still mounted
       if (isMounted) {
-        console.log('📬 Threads with listings loaded:', threadsWithData);
         setThreadsWithListings(threadsWithData);
       }
     };
@@ -212,9 +206,7 @@ export const MessagesClient: React.FC = () => {
 
   // Subscribe to realtime updates when thread is active
   useEffect(() => {
-    console.log('🔍 useEffect triggered - activeThreadId:', activeThreadId, 'user.id:', user?.id);
     if (activeThreadId && user?.id) {
-      console.log('🔴 Setting up realtime for thread:', activeThreadId);
       subscribeToThread(activeThreadId, user.id);
 
       // Fetch messages for this thread
@@ -227,7 +219,6 @@ export const MessagesClient: React.FC = () => {
     // Cleanup: unsubscribe when thread changes or component unmounts
     return () => {
       if (activeThreadId) {
-        console.log('🔴 Cleaning up realtime for thread:', activeThreadId);
         unsubscribeFromThread();
       }
     };
@@ -316,7 +307,6 @@ export const MessagesClient: React.FC = () => {
     if (activeThread && user) {
       const otherUserId = user.id === activeThread.buyerId ? activeThread.sellerId : activeThread.buyerId;
       if (isUserBlocked(otherUserId)) {
-        console.log('⛔ Cannot send message to blocked user');
         return;
       }
     }
@@ -340,7 +330,6 @@ export const MessagesClient: React.FC = () => {
       setMessageText('');
       handleClearAllImages();
     } catch (error) {
-      console.error('Failed to send message:', error);
       setImageError('فشل في إرسال الرسالة');
     } finally {
       setIsSending(false);
@@ -349,7 +338,6 @@ export const MessagesClient: React.FC = () => {
   };
 
   const handleSelectThread = (threadId: string) => {
-    console.log('👆 User clicked on thread:', threadId);
     setActiveThread(threadId);
     // Clear images when changing threads
     handleClearAllImages();
@@ -372,7 +360,6 @@ export const MessagesClient: React.FC = () => {
     // Check if the other user is blocked
     const otherUserId = user.id === activeThread.buyerId ? activeThread.sellerId : activeThread.buyerId;
     if (isUserBlocked(otherUserId)) {
-      console.log('⛔ Cannot send message to blocked user');
       return;
     }
 
@@ -383,7 +370,7 @@ export const MessagesClient: React.FC = () => {
       // Send message with special pattern
       await sendMessage(activeThreadId, REVIEW_REQUEST_PATTERN);
     } catch (error) {
-      console.error('Failed to send review request:', error);
+      // Silently fail - user can retry
     } finally {
       setIsSending(false);
     }
@@ -635,7 +622,7 @@ export const MessagesClient: React.FC = () => {
                                     setEditingMessageId(null);
                                     setEditedText('');
                                   } catch (error) {
-                                    console.error('Failed to edit message:', error);
+                                    // Silently fail - keep edit mode open for retry
                                   }
                                 }}
                                 disabled={!editedText.trim()}
@@ -1001,7 +988,7 @@ export const MessagesClient: React.FC = () => {
               window.URL.revokeObjectURL(url);
               document.body.removeChild(a);
             } catch (error) {
-              console.error('Failed to download image:', error);
+              // Silently fail - user can retry download
             }
           }}
           onDelete={async (imageId: string) => {

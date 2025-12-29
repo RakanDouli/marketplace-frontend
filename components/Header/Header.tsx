@@ -64,7 +64,6 @@ export const Header: React.FC = () => {
   // Handle message icon click - always refresh threads
   const handleMessagesClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log('📬 Message icon clicked - refreshing threads');
 
     // Always refresh threads
     fetchMyThreads();

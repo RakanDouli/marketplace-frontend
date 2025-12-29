@@ -45,11 +45,8 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
     setValidationErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      console.log('❌ Change email validation failed:', errors);
       return; // STOP - do not submit
     }
-
-    console.log('✅ Change email validation passed, submitting...');
 
     setIsChanging(true);
 

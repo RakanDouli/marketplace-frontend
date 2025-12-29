@@ -10,6 +10,9 @@
   border-bottom: 1px solid $border;
   backdrop-filter: blur(8px);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  // Prevent layout recalculations from affecting other elements (CLS optimization)
+  contain: layout style;
+  will-change: transform;
 
   // Hide on mobile - replaced by BottomNav
   @media (max-width: $breakpoint-md) {

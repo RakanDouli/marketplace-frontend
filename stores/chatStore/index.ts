@@ -92,8 +92,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         {},
         { ttl: 0 }
       ) as { myThreads: ChatThread[] };
-      console.log('📬 Fetched threads:', data.myThreads);
-      console.log('📬 First thread listing data:', data.myThreads[0]?.listing);
       set({ threads: data.myThreads, isLoading: false });
     } catch (error) {
       console.error('Error fetching threads:', error);
@@ -467,8 +465,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       supabase.removeChannel(realtimeChannel);
     }
 
-    console.log('🔴 Subscribing to realtime for thread:', threadId);
-
     // Create new channel for this thread
     const channel = supabase
       .channel(`thread:${threadId}`)
@@ -482,7 +478,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
-          console.log('📨 New message received:', payload.new);
           const newMessage = payload.new as ChatMessage;
 
           // Add message to store if it's not from current user
@@ -507,7 +502,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
             // Auto-mark as read if thread is currently active (user is viewing it)
             const currentActiveThread = get().activeThreadId;
             if (currentActiveThread === threadId) {
-              console.log('🔵 Auto-marking message as read (thread is active)');
               get().markThreadRead(threadId, newMessage.id);
             }
 
@@ -526,7 +520,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
-          console.log('✏️ Message updated:', payload.new);
           const updatedMessage = payload.new as ChatMessage;
 
           set((state) => ({
@@ -552,7 +545,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
-          console.log('👁️ Read status updated:', payload.new);
           // When other user reads messages, update message statuses to READ
           const participant = payload.new as any;
 
@@ -589,7 +581,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       // Typing indicator using Presence
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        console.log('👥 Presence sync:', state);
 
         // Get typing users (exclude current user)
         const typingUser = Object.values(state).find(
@@ -626,7 +617,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   unsubscribeFromThread: () => {
     const { realtimeChannel } = get();
     if (realtimeChannel) {
-      console.log('🔴 Unsubscribing from realtime');
       supabase.removeChannel(realtimeChannel);
       set({ realtimeChannel: null, typingUsers: {} });
     }
@@ -656,11 +646,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // Don't subscribe if already subscribed
     if (globalRealtimeChannel) {
-      console.log('🌍 Already subscribed to global realtime');
       return;
     }
-
-    console.log('🌍 Subscribing to global realtime for user:', userId);
 
     // Get all thread IDs for this user
     const threadIds = threads.map(t => t.id);
@@ -682,8 +669,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           // Only process if message is in one of user's threads
           const thread = threads.find(t => t.id === newMessage.threadId);
           if (!thread) return;
-
-          console.log('🌍 Global: New message received:', newMessage);
 
           // If message is from another user (not current user)
           if (newMessage.senderId !== userId) {
@@ -729,8 +714,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           const thread = threads.find(t => t.id === updatedMessage.threadId);
           if (!thread) return;
 
-          console.log('🌍 Global: Message status updated:', updatedMessage);
-
           // Update message in local state if we have it loaded
           set((state) => {
             const threadMessages = state.messages[updatedMessage.threadId];
@@ -761,8 +744,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           // Only process if participant is in one of user's threads
           const thread = threads.find(t => t.id === participant.threadId);
           if (!thread) return;
-
-          console.log('🌍 Global: Participant read status updated:', participant);
 
           // If OTHER user read messages, update message statuses to READ
           if (participant.userId !== userId && participant.lastReadAt) {
@@ -802,7 +783,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   unsubscribeGlobal: () => {
     const { globalRealtimeChannel } = get();
     if (globalRealtimeChannel) {
-      console.log('🌍 Unsubscribing from global realtime');
       supabase.removeChannel(globalRealtimeChannel);
       set({ globalRealtimeChannel: null });
     }

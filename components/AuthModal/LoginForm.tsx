@@ -102,17 +102,13 @@ export const LoginForm: React.FC = () => {
     setValidationErrors(errors);
 
     if (hasValidationErrors(errors)) {
-      console.log('❌ Login validation failed:', errors);
       return; // STOP - do not submit
     }
-
-    console.log('✅ Login validation passed, submitting...');
 
     try {
       await login(formData.email, formData.password);
       // Success - modal will close automatically via store
     } catch (loginError) {
-      console.error('Login error:', loginError);
       // Show error in Form component (inside modal)
       setFormError(error || 'بيانات الاعتماد غير صحيحة. يرجى المحاولة مرة أخرى');
     }

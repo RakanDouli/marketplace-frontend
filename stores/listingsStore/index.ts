@@ -113,8 +113,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     invalidateGraphQLCache('ListingsGrid'); // Clear view-specific caches
     invalidateGraphQLCache('ListingsList');
     invalidateGraphQLCache('ListingsDetail');
-    console.log('🗑️ ListingsStore: Cache invalidated for filter change:', Object.keys(newFilters));
-
     set({
       filters: { ...filters, ...newFilters },
       pagination: initialPagination, // Reset pagination when filters change
@@ -135,7 +133,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     // Invalidate cache when pagination changes (especially page changes)
     if (newPagination.page && newPagination.page !== pagination.page) {
       invalidateGraphQLCache('listingsSearch');
-      console.log(`🗑️ ListingsStore: Cache invalidated for page change: ${pagination.page} → ${newPagination.page}`);
     }
 
     set({
@@ -160,7 +157,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     // Only invalidate cache if view type actually changes
     if (viewType !== currentViewType) {
       invalidateGraphQLCache('listingsSearch');
-      console.log(`🗑️ ListingsStore: Cache invalidated for view type change: ${currentViewType} → ${viewType}`);
     }
 
     set({ viewType });
@@ -322,25 +318,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       const totalResults = totalResultsFromQuery || listings.length; // Fallback to listings count if not available
       const hasMore = offset + listings.length < totalResults;
 
-      // console.log("🚗 ===== LISTINGS STORE: fetchListings SUCCESS =====");
-      console.log("📊 ListingsStore: Final results", {
-        listingsCount: listings.length,
-        totalResults: totalResults,
-        pagination: { ...pagination, total: totalResults, hasMore },
-        firstListing: listings[0]
-          ? {
-              id: listings[0].id,
-              title: listings[0].title,
-              specs: listings[0].specs,
-              prices: listings[0].prices,
-              accountType: listings[0].accountType,
-            }
-          : null,
-        sampleSpecs: listings[0]?.specs
-          ? Object.keys(listings[0].specs).slice(0, 5)
-          : [],
-      });
-
       set({
         listings,
         isLoading: false,
@@ -376,8 +353,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
     // Clear listings and invalidate cache when category changes
     if (currentCategoryId !== categorySlug) {
-      console.log(`🔄 Category changed: ${currentCategoryId} → ${categorySlug}. Clearing listings and cache.`);
-
       // Clear current listings immediately to prevent showing wrong category data
       set({
         listings: [],
@@ -409,25 +384,11 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         { ttl: 0 } // Bypass cache temporarily to test location fix
       );
 
-      // DEBUG: Log the full GraphQL response
-      console.log('🔍 FRONTEND: Full GraphQL response for listing:', data);
-      console.log('🔍 FRONTEND: Listing ID requested:', id);
-      console.log('🔍 FRONTEND: Has listing field?', !!data.listing);
-
       if (!data.listing) {
         throw new Error("Listing not found");
       }
 
       const item = data.listing;
-
-      // DEBUG: Log raw GraphQL response for business user fields
-      console.log('🔍 FRONTEND: Raw GraphQL response user data:', {
-        id: item.user?.id,
-        name: item.user?.name,
-        companyName: item.user?.companyName,
-        website: item.user?.website,
-        companyRegistrationNumber: item.user?.companyRegistrationNumber
-      });
 
       // Parse specs JSON string from backend
       let specs = {};
@@ -494,14 +455,6 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           updatedAt: item.createdAt,
         } : undefined,
       };
-
-      console.log("📋 ListingsStore: Fetched listing by ID", {
-        id: listing.id,
-        title: listing.title,
-        seller: listing.user?.name,
-        allowBidding: listing.allowBidding,
-        biddingStartPrice: listing.biddingStartPrice,
-      });
 
       set({
         currentListing: listing,

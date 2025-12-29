@@ -2,6 +2,8 @@
   position: relative;
   overflow: hidden;
   border-radius: $radius-md;
+  // CLS optimization: Prevent layout shifts during image loading
+  contain: layout style;
 
   // When aspect-ratio is used, ensure proper positioning
   &[style*="aspect-ratio"] {
@@ -34,6 +36,8 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: $radius-md;
+  // CLS optimization: Use GPU compositing for smoother transitions
+  will-change: background-position;
 }
 
 @keyframes shimmer {

@@ -70,11 +70,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setValidationErrors(errors);
 
     if (hasValidationErrors(errors)) {
-      console.log('❌ Profile validation failed:', errors);
       return; // STOP - do not submit
     }
-
-    console.log('✅ Profile validation passed, submitting...');
 
     setIsSaving(true);
 

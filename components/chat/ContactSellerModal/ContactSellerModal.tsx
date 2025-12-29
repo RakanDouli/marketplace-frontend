@@ -55,11 +55,9 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({
     setValidationErrors(errors);
 
     if (hasValidationErrors(errors)) {
-      console.log('❌ Message validation failed:', errors);
       return;
     }
 
-    console.log('✅ Message validation passed, sending...');
     setIsSubmitting(true);
 
     try {
@@ -75,7 +73,6 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({
 
       handleClose();
     } catch (err) {
-      console.error('Error sending message:', err);
       setError(err instanceof Error ? err.message : 'فشل في إرسال الرسالة');
     } finally {
       setIsSubmitting(false);

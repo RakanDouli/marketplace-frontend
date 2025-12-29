@@ -42,7 +42,6 @@ function PaymentSuccessContent() {
   // Refresh user data after successful subscription payment to update the dashboard
   useEffect(() => {
     if (type === 'subscription' && isAuthenticated) {
-      console.log('Payment success: Refreshing user data to update subscription...');
       refreshUserData();
     }
   }, [type, isAuthenticated, refreshUserData]);
@@ -105,7 +104,7 @@ function PaymentSuccessContent() {
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Failed to download invoice:', error);
+      // Silently fail - user can retry
     } finally {
       setDownloadingInvoice(false);
     }

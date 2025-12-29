@@ -49,7 +49,7 @@ export const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
           ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
           setAdPushed(true);
         } catch (err) {
-          console.error('❌ GoogleAdSense: Push failed', err);
+          // Silently fail - ad blocker or network issue
           setAdFailed(true);
         }
       }

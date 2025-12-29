@@ -94,9 +94,6 @@ export default function CreateListingDetailsPage() {
   const brandAttribute = attributes.find(attr => attr.key === 'brandId');
   const modelAttribute = attributes.find(attr => attr.key === 'modelId');
 
-  console.log('🔍 Subscription limits:', { maxImagesAllowed, videoAllowed, userPackage });
-
-
   // Auth guard
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -178,12 +175,8 @@ export default function CreateListingDetailsPage() {
 
   // Comprehensive validation function using Zod
   const validateForm = (): { isValid: boolean; errors: string[] } => {
-    console.log('🔍 Starting Zod validation...');
-
     // 1. Validate core listing fields using Zod
     const validationErrors = validateListingForm(formData);
-
-    console.log('📊 Zod validation result:', validationErrors);
 
     const errors: string[] = [];
 
@@ -196,11 +189,8 @@ export default function CreateListingDetailsPage() {
 
     // 2. Validate dynamic attributes (specs only, not column-based attributes)
     attributes.forEach(attr => {
-      console.log('🔍 Checking attribute:', attr.key, 'storageType:', attr.storageType, 'validation:', attr.validation);
-
       // Skip attributes stored as columns (title, price, accountType) - they're validated by Zod
       if (attr.storageType === 'column') {
-        console.log('  ↳ Skipping (column-based)');
         return;
       }
 
@@ -215,12 +205,9 @@ export default function CreateListingDetailsPage() {
       });
 
       if (attrError) {
-        console.log('  ↳ ❌ Attribute error:', attrError);
         errors.push(attrError);
       }
     });
-
-    console.log('✅ Final validation result:', { isValid: errors.length === 0, errorCount: errors.length });
 
     return {
       isValid: errors.length === 0,
@@ -229,18 +216,8 @@ export default function CreateListingDetailsPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🚨🚨🚨 HANDLESUBMIT CALLED!!! 🚨🚨🚨');
     e.preventDefault();
     e.stopPropagation();
-
-    console.log('🔍 Form submitted - starting validation...');
-    console.log('📊 Form data:', {
-      title: formData.title,
-      priceMinor: formData.priceMinor,
-      images: formData.images.length,
-      province: formData.location.province,
-      specs: formData.specs,
-    });
 
     // Mark all fields as touched to show errors
     const allFields: Record<string, boolean> = {
@@ -261,19 +238,13 @@ export default function CreateListingDetailsPage() {
     // Validate form
     const validation = validateForm();
 
-    console.log('✅ Validation result:', validation);
-
     if (!validation.isValid) {
-      console.error('❌ Validation FAILED - stopping submission');
-      console.error('❌ Validation errors:', validation.errors);
       // Show validation errors to user
       setValidationError(`يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`);
       // Scroll to top to show error message
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return; // Stop submission
     }
-
-    console.log('✅ Validation passed - proceeding with submission');
 
     // Clear any previous errors
     setValidationError('');
@@ -297,7 +268,6 @@ export default function CreateListingDetailsPage() {
         }, 2000);
       }
     } catch (err: any) {
-      console.error('❌ Submission error:', err);
       // Error is already set in store, Form component will display it
     }
   };

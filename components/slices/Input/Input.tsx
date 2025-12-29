@@ -248,6 +248,7 @@ export const Input = forwardRef<
                 onChange={handleCurrencyChange}
                 className={styles.currencySelect}
                 disabled={props.disabled}
+                aria-label="اختر العملة"
               >
                 <option value="SYP">{CURRENCY_SYMBOLS.SYP} SYP</option>
                 <option value="EUR">{CURRENCY_SYMBOLS.EUR} EUR</option>

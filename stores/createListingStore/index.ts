@@ -179,7 +179,6 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       set({ attributes });
       get().generateSteps();
     } catch (error: any) {
-      console.error("❌ Error fetching attributes:", error);
       set({ error: error.message || "فشل تحميل الخصائص" });
     } finally {
       set({ isLoadingAttributes: false });
@@ -279,7 +278,6 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       const imageKeys = await uploadMultipleToCloudflare(filesToUpload, 'image');
       return imageKeys;
     } catch (error: any) {
-      console.error("❌ Error uploading images:", error);
       throw new Error(`فشل رفع الصور: ${error.message}`);
     }
   },
@@ -288,22 +286,16 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
   submitListing: async () => {
     const { formData, validateStep, steps } = get();
 
-    console.log("🚀 submitListing called - validating steps...");
-    console.log("📊 Steps:", steps.map(s => ({ id: s.id, type: s.type, isValid: s.isValid })));
-
     // Validate all steps
     for (let i = 0; i < steps.length; i++) {
       const isValid = validateStep(i);
-      console.log(`🔍 Step ${i} (${steps[i].type}): ${isValid ? '✅ Valid' : '❌ Invalid'}`);
       if (!isValid) {
         const errorMsg = `يرجى ملء جميع الحقول المطلوبة في الخطوة ${i + 1}`;
-        console.error("❌ Step validation failed:", errorMsg);
         set({ error: errorMsg });
         return;
       }
     }
 
-    console.log("✅ All steps valid - proceeding with submission");
     set({ isSubmitting: true, error: null });
 
     try {
@@ -344,26 +336,17 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       formDataPayload.append('specs', JSON.stringify(specs));
 
       // Add images as files
-      console.log("🖼️ Images in formData:", formData.images.length);
       let imagesAdded = 0;
-      formData.images.forEach((imageItem, index) => {
-        console.log(`🖼️ Image ${index}:`, {
-          hasFile: !!imageItem.file,
-          hasUrl: !!imageItem.url,
-          file: imageItem.file
-        });
+      formData.images.forEach((imageItem) => {
         if (imageItem.file) {
           formDataPayload.append('images', imageItem.file);
           imagesAdded++;
         }
       });
-      console.log(`🖼️ Total images added to FormData: ${imagesAdded}`);
 
       if (imagesAdded < ListingValidationConfig.images.min) {
         throw new Error(`يجب إضافة ${ListingValidationConfig.images.min} صورة على الأقل`);
       }
-
-      console.log("📤 Sending REST API request to /api/listings/create");
 
       // Submit to REST API endpoint
       const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/listings/create`, {
@@ -380,16 +363,12 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       }
 
       const result = await response.json();
-      console.log("✅ Backend response:", result);
 
       // Invalidate user listings cache so the dashboard refreshes
       invalidateGraphQLCache('MyListings');
-      console.log("🗑️ Invalidated MyListings cache");
 
       set({ isSubmitting: false });
-      console.log("✅ Listing created successfully");
     } catch (error: any) {
-      console.error("❌ Error submitting listing:", error);
       set({
         error: error.message || "فشل إنشاء الإعلان",
         isSubmitting: false,

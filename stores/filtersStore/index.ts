@@ -162,9 +162,6 @@ async function getListingAggregations(
     aggregations.provinces.forEach((province: any) => {
       attributes["location"][province.value] = province.count;
     });
-    console.log("🌍 Province aggregations added:", attributes["location"]);
-  } else {
-    console.warn("⚠️ No provinces in aggregations:", aggregations.provinces);
   }
 
   // console.log(
@@ -202,15 +199,6 @@ async function getAllFilterData(categorySlug: string) {
   ); // Cache for 5 minutes
 
   const rawAttributes: Attribute[] = data.getAttributesByCategorySlug || [];
-
-  console.log('🔍 DEBUG: Raw attributes from backend:', rawAttributes.map(a => ({
-    key: a.key,
-    name: a.name,
-    type: a.type,
-    showInFilter: a.showInFilter,
-    group: a.group,
-    groupOrder: a.groupOrder
-  })));
 
   // All specs (including brandId, modelId) are handled through dynamic attributes with counts from aggregations
 
@@ -287,7 +275,6 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
     // Use cache if valid and not expired
     if (cachedData && now - cachedData.cachedAt < CACHE_EXPIRATION_MS) {
-      console.log(`🎯 Using cached filter data for category: ${categorySlug}`);
 
       // Get fresh counts for the cached structure
       const aggregations = await getListingAggregations(categorySlug);
@@ -404,12 +391,6 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
     categorySlug: string,
     appliedFilters: any
   ) => {
-    console.log(
-      "🔄 Updating cascading filters for:",
-      categorySlug,
-      appliedFilters
-    );
-
     // Use separate loading state for count updates (not full reload)
     set({ isLoadingCounts: true, error: null });
 
@@ -430,19 +411,6 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         categorySlug,
         appliedFilters
       );
-      console.log("🎯 Cascading aggregations received:", {
-        totalResults: cascadingAggregations
-          ? Object.keys(cascadingAggregations.attributes).length
-          : 0,
-        sampleAttributes: Object.keys(
-          cascadingAggregations?.attributes || {}
-        ).slice(0, 3),
-        attributeKeys: Object.keys(cascadingAggregations?.attributes || {}),
-        sampleAttributeData: Object.entries(
-          cascadingAggregations?.attributes || {}
-        ).slice(0, 2),
-      });
-
       // Update attributes with cascading counts
       const attributesWithCascadingCounts: AttributeWithProcessedOptions[] =
         rawAttributes.map((attr) => {
@@ -481,12 +449,6 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             }));
           }
 
-          console.log(`🔄 Cascading attribute: ${attr.key}`, {
-            optionsCount: processedOptions.length,
-            hasAggregationData: !!cascadingAggregations.attributes?.[attr.key],
-            sampleOptions: processedOptions.slice(0, 2),
-          });
-
           // Show all options (including those with count 0) for better UX
           // Users can still select options with 0 count, which will update the filter
           const filteredOptions = processedOptions;
@@ -507,25 +469,6 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         error: null,
       });
 
-      // console.log("🎯 ===== FILTERS STORE: updateFiltersWithCascading SUCCESS =====");
-      console.log("📊 FiltersStore: Updated attributes", {
-        categorySlug: categorySlug,
-        appliedFilters: appliedFilters,
-        attributesWithOptions: attributesWithCascadingCounts.filter(
-          (a) => a.processedOptions && a.processedOptions.length > 0
-        ).length,
-        totalAttributes: attributesWithCascadingCounts.length,
-        totalResults: cascadingAggregations.rawAggregations?.totalResults,
-        sampleAttributes: attributesWithCascadingCounts
-          .slice(0, 3)
-          .map((attr) => ({
-            key: attr.key,
-            name: attr.name,
-            type: attr.type,
-            optionsCount: attr.processedOptions?.length || 0,
-            firstOption: attr.processedOptions?.[0] || null,
-          })),
-      });
     } catch (error) {
       set({
         isLoadingCounts: false,
@@ -540,12 +483,10 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
     const newCache = { ...categoryCache };
     delete newCache[categorySlug];
     set({ categoryCache: newCache });
-    console.log(`🗑️ Cleared cache for category: ${categorySlug}`);
   },
 
   clearAllCache: () => {
     set({ categoryCache: {} });
-    console.log("🗑️ Cleared all filter cache");
   },
 
   // Reset filters to initial state

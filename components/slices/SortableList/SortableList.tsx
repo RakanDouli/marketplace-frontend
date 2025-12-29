@@ -120,7 +120,6 @@ export const SortableList: React.FC<SortableListProps> = ({
       } else {
         newSet.add(groupId);
       }
-      console.log('Toggle group:', groupId, 'now collapsed:', newSet.has(groupId));
       return newSet;
     });
   };

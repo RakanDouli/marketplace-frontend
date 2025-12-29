@@ -87,7 +87,6 @@ export const useRelatedListingsStore = create<RelatedListingsStore>((set, get) =
 
     // Return cached if valid
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log(`[RelatedListingsStore] Cache hit for ${type} (${listingId})`);
       return cached.listings;
     }
 
@@ -98,7 +97,6 @@ export const useRelatedListingsStore = create<RelatedListingsStore>((set, get) =
     }));
 
     try {
-      console.log(`[RelatedListingsStore] Fetching ${type} for listing ${listingId}`);
       const data = await makeGraphQLCall(RELATED_LISTINGS_QUERY, {
         listingId,
         type,
@@ -106,7 +104,6 @@ export const useRelatedListingsStore = create<RelatedListingsStore>((set, get) =
       });
 
       const listings = data.relatedListings || [];
-      console.log(`[RelatedListingsStore] ${type} returned ${listings.length} listings`);
 
       // Update cache
       set((state) => ({
@@ -123,7 +120,6 @@ export const useRelatedListingsStore = create<RelatedListingsStore>((set, get) =
       return listings;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[RelatedListingsStore] Failed to fetch ${type}:`, error);
 
       set((state) => ({
         loading: { ...state.loading, [cacheKey]: false },
@@ -160,7 +156,6 @@ export const useRelatedListingsStore = create<RelatedListingsStore>((set, get) =
 
       return brandName;
     } catch (error) {
-      console.error('[RelatedListingsStore] Failed to fetch brand name:', error);
       return null;
     }
   },

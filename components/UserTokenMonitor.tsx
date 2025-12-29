@@ -37,7 +37,6 @@ export default function UserTokenMonitor() {
 
       // If token has expired, logout and show auth modal
       if (isExpired) {
-        console.log('🔴 Token expired, logging out and showing auth modal...');
         logout();
         // Open auth modal after short delay to allow logout to complete
         setTimeout(() => openAuthModal('login'), 100);
@@ -46,14 +45,12 @@ export default function UserTokenMonitor() {
 
       // Show warning modal when 5 minutes (300 seconds) or less remaining
       if (timeLeft <= 300 && !showExpirationWarning) {
-        console.log(`⚠️ Token expires in ${timeLeft} seconds, showing warning`);
         startExpirationWarning();
         setIsExpirationModalVisible(true);
       }
 
       // Hide modal if time is extended beyond warning threshold
       if (timeLeft > 300 && showExpirationWarning) {
-        console.log('✅ Token extended, hiding warning');
         dismissExpirationWarning();
         setIsExpirationModalVisible(false);
       }
@@ -81,11 +78,9 @@ export default function UserTokenMonitor() {
   // Token expiration modal handlers
   const handleExtendSession = async () => {
     try {
-      console.log('🔄 Extending session...');
       await extendSession();
       setIsExpirationModalVisible(false);
       dismissExpirationWarning();
-      console.log('✅ Session extended successfully');
     } catch (error) {
       console.error('❌ Failed to extend session:', error);
       // Modal will stay open on failure
@@ -93,7 +88,6 @@ export default function UserTokenMonitor() {
   };
 
   const handleLogout = () => {
-    console.log('👋 User manually logged out from token modal');
     logout();
     setIsExpirationModalVisible(false);
     // Open auth modal after short delay to allow logout to complete

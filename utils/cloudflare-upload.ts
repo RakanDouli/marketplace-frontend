@@ -92,10 +92,6 @@ export async function uploadToCloudflare(
     const field = mutationType === 'avatar' ? 'createAvatarUploadUrl' : 'createImageUploadUrl';
     const { uploadUrl, assetKey } = data[field];
 
-    console.log(`📤 Uploading ${mutationType} to Cloudflare...`);
-    console.log(`   Pre-upload assetKey: ${assetKey}`);
-    console.log(`   Upload URL: ${uploadUrl.substring(0, 60)}...`);
-
     // Step 2: Upload file to Cloudflare
     const formData = new FormData();
     formData.append('file', file);
@@ -106,32 +102,23 @@ export async function uploadToCloudflare(
     });
 
     if (!uploadResponse.ok) {
-      const errorText = await uploadResponse.text();
-      console.error('❌ Cloudflare upload failed:', uploadResponse.status, errorText);
       throw new Error('فشل رفع الصورة إلى Cloudflare');
     }
 
     // Step 3: Extract ACTUAL image ID from Cloudflare response
     const uploadResult = await uploadResponse.json();
-    console.log('📥 Cloudflare upload response:', uploadResult);
 
     if (!uploadResult.success) {
-      console.error('❌ Cloudflare upload failed (success=false):', uploadResult);
       throw new Error('فشل رفع الصورة');
     }
 
     const actualImageId = uploadResult?.result?.id;
     if (!actualImageId) {
-      console.error('❌ Missing image ID in Cloudflare response:', uploadResult);
       throw new Error('لم يتم الحصول على معرف الصورة من Cloudflare');
     }
 
-    console.log('✅ Image uploaded successfully to Cloudflare');
-    console.log(`   Actual Cloudflare ID: ${actualImageId}`);
-
     return actualImageId;
   } catch (error) {
-    console.error('❌ Error in uploadToCloudflare:', error);
     throw error;
   }
 }
@@ -155,11 +142,8 @@ export async function uploadMultipleToCloudflare(
   try {
     const uploadPromises = files.map(file => uploadToCloudflare(file, mutationType));
     const imageIds = await Promise.all(uploadPromises);
-
-    console.log(`✅ Uploaded ${imageIds.length} images to Cloudflare`);
     return imageIds;
   } catch (error) {
-    console.error('❌ Error in uploadMultipleToCloudflare:', error);
     throw error;
   }
 }
@@ -199,7 +183,6 @@ export function validateImageFile(file: File, maxSizeMB: number = 2): string | u
  */
 export async function deleteFromCloudflare(imageId: string): Promise<boolean> {
   try {
-    console.log(`🗑️ Deleting image from Cloudflare: ${imageId}`);
 
     const mutation = `
       mutation DeleteAdMedia($assetKey: String!) {
@@ -248,15 +231,12 @@ export async function deleteFromCloudflare(imageId: string): Promise<boolean> {
     const result = await response.json();
 
     if (result.errors) {
-      console.error('GraphQL errors:', result.errors);
       // Don't throw - image might already be deleted
       return true;
     }
 
-    console.log(`✅ Image deleted from Cloudflare: ${imageId}`);
     return true;
   } catch (error) {
-    console.error(`❌ Error deleting image from Cloudflare:`, error);
     // Don't throw - allow operation to continue even if deletion fails
     return false;
   }

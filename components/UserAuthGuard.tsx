@@ -54,7 +54,6 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
 
     // If already expired, logout
     if (timeUntilExpiry <= 0) {
-      console.log('🔴 Token expired, logging out...');
       logout();
       return;
     }
@@ -63,13 +62,11 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
 
     // If within warning threshold, show modal immediately
     if (timeUntilExpiry <= WARNING_THRESHOLD) {
-      console.log(`⚠️ Token expires in ${timeUntilExpiry} seconds, showing warning`);
       startExpirationWarning();
       setIsExpirationModalVisible(true);
 
       // Set timeout to logout when actually expired
       const logoutTimeout = setTimeout(() => {
-        console.log('🔴 Token expired after warning, logging out...');
         logout();
       }, timeUntilExpiry * 1000);
 
@@ -78,16 +75,13 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
 
     // Schedule warning modal to appear at WARNING_THRESHOLD before expiry
     const timeUntilWarning = (timeUntilExpiry - WARNING_THRESHOLD) * 1000;
-    console.log(`⏰ Token expires in ${timeUntilExpiry} seconds. Warning scheduled in ${Math.floor(timeUntilWarning / 1000)} seconds`);
 
     const warningTimeout = setTimeout(() => {
-      console.log('⚠️ Showing token expiration warning');
       startExpirationWarning();
       setIsExpirationModalVisible(true);
 
       // Schedule logout for when token actually expires
       const logoutTimeout = setTimeout(() => {
-        console.log('🔴 Token expired, logging out...');
         logout();
       }, WARNING_THRESHOLD * 1000);
 
@@ -106,11 +100,9 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
   // Token expiration modal handlers
   const handleExtendSession = async () => {
     try {
-      console.log('🔄 Extending session...');
       await extendSession();
       setIsExpirationModalVisible(false);
       dismissExpirationWarning();
-      console.log('✅ Session extended successfully');
     } catch (error) {
       console.error('❌ Failed to extend session:', error);
       // Modal will stay open on failure
@@ -118,7 +110,6 @@ export default function UserAuthGuard({ children }: UserAuthGuardProps) {
   };
 
   const handleLogout = () => {
-    console.log('👋 User manually logged out');
     logout();
     setIsExpirationModalVisible(false);
   };

@@ -42,7 +42,7 @@ export function AppliedFilters() {
       setPagination({ page: 1 });
       await fetchListingsByCategory(currentCategorySlug, storeFilters, "grid");
     } catch (error) {
-      console.error("❌ Error removing filter:", error);
+      // Silently fail - filter may still be removed on next render
     }
   };
 
@@ -60,7 +60,7 @@ export function AppliedFilters() {
       setPagination({ page: 1 });
       await fetchListingsByCategory(currentCategorySlug, storeFilters, "grid");
     } catch (error) {
-      console.error("❌ Error clearing filters:", error);
+      // Silently fail - filters may still be cleared on next render
     }
   };
 

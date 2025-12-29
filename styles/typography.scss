@@ -4,8 +4,8 @@
 
 @import 'variables';
 
-// Import Google Fonts with optimized display=swap
-@import url('https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+// Fonts are preloaded in app/layout.tsx to reduce CLS
+// Using <link rel="preload" as="style"> for Beiruti and Rubik fonts
 
 // Body font family
 body {

@@ -139,6 +139,14 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     });
   }, [groupedSpecs]);
 
+  // Generate schema based on category (Vehicle for cars, Product for others)
+  // IMPORTANT: This hook must be called before any early returns to follow Rules of Hooks
+  const schemaData = useMemo(() => {
+    if (!currentListing) return null;
+    const isVehicle = categorySlug === 'cars' || currentListing.category?.slug === 'cars';
+    return isVehicle ? generateVehicleSchema(currentListing) : generateListingSchema(currentListing);
+  }, [currentListing, categorySlug]);
+
   // Show loading until fetch completes
   if (isLoading || !hasFetched) {
     return (
@@ -164,13 +172,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     listing.location.province ||
     listing.location.coordinates
   );
-
-  // Generate schema based on category (Vehicle for cars, Product for others)
-  const schemaData = useMemo(() => {
-    if (!listing) return null;
-    const isVehicle = categorySlug === 'cars' || listing.category?.slug === 'cars';
-    return isVehicle ? generateVehicleSchema(listing) : generateListingSchema(listing);
-  }, [listing, categorySlug]);
 
   return (
     <>

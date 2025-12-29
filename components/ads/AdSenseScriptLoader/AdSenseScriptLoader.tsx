@@ -29,7 +29,6 @@ export const AdSenseScriptLoader: React.FC = () => {
     // Check if script already exists
     const existingScript = document.querySelector('script[src*="pagead2.googlesyndication.com"]');
     if (existingScript) {
-      console.log('📢 AdSenseScriptLoader: Script already exists');
       setScriptLoaded(true);
       return;
     }
@@ -41,7 +40,6 @@ export const AdSenseScriptLoader: React.FC = () => {
     script.crossOrigin = 'anonymous';
 
     script.onload = () => {
-      console.log(`✅ AdSenseScriptLoader: Script loaded with client ID: ${clientId}`);
       setScriptLoaded(true);
     };
 

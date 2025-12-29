@@ -19,8 +19,19 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" data-theme="light">
       <head>
+        {/* Preconnect to Google Fonts for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Preload critical fonts to reduce CLS from font swapping */}
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Beiruti:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap"
+          as="style"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Beiruti:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap"
+        />
         {/* AdSense script is loaded dynamically by AdSenseScriptLoader with client ID from database */}
         {/* Schema.org structured data for SEO */}
         <JsonLd data={generateOrganizationSchema()} />

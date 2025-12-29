@@ -52,14 +52,12 @@ async function fetchRate(from: Currency, to: Currency): Promise<number> {
 
     const result = await response.json();
     if (result.errors) {
-      console.error('GraphQL errors:', result.errors);
       // Return 1 on error - the API should handle fallback to database
       return 1;
     }
 
     return result.data.getExchangeRate;
   } catch (error) {
-    console.error(`Failed to fetch rate ${from}→${to}:`, error);
     // Return 1 on error - backend handles fallback to last saved rate
     return 1;
   }
@@ -112,9 +110,8 @@ export const useCurrencyStore = create<CurrencyStore>()(
           await Promise.all(ratePromises);
 
           set({ exchangeRates: rates, lastUpdated: new Date() });
-          console.log('✅ Exchange rates updated:', rates);
         } catch (error) {
-          console.error('Failed to fetch exchange rates:', error);
+          // Silently fail - rates will remain at fallback values
         }
       },
 

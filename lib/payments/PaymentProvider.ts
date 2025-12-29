@@ -28,7 +28,7 @@ export class StripeProvider implements IPaymentProvider {
 
   async initialize(): Promise<void> {
     // Initialize Stripe SDK
-    console.log('Stripe provider initialized');
+    // Provider ready for use
   }
 
   async getAvailableMethods(): Promise<PaymentMethod[]> {
@@ -57,7 +57,7 @@ export class PayPalProvider implements IPaymentProvider {
   name = 'PayPal';
 
   async initialize(): Promise<void> {
-    console.log('PayPal provider initialized');
+    // Provider ready for use
   }
 
   async getAvailableMethods(): Promise<PaymentMethod[]> {

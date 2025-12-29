@@ -36,13 +36,6 @@ export const useFilterActions = (categorySlug: string | null) => {
   const handleSpecChange = async (attributeKey: string, value: any) => {
     if (!categorySlug) return;
 
-    console.log("🎯 Filter: Spec change:", {
-      attributeKey,
-      value,
-      valueType: typeof value,
-      isArray: Array.isArray(value),
-    });
-
     // All SELECTOR attributes go to specs
     // NOTE: Location will be extracted from specs and sent as top-level province in Filter.tsx submission
     setSpecFilter(attributeKey, value);
@@ -51,7 +44,7 @@ export const useFilterActions = (categorySlug: string | null) => {
     try {
       await applyFiltersToStores();
     } catch (error) {
-      console.error("❌ Error applying spec filter:", error);
+      // Silently fail - filter may still apply on next render
     }
   };
 
@@ -80,7 +73,7 @@ export const useFilterActions = (categorySlug: string | null) => {
       // Apply filters with store coordination
       await applyFiltersToStores();
     } catch (error) {
-      console.error("❌ Error applying range filter:", error);
+      // Silently fail - filter may still apply on next render
     }
   };
 
@@ -138,14 +131,13 @@ export const useFilterActions = (categorySlug: string | null) => {
   const handleClearAll = async () => {
     if (!categorySlug) return;
 
-    console.log("🧹 Filter: Clearing all filters");
     clearAllFilters();
 
     // Apply cleared filters with store coordination
     try {
       await applyFiltersToStores();
     } catch (error) {
-      console.error("❌ Error clearing filters:", error);
+      // Silently fail - filters may still be cleared on next render
     }
   };
 

@@ -154,7 +154,6 @@ const resetAllStoresOnLogout = async (): Promise<void> => {
       realtimeChannel: null,
       typingUsers: {},
     });
-    console.log('GraphQL Cache: chatStore reset on logout');
   } catch (error) {
     console.warn('Failed to reset chatStore:', error);
   }
@@ -168,7 +167,6 @@ const resetAllStoresOnLogout = async (): Promise<void> => {
       isLoading: false,
       error: null,
     });
-    console.log('GraphQL Cache: wishlistStore reset on logout');
   } catch (error) {
     console.warn('Failed to reset wishlistStore:', error);
   }
@@ -177,7 +175,6 @@ const resetAllStoresOnLogout = async (): Promise<void> => {
     // Reset userListingsStore
     const { useUserListingsStore } = await import('@/stores/userListingsStore');
     useUserListingsStore.getState().reset();
-    console.log('GraphQL Cache: userListingsStore reset on logout');
   } catch (error) {
     console.warn('Failed to reset userListingsStore:', error);
   }
@@ -261,8 +258,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          console.log('Authenticating user with Supabase...', email);
-
           // Step 1: Authenticate with Supabase
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -279,7 +274,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
           }
 
           const token = data.session.access_token;
-          console.log('Supabase authentication successful');
 
           // Step 2: Get user data from backend
           let user, userPackage, tokenExpiresAt;
@@ -301,9 +295,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
 
             // Validate user status (throws error if banned/suspended)
             await validateUserStatus(user);
-
-            console.log('User data received:', user);
-            console.log('User package received:', userPackage);
 
             const finalTokenExpiresAt = calculateTokenExpiration(data.session.expires_at, tokenExpiresAt);
             const isInactive = user.status === UserStatus.INACTIVE;
@@ -372,14 +363,10 @@ export const useUserAuthStore = create<UserAuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          console.log('Signing up user...', { email, name, accountType });
-
           // Step 1: Call backend signup mutation
           await makeGraphQLCall(SIGNUP_MUTATION, {
             input: { email, password, name, accountType }
           });
-
-          console.log('Backend signup successful');
 
           // Step 2: Login to get session token
           const { data, error } = await supabase.auth.signInWithPassword({
@@ -397,7 +384,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
           }
 
           const token = data.session.access_token;
-          console.log('Login successful');
 
           // Step 3: Get full user data from backend
           const meData = await makeGraphQLCall(ME_QUERY, {}, token);
@@ -477,7 +463,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
         // Clear GraphQL cache on logout
         const { clearGraphQLCache } = await import('@/utils/graphql-cache');
         clearGraphQLCache();
-        console.log('GraphQL Cache: Cleared on logout');
 
         // Reset all user-specific stores
         await resetAllStoresOnLogout();
@@ -572,8 +557,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
         }
 
         try {
-          console.log('Extending Supabase session...');
-
           const { data, error } = await supabase.auth.refreshSession();
 
           if (error) {
@@ -592,8 +575,6 @@ export const useUserAuthStore = create<UserAuthStore>()(
               },
               showExpirationWarning: false,
             });
-
-            console.log('Session extended successfully');
           } else {
             throw new Error('No session returned from refresh');
           }
