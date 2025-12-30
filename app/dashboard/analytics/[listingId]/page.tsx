@@ -2,11 +2,12 @@
 
 import React, { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Text, Loading, Button, MobileBackButton, Grid, StatCard } from '@/components/slices';
+import { Text, Loading, Button, MobileBackButton, Grid, StatCard, Container } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
 import { BarChart3, Eye, Heart, TrendingUp, Calendar, ArrowRight, ArrowLeft } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import sharedStyles from '@/components/dashboard/SharedDashboardPanel.module.scss';
 import styles from './ListingAnalytics.module.scss';
 
 export default function ListingAnalyticsPage() {
@@ -48,29 +49,33 @@ export default function ListingAnalyticsPage() {
 
   if (isLoading && !listingAnalytics) {
     return (
-      <div className={styles.dashboardPanel}>
-        <div className={styles.loadingContainer}>
+      <>
+        <MobileBackButton
+          onClick={() => router.push('/dashboard/analytics')}
+          title="تفاصيل الإعلان"
+        />
+        <div className={sharedStyles.loadingState}>
           <Loading type="svg" />
-          <Text variant="paragraph">جاري تحميل الإحصائيات...</Text>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.dashboardPanel}>
-        <Button
-          variant='link'
-          href='/dashboard/analytics'
-          icon={<ArrowLeft size={18} />}
-        >
-          عودة إلى الإحصائيات
-        </Button>
-        <div className={styles.emptyState}>
-          <Text variant="paragraph" color="error">{error}</Text>
+      <>
+        <MobileBackButton
+          onClick={() => router.push('/dashboard/analytics')}
+          title="تفاصيل الإعلان"
+        />
+        <div className={sharedStyles.panel}>
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={styles.emptyState}>
+              <Text variant="paragraph" color="error">{error}</Text>
+            </div>
+          </Container>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -147,180 +152,178 @@ export default function ListingAnalyticsPage() {
     return 'كل الوقت';
   };
 
-  return (<>
-    {/* Mobile Back Button */}
-    <MobileBackButton
-      onClick={() => router.push('/dashboard/analytics')}
-      title="تفاصيل الإعلان"
-    />
+  return (
+    <>
+      <MobileBackButton
+        onClick={() => router.push('/dashboard/analytics')}
+        title="تفاصيل الإعلان"
+      />
 
-    {/* Desktop Back Button */}
-
-    <div className={styles.backButton}>
-      <Button
-        variant='outline'
-        href='/dashboard/analytics'
-        icon={<ArrowLeft size={18} />}
-
-      >
-        عودة إلى الإحصائيات
-      </Button>
-    </div>
-
-    <div className={styles.dashboardPanel}>
-
-      {/* Header with Date Selector */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <Text variant="h2">تفاصيل الإعلان</Text>
-          <Text variant="paragraph" color="secondary">
-            {getDateRangeLabel()}
-          </Text>
-        </div>
-
-        <div className={styles.headerActions}>
-          <div className={styles.dateRangeSelector}>
-            <Button
-              variant={dateRange === 7 ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleDateRangeChange(7)}
-            >
-              7 أيام
-            </Button>
-            <Button
-              variant={dateRange === 30 ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleDateRangeChange(30)}
-            >
-              30 يوم
-            </Button>
-            <Button
-              variant={dateRange === 90 ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleDateRangeChange(90)}
-            >
-              90 يوم
-            </Button>
-            <Button
-              variant={dateRange === -1 ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleDateRangeChange(-1)}
-            >
-              كل الوقت
-            </Button>
-          </div>
-        </div>
+      <div className={styles.backButton}>
+        <Button
+          variant="outline"
+          href="/dashboard/analytics"
+          icon={<ArrowLeft size={18} />}
+        >
+          عودة إلى الإحصائيات
+        </Button>
       </div>
 
-      {/* Stats Grid */}
-      <Grid columns={4} gap="md">
-        <StatCard
-          title="المشاهدات"
-          value={formatNumber(listingAnalytics.viewCount)}
-          subtitle={listingAnalytics.viewsToday > 0 ? `+${formatNumber(listingAnalytics.viewsToday)} اليوم` : undefined}
-          icon={<Eye size={24} />}
-        />
-        <StatCard
-          title="المفضلة"
-          value={formatNumber(listingAnalytics.wishlistCount)}
-          icon={<Heart size={24} />}
-        />
-        <StatCard
-          title="أيام في السوق"
-          value={formatNumber(listingAnalytics.daysOnMarket)}
-          icon={<Calendar size={24} />}
-        />
-        <StatCard
-          title="معدل التفاعل"
-          value={`${listingAnalytics.engagementRate.toFixed(1)}%`}
-          icon={<TrendingUp size={24} />}
-        />
-      </Grid>
-
-      {/* Performance Indicator Bar (Google-style) */}
-      {listingAnalytics.performanceIndicator && (
-        <div className={styles.performanceCard}>
-          <div className={styles.performanceHeader}>
-            <TrendingUp size={20} />
-            <Text variant="h4" className={styles.performanceTitle}>مؤشر الأداء</Text>
-            <span
-              className={styles.performanceBadge}
-              style={{ backgroundColor: getPerformanceColor(listingAnalytics.performanceIndicator) }}
-            >
-              {getPerformanceLabel(listingAnalytics.performanceIndicator)}
-            </span>
+      <div className={sharedStyles.panel}>
+        {/* Header with Date Selector */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
+            <div>
+              <Text variant="h2">تفاصيل الإعلان</Text>
+              <Text variant="small" color="secondary">
+                {getDateRangeLabel()}
+              </Text>
+            </div>
+            <div className={styles.dateRangeSelector}>
+              <Button
+                variant={dateRange === 7 ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => handleDateRangeChange(7)}
+              >
+                7 أيام
+              </Button>
+              <Button
+                variant={dateRange === 30 ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => handleDateRangeChange(30)}
+              >
+                30 يوم
+              </Button>
+              <Button
+                variant={dateRange === 90 ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => handleDateRangeChange(90)}
+              >
+                90 يوم
+              </Button>
+              <Button
+                variant={dateRange === -1 ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => handleDateRangeChange(-1)}
+              >
+                كل الوقت
+              </Button>
+            </div>
           </div>
+        </Container>
 
-          <div className={styles.performanceBar}>
-            <div
-              className={styles.performanceMarker}
-              style={{ left: `${getMarkerPosition(listingAnalytics.performanceIndicator)}%` }}
+        {/* Stats Grid */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <Grid columns={4} gap="md">
+            <StatCard
+              title="المشاهدات"
+              value={formatNumber(listingAnalytics.viewCount)}
+              subtitle={listingAnalytics.viewsToday > 0 ? `+${formatNumber(listingAnalytics.viewsToday)} اليوم` : undefined}
+              icon={<Eye size={24} />}
             />
-          </div>
+            <StatCard
+              title="المفضلة"
+              value={formatNumber(listingAnalytics.wishlistCount)}
+              icon={<Heart size={24} />}
+            />
+            <StatCard
+              title="أيام في السوق"
+              value={formatNumber(listingAnalytics.daysOnMarket)}
+              icon={<Calendar size={24} />}
+            />
+            <StatCard
+              title="معدل التفاعل"
+              value={`${listingAnalytics.engagementRate.toFixed(1)}%`}
+              icon={<TrendingUp size={24} />}
+            />
+          </Grid>
+        </Container>
 
-          <div className={styles.performanceScale}>
-            <Text variant="small" color="error">ضعيف جداً</Text>
-            <Text variant="small" color="warning">ضعيف</Text>
-            <Text variant="small" color="info">جيد</Text>
-            <Text variant="small" color="success">ممتاز</Text>
-          </div>
-        </div>
-      )}
+        {/* Performance Indicator Bar (Google-style) */}
+        {listingAnalytics.performanceIndicator && (
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={styles.performanceHeader}>
+              <TrendingUp size={20} />
+              <Text variant="h4" className={styles.performanceTitle}>مؤشر الأداء</Text>
+              <span
+                className={styles.performanceBadge}
+                style={{ backgroundColor: getPerformanceColor(listingAnalytics.performanceIndicator) }}
+              >
+                {getPerformanceLabel(listingAnalytics.performanceIndicator)}
+              </span>
+            </div>
 
-      {/* Performance Comparison */}
-      {listingAnalytics.comparisonText && (
-        <div className={styles.comparisonCard}>
-          <Text variant="paragraph">{listingAnalytics.comparisonText}</Text>
-        </div>
-      )}
+            <div className={styles.performanceBar}>
+              <div
+                className={styles.performanceMarker}
+                style={{ left: `${getMarkerPosition(listingAnalytics.performanceIndicator)}%` }}
+              />
+            </div>
 
-      {/* Views Chart */}
-      <div className={styles.chartCard}>
-        <Text variant="h4">المشاهدات</Text>
+            <div className={styles.performanceScale}>
+              <Text variant="small" color="error">ضعيف جداً</Text>
+              <Text variant="small" color="warning">ضعيف</Text>
+              <Text variant="small" color="info">جيد</Text>
+              <Text variant="small" color="success">ممتاز</Text>
+            </div>
+          </Container>
+        )}
 
-        {listingAnalytics.viewsByDate.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={listingAnalytics.viewsByDate}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis
-                dataKey="date"
-                stroke="var(--text-secondary)"
-                style={{ fontSize: '12px', direction: 'ltr' }}
-                tickFormatter={formatChartDate}
-              />
-              <YAxis
-                stroke="var(--text-secondary)"
-                style={{ fontSize: '12px' }}
-                tickFormatter={formatYAxis}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                }}
-                labelStyle={{ color: 'var(--text)' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="views"
-                stroke="var(--primary)"
-                strokeWidth={2}
-                dot={{ fill: 'var(--primary)', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className={styles.chartPlaceholder}>
-            <BarChart3 size={48} className={styles.chartIcon} />
-            <Text variant="paragraph" color="secondary">
-              لا توجد بيانات مشاهدات بعد
-            </Text>
+        {/* Performance Comparison */}
+        {listingAnalytics.comparisonText && (
+          <div className={styles.comparisonCard}>
+            <Text variant="paragraph">{listingAnalytics.comparisonText}</Text>
           </div>
         )}
+
+        {/* Views Chart */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <Text variant="h4">المشاهدات</Text>
+
+          {listingAnalytics.viewsByDate.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={listingAnalytics.viewsByDate}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis
+                  dataKey="date"
+                  stroke="var(--text-secondary)"
+                  style={{ fontSize: '12px', direction: 'ltr' }}
+                  tickFormatter={formatChartDate}
+                />
+                <YAxis
+                  stroke="var(--text-secondary)"
+                  style={{ fontSize: '12px' }}
+                  tickFormatter={formatYAxis}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                  }}
+                  labelStyle={{ color: 'var(--text)' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="views"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  dot={{ fill: 'var(--primary)', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className={styles.chartPlaceholder}>
+              <BarChart3 size={48} className={styles.chartIcon} />
+              <Text variant="paragraph" color="secondary">
+                لا توجد بيانات مشاهدات بعد
+              </Text>
+            </div>
+          )}
+        </Container>
       </div>
-    </div></>
+    </>
   );
 }

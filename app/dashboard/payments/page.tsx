@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Text, Button, Loading, MobileBackButton } from '@/components/slices';
+import { Container, Text, Button, Loading, MobileBackButton } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { formatAdPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
 import { CreditCard, Receipt, Download, RefreshCw } from 'lucide-react';
 import { TransactionStatus } from '@/common/enums';
+import sharedStyles from '@/components/dashboard/SharedDashboardPanel.module.scss';
 import styles from './Payments.module.scss';
 
 // GraphQL query for transactions with receipts
@@ -154,11 +155,8 @@ export default function PaymentsPage() {
           onClick={() => router.push('/dashboard')}
           title="المدفوعات"
         />
-        <div className={styles.payments}>
-          <div className={styles.loading}>
-            <Loading type="svg" />
-            <Text variant="paragraph">جاري تحميل البيانات المالية...</Text>
-          </div>
+        <div className={sharedStyles.loadingState}>
+          <Loading type="svg" />
         </div>
       </>
     );
@@ -170,56 +168,59 @@ export default function PaymentsPage() {
         onClick={() => router.push('/dashboard')}
         title="المدفوعات"
       />
-      <div className={styles.payments}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <Text variant="h2">سجل المدفوعات</Text>
-            <Text variant="paragraph" color="secondary">
+      <div className={sharedStyles.panel}>
+        {/* Header Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
+            <div className={styles.titleRow}>
+              <CreditCard size={28} />
+              <Text variant="h2">سجل المدفوعات</Text>
+            </div>
+            <Text variant="small" color="secondary">
               عرض سجل مدفوعات الاشتراكات والإيصالات
             </Text>
           </div>
-        </div>
+        </Container>
 
-        {/* Overview Cards */}
-        <div className={styles.overviewGrid}>
-          <div className={styles.overviewCard}>
-            <div className={styles.overviewIcon}>
-              <CreditCard size={24} />
+        {/* Stats Grid - 3 columns desktop, 2 mobile */}
+        <div className={styles.statsGrid}>
+            <div className={styles.statItem}>
+              <div className={styles.statIcon}>
+                <CreditCard size={20} />
+              </div>
+              <div className={styles.statContent}>
+                <Text variant="small" color="secondary">إجمالي المدفوعات</Text>
+                <Text variant="h3">{formatAdPrice(totalSpent, 'USD')}</Text>
+              </div>
             </div>
-            <div className={styles.overviewContent}>
-              <Text variant="small" color="secondary">إجمالي المدفوعات</Text>
-              <Text variant="h3">{formatAdPrice(totalSpent, 'USD')}</Text>
-            </div>
-          </div>
 
-          <div className={styles.overviewCard}>
-            <div className={styles.overviewIcon}>
-              <RefreshCw size={24} />
+            <div className={styles.statItem}>
+              <div className={styles.statIcon}>
+                <RefreshCw size={20} />
+              </div>
+              <div className={styles.statContent}>
+                <Text variant="small" color="secondary">العمليات المكتملة</Text>
+                <Text variant="h3">{completedCount}</Text>
+              </div>
             </div>
-            <div className={styles.overviewContent}>
-              <Text variant="small" color="secondary">العمليات المكتملة</Text>
-              <Text variant="h3">{completedCount}</Text>
-            </div>
-          </div>
 
-          <div className={styles.overviewCard}>
-            <div className={styles.overviewIcon}>
-              <Receipt size={24} />
+            <div className={styles.statItem}>
+              <div className={styles.statIcon}>
+                <Receipt size={20} />
+              </div>
+              <div className={styles.statContent}>
+                <Text variant="small" color="secondary">العمليات المعلقة</Text>
+                <Text variant="h3">{pendingCount}</Text>
+              </div>
             </div>
-            <div className={styles.overviewContent}>
-              <Text variant="small" color="secondary">العمليات المعلقة</Text>
-              <Text variant="h3">{pendingCount}</Text>
-            </div>
-          </div>
         </div>
 
         {/* Transactions List */}
-        <div className={styles.section}>
-          <Text variant="h3">سجل العمليات</Text>
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <Text variant="h4">سجل العمليات</Text>
 
           {transactions.length === 0 ? (
-            <div className={styles.empty}>
+            <div className={styles.emptyState}>
               <CreditCard size={48} className={styles.emptyIcon} />
               <Text variant="h4">لا توجد عمليات</Text>
               <Text variant="paragraph" color="secondary">
@@ -264,7 +265,7 @@ export default function PaymentsPage() {
                   {transaction.isSuccessful && (
                     <div className={styles.transactionActions}>
                       <Button
-                        variant="link"
+                        variant="secondary"
                         size="sm"
                         icon={<Download size={16} />}
                         onClick={() => handleDownloadReceipt(transaction.id)}
@@ -278,7 +279,7 @@ export default function PaymentsPage() {
               ))}
             </div>
           )}
-        </div>
+        </Container>
       </div>
     </>
   );

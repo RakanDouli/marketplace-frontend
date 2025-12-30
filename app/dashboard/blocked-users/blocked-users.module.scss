@@ -1,19 +1,6 @@
 @import "../../../styles/variables";
 
-.blockedUsersPage {
-  padding: $space-xl 0;
-  min-height: 60vh;
-}
-
-.header {
-  margin-bottom: $space-xl;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: $space-md;
-}
-
+// Title row with icon
 .titleRow {
   display: flex;
   align-items: center;
@@ -24,13 +11,7 @@
   }
 }
 
-.loadingState {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-}
-
+// Empty state
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -39,7 +20,7 @@
   gap: $space-md;
   padding: $space-xl;
   text-align: center;
-  min-height: 400px;
+  min-height: 300px;
 }
 
 .emptyIcon {
@@ -51,24 +32,7 @@
   max-width: 400px;
 }
 
-.blockedUsersList {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-}
-
-.blockedUserCard {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-lg;
-
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  transition: all 0.2s ease;
-}
-
+// User info in card
 .userInfo {
   display: flex;
   align-items: center;
@@ -78,27 +42,4 @@
 .userIcon {
   color: var(--color-secondary);
   flex-shrink: 0;
-}
-
-.userDetails {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-}
-
-@media (max-width: 768px) {
-  .blockedUsersPage {
-    padding: $space-lg 0;
-  }
-
-  .blockedUserCard {
-    flex-direction: column;
-    gap: $space-md;
-    align-items: stretch;
-  }
-
-  // .userInfo {
-  //   flex-direction: column;
-  //   text-align: center;
-  // }
 }

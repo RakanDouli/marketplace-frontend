@@ -2,13 +2,14 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Text, Button, Loading, MobileBackButton } from "@/components/slices";
+import { Container, Text, Button, Loading, MobileBackButton } from "@/components/slices";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { formatPrice } from "@/utils/formatPrice";
 import { formatDate } from "@/utils/formatDate";
-import { Check, X, AlertTriangle } from "lucide-react";
+import { Check, X, AlertTriangle, CreditCard } from "lucide-react";
 import { AccountType } from "@/common/enums";
+import sharedStyles from "@/components/dashboard/SharedDashboardPanel.module.scss";
 import styles from "./Subscription.module.scss";
 
 interface SubscriptionFeature {
@@ -38,7 +39,7 @@ export default function SubscriptionPage() {
 
   if (!user) {
     return (
-      <div className={styles.container}>
+      <div className={sharedStyles.loadingState}>
         <Loading type="svg" />
       </div>
     );
@@ -82,10 +83,16 @@ export default function SubscriptionPage() {
     router.push("/user-subscriptions");
   };
 
+  const handleExtendSubscription = () => {
+    router.push("/user-subscriptions");
+  };
+
   const isFree = subscription?.monthlyPrice === 0;
   // Check if user can upgrade - hide upgrade button if user has "business" account type (top tier)
   const isBusinessAccount = user.accountType === AccountType.BUSINESS;
   const canUpgrade = !isBusinessAccount;
+  // Show extend button for paid (non-free) subscriptions
+  const canExtend = !isFree;
 
   // Expiry date and warning calculations
   const endDate = userPackage?.endDate ? new Date(userPackage.endDate) : null;
@@ -105,151 +112,140 @@ export default function SubscriptionPage() {
         onClick={() => router.push('/dashboard')}
         title="الاشتراك"
       />
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <Text variant="h2">الاشتراك الحالي</Text>
-        </div>
-
-        {/* Expiry Warning Banner */}
-        {!isFree && isExpiringSoon && (
-          <div className={styles.warningBanner}>
-            <AlertTriangle size={20} />
-            <Text variant="paragraph">
-              اشتراكك سينتهي خلال {daysRemaining} {daysRemaining === 1 ? "يوم" : "أيام"}! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
-            </Text>
+      <div className={sharedStyles.panel}>
+        {/* Header Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
+            <div className={styles.titleRow}>
+              <CreditCard size={28} />
+              <Text variant="h2">الاشتراك الحالي</Text>
+            </div>
+            {subscription && (
+              <Text variant="small" color="secondary">
+                {subscription.title}
+              </Text>
+            )}
           </div>
+        </Container>
+
+        {/* Warning Banners */}
+        {!isFree && isExpiringSoon && (
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={sharedStyles.warningCard}>
+              <div className={sharedStyles.warningContent}>
+                <AlertTriangle size={20} />
+                <Text variant="paragraph">
+                  اشتراكك سينتهي خلال {daysRemaining} {daysRemaining === 1 ? "يوم" : "أيام"}! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
+                </Text>
+              </div>
+              <Button variant="primary" onClick={handleExtendSubscription}>
+                تجديد الاشتراك
+              </Button>
+            </div>
+          </Container>
         )}
 
         {!isFree && isExpired && (
-          <div className={styles.errorBanner}>
-            <AlertTriangle size={20} />
-            <Text variant="paragraph">
-              انتهى اشتراكك! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
-            </Text>
-          </div>
-        )}
-
-        {/* Over Limit Warning Banner - Soft Block */}
-        {isOverLimit && (
-          <div className={styles.errorBanner}>
-            <AlertTriangle size={20} />
-            <div>
-              <Text variant="paragraph" style={{ fontWeight: 600 }}>
-                لقد تجاوزت الحد المسموح للإعلانات!
-              </Text>
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={styles.errorBanner}>
+              <AlertTriangle size={20} />
               <Text variant="paragraph">
-                لديك {currentListingsCount} إعلانات نشطة، بينما خطتك الحالية تسمح بـ {maxListings} إعلانات فقط.
-                لن تتمكن من إضافة إعلانات جديدة حتى تقوم بأرشفة {overLimitCount} إعلانات أو ترقية اشتراكك.
+                انتهى اشتراكك! قم بتجديد اشتراكك للاستمرار في الاستفادة من جميع الميزات.
+              </Text>
+            </div>
+          </Container>
+        )}
+
+        {isOverLimit && (
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={styles.errorBanner}>
+              <AlertTriangle size={20} />
+              <div>
+                <Text variant="paragraph" style={{ fontWeight: 600 }}>
+                  لقد تجاوزت الحد المسموح للإعلانات!
+                </Text>
+                <Text variant="paragraph">
+                  لديك {currentListingsCount} إعلانات نشطة، بينما خطتك الحالية تسمح بـ {maxListings} إعلانات فقط.
+                  لن تتمكن من إضافة إعلانات جديدة حتى تقوم بأرشفة {overLimitCount} إعلانات أو ترقية اشتراكك.
+                </Text>
+              </div>
+            </div>
+          </Container>
+        )}
+
+        {/* Subscription Card */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          {/* Plan Header with Price */}
+          <div className={styles.planHeader}>
+            <div>
+              <Text variant="h3">{subscription?.title || "لا يوجد اشتراك"}</Text>
+              <Text variant="paragraph" color="secondary">
+                {user.accountType === AccountType.INDIVIDUAL && "خطة فردية"}
+                {user.accountType === AccountType.DEALER && "خطة تاجر"}
+                {user.accountType === AccountType.BUSINESS && "خطة أعمال"}
+              </Text>
+            </div>
+            <div className={styles.price}>
+              <Text variant="h1">{formatPrice(subscription?.monthlyPrice || 0)}</Text>
+              <Text variant="small" color="secondary">
+                {subscription?.monthlyPrice === 0 ? "مجاناً" : "/ شهرياً"}
               </Text>
             </div>
           </div>
-        )}
 
-        <div className={styles.content}>
-          {/* Current Plan */}
-          <div className={styles.planCard}>
-            <div className={styles.planHeader}>
-              <div>
-                <Text variant="h3">{subscription?.title || "لا يوجد اشتراك"}</Text>
-                <Text variant="paragraph" className={styles.planDescription}>
-                  {user.accountType === AccountType.INDIVIDUAL && "خطة فردية"}
-                  {user.accountType === AccountType.DEALER && "خطة تاجر"}
-                  {user.accountType === AccountType.BUSINESS && "خطة أعمال"}
-                </Text>
-              </div>
-              <div className={styles.price}>
-                <Text variant="h1">{formatPrice(subscription?.monthlyPrice || 0)}</Text>
-                <Text variant="paragraph" className={styles.billingCycle}>
-                  {subscription?.monthlyPrice === 0 ? "مجاناً" : "/ شهرياً"}
-                </Text>
-              </div>
-            </div>
-
-            {/* Usage Stats */}
-            {subscription && subscription.maxListings > 0 && (
-              <div className={styles.usageStats}>
-                <div className={styles.usageStat}>
-                  <Text variant="paragraph">الإعلانات المستخدمة</Text>
-                  <Text variant="h4">
-                    {currentListingsCount} / {subscription.maxListings}
-                  </Text>
-                  <div className={styles.progressBar}>
-                    <div
-                      className={styles.progress}
-                      style={{
-                        width: `${(currentListingsCount / subscription.maxListings) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Features List */}
-            <div className={styles.features}>
-              <Text variant="h4" className={styles.featuresTitle}>
-                الميزات المتاحة
-              </Text>
-              <ul className={styles.featuresList}>
-                {features.map((feature, index) => (
-                  <li
-                    key={index}
-                    className={feature.included ? styles.included : styles.notIncluded}
-                  >
-                    {feature.included ? (
-                      <Check size={20} className={styles.checkIcon} />
-                    ) : (
-                      <X size={20} className={styles.xIcon} />
-                    )}
-                    <Text variant="paragraph">{feature.name}</Text>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Billing Info */}
-            {!isFree && endDate && (
-              <div className={styles.billingInfo}>
-                <Text variant="paragraph">ينتهي الاشتراك في</Text>
-                <Text variant="paragraph">
-                  {formatDate(endDate)}
-                </Text>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className={styles.actions}>
-              {canUpgrade && (
-                <Button
-                  variant="primary"
-                  onClick={handleUpgradeSubscription}
+          {/* Features Grid */}
+          <div className={styles.featuresSection}>
+            <Text variant="h4">الميزات المتاحة</Text>
+            <div className={styles.featuresGrid}>
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  className={`${styles.featureItem} ${feature.included ? styles.included : styles.notIncluded}`}
                 >
-                  {isFree ? "ترقية الاشتراك" : "تجديد الاشتراك"}
+                  {feature.included ? (
+                    <Check size={18} className={styles.checkIcon} />
+                  ) : (
+                    <X size={18} className={styles.xIcon} />
+                  )}
+                  <Text variant="small">{feature.name}</Text>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer: Expiration + Actions */}
+          <div className={styles.footer}>
+            <div className={styles.footerInfo}>
+              {!isFree && endDate && (
+                <Text variant="paragraph" color="secondary">
+                  ينتهي الاشتراك في {formatDate(endDate)}
+                </Text>
+              )}
+              {isFree && !isBusinessAccount && (
+                <Text variant="small" color="secondary">
+                  يمكنك ترقية اشتراكك للحصول على ميزات إضافية
+                </Text>
+              )}
+              {isBusinessAccount && (
+                <Text variant="small" color="secondary">
+                  أنت مشترك في أعلى خطة متاحة
+                </Text>
+              )}
+            </div>
+            <div className={styles.footerActions}>
+              {canExtend && (
+                <Button variant="secondary" onClick={handleExtendSubscription}>
+                  تجديد الاشتراك
+                </Button>
+              )}
+              {canUpgrade && (
+                <Button variant="primary" onClick={handleUpgradeSubscription}>
+                  ترقية الاشتراك
                 </Button>
               )}
             </div>
           </div>
-
-          {/* Info Note */}
-          {isBusinessAccount ? (
-            <div className={styles.infoCard}>
-              <Text variant="paragraph">
-                أنت مشترك في أعلى خطة متاحة! استمتع بجميع الميزات المتقدمة.
-              </Text>
-            </div>
-          ) : isFree && (
-            <div className={styles.infoCard}>
-              <Text variant="paragraph">
-                {user.accountType === AccountType.INDIVIDUAL &&
-                  "استمتع بالخطة الفردية المجانية! يمكنك ترقية اشتراكك في أي وقت للحصول على ميزات إضافية."}
-                {user.accountType === AccountType.DEALER &&
-                  "استمتع بخطة التاجر المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 29$ شهرياً قريباً."}
-                {user.accountType === AccountType.BUSINESS &&
-                  "استمتع بخطة الأعمال المجانية خلال فترة الإطلاق! ستكون متاحة بسعر 99$ شهرياً قريباً."}
-              </Text>
-            </div>
-          )}
-        </div>
+        </Container>
       </div>
     </>
   );

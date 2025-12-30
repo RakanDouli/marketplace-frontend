@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Text, Loading, Button, MobileBackButton, Grid, StatCard } from '@/components/slices';
+import { Text, Loading, Button, MobileBackButton, Grid, StatCard, Container } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
 import { Eye, Heart, TrendingUp, BarChart3 } from 'lucide-react';
+import sharedStyles from '@/components/dashboard/SharedDashboardPanel.module.scss';
 import styles from './Analytics.module.scss';
 
 export default function AnalyticsPage() {
@@ -53,10 +54,8 @@ export default function AnalyticsPage() {
           onClick={() => router.push('/dashboard')}
           title="الإحصائيات"
         />
-        <div className={styles.dashboardPanel}>
-          <div className={styles.loadingContainer}>
-            <Loading type="svg" />
-          </div>
+        <div className={sharedStyles.loadingState}>
+          <Loading type="svg" />
         </div>
       </>
     );
@@ -74,11 +73,8 @@ export default function AnalyticsPage() {
           onClick={() => router.push('/dashboard')}
           title="الإحصائيات"
         />
-        <div className={styles.dashboardPanel}>
-          <div className={styles.loadingContainer}>
-            <Loading type="svg" />
-            <Text variant="paragraph">جاري تحميل الإحصائيات...</Text>
-          </div>
+        <div className={sharedStyles.loadingState}>
+          <Loading type="svg" />
         </div>
       </>
     );
@@ -91,10 +87,12 @@ export default function AnalyticsPage() {
           onClick={() => router.push('/dashboard')}
           title="الإحصائيات"
         />
-        <div className={styles.dashboardPanel}>
-          <div className={styles.emptyState}>
-            <Text variant="paragraph" color="error">{error}</Text>
-          </div>
+        <div className={sharedStyles.panel}>
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={styles.emptyState}>
+              <Text variant="paragraph" color="error">{error}</Text>
+            </div>
+          </Container>
         </div>
       </>
     );
@@ -143,17 +141,16 @@ export default function AnalyticsPage() {
         onClick={() => router.push('/dashboard')}
         title="الإحصائيات"
       />
-      <div className={styles.dashboardPanel}>
+      <div className={sharedStyles.panel}>
         {/* Header with Date Selector */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <Text variant="h2">الإحصائيات</Text>
-            <Text variant="paragraph" color="secondary">
-              تحليل شامل لأداء إعلاناتك
-            </Text>
-          </div>
-
-          <div className={styles.headerActions}>
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
+            <div>
+              <Text variant="h2">الإحصائيات</Text>
+              <Text variant="small" color="secondary">
+                تحليل شامل لأداء إعلاناتك
+              </Text>
+            </div>
             <div className={styles.dateRangeSelector}>
               <Button
                 variant={dateRange === 7 ? 'primary' : 'outline'}
@@ -185,11 +182,11 @@ export default function AnalyticsPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </Container>
 
         {/* Summary Stats - All Listings */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
             <Text variant="h3">نظرة عامة - جميع الإعلانات</Text>
             <Text variant="small" color="secondary">{getDateRangeLabel()}</Text>
           </div>
@@ -218,12 +215,12 @@ export default function AnalyticsPage() {
               icon={<BarChart3 size={24} />}
             />
           </Grid>
-        </div>
+        </Container>
 
         {/* Top Performers - Listing Selector */}
         {analyticsSummary.topPerformers.length > 0 && (
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
+          <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+            <div className={sharedStyles.sectionHeader}>
               <Text variant="h3">إعلاناتك</Text>
               <Text variant="small" color="secondary">
                 اختر إعلان لمشاهدة التفاصيل
@@ -266,7 +263,7 @@ export default function AnalyticsPage() {
                 </div>
               ))}
             </Grid>
-          </div>
+          </Container>
         )}
       </div>
     </>

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Text, Button, Image } from '@/components/slices';
+import { Text, Button, Image, Container, Grid } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useUserProfileStore } from '@/stores/userProfileStore';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -32,7 +32,7 @@ export const PersonalInfoPanel: React.FC = () => {
     if (!user.token) throw new Error('No authentication token');
 
     await updateProfile(user.token, data);
-    await refreshUserData(); // Refresh user data after update
+    await refreshUserData();
     setShowEditModal(false);
   };
 
@@ -40,16 +40,16 @@ export const PersonalInfoPanel: React.FC = () => {
     if (!user.token) throw new Error('No authentication token');
 
     await deleteAccount(user.token);
-    logout(); // Log user out after deletion
-    router.push('/'); // Redirect to home
+    logout();
+    router.push('/');
   };
 
   const handleDeactivateAccount = async () => {
     if (!user.token) throw new Error('No authentication token');
 
     await deactivateAccount(user.token);
-    logout(); // Log user out after deactivation
-    router.push('/'); // Redirect to home
+    logout();
+    router.push('/');
   };
 
   const handleSendPasswordReset = async () => {
@@ -61,7 +61,7 @@ export const PersonalInfoPanel: React.FC = () => {
     if (!user.token) throw new Error('No authentication token');
 
     await changeEmail(user.token, newEmail);
-    await refreshUserData(); // Refresh user data to show new email
+    await refreshUserData();
     setShowEmailModal(false);
   };
 
@@ -69,7 +69,6 @@ export const PersonalInfoPanel: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !user.token) return;
 
-    // Validate file
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       addNotification({
@@ -141,114 +140,112 @@ export const PersonalInfoPanel: React.FC = () => {
     }
   };
 
-  // Check if user has custom branding permission (premium feature)
   const hasCustomBranding = userPackage?.userSubscription?.customBranding === true;
 
-  // Helper to get avatar URL - handles both Cloudflare IDs and full URLs
   const getAvatarUrl = (avatar: string | null, variant: 'small' | 'card' | 'thumbnail' = 'small') => {
     if (!avatar) return null;
-    // If it's already a full URL (Unsplash), use it directly
     if (avatar.startsWith('http')) return avatar;
-    // Otherwise it's a Cloudflare asset key, use higher quality variant
-    const url = optimizeListingImage(avatar, variant);
-    return url;
+    return optimizeListingImage(avatar, variant);
   };
 
   return (
     <div className={styles.panel}>
-      {/* Profile Header with Avatar */}
-      <div className={styles.profileHeader}>
-        <div className={styles.avatarSection}>
-          <div
-            className={styles.avatar}
-            style={{
-              backgroundColor: user.avatar
-                ? 'transparent'
-                : getAvatarColor(user.name, user.email),
-            }}
-          >
-            {user.avatar ? (
-              <Image
-                src={getAvatarUrl(user.avatar, 'card') || ''}
-                alt={user.name || ''}
-                aspectRatio="1/1"
-                containerStyle={{ width: '100%', height: '100%' }}
-              />
-            ) : (
-              <span className={styles.initials}>
-                {getInitials(user.name, user.email)}
-              </span>
-            )}
-          </div>
+      {/* Profile Header Section */}
+      <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+        <div className={styles.profileHeader}>
+          <div className={styles.avatarSection}>
+            <div
+              className={styles.avatar}
+              style={{
+                backgroundColor: user.avatar
+                  ? 'transparent'
+                  : getAvatarColor(user.name, user.email),
+              }}
+            >
+              {user.avatar ? (
+                <Image
+                  src={getAvatarUrl(user.avatar, 'card') || ''}
+                  alt={user.name || ''}
+                  aspectRatio="1/1"
+                  containerStyle={{ width: '100%', height: '100%' }}
+                />
+              ) : (
+                <span className={styles.initials}>
+                  {getInitials(user.name, user.email)}
+                </span>
+              )}
+            </div>
 
-          {/* Avatar Upload/Delete Buttons - Only for users with customBranding permission */}
-          {hasCustomBranding && (
-            <div className={styles.avatarActions}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleAvatarUpload}
-                style={{ display: 'none' }}
-              />
+            {hasCustomBranding && (
+              <div className={styles.avatarActions}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarUpload}
+                  style={{ display: 'none' }}
+                />
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploadingAvatar}
-                icon={<Upload size={16} />}
-              >
-                {isUploadingAvatar ? 'جاري الرفع...' : user.avatar ? 'تغيير الصورة' : 'رفع صورة'}
-              </Button>
-
-              {user.avatar && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleAvatarDelete}
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingAvatar}
-                  icon={<Trash2 size={16} />}
+                  icon={<Upload size={16} />}
                 >
-                  حذف الصورة
+                  {isUploadingAvatar ? 'جاري الرفع...' : user.avatar ? 'تغيير الصورة' : 'رفع صورة'}
                 </Button>
-              )}
-            </div>
-          )}
-        </div>
 
-        <div className={styles.profileInfo}>
-          <Text variant="h2">{user.name || 'مستخدم'}</Text>
-          <Text variant="paragraph" style={{ color: 'var(--text-secondary)' }}>
-            {userPackage?.userSubscription?.title || ACCOUNT_TYPE_LABELS[user.accountType.toLowerCase()] || user.accountType}
-          </Text>
-          {user.companyName && (
-            <Text variant="paragraph" style={{ marginTop: '$space-xs' }}>
-              {user.companyName}
+                {user.avatar && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAvatarDelete}
+                    disabled={isUploadingAvatar}
+                    icon={<Trash2 size={16} />}
+                  >
+                    حذف الصورة
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className={styles.profileInfo}>
+            <Text variant="h2">{user.name || 'مستخدم'}</Text>
+            <Text variant="paragraph" color="secondary">
+              {userPackage?.userSubscription?.title || ACCOUNT_TYPE_LABELS[user.accountType.toLowerCase()] || user.accountType}
             </Text>
-          )}
+            {user.companyName && (
+              <Text variant="small" color="secondary">
+                {user.companyName}
+              </Text>
+            )}
+          </div>
         </div>
-      </div>
+      </Container>
 
       {/* Email Verification Warning */}
       {!user.isEmailConfirmed && (
-        <div className={styles.warningCard}>
-          <div className={styles.warningContent}>
-            <Text variant="paragraph" style={{ fontWeight: 600 }}>
-              ⚠️ تأكيد البريد الإلكتروني
-            </Text>
-            <Text variant="small">
-              يرجى تأكيد بريدك الإلكتروني لتفعيل جميع المزايا
-            </Text>
+        <Container paddingX="none" paddingY="none">
+          <div className={styles.warningCard}>
+            <div className={styles.warningContent}>
+              <Text variant="paragraph" style={{ fontWeight: 600 }}>
+                تأكيد البريد الإلكتروني
+              </Text>
+              <Text variant="small" color="secondary">
+                يرجى تأكيد بريدك الإلكتروني لتفعيل جميع المزايا
+              </Text>
+            </div>
+            <Button variant="outline" size="sm">
+              إعادة الإرسال
+            </Button>
           </div>
-          <Button variant="outline" size="sm">
-            إعادة الإرسال
-          </Button>
-        </div>
+        </Container>
       )}
 
-      {/* Personal Information Section */}
-      <div className={styles.section}>
+      {/* Account Information Section */}
+      <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
         <div className={styles.sectionHeader}>
           <Text variant="h3">معلومات الحساب</Text>
           <Button variant="primary" size="sm" onClick={() => setShowEditModal(true)}>
@@ -258,19 +255,18 @@ export const PersonalInfoPanel: React.FC = () => {
 
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
-            <Text variant="small" className={styles.infoLabel}>الاسم</Text>
+            <Text variant="small" color="secondary">الاسم</Text>
             <Text variant="paragraph">{user.name || 'غير محدد'}</Text>
           </div>
 
           <div className={styles.infoItem}>
-            <Text variant="small" className={styles.infoLabel}>البريد الإلكتروني</Text>
+            <Text variant="small" color="secondary">البريد الإلكتروني</Text>
             <Text variant="paragraph">{user.email}</Text>
           </div>
 
-          {/* Phone field - for ALL users (personal/WhatsApp number) */}
           {user.phone && (
             <div className={styles.infoItem}>
-              <Text variant="small" className={styles.infoLabel}>
+              <Text variant="small" color="secondary">
                 رقم الجوال {user.phoneIsWhatsApp && '(واتساب)'}
               </Text>
               <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
@@ -279,10 +275,9 @@ export const PersonalInfoPanel: React.FC = () => {
             </div>
           )}
 
-          {/* Office Phone - additional field for DEALER/BUSINESS only */}
           {(user.accountType.toLowerCase() === AccountType.DEALER || user.accountType.toLowerCase() === AccountType.BUSINESS) && user.contactPhone && (
             <div className={styles.infoItem}>
-              <Text variant="small" className={styles.infoLabel}>هاتف المكتب</Text>
+              <Text variant="small" color="secondary">هاتف المكتب</Text>
               <Text variant="paragraph" dir="ltr" style={{ textAlign: 'right' }}>
                 {user.contactPhone}
               </Text>
@@ -291,7 +286,7 @@ export const PersonalInfoPanel: React.FC = () => {
 
           {user.website && (
             <div className={styles.infoItem}>
-              <Text variant="small" className={styles.infoLabel}>الموقع الإلكتروني</Text>
+              <Text variant="small" color="secondary">الموقع الإلكتروني</Text>
               <Text variant="paragraph">
                 <a
                   href={user.website}
@@ -307,16 +302,16 @@ export const PersonalInfoPanel: React.FC = () => {
 
           {user.companyRegistrationNumber && (
             <div className={styles.infoItem}>
-              <Text variant="small" className={styles.infoLabel}>رقم التسجيل التجاري</Text>
+              <Text variant="small" color="secondary">رقم التسجيل التجاري</Text>
               <Text variant="paragraph">{user.companyRegistrationNumber}</Text>
             </div>
           )}
         </div>
-      </div>
+      </Container>
 
       {/* Account Settings Section */}
-      <div className={styles.section}>
-        <Text variant="h3">إعدادات الحساب</Text>
+      <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+        <Text variant="h3" style={{ marginBottom: 'var(--space-md)' }}>إعدادات الحساب</Text>
 
         <div className={styles.settingsGrid}>
           <div className={styles.settingCard}>
@@ -324,7 +319,7 @@ export const PersonalInfoPanel: React.FC = () => {
               <Text variant="paragraph" style={{ fontWeight: 600 }}>
                 إيقاف الحساب مؤقتاً
               </Text>
-              <Text variant="small" style={{ color: 'var(--text-secondary)' }}>
+              <Text variant="small" color="secondary">
                 يمكنك إخفاء حسابك وإعلاناتك مؤقتاً وإعادة تفعيلها لاحقاً
               </Text>
             </div>
@@ -338,7 +333,7 @@ export const PersonalInfoPanel: React.FC = () => {
               <Text variant="paragraph" style={{ fontWeight: 600 }}>
                 حذف الحساب نهائياً
               </Text>
-              <Text variant="small" style={{ color: 'var(--text-secondary)' }}>
+              <Text variant="small" color="secondary">
                 سيتم حذف جميع بياناتك بشكل نهائي ولا يمكن استرجاعها
               </Text>
             </div>
@@ -347,7 +342,7 @@ export const PersonalInfoPanel: React.FC = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </Container>
 
       {/* Modals */}
       {showEditModal && (

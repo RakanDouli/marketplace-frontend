@@ -8,6 +8,7 @@ import { useUserAuthStore } from '@/stores/userAuthStore';
 import { Container, Text, Button, Loading, MobileBackButton } from '@/components/slices';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { formatDate } from '@/utils/formatDate';
+import sharedStyles from '@/components/dashboard/SharedDashboardPanel.module.scss';
 import styles from './blocked-users.module.scss';
 
 export default function BlockedUsersPage() {
@@ -57,10 +58,10 @@ export default function BlockedUsersPage() {
         onClick={() => router.push('/dashboard')}
         title="قائمه الحظر"
       />
-      <>
-        <div className={styles.blockedUsersPage}>
-          {/* Header */}
-          <div className={styles.header}>
+      <div className={sharedStyles.panel}>
+        {/* Header Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
             <div className={styles.titleRow}>
               <Ban size={28} />
               <Text variant="h2">المحظورون</Text>
@@ -71,10 +72,15 @@ export default function BlockedUsersPage() {
               </Text>
             )}
           </div>
+        </Container>
 
+        {/* Content Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
           {/* Loading State */}
           {isLoading && (
-            <Loading type="svg" />
+            <div className={sharedStyles.loadingState}>
+              <Loading type="svg" />
+            </div>
           )}
 
           {/* Error State */}
@@ -101,12 +107,12 @@ export default function BlockedUsersPage() {
 
           {/* Success State - List of Blocked Users */}
           {!isLoading && !error && blockedUsers.length > 0 && (
-            <div className={styles.blockedUsersList}>
+            <div className={sharedStyles.settingsGrid}>
               {blockedUsers.map((blockedUser) => (
-                <div key={blockedUser.id} className={styles.blockedUserCard}>
+                <div key={blockedUser.id} className={sharedStyles.settingCard}>
                   <div className={styles.userInfo}>
                     <UserCircle size={48} className={styles.userIcon} />
-                    <div className={styles.userDetails}>
+                    <div className={sharedStyles.settingContent}>
                       <Text variant="h4">
                         {blockedUser.blockedUser.companyName || blockedUser.blockedUser.name || blockedUser.blockedUser.email}
                       </Text>
@@ -129,8 +135,8 @@ export default function BlockedUsersPage() {
               ))}
             </div>
           )}
-        </div>
-      </>
+        </Container>
+      </div>
     </>
   );
 }

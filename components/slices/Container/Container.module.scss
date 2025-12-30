@@ -170,3 +170,54 @@
   position: relative;
   z-index: 2;
 }
+
+// ============================================
+// Inner Container Padding (innerPadding)
+// ============================================
+.innerP_none {
+  padding: 0;
+}
+
+.innerP_sm {
+  padding: $space-sm;
+}
+
+.innerP_md {
+  padding: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-sm;
+  }
+}
+
+.innerP_lg {
+  padding: $space-lg;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+.innerP_xl {
+  padding: $space-xl;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+.innerP_xxl {
+  padding: $space-xxl;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-lg;
+  }
+}
+
+// ============================================
+// Inner Container Border (innerBorder)
+// ============================================
+.innerBorder {
+  border: 1px solid $border;
+  border-radius: $radius-md;
+}

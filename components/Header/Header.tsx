@@ -4,13 +4,14 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Heart } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { ThemeToggle, Spacer } from "@/components/slices";
 import { UserMenu } from "@/components/UserMenu";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
+import { useWishlistStore } from "@/stores/wishlistStore";
 import styles from "./Header.module.scss";
 import { Container } from "../slices";
 import { Preheader } from "../Preheader";
@@ -22,20 +23,22 @@ export const Header: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [showPreheader, setShowPreheader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const { user } = useUserAuthStore();
+  const { user, openAuthModal } = useUserAuthStore();
   const { unreadCount, fetchUnreadCount, fetchMyThreads } = useChatStore();
+  const { loadMyWishlist } = useWishlistStore();
 
-  // Fetch unread count when user is logged in
+  // Fetch unread count and wishlist when user is logged in
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
+      loadMyWishlist();
       // Poll every 30 seconds for new messages
       const interval = setInterval(() => {
         fetchUnreadCount();
       }, 30000);
       return () => clearInterval(interval);
     }
-  }, [user, fetchUnreadCount]);
+  }, [user, fetchUnreadCount, loadMyWishlist]);
 
   // Handle scroll behavior - hide when scrolling down, show when scrolling up
   useEffect(() => {
@@ -70,6 +73,20 @@ export const Header: React.FC = () => {
 
     // Navigate to messages page (even if already there, will trigger re-render)
     router.push('/messages');
+  };
+
+  // Handle wishlist icon click - check auth first
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+
+    // Refresh wishlist and navigate
+    loadMyWishlist();
+    router.push('/dashboard/wishlist');
   };
 
   return (
@@ -117,13 +134,23 @@ export const Header: React.FC = () => {
 
             {/* Desktop Actions */}
             <div className={styles.actions}>
+              {/* Wishlist Icon - shows for all users, auth check on click */}
+              <button
+                onClick={handleWishlistClick}
+                className={styles.messagesIcon}
+                aria-label="المفضلة"
+              >
+                <Heart size={24} />
+              </button>
+
+              {/* Messages Icon - only for logged in users */}
               {user && (
                 <button
                   onClick={handleMessagesClick}
                   className={styles.messagesIcon}
-                  aria-label="Messages"
+                  aria-label="الرسائل"
                 >
-                  <MessageCircle size={20} />
+                  <MessageCircle size={24} />
                   {unreadCount > 0 && (
                     <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
                   )}

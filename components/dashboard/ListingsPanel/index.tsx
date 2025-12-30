@@ -1,9 +1,8 @@
 'use client';
-import { formatPrice } from '@/utils/formatPrice';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Loading, Text, Pagination, ListingCard } from '@/components/slices';
+import { Button, Loading, Text, Pagination, ListingCard, Container, Grid } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { EditListingModal, DeleteListingModal } from './modals';
 import { useNotificationStore } from '@/stores/notificationStore';
@@ -11,11 +10,12 @@ import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore'
 import { useArchivedListingStore } from '@/stores/archivedListingStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
+import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { ListingStatus as ListingStatusEnum } from '@/common/enums';
-import { RefreshCw, Edit, Trash2, Eye, Plus, AlertTriangle } from 'lucide-react';
+import { Edit, Trash2, Eye, Plus, AlertTriangle } from 'lucide-react';
 import { Listing } from '@/types/listing';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
+import sharedStyles from '../SharedDashboardPanel.module.scss';
 import styles from './ListingsPanel.module.scss';
 
 export const ListingsPanel: React.FC = () => {
@@ -39,8 +39,8 @@ export const ListingsPanel: React.FC = () => {
   // Use archived listing store for archiving
   const { archiveListing } = useArchivedListingStore();
 
-  // Get user subscription limits
-  const { userPackage } = useUserAuthStore();
+  // Get user subscription limits and current user
+  const { userPackage, user } = useUserAuthStore();
   const maxListings = userPackage?.userSubscription?.maxListings || 0;
   // Use pagination.total from listings store - this is the actual count of user's listings
   const currentListingsCount = pagination.total;
@@ -205,21 +205,22 @@ export const ListingsPanel: React.FC = () => {
       specs: listing.specsDisplay || {},
       images,
       description: listing.description,
+      userId: user?.id, // Pass current user's ID - these are all "my listings"
     };
   };
 
   return (
     <>
-      <div className={styles.dashboardPanel}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <Text variant="h2" className={styles.title}>إعلاناتي</Text>
-            <Text variant="paragraph" color="secondary" className={styles.description}>
-              إدارة ومراجعة جميع إعلاناتك
-            </Text>
-          </div>
-          <div className={styles.headerActions}>
+      <div className={sharedStyles.panel}>
+        {/* Header Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          <div className={sharedStyles.sectionHeader}>
+            <div>
+              <Text variant="h2">إعلاناتي</Text>
+              <Text variant="small" color="secondary">
+                إدارة ومراجعة جميع إعلاناتك
+              </Text>
+            </div>
             <Button
               onClick={handleCreateListing}
               variant="primary"
@@ -230,63 +231,66 @@ export const ListingsPanel: React.FC = () => {
               إضافة إعلان جديد
             </Button>
           </div>
-        </div>
 
-        {/* Usage Stats with Progress Bar - Only show if there's a limit */}
-        {maxListings > 0 && (
-          <div className={styles.usageStats}>
-            <div className={styles.usageStat}>
-              <div className={styles.usageHeader}>
-                <Text variant="paragraph">الإعلانات المستخدمة</Text>
-                <Text variant="h4">
-                  {currentListingsCount} / {maxListings}
-                </Text>
-              </div>
-              <div className={styles.progressBar}>
-                <div
-                  className={`${styles.progress} ${
-                    isOverLimit ? styles.danger : isAtLimit ? styles.warning : ''
-                  }`}
-                  style={{
-                    width: `${Math.min((currentListingsCount / maxListings) * 100, 100)}%`,
-                  }}
-                />
+          {/* Usage Stats with Progress Bar - Only show if there's a limit */}
+          {maxListings > 0 && (
+            <div className={sharedStyles.usageStats}>
+              <div className={sharedStyles.usageStat}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text variant="paragraph">الإعلانات المستخدمة</Text>
+                  <Text variant="h4">
+                    {currentListingsCount} / {maxListings}
+                  </Text>
+                </div>
+                <div className={sharedStyles.progressBar}>
+                  <div
+                    className={sharedStyles.progress}
+                    style={{
+                      width: `${Math.min((currentListingsCount / maxListings) * 100, 100)}%`,
+                      backgroundColor: isOverLimit ? 'var(--error)' : isAtLimit ? 'var(--warning)' : undefined
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </Container>
 
         {/* Over Limit Warning */}
         {isOverLimit && (
-          <div className={styles.overLimitWarning}>
-            <AlertTriangle size={20} />
-            <div>
-              <Text variant="paragraph" style={{ fontWeight: 600 }}>
-                لقد تجاوزت الحد المسموح للإعلانات!
-              </Text>
-              <Text variant="small" color="secondary">
-                لديك {currentListingsCount} إعلانات، بينما خطتك تسمح بـ {maxListings} فقط.
-                قم بأرشفة بعض الإعلانات أو ترقية اشتراكك لإضافة إعلانات جديدة.
-              </Text>
+          <Container paddingX="none" paddingY="none">
+            <div className={styles.overLimitWarning}>
+              <AlertTriangle size={20} />
+              <div>
+                <Text variant="paragraph" style={{ fontWeight: 600 }}>
+                  لقد تجاوزت الحد المسموح للإعلانات!
+                </Text>
+                <Text variant="small" color="secondary">
+                  لديك {currentListingsCount} إعلانات، بينما خطتك تسمح بـ {maxListings} فقط.
+                  قم بأرشفة بعض الإعلانات أو ترقية اشتراكك لإضافة إعلانات جديدة.
+                </Text>
+              </div>
             </div>
-          </div>
+          </Container>
         )}
 
         {/* At Limit Info (not over, just at limit) */}
         {isAtLimit && !isOverLimit && (
-          <div className={styles.atLimitInfo}>
-            <AlertTriangle size={20} />
-            <Text variant="small">
-              لقد وصلت للحد الأقصى ({maxListings} إعلانات). قم بأرشفة إعلان أو ترقية اشتراكك لإضافة المزيد.
-            </Text>
-          </div>
+          <Container paddingX="none" paddingY="none">
+            <div className={styles.atLimitInfo}>
+              <AlertTriangle size={20} />
+              <Text variant="small">
+                لقد وصلت للحد الأقصى ({maxListings} إعلانات). قم بأرشفة إعلان أو ترقية اشتراكك لإضافة المزيد.
+              </Text>
+            </div>
+          </Container>
         )}
 
-        {/* Search & Filters */}
-        <div className={styles.searchSection}>
+        {/* Search & Filters Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="md" innerBorder>
           <div className={styles.searchRow}>
             <Text variant="small" className={styles.itemCount}>
-              النتيحه: {pagination.total}
+              النتيجة: {pagination.total}
             </Text>
             <Input
               type="search"
@@ -294,8 +298,6 @@ export const ListingsPanel: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
-          <div className={styles.controlsRow}>
             <Input
               type="select"
               value={statusFilter}
@@ -306,100 +308,100 @@ export const ListingsPanel: React.FC = () => {
               ]}
             />
           </div>
-        </div>
+        </Container>
 
-        {/* Content */}
-        {loading ? (
-          <div className={styles.loadingContainer}>
-            <Loading />
-            <Text variant="paragraph">جاري تحميل الإعلانات...</Text>
-          </div>
-        ) : listings.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Eye size={48} className={styles.emptyIcon} />
-            <Text variant="h3">لا توجد إعلانات</Text>
-            <Text variant="paragraph" color="secondary">لم يتم العثور على أي إعلانات</Text>
-            <Button
-              onClick={handleCreateListing}
-              variant="primary"
-              icon={<Plus size={16} />}
-            >
-              إضافة إعلان جديد
-            </Button>
-          </div>
-        ) : (
-          <div className={styles.listingsGrid}>
-            {listings.map(listing => (
-              <div key={listing.id} className={styles.listingCardWrapper}>
-                {/* Status Badge Overlay */}
-                <div className={`${styles.statusBadge} ${styles[`status-${listing.status.toLowerCase()}`]}`}>
-                  {getLabel(listing.status, LISTING_STATUS_LABELS)}
-                </div>
+        {/* Listings Grid Section */}
+        <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
+          {loading ? (
+            <div className={styles.loadingContainer}>
+              <Loading />
+              <Text variant="paragraph">جاري تحميل الإعلانات...</Text>
+            </div>
+          ) : listings.length === 0 ? (
+            <div className={styles.emptyState}>
+              <Eye size={48} className={styles.emptyIcon} />
+              <Text variant="h3">لا توجد إعلانات</Text>
+              <Text variant="paragraph" color="secondary">لم يتم العثور على أي إعلانات</Text>
+              <Button
+                onClick={handleCreateListing}
+                variant="primary"
+                icon={<Plus size={16} />}
+              >
+                إضافة إعلان جديد
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Grid columns={4} mobileColumns={1} gap="lg">
+                {listings.map(listing => (
+                  <div key={listing.id} className={styles.listingCardWrapper}>
+                    {/* Status Badge Overlay */}
+                    <div className={`${styles.statusBadge} ${styles[`status-${listing.status.toLowerCase()}`]}`}>
+                      {getLabel(listing.status, LISTING_STATUS_LABELS)}
+                    </div>
 
-                {/* Listing Card */}
-                <ListingCard
-                  {...getListingCardProps(listing)}
-                  onClick={() => router.push(`/${listing.category?.slug || 'car'}/${listing.id}`)}
+                    {/* Listing Card */}
+                    <ListingCard
+                      {...getListingCardProps(listing)}
+                      onClick={() => router.push(`/${listing.category?.slug || 'car'}/${listing.id}`)}
+                    />
+
+                    {/* Draft/Rejected Message - Show when status is DRAFT or REJECTED */}
+                    {(listing.status === ListingStatusEnum.DRAFT || listing.status === ListingStatusEnum.REJECTED) && (
+                      <div className={styles.draftMessage}>
+                        <Text variant="small" className={styles.draftText}>
+                          {listing.status === ListingStatusEnum.REJECTED
+                            ? 'تم رفض إعلانك - يرجى التعديل وإعادة النشر'
+                            : 'يرجى تعديل إعلانك لنشره'}
+                        </Text>
+                      </div>
+                    )}
+
+                    {/* View Count */}
+                    {listing.viewCount !== undefined && (
+                      <div className={styles.viewCount}>
+                        <Eye size={14} />
+                        <Text variant="xs">{listing.viewCount} مشاهدة</Text>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className={styles.cardActions}>
+                      <Button
+                        onClick={(e) => handleEditListing(listing, e)}
+                        variant="outline"
+                        size="sm"
+                        icon={<Edit size={16} />}
+                      >
+                        تعديل
+                      </Button>
+                      <Button
+                        onClick={(e) => handleDeleteListing(listing, e)}
+                        variant="danger"
+                        size="sm"
+                        icon={<Trash2 size={16} />}
+                      >
+                        حذف
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </Grid>
+
+              {/* Pagination */}
+              <div className={sharedStyles.paginationFooter}>
+                <Pagination
+                  currentPage={pagination.page}
+                  totalPages={totalPages}
+                  onPageChange={(page) => { loadMyListings(filters, page); }}
                 />
-
-                {/* Draft/Rejected Message - Show when status is DRAFT or REJECTED */}
-                {(listing.status === ListingStatusEnum.DRAFT || listing.status === ListingStatusEnum.REJECTED) && (
-                  <div className={styles.draftMessage}>
-                    <Text variant="small" className={styles.draftText}>
-                      {listing.status === ListingStatusEnum.REJECTED
-                        ? '❌ تم رفض إعلانك - يرجى التعديل وإعادة النشر'
-                        : 'يرجى تعديل إعلانك لنشره'}
-                    </Text>
-                  </div>
-                )}
-
-                {/* View Count */}
-                {listing.viewCount !== undefined && (
-                  <div className={styles.viewCount}>
-                    <Eye size={14} />
-                    <Text variant="xs">{listing.viewCount} مشاهدة</Text>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className={styles.cardActions}>
-                  <Button
-                    onClick={(e) => handleEditListing(listing, e)}
-                    variant="outline"
-                    size="sm"
-                    icon={<Edit size={16} />}
-
-                  >
-                    تعديل
-                  </Button>
-                  <Button
-                    onClick={(e) => handleDeleteListing(listing, e)}
-                    variant="danger"
-                    size="sm"
-                    icon={<Trash2 size={16} />}
-
-                  >
-                    حذف
-                  </Button>
-                </div>
+                <Text variant="small" color="secondary" className={sharedStyles.paginationInfo}>
+                  عرض {listings.length} من {pagination.total} إعلان
+                </Text>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {!loading && listings.length > 0 && (
-          <>
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={totalPages}
-              onPageChange={(page) => { loadMyListings(filters, page); }}
-            />
-            <Text variant="small" color="secondary">
-              عرض {listings.length} من {pagination.total} إعلان
-            </Text>
-          </>
-        )}
+            </>
+          )}
+        </Container>
       </div>
 
       {/* Modals */}

@@ -1,28 +1,6 @@
 @import "@/styles/variables";
 
-// Main page wrapper (Container already handles max-width)
-.wishlistPage {
-  padding: $space-lg 0;
-
-  @media (max-width: $breakpoint-md) {
-    padding: $space-md 0;
-  }
-}
-
-// Header section
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-  margin-bottom: $space-lg;
-  padding-bottom: $space-sm;
-  border-bottom: 1px solid $border;
-
-  @media (max-width: $breakpoint-md) {
-    margin-bottom: $space-md;
-  }
-}
-
+// Title row with heart icon
 .titleRow {
   display: flex;
   align-items: center;
@@ -32,22 +10,11 @@
     color: $error;
     flex-shrink: 0;
   }
-}
 
-// Grid layout for listings (matches ListingArea pattern)
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(24%, 24%));
-  gap: $space-sm;
-  align-items: start;
-
-  @media (max-width: $breakpoint-md) {
-    grid-template-columns: 1fr 1fr 1fr !important;
-  }
-
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr 1fr !important;
-    gap: $space-xs;
+  // Remove default heading margin for proper alignment
+  h2 {
+    margin: 0;
+    padding: 0;
   }
 }
 

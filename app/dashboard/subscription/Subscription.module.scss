@@ -1,35 +1,22 @@
 @import "../../../styles/variables";
 
-.container {
-  padding: $space-md;
-}
-
-.header {
-  margin-bottom: $space-lg;
-}
-
-.warningBanner {
+// Title row with icon
+.titleRow {
   display: flex;
   align-items: center;
   gap: $space-sm;
-  padding: $space-md;
-  margin-bottom: $space-md;
-  background: rgba($warning, 0.1);
-  border: 1px solid $warning;
-  border-radius: $radius-md;
-  color: $warning;
 
   svg {
-    flex-shrink: 0;
+    color: var(--color-primary);
   }
 }
 
+// Error banner
 .errorBanner {
   display: flex;
   align-items: center;
   gap: $space-sm;
   padding: $space-md;
-  margin-bottom: $space-md;
   background: rgba($error, 0.1);
   border: 1px solid $error;
   border-radius: $radius-md;
@@ -40,106 +27,65 @@
   }
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-}
-
-.planCard {
-  // padding: $space-lg;
-  display: flex;
-  flex-direction: column;
-  gap: $space-lg;
-}
-
+// Plan header with title and price
 .planHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: $space-md;
-  padding-bottom: $space-md;
+  padding-bottom: $space-lg;
   border-bottom: 1px solid $border;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+  }
 }
 
-.planDescription {
-  color: $text-muted;
-  margin-top: $space-xs;
-}
-
+// Price display
 .price {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+
+  @media (max-width: $breakpoint-sm) {
+    align-items: flex-start;
+  }
 }
 
-.billingCycle {
-  color: $text-muted;
-  margin-top: $space-xs;
-}
-
-.usageStats {
+// Features section
+.featuresSection {
   display: flex;
   flex-direction: column;
   gap: $space-md;
-  padding: $space-md;
-  background: $bg;
-  border-radius: $radius-md;
+  padding: $space-lg 0;
 }
 
-.usageStat {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-}
-
-.progressBar {
-  width: 100%;
-  height: 8px;
-  background: $border;
-  border-radius: $radius-md;
-  overflow: hidden;
-}
-
-.progress {
-  height: 100%;
-  background: $primary;
-  border-radius: $radius-md;
-  transition: width 0.3s ease;
-}
-
-.features {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-}
-
-.featuresTitle {
-  padding-bottom: $space-sm;
-  border-bottom: 1px solid $border;
-}
-
-.featuresList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
+// Features grid - 3 columns on desktop, 2 on mobile
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: $space-sm;
 
-  li {
-    display: flex;
-    align-items: center;
-    gap: $space-sm;
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
-    &.included {
-      color: $text;
-    }
+// Feature item
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  background: rgba($border, 0.3);
 
-    &.notIncluded {
-      color: $text-muted;
-      opacity: 0.6;
-    }
+  &.included {
+    background: rgba($success, 0.1);
+  }
+
+  &.notIncluded {
+    opacity: 0.5;
   }
 }
 
@@ -149,46 +95,34 @@
 }
 
 .xIcon {
-  color: $text-muted;
+  color: $text-secondary;
   flex-shrink: 0;
 }
 
-.billingInfo {
+// Footer with expiration and actions
+.footer {
   display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-  padding: $space-md;
-  background: $bg;
-  border-radius: $radius-md;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-  padding-top: $space-md;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-md;
+  padding-top: $space-lg;
   border-top: 1px solid $border;
-}
 
-.infoCard {
-  padding: $space-md;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-
-  p {
-    color: $text-muted;
-    line-height: 1.6;
-  }
-}
-
-@media (max-width: $breakpoint-sm) {
-  .planHeader {
+  @media (max-width: $breakpoint-sm) {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
+}
 
-  .price {
-    align-items: flex-start;
+.footerInfo {
+  flex: 1;
+}
+
+.footerActions {
+  display: flex;
+  gap: $space-sm;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
   }
 }

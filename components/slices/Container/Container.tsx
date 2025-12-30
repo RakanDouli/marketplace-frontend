@@ -28,6 +28,10 @@ export interface ContainerProps {
   overlay?: boolean;
   /** Additional CSS class */
   className?: string;
+  /** Inner container padding (all sides) */
+  innerPadding?: PaddingSize;
+  /** Inner container border (adds border + border-radius) */
+  innerBorder?: boolean;
 }
 
 export const Container: React.FC<ContainerProps> = ({
@@ -43,6 +47,8 @@ export const Container: React.FC<ContainerProps> = ({
   outerBackgroundImage,
   overlay = false,
   className = "",
+  innerPadding,
+  innerBorder = false,
 }) => {
   // Build class names
   const outerClasses = [
@@ -57,6 +63,8 @@ export const Container: React.FC<ContainerProps> = ({
     styles[size],
     styles[`bg_${background}`],
     styles[`py_${paddingY}`],
+    innerPadding && styles[`innerP_${innerPadding}`],
+    innerBorder && styles.innerBorder,
   ].filter(Boolean).join(" ");
 
   // Custom inline styles (override CSS classes if provided)

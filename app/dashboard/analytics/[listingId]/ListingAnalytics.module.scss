@@ -1,54 +1,10 @@
 @import "../../../../styles/variables";
 
 // ===================================
-// Individual Listing Analytics - Standardized Layout
+// Listing Analytics - Simplified
 // ===================================
 
-// Main Container (matches admin dashboard)
-.dashboardPanel {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-  padding: $space-md;
-  border-radius: $radius-md;
-  background: $bg;
-}
-
-// Header Section (matches admin dashboard)
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: $space-lg;
-  flex-wrap: wrap;
-  padding-bottom: $space-md;
-  border-bottom: 1px solid $border;
-}
-
-.headerContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-}
-
-.headerActions {
-  display: flex;
-  gap: $space-sm;
-  flex-wrap: wrap;
-  align-items: flex-start;
-}
-
-.title {
-  margin: 0;
-}
-
-.description {
-  margin: 0;
-}
-
-// Loading & Empty States (matches admin dashboard)
-.loadingContainer,
+// Empty State
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -69,19 +25,13 @@
   }
 }
 
-// ===================================
 // Date Range Selector
-// ===================================
-
 .dateRangeSelector {
   display: inline-flex;
   gap: $space-xs;
 }
 
-// ===================================
 // Comparison Card
-// ===================================
-
 .comparisonCard {
   padding: $space-lg;
   background: rgba($primary, 0.04);
@@ -96,21 +46,7 @@
   }
 }
 
-// ===================================
-// Chart Card
-// ===================================
-
-.chartCard {
-  display: flex;
-  flex-direction: column;
-  gap: $space-lg;
-  padding: $space-xl;
-  background: $surface;
-  border-radius: $radius-lg;
-  border: 1px solid $border;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
+// Chart Placeholder
 .chartPlaceholder {
   display: flex;
   flex-direction: column;
@@ -132,16 +68,6 @@
 // ===================================
 // Performance Indicator (Google-style)
 // ===================================
-
-.performanceCard {
-  display: flex;
-  flex-direction: column;
-  gap: $space-md;
-  padding: $space-lg;
-  background: $surface;
-  border-radius: $radius-lg;
-  border: 1px solid $border;
-}
 
 .performanceHeader {
   display: flex;
