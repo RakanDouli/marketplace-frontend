@@ -4,6 +4,11 @@
   display: flex;
   height: calc(100vh - ($header-height + $pre-header-height));
   background: $bg;
+
+  // On mobile (header hidden at md), only bottom nav exists
+  @media (max-width: $breakpoint-md) {
+    height: calc(100vh - $bottom-nav-height);
+  }
 }
 
 // Threads Aside (Left side)
@@ -341,6 +346,14 @@
   border-top: 1px solid $border;
   // Allow dropdown to overflow and show above on mobile
   overflow: visible;
+  flex-shrink: 0; // Prevent input from shrinking
+
+  // On mobile (header hidden at md), ensure input is always visible
+  @media (max-width: $breakpoint-md) {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
 }
 
 // Multiple Image Previews Grid
@@ -436,6 +449,12 @@
   gap: $space-sm;
   padding: $space-md;
   overflow: visible;
+
+  // On mobile, reduce padding for more input space
+  @media (max-width: $breakpoint-md) {
+    padding: $space-sm;
+    gap: $space-xs;
+  }
 }
 
 .input {
@@ -447,6 +466,7 @@
   color: $text;
   font-family: inherit;
   font-size: $font-base;
+  min-height: 48px; // Comfortable touch target
 
   &:focus {
     outline: none;
@@ -455,6 +475,12 @@
 
   &::placeholder {
     color: $text-secondary;
+  }
+
+  // On mobile, slightly larger input for better typing
+  @media (max-width: $breakpoint-md) {
+    font-size: 16px; // Prevent iOS zoom on focus
+    padding: $space-sm $space-md;
   }
 }
 
