@@ -5,11 +5,9 @@
   height: calc(100vh - ($header-height + $pre-header-height));
   background: $bg;
 
-  // On mobile (header hidden at md), only bottom nav exists
+  // On mobile (header hidden at md), use full viewport
   @media (max-width: $breakpoint-md) {
     height: 100vh;
-    // Account for fixed input wrapper at bottom
-    padding-bottom: calc($bottom-nav-height + 80px); // input height + bottom nav
   }
 }
 
@@ -206,9 +204,20 @@
 .listingTitle {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   font-weight: $weight-medium;
   transition: color 0.2s ease;
+
+  // Desktop: single line
+  white-space: nowrap;
+
+  // Mobile: allow 2 lines max with ellipsis
+  @media (max-width: $breakpoint-md) {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+  }
 }
 
 .typingIndicator {
@@ -351,20 +360,17 @@
 
 // Chat input wrapper
 .chatInputWrapper {
-  position: relative;
+  position: sticky;
+  bottom: 0;
   background: $surface;
   border-top: 1px solid $border;
   // Allow dropdown to overflow and show above on mobile
   overflow: visible;
   flex-shrink: 0; // Prevent input from shrinking
+  z-index: 5;
 
-  // On mobile, position above bottom nav
+  // On mobile, add safe area padding
   @media (max-width: $breakpoint-md) {
-    position: fixed;
-    bottom: $bottom-nav-height;
-    left: 0;
-    right: 0;
-    z-index: $z-nav - 1; // Just below nav
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
