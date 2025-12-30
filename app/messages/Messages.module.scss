@@ -5,9 +5,11 @@
   height: calc(100vh - ($header-height + $pre-header-height));
   background: $bg;
 
-  // On mobile (header hidden at md), use full viewport
+  // On mobile (header hidden at md), use full viewport with space for fixed input
   @media (max-width: $breakpoint-md) {
     height: 100vh;
+    // Reserve space for fixed input wrapper at bottom
+    padding-bottom: calc($bottom-nav-height + 70px); // bottom nav + input height
   }
 }
 
@@ -369,9 +371,24 @@
   flex-shrink: 0; // Prevent input from shrinking
   z-index: 5;
 
-  // On mobile, add safe area padding
+  // On mobile, use fixed positioning that syncs with BottomNav
   @media (max-width: $breakpoint-md) {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: $z-nav - 1;
     padding-bottom: env(safe-area-inset-bottom, 0);
+    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // When BottomNav is visible - sit above it
+    &.visible {
+      bottom: $bottom-nav-height;
+    }
+
+    // When BottomNav hides on scroll - move to bottom
+    &.hidden {
+      bottom: 0;
+    }
   }
 }
 
