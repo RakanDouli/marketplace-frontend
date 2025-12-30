@@ -7,7 +7,9 @@
 
   // On mobile (header hidden at md), only bottom nav exists
   @media (max-width: $breakpoint-md) {
-    height: calc(100vh - $bottom-nav-height);
+    height: 100vh;
+    // Account for fixed input wrapper at bottom
+    padding-bottom: calc($bottom-nav-height + 80px); // input height + bottom nav
   }
 }
 
@@ -155,6 +157,14 @@
   border-bottom: 1px solid $border;
   background: $surface;
   position: relative;
+  flex-shrink: 0; // Never shrink
+
+  // On mobile, make header sticky at top
+  @media (max-width: $breakpoint-md) {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
 }
 
 .listingInfo {
@@ -348,11 +358,14 @@
   overflow: visible;
   flex-shrink: 0; // Prevent input from shrinking
 
-  // On mobile (header hidden at md), ensure input is always visible
+  // On mobile, position above bottom nav
   @media (max-width: $breakpoint-md) {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
+    position: fixed;
+    bottom: $bottom-nav-height;
+    left: 0;
+    right: 0;
+    z-index: $z-nav - 1; // Just below nav
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
 
