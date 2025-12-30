@@ -5,11 +5,11 @@
   height: calc(100vh - ($header-height + $pre-header-height));
   background: $bg;
 
-  // On mobile (header hidden at md), use full viewport with space for fixed input
+  // On mobile, allow page scroll for BottomNav animation to work
   @media (max-width: $breakpoint-md) {
-    height: 100vh;
-    // Reserve space for fixed input wrapper at bottom
-    padding-bottom: calc($bottom-nav-height + 70px); // bottom nav + input height
+    height: auto;
+    min-height: 100vh;
+    flex-direction: column;
   }
 }
 
@@ -146,6 +146,14 @@
       display: none;
     }
   }
+
+  // On mobile, take full width and allow natural height
+  @media (max-width: $breakpoint-md) {
+    flex: none;
+    width: 100%;
+    // Reserve space for fixed input + bottom nav
+    padding-bottom: calc($bottom-nav-height + 80px);
+  }
 }
 
 .chatHeader {
@@ -271,8 +279,12 @@
   display: flex;
   flex-direction: column;
   gap: $space-md;
+
   @media (max-width: $breakpoint-md) {
     padding: $space-md;
+    // Remove internal scroll - let page scroll for BottomNav animation
+    overflow-y: visible;
+    flex: none;
   }
   @media (max-width: $breakpoint-sm) {
     padding: $space-sm;
@@ -371,16 +383,25 @@
   flex-shrink: 0; // Prevent input from shrinking
   z-index: 5;
 
-  // On mobile, fixed above BottomNav
-  // Note: Messages page scrolls inside .chatContent, not window
-  // So BottomNav stays visible - we just stay above it
+  // On mobile, fixed position that syncs with BottomNav animation
   @media (max-width: $breakpoint-md) {
     position: fixed;
-    bottom: $bottom-nav-height;
+    bottom: $bottom-nav-height; // Default: above nav
     left: 0;
     right: 0;
     z-index: $z-nav - 1;
     padding-bottom: env(safe-area-inset-bottom, 0);
+    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // When BottomNav is visible - sit above it
+    &.visible {
+      bottom: $bottom-nav-height;
+    }
+
+    // When BottomNav hides on scroll - move to bottom
+    &.hidden {
+      bottom: 0;
+    }
   }
 }
 

@@ -95,6 +95,10 @@ export const MessagesClient: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastScrollY = useRef(0);
+
+  // Mobile nav visibility state (syncs with BottomNav animation)
+  const [isNavVisible, setIsNavVisible] = useState(true);
 
   // Auth guard
   useEffect(() => {
@@ -202,6 +206,28 @@ export const MessagesClient: React.FC = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Sync with BottomNav scroll animation (for mobile input positioning)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY.current;
+
+      // Show when at top or scrolling up
+      if (currentScrollY < 50 || scrollDelta < -5) {
+        setIsNavVisible(true);
+      }
+      // Hide when scrolling down
+      else if (scrollDelta > 5) {
+        setIsNavVisible(false);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Subscribe to realtime updates when thread is active
@@ -791,7 +817,7 @@ export const MessagesClient: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className={styles.chatInputWrapper}>
+            <div className={`${styles.chatInputWrapper} ${isNavVisible ? styles.visible : styles.hidden}`}>
               {/* Multiple Image Previews */}
               {imagePreviewUrls.length > 0 && (
                 <div className={styles.imagePreviewsGrid}>
