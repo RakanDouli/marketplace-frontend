@@ -371,24 +371,16 @@
   flex-shrink: 0; // Prevent input from shrinking
   z-index: 5;
 
-  // On mobile, use fixed positioning that syncs with BottomNav
+  // On mobile, fixed above BottomNav
+  // Note: Messages page scrolls inside .chatContent, not window
+  // So BottomNav stays visible - we just stay above it
   @media (max-width: $breakpoint-md) {
     position: fixed;
+    bottom: $bottom-nav-height;
     left: 0;
     right: 0;
     z-index: $z-nav - 1;
     padding-bottom: env(safe-area-inset-bottom, 0);
-    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    // When BottomNav is visible - sit above it
-    &.visible {
-      bottom: $bottom-nav-height;
-    }
-
-    // When BottomNav hides on scroll - move to bottom
-    &.hidden {
-      bottom: 0;
-    }
   }
 }
 

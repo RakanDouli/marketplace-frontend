@@ -96,32 +96,6 @@ export const MessagesClient: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Bottom nav visibility sync (for input wrapper animation)
-  const [isNavVisible, setIsNavVisible] = useState(true);
-  const lastScrollY = useRef(0);
-
-  // Sync with BottomNav scroll behavior
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY.current;
-
-      // Show when at top or scrolling up
-      if (currentScrollY < 50 || scrollDelta < -5) {
-        setIsNavVisible(true);
-      }
-      // Hide when scrolling down
-      else if (scrollDelta > 5) {
-        setIsNavVisible(false);
-      }
-
-      lastScrollY.current = currentScrollY;
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   // Auth guard
   useEffect(() => {
     if (!authLoading && !user) {
@@ -817,7 +791,7 @@ export const MessagesClient: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className={`${styles.chatInputWrapper} ${isNavVisible ? styles.visible : styles.hidden}`}>
+            <div className={styles.chatInputWrapper}>
               {/* Multiple Image Previews */}
               {imagePreviewUrls.length > 0 && (
                 <div className={styles.imagePreviewsGrid}>
