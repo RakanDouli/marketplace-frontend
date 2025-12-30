@@ -1,5 +1,15 @@
 @import "@/styles/variables";
 
+// Desktop back button - hidden on mobile (MobileBackButton handles mobile)
+.backButton {
+  width: max-content;
+  margin: 0 auto 0 0;
+  padding-bottom: $space-md;
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
 .container {
   background-color: $bg !important;
   border: 1px solid $border;
@@ -29,20 +39,6 @@
 
 // ===== PAGE 2: DETAILS FORM =====
 .detailsPage {
-  .backButton {
-    display: inline-flex;
-    align-items: center;
-    gap: $space-xs;
-    color: $text-secondary;
-    margin-bottom: $space-md;
-    cursor: pointer;
-    transition: color 0.15s ease;
-
-    &:hover {
-      color: $text;
-    }
-  }
-
   .formCard {
     background-color: $bg;
     display: flex;
@@ -88,8 +84,7 @@
   }
 
   .stickyActions {
-    background-color: $surface;
-    border-top: 1px solid $border;
+    background-color: $bg;
     padding: $space-md $space-lg;
     display: flex;
     justify-content: space-between;
@@ -167,4 +162,27 @@
       width: 100%;
     }
   }
+}
+
+// ===== VIDEO SECTION =====
+.videoSection {
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+
+  .videoLabel {
+    margin-bottom: $space-xs;
+  }
+
+  .videoHint {
+    margin-bottom: $space-sm;
+  }
+}
+
+// ===== COLLAPSIBLE SECTIONS CONTAINER =====
+.sectionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  margin-bottom: $space-lg;
 }

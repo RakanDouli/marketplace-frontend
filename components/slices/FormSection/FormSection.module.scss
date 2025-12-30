@@ -1,0 +1,146 @@
+@import "@/styles/variables";
+
+.section {
+  background: $bg;
+  border: 2px solid $border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: $space-md; // Gap between collapsed sections
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  // Status: Required fields filled - primary border
+  &.required {
+    border-color: $primary;
+  }
+
+  // Status: All fields complete - primary border + subtle glow
+  &.complete {
+    border-color: $primary;
+    box-shadow: 0 0 0 1px $primary;
+  }
+
+  // Status: Has validation errors - red border
+  &.error {
+    border-color: $error;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-md $space-lg;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  border: 2px solid $border;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $text-secondary;
+  transition: all 0.3s ease;
+
+  // Status: Required fields filled - primary border + primary check
+  &.required {
+    border-color: $primary;
+    color: $primary;
+    background: transparent;
+  }
+
+  // Status: All fields complete - primary background + white check
+  &.complete {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+  }
+
+  // Status: Has validation errors - red border + red text
+  &.error {
+    border-color: $error;
+    color: $error;
+  }
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: baseline;
+  gap: $space-sm;
+}
+
+.title {
+  margin: 0;
+  font-weight: $weight-semibold;
+}
+
+.fieldCount {
+  color: $text-secondary;
+  font-variant-numeric: tabular-nums;
+}
+
+.chevron {
+  color: $text-secondary;
+  transition: transform 0.3s ease;
+
+  &.rotated {
+    transform: rotate(180deg);
+  }
+}
+
+.content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+
+  &.open {
+    max-height: 2000px;
+    transition: max-height 0.5s ease-in;
+  }
+}
+
+.contentInner {
+  padding: $space-md $space-lg $space-lg;
+  border-top: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+// Mobile: reduce horizontal padding for more field space
+@media (max-width: $breakpoint-md) {
+  .header {
+    padding: $space-md $space-sm;
+  }
+
+  .contentInner {
+    padding: $space-md $space-sm $space-lg;
+  }
+}

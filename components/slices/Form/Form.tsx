@@ -51,7 +51,7 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(
         {error && (
           <div className={styles.formError}>
             <Text variant="small" className={styles.errorText}>
-              ⚠️ {error}
+              {error}
             </Text>
           </div>
         )}

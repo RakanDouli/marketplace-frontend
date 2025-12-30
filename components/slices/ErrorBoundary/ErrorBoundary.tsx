@@ -114,7 +114,7 @@ function ErrorBoundaryFallback({
         <div className={styles.content}>
           <div className={styles.icon}>
             <Text variant="h1" className={styles.iconText}>
-              ⚠️
+              !
             </Text>
           </div>
           

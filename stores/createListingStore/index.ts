@@ -19,8 +19,8 @@ const initialFormData: CreateListingFormData = {
   priceMinor: 0,
   allowBidding: false,
   biddingStartPrice: undefined,
-  videoUrl: undefined,
   images: [],
+  video: [], // Video upload (max 1 video)
   specs: {},
   location: {
     province: "",
@@ -346,6 +346,11 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
 
       if (imagesAdded < ListingValidationConfig.images.min) {
         throw new Error(`يجب إضافة ${ListingValidationConfig.images.min} صورة على الأقل`);
+      }
+
+      // Add video if present (max 1 video)
+      if (formData.video.length > 0 && formData.video[0].file) {
+        formDataPayload.append('video', formData.video[0].file);
       }
 
       // Submit to REST API endpoint

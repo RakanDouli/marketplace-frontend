@@ -73,9 +73,9 @@ export interface CreateListingFormData {
   allowBidding: boolean;
   biddingStartPrice?: number;
 
-  // Step 2: Images
-  videoUrl?: string;
+  // Step 2: Images & Video
   images: ImageItem[];
+  video: ImageItem[]; // Optional video upload (max 1 video, uses ImageItem for consistency)
 
   // Step 3-N: Dynamic specs from attributes
   specs: Record<string, any>;

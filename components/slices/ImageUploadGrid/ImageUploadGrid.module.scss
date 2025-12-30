@@ -32,10 +32,15 @@
   transition: all 0.2s ease;
   min-height: 180px;
 
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: repeat(2, 1fr);
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(3, 1fr);
     gap: $space-xs;
     padding: $space-xs;
+    min-height: 120px;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   &.dragging {
@@ -51,6 +56,11 @@
   overflow: hidden;
   background-color: $surface;
   transition: transform 0.2s ease;
+
+  @media (max-width: $breakpoint-md) {
+    border-radius: $radius-sm;
+  }
+
   &:hover {
     transform: scale(1.02);
   }
@@ -73,6 +83,17 @@
   .imageCard:hover & {
     opacity: 1;
   }
+
+  @media (max-width: $breakpoint-md) {
+    top: 2px;
+    right: 2px;
+    opacity: 1; // Always visible on mobile (no hover)
+
+    // Make button smaller on mobile
+    padding: 4px !important;
+    min-width: unset !important;
+    min-height: unset !important;
+  }
 }
 
 .addButton {
@@ -88,6 +109,18 @@
   cursor: pointer;
   transition: all 0.2s ease;
   color: $text-secondary;
+  font-size: $font-sm;
+
+  @media (max-width: $breakpoint-md) {
+    gap: 2px;
+    font-size: $font-xs;
+    border-radius: $radius-sm;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
 
   &:hover {
     border-color: $primary;

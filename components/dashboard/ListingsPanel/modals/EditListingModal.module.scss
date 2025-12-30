@@ -61,6 +61,40 @@
   color: $text-muted;
 }
 
+// Info Card (shown at top with category and dates)
+.infoCard {
+  padding: $space-md;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  margin-bottom: $space-lg;
+}
+
+.infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-lg;
+  margin-top: $space-sm;
+
+  .infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .label {
+      font-size: 0.75rem;
+      color: $text-muted;
+      font-weight: $weight-medium;
+    }
+
+    .value {
+      font-size: 0.875rem;
+      color: $text;
+      font-weight: $weight-medium;
+    }
+  }
+}
+
 .listingHeader {
   margin-bottom: $space-xl;
   padding: $space-lg;
@@ -214,6 +248,7 @@
   background: $bg;
   border: 1px solid $border;
   border-radius: $radius-md;
+  margin-top: $space-md;
 
   .statusLabel {
     margin-bottom: $space-xs;
@@ -229,10 +264,22 @@
   .soldNotice,
   .systemStatus {
     padding: $space-sm;
-    background: $bg;
+    background: $surface;
     border-radius: $radius-md;
     text-align: center;
   }
+}
+
+.videoSection {
+  margin-top: $space-md;
+}
+
+.formError {
+  padding: $space-md;
+  background: rgba($error, 0.1);
+  border: 1px solid $error;
+  border-radius: $radius-md;
+  margin-top: $space-md;
 }
 
 .formActions {
@@ -240,8 +287,7 @@
   gap: $space-sm;
   justify-content: flex-end;
   padding-top: $space-lg;
-  border-top: 1px solid $border;
-  margin-top: $space-xl;
+  margin-top: $space-md;
 }
 
 .locationLinkRow {

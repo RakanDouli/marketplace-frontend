@@ -236,11 +236,17 @@ export const validateAttribute = (
         break;
 
       case AttributeType.MULTI_SELECTOR:
-        if (!Array.isArray(value)) {
+        // For listings: MULTI_SELECTOR stores a single string value (a car has ONE body type)
+        // For filters: MULTI_SELECTOR uses array (filter by multiple body types)
+        // Accept both formats
+        if (Array.isArray(value)) {
+          // Filter mode: validate array
+          if (attribute.maxSelections && value.length > attribute.maxSelections) {
+            return `${attribute.name} يجب ألا يتجاوز ${attribute.maxSelections} خيارات`;
+          }
+        } else if (typeof value !== 'string' || !value.trim()) {
+          // Listing mode: validate string
           return `${attribute.name} غير صحيح`;
-        }
-        if (attribute.maxSelections && value.length > attribute.maxSelections) {
-          return `${attribute.name} يجب ألا يتجاوز ${attribute.maxSelections} خيارات`;
         }
         break;
 

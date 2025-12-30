@@ -1,8 +1,9 @@
 'use client';
 import { formatDateShort } from '@/utils/formatDate';
 
-import React, { useEffect, useState } from 'react';
-import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton, Loading } from '@/components/slices';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton, Loading, FormSection, Form } from '@/components/slices';
+import type { FormSectionStatus } from '@/components/slices';
 import type { Listing } from '@/types/listing';
 import type { ImageItem } from '@/components/slices/ImageUploadGrid/ImageUploadGrid';
 import { useUserListingsStore } from '@/stores/userListingsStore';
@@ -112,8 +113,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const [imageOperationSuccess, setImageOperationSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [detailedListing, setDetailedListing] = useState<Listing | null>(null);
   const [images, setImages] = useState<ImageItem[]>([]);
+  const [video, setVideo] = useState<ImageItem[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -128,7 +131,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     status: listing.status,
     allowBidding: listing.allowBidding,
     biddingStartPrice: listing.biddingStartPrice || 0,
-    videoUrl: listing.videoUrl || '',
     specs: listing.specs || {},
     location: listing.location || { province: '', city: '', area: '', link: '' },
   });
@@ -136,6 +138,103 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   // Get subscription limits
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
+
+  // Expanded sections state - matches create page order
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    basicInfo: true,
+    media: false,
+    brandModel: false,
+    location: false,
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // Calculate section statuses and field counts - matches create page structure
+  const sectionInfo = useMemo(() => {
+    // Section 1: Basic info (title*, price*, description)
+    const basicInfoRequired = 2; // title, price
+    let basicInfoFilled = 0;
+    if (formData.title.trim()) basicInfoFilled++;
+    if (formData.priceMinor > 0) basicInfoFilled++;
+    if (formData.description.trim()) basicInfoFilled++;
+    const basicInfoTotal = 3;
+    const basicInfoStatus: FormSectionStatus = basicInfoFilled >= basicInfoRequired ?
+      (basicInfoFilled === basicInfoTotal ? 'complete' : 'required') : 'incomplete';
+
+    // Section 2: Media (images* + video if allowed)
+    const imagesRequired = 1;
+    const imagesFilled = images.length >= imagesRequired;
+    const videoFilled = video.length > 0;
+    const mediaTotal = videoAllowed ? 2 : 1;
+    const mediaFilled = (imagesFilled ? 1 : 0) + (videoFilled ? 1 : 0);
+    const mediaStatus: FormSectionStatus = imagesFilled ?
+      (mediaFilled === mediaTotal ? 'complete' : 'required') : 'incomplete';
+
+    // Section 3: Brand/Model
+    let brandModelFilled = 0;
+    const brandModelTotal = brands.length > 0 ? 2 : 0;
+    if (formData.specs.brandId) brandModelFilled++;
+    if (formData.specs.modelId) brandModelFilled++;
+    const brandModelStatus: FormSectionStatus = brandModelTotal === 0 ? 'complete' :
+      brandModelFilled === brandModelTotal ? 'complete' : 'incomplete';
+
+    // Section N (last): Location (province*, city, area)
+    const locationRequired = 1; // province
+    let locationFilled = 0;
+    if (formData.location.province) locationFilled++;
+    if (formData.location.city) locationFilled++;
+    if (formData.location.area) locationFilled++;
+    const locationTotal = 3; // match create page (no link in count)
+    const locationStatus: FormSectionStatus = locationFilled >= locationRequired ?
+      (locationFilled === locationTotal ? 'complete' : 'required') : 'incomplete';
+
+    return {
+      basicInfo: { status: basicInfoStatus, filled: basicInfoFilled, total: basicInfoTotal },
+      media: { status: mediaStatus, filled: mediaFilled, total: mediaTotal },
+      brandModel: { status: brandModelStatus, filled: brandModelFilled, total: brandModelTotal },
+      location: { status: locationStatus, filled: locationFilled, total: locationTotal },
+    };
+  }, [images, video, formData, brands.length, videoAllowed]);
+
+  // Calculate attribute groups and section numbers for consistency with create page
+  const { attributeGroups, locationSectionNum } = useMemo(() => {
+    // Group attributes by group field (like create page does)
+    const groupedAttributes: Record<string, Attribute[]> = {};
+
+    // Filter out non-spec attributes - SAME as create listing store does
+    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location', 'brandId', 'modelId'];
+
+    attributes
+      .filter(attr => !excludedKeys.includes(attr.key))
+      .forEach(attr => {
+        const groupName = attr.group || 'المواصفات';
+        if (!groupedAttributes[groupName]) {
+          groupedAttributes[groupName] = [];
+        }
+        groupedAttributes[groupName].push(attr);
+      });
+
+    // Sort groups by groupOrder
+    const sortedGroups = Object.entries(groupedAttributes).sort((a, b) => {
+      const aOrder = a[1][0]?.groupOrder || 0;
+      const bOrder = b[1][0]?.groupOrder || 0;
+      return aOrder - bOrder;
+    });
+
+    // Calculate base section number (after basicInfo, media, brandModel)
+    // Order: 1=basicInfo, 2=media, 3=brandModel (if exists)
+    const baseSectionNum = 2 + (brands.length > 0 ? 1 : 0);
+
+    // Location is the last section
+    const locationNum = baseSectionNum + sortedGroups.length + 1;
+
+    return {
+      attributeGroups: sortedGroups,
+      locationSectionNum: locationNum,
+    };
+  }, [attributes, brands.length]);
 
   // Load detailed listing data - runs every time modal opens
   useEffect(() => {
@@ -148,7 +247,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               id title description priceMinor status allowBidding biddingStartPrice
               videoUrl imageKeys specs
               location { province city area link }
-              category { id name slug }
+              category { id name nameAr slug }
               rejectionReason rejectionMessage
              moderationScore moderationFlags
               createdAt updatedAt
@@ -173,7 +272,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           status: data.status,
           allowBidding: data.allowBidding,
           biddingStartPrice: data.biddingStartPrice || 0,
-          videoUrl: data.videoUrl || '',
           specs: parsedSpecs,
           location: data.location || { province: '', city: '', area: '', link: '' },
         });
@@ -185,6 +283,16 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             url: optimizeListingImage(key, 'public'),
           }));
           setImages(existingImages);
+        }
+
+        // Load video from videoUrl (Cloudflare asset ID)
+        if (data.videoUrl) {
+          setVideo([{
+            id: data.videoUrl,
+            url: `https://customer-${process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_HASH || 'default'}.cloudflarestream.com/${data.videoUrl}/watch`,
+          }]);
+        } else {
+          setVideo([]);
         }
       } catch (error) {
         console.error('Error loading listing:', error);
@@ -494,17 +602,14 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setIsSubmitting(true);
     setSubmitError(false);
     setSubmitSuccess(false);
+    setErrorMessage(null); // Clear previous error
 
     // Validate form
     const validation = validateForm();
 
     if (!validation.isValid) {
-      addNotification({
-        type: 'error',
-        title: 'خطأ في التحقق',
-        message: `يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`,
-        duration: 5000,
-      });
+      // Show error inside modal (not toast)
+      setErrorMessage(`يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`);
       setSubmitError(true);
       setIsSubmitting(false);
       return; // Stop submission
@@ -517,7 +622,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         priceMinor: formData.priceMinor,
         status: formData.status,
         allowBidding: formData.allowBidding,
-        videoUrl: formData.videoUrl || undefined,
+        videoUrl: video.length > 0 ? video[0].id : undefined,
         location: formData.location,
       };
 
@@ -533,12 +638,9 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       onClose();
     } catch (error) {
       setSubmitError(true);
-      addNotification({
-        type: 'error',
-        title: 'خطأ',
-        message: 'حدث خطأ في تحديث الإعلان',
-        duration: 5000,
-      });
+      // Show error inside modal (not toast)
+      const message = error instanceof Error ? error.message : 'حدث خطأ في تحديث الإعلان';
+      setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -558,7 +660,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
   return (
     <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
-      <form onSubmit={handleSubmit} className={styles.editForm}>
+      <Form onSubmit={handleSubmit} className={styles.editForm}>
         <div className={styles.modalContent}>
           {/* Rejection Alert - Show if listing is DRAFT or REJECTED with rejection reason */}
           {(detailedListing.status === ListingStatus.DRAFT || detailedListing.status === ListingStatus.REJECTED) &&
@@ -599,7 +701,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           {detailedListing && (
             <div className={styles.infoCard}>
               <Text variant="small" style={{ color: 'var(--text-secondary)' }}>
-                الفئة: {detailedListing.category?.name || 'غير محدد'}
+                الفئة: {detailedListing.category?.nameAr || detailedListing.category?.name || 'غير محدد'}
               </Text>
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
@@ -616,11 +718,80 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             </div>
           )}
 
-          {/* Image Upload Grid */}
-          <div className={styles.imagesSection}>
-            <Text variant="h4" className={styles.specificationsTitle}>
-              الصور ({images.length}/{maxImagesAllowed})
-            </Text>
+          {/* Section 1: Basic Info - matches create page */}
+          <FormSection
+            number={1}
+            title="معلومات الإعلان"
+            status={sectionInfo.basicInfo.status}
+            filledCount={sectionInfo.basicInfo.filled}
+            totalCount={sectionInfo.basicInfo.total}
+            isExpanded={expandedSections.basicInfo}
+            onToggle={() => toggleSection('basicInfo')}
+          >
+            <Input
+              type="text"
+              label="عنوان الإعلان"
+              placeholder="أدخل عنوان الإعلان"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              maxLength={ListingValidationConfig.title.maxLength}
+              required
+            />
+
+            <Input
+              type="textarea"
+              label="الوصف"
+              placeholder="أدخل وصف تفصيلي للإعلان"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              maxLength={ListingValidationConfig.description.maxLength}
+              rows={5}
+            />
+
+            <div className={styles.formRow}>
+              <Input
+                type="price"
+                label="السعر"
+                value={formData.priceMinor}
+                onChange={(e) => setFormData({ ...formData, priceMinor: parseInt(e.target.value) || 0 })}
+                required
+              />
+
+              <Input
+                type="switch"
+                label="السماح بالمزايدة"
+                checked={formData.allowBidding}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, allowBidding: e.target.checked })}
+              />
+            </div>
+
+            {formData.allowBidding && (
+              <Input
+                type="number"
+                label="سعر البداية للمزايدة (بالدولار)"
+                placeholder="0 = مجاني"
+                value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                  setFormData({ ...formData, biddingStartPrice: value });
+                }}
+                min={0}
+                step={1}
+                helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
+              />
+            )}
+          </FormSection>
+
+          {/* Section 2: Media (Images + Video) - matches create page */}
+          <FormSection
+            number={2}
+            title={videoAllowed ? 'الصور والفيديو' : 'الصور'}
+            status={sectionInfo.media.status}
+            filledCount={sectionInfo.media.filled}
+            totalCount={sectionInfo.media.total}
+            isExpanded={expandedSections.media}
+            onToggle={() => toggleSection('media')}
+          >
             <ImageUploadGrid
               images={images}
               onChange={(newImages) => {
@@ -659,141 +830,49 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             )}
             {imageOperationSuccess && (
               <Text variant="small" style={{ marginTop: '8px', color: 'var(--success)' }}>
-                ✓ تم حفظ التغييرات بنجاح
+                تم حفظ التغييرات بنجاح
               </Text>
             )}
-          </div>
 
-          {/* Video URL - Only for Business/Dealer accounts with videoAllowed */}
-          {videoAllowed && (
-            <div className={styles.videoSection}>
-              <Input
-                type="text"
-                label="رابط الفيديو (اختياري)"
-                placeholder="https://youtube.com/watch?v=..."
-                value={formData.videoUrl}
-                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-              />
-              <Text variant="small" style={{ marginTop: '4px', color: 'var(--text-secondary)' }}>
-                يمكنك إضافة رابط فيديو من YouTube أو Vimeo لعرض إعلانك بشكل أفضل
-              </Text>
-            </div>
-          )}
-
-          {/* Basic Fields */}
-          <div className={styles.editSection}>
-            <Text variant="h4" className={styles.sectionTitle}>معلومات الإعلان</Text>
-
-            <Input
-              type="text"
-              label="عنوان الإعلان *"
-              placeholder="أدخل عنوان الإعلان"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              maxLength={ListingValidationConfig.title.maxLength}
-              required
-            />
-
-            <Input
-              type="textarea"
-              label="الوصف"
-              placeholder="أدخل وصف تفصيلي للإعلان"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              maxLength={ListingValidationConfig.description.maxLength}
-              rows={5}
-            />
-
-            <Input
-              type="price"
-              label="السعر"
-              value={formData.priceMinor}
-              onChange={(e) => setFormData({ ...formData, priceMinor: parseInt(e.target.value) || 0 })}
-              required
-            />
-
-            {/* Listing Status Actions - Simple UX */}
-            <div className={styles.statusActions}>
-              <Text variant="paragraph" weight="medium" className={styles.statusLabel}>
-                إدارة الإعلان
-              </Text>
-
-              {formData.status === ListingStatus.ACTIVE && (
-                <div className={styles.actionButtons}>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setFormData({ ...formData, status: ListingStatus.HIDDEN })}
-                    type="button"
-                  >
-                    إيقاف الإعلان مؤقتاً
-                  </Button>
-                </div>
-              )}
-
-              {formData.status === ListingStatus.HIDDEN && (
-                <div className={styles.actionButtons}>
-                  <Button
-                    variant="primary"
-                    onClick={() => setFormData({ ...formData, status: ListingStatus.ACTIVE })}
-                    type="button"
-                  >
-                    اعاده تفعيل الاعلان
-                  </Button>
-                </div>
-              )}
-
-              {(formData.status === ListingStatus.SOLD || formData.status === ListingStatus.SOLD_VIA_PLATFORM) && (
-                <div className={styles.soldNotice}>
-                  <Text variant="small" color="secondary">
-                    ✅ هذا الإعلان تم بيعه
-                  </Text>
-                </div>
-              )}
-
-              {(formData.status === ListingStatus.DRAFT || formData.status === ListingStatus.PENDING_APPROVAL || formData.status === ListingStatus.REJECTED) && (
-                <div className={styles.systemStatus}>
-                  <Text variant="small" color="secondary">
-                    {formData.status === ListingStatus.DRAFT
-                      ? '📝 هذا الإعلان في وضع المسودة'
-                      : formData.status === ListingStatus.REJECTED
-                      ? '❌ هذا الإعلان مرفوض - يرجى التعديل وإعادة النشر'
-                      : '⏳ هذا الإعلان قيد المراجعة'
-                    }
-                  </Text>
-                </div>
-              )}
-            </div>
-
-            <Input
-              type="switch"
-              label="السماح بالمزايدة"
-              checked={formData.allowBidding}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, allowBidding: e.target.checked })}
-            />
-
-            {formData.allowBidding && (
-              <Input
-                type="number"
-                label="سعر البداية للمزايدة"
-                placeholder="0 = مجاني"
-                value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? 0 : parseInt(e.target.value);
-                  setFormData({ ...formData, biddingStartPrice: value });
-                }}
-                min={0}
-                step={1}
-                helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
-              />
+            {/* Video Upload - Only for Business/Dealer accounts with videoAllowed */}
+            {videoAllowed && (
+              <div className={styles.videoSection}>
+                <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
+                  الفيديو (اختياري) - الحد الأقصى 50 ميجابايت
+                </Text>
+                <ImageUploadGrid
+                  images={video}
+                  onChange={(newVideo) => setVideo(newVideo)}
+                  maxImages={1}
+                  maxSize={50 * 1024 * 1024}
+                  accept="video/*"
+                  label="الفيديو"
+                  onError={(error) => {
+                    addNotification({
+                      type: 'error',
+                      title: 'خطأ في رفع الفيديو',
+                      message: error,
+                      duration: 5000,
+                    });
+                  }}
+                  disabled={isSubmitting}
+                />
+              </div>
             )}
-          </div>
+          </FormSection>
 
-          {/* Brand and Model Selection - EXACTLY like create page */}
+          {/* Section 3: Brand and Model Selection - matches create page */}
           {brands.length > 0 && (
-            <div className={styles.editSection}>
-              <Text variant="h4" className={styles.sectionTitle}>العلامة التجارية والموديل</Text>
-
-              <div className={styles.brandModelGrid}>
+            <FormSection
+              number={3}
+              title="العلامة التجارية والموديل"
+              status={sectionInfo.brandModel.status}
+              filledCount={sectionInfo.brandModel.filled}
+              totalCount={sectionInfo.brandModel.total}
+              isExpanded={expandedSections.brandModel}
+              onToggle={() => toggleSection('brandModel')}
+            >
+              <div className={styles.formRow}>
                 <Input
                   type="select"
                   label="العلامة التجارية"
@@ -848,39 +927,39 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                   />
                 )}
               </div>
-            </div>
+            </FormSection>
           )}
 
-          {/* Other Specifications - Grouped by attribute.group */}
-          {(() => {
-            // Group attributes by group field (like create page does)
-            const groupedAttributes: Record<string, Attribute[]> = {};
+          {/* Dynamic Attribute Sections - uses pre-calculated attributeGroups */}
+          {attributeGroups.map(([groupName, groupAttrs], groupIndex) => {
+            // Calculate filled count for this group
+            const filledCount = groupAttrs.filter(attr => {
+              const value = formData.specs[attr.key];
+              return value !== undefined && value !== null && value !== '' &&
+                !(Array.isArray(value) && value.length === 0);
+            }).length;
+            const totalCount = groupAttrs.length;
+            const requiredCount = groupAttrs.filter(attr => attr.validation === 'REQUIRED').length;
+            const requiredFilled = groupAttrs.filter(attr =>
+              attr.validation === 'REQUIRED' && formData.specs[attr.key]
+            ).length;
 
-            // Filter out non-spec attributes - SAME as create listing store does (line 194)
-            // These are global fields, not category-specific attributes
-            const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location', 'brandId', 'modelId'];
+            const status: FormSectionStatus = filledCount === totalCount ? 'complete' :
+              requiredFilled === requiredCount && requiredCount > 0 ? 'required' : 'incomplete';
 
-            attributes
-              .filter(attr => !excludedKeys.includes(attr.key))
-              .forEach(attr => {
-                const groupName = attr.group || 'المواصفات';
-                if (!groupedAttributes[groupName]) {
-                  groupedAttributes[groupName] = [];
-                }
-                groupedAttributes[groupName].push(attr);
-              });
+            // Section number: 1=basicInfo, 2=media, 3=brandModel (if exists), then attributes
+            const baseSectionNum = 2 + (brands.length > 0 ? 1 : 0);
 
-            // Sort groups by groupOrder
-            const sortedGroups = Object.entries(groupedAttributes).sort((a, b) => {
-              const aOrder = a[1][0]?.groupOrder || 0;
-              const bOrder = b[1][0]?.groupOrder || 0;
-              return aOrder - bOrder;
-            });
-
-            return sortedGroups.map(([groupName, groupAttrs]) => (
-              <div key={groupName} className={styles.editSection}>
-                <Text variant="h4" className={styles.sectionTitle}>{groupName}</Text>
-
+            return (
+              <FormSection
+                key={groupName}
+                number={baseSectionNum + groupIndex + 1}
+                title={groupName}
+                status={status}
+                filledCount={filledCount}
+                totalCount={totalCount}
+                defaultExpanded={false}
+              >
                 <div className={styles.specsGrid}>
                   {groupAttrs
                     .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -902,14 +981,20 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                       </div>
                     ))}
                 </div>
-              </div>
-            ));
-          })()}
+              </FormSection>
+            );
+          })}
 
           {/* Location Section */}
-          <div className={styles.editSection}>
-            <Text variant="h4" className={styles.sectionTitle}>الموقع</Text>
-
+          <FormSection
+            number={locationSectionNum}
+            title="الموقع"
+            status={sectionInfo.location.status}
+            filledCount={sectionInfo.location.filled}
+            totalCount={sectionInfo.location.total}
+            isExpanded={expandedSections.location}
+            onToggle={() => toggleSection('location')}
+          >
             <Input
               type="select"
               label="المحافظة *"
@@ -920,7 +1005,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               }))}
               options={[
                 { value: '', label: '-- اختر المحافظة --' },
-                ...provinces.map(p => ({ value: p.nameAr, label: p.nameAr })),
+                ...provinces.map(p => ({ value: p.key, label: p.nameAr })),
               ]}
               required
             />
@@ -1002,15 +1087,76 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                   }
                 }}
               >
-                📍 موقعي الحالي
+                موقعي الحالي
               </Button>
             </div>
+          </FormSection>
+
+          {/* Listing Status Management - Edit-only, outside form sections */}
+          <div className={styles.statusActions}>
+            <Text variant="paragraph" weight="medium" className={styles.statusLabel}>
+              إدارة الإعلان
+            </Text>
+
+            {formData.status === ListingStatus.ACTIVE && (
+              <div className={styles.actionButtons}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setFormData({ ...formData, status: ListingStatus.HIDDEN })}
+                  type="button"
+                >
+                  إيقاف الإعلان مؤقتاً
+                </Button>
+              </div>
+            )}
+
+            {formData.status === ListingStatus.HIDDEN && (
+              <div className={styles.actionButtons}>
+                <Button
+                  variant="primary"
+                  onClick={() => setFormData({ ...formData, status: ListingStatus.ACTIVE })}
+                  type="button"
+                >
+                  إعادة تفعيل الإعلان
+                </Button>
+              </div>
+            )}
+
+            {(formData.status === ListingStatus.SOLD || formData.status === ListingStatus.SOLD_VIA_PLATFORM) && (
+              <div className={styles.soldNotice}>
+                <Text variant="small" color="secondary">
+                  هذا الإعلان تم بيعه
+                </Text>
+              </div>
+            )}
+
+            {(formData.status === ListingStatus.DRAFT || formData.status === ListingStatus.PENDING_APPROVAL || formData.status === ListingStatus.REJECTED) && (
+              <div className={styles.systemStatus}>
+                <Text variant="small" color="secondary">
+                  {formData.status === ListingStatus.DRAFT
+                    ? 'هذا الإعلان في وضع المسودة'
+                    : formData.status === ListingStatus.REJECTED
+                      ? 'هذا الإعلان مرفوض - يرجى التعديل وإعادة النشر'
+                      : 'هذا الإعلان قيد المراجعة'
+                  }
+                </Text>
+              </div>
+            )}
           </div>
+
+          {/* Error message - displayed above buttons */}
+          {errorMessage && (
+            <div className={styles.formError}>
+              <Text variant="small" color="error">
+                {errorMessage}
+              </Text>
+            </div>
+          )}
 
           <div className={styles.formActions}>
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
             >
@@ -1028,7 +1174,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             </SubmitButton>
           </div>
         </div>
-      </form>
+      </Form>
     </Modal>
   );
 }

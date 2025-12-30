@@ -1,6 +1,7 @@
 /**
- * Unified Cloudflare Image Upload Utility
- * Single source of truth for all image uploads in the application
+ * Unified Cloudflare Media Upload Utility
+ * Single source of truth for all image and video uploads in the application
+ * Note: Cloudflare Images API accepts both images and videos
  */
 
 export interface CloudflareUploadResult {
@@ -14,11 +15,11 @@ export interface CloudflareUploadError {
 }
 
 /**
- * Upload a single image to Cloudflare
+ * Upload a single file (image or video) to Cloudflare
  *
- * @param file - The image file to upload
- * @param mutationType - The GraphQL mutation to use ('image' | 'avatar')
- * @returns Promise with the actual Cloudflare image ID
+ * @param file - The image or video file to upload
+ * @param mutationType - The GraphQL mutation to use ('image' | 'avatar' | 'video')
+ * @returns Promise with the actual Cloudflare asset ID
  *
  * @example
  * ```typescript
@@ -27,6 +28,9 @@ export interface CloudflareUploadError {
  *
  * // For avatar uploads
  * const imageId = await uploadToCloudflare(file, 'avatar');
+ *
+ * // For video uploads (uses same Cloudflare Images API)
+ * const videoId = await uploadToCloudflare(file, 'video');
  * ```
  */
 /**
@@ -80,16 +84,24 @@ async function directGraphQLRequest(query: string): Promise<any> {
 
 export async function uploadToCloudflare(
   file: File,
-  mutationType: 'image' | 'avatar' = 'image'
+  mutationType: 'image' | 'avatar' | 'video' = 'image'
 ): Promise<string> {
   try {
     // Step 1: Get fresh Cloudflare upload URL from backend (direct request, no cache!)
-    const mutation = mutationType === 'avatar'
-      ? 'mutation { createAvatarUploadUrl { uploadUrl assetKey } }'
-      : 'mutation { createImageUploadUrl { uploadUrl assetKey } }';
+    // Note: Video uses the same mutation as image - Cloudflare Images accepts videos
+    let mutation: string;
+    let field: string;
+
+    if (mutationType === 'avatar') {
+      mutation = 'mutation { createAvatarUploadUrl { uploadUrl assetKey } }';
+      field = 'createAvatarUploadUrl';
+    } else {
+      // Both 'image' and 'video' use the same endpoint
+      mutation = 'mutation { createImageUploadUrl { uploadUrl assetKey } }';
+      field = 'createImageUploadUrl';
+    }
 
     const data = await directGraphQLRequest(mutation);
-    const field = mutationType === 'avatar' ? 'createAvatarUploadUrl' : 'createImageUploadUrl';
     const { uploadUrl, assetKey } = data[field];
 
     // Step 2: Upload file to Cloudflare
@@ -102,47 +114,51 @@ export async function uploadToCloudflare(
     });
 
     if (!uploadResponse.ok) {
-      throw new Error('فشل رفع الصورة إلى Cloudflare');
+      const errorMsg = mutationType === 'video' ? 'فشل رفع الفيديو إلى Cloudflare' : 'فشل رفع الصورة إلى Cloudflare';
+      throw new Error(errorMsg);
     }
 
-    // Step 3: Extract ACTUAL image ID from Cloudflare response
+    // Step 3: Extract ACTUAL asset ID from Cloudflare response
     const uploadResult = await uploadResponse.json();
 
     if (!uploadResult.success) {
-      throw new Error('فشل رفع الصورة');
+      const errorMsg = mutationType === 'video' ? 'فشل رفع الفيديو' : 'فشل رفع الصورة';
+      throw new Error(errorMsg);
     }
 
-    const actualImageId = uploadResult?.result?.id;
-    if (!actualImageId) {
-      throw new Error('لم يتم الحصول على معرف الصورة من Cloudflare');
+    const actualAssetId = uploadResult?.result?.id;
+    if (!actualAssetId) {
+      const errorMsg = mutationType === 'video' ? 'لم يتم الحصول على معرف الفيديو من Cloudflare' : 'لم يتم الحصول على معرف الصورة من Cloudflare';
+      throw new Error(errorMsg);
     }
 
-    return actualImageId;
+    return actualAssetId;
   } catch (error) {
     throw error;
   }
 }
 
 /**
- * Upload multiple images to Cloudflare in parallel
+ * Upload multiple files (images or videos) to Cloudflare in parallel
  *
- * @param files - Array of image files to upload
+ * @param files - Array of files to upload
  * @param mutationType - The GraphQL mutation to use
- * @returns Promise with array of actual Cloudflare image IDs
+ * @returns Promise with array of actual Cloudflare asset IDs
  *
  * @example
  * ```typescript
  * const imageIds = await uploadMultipleToCloudflare(files, 'image');
+ * const videoIds = await uploadMultipleToCloudflare(files, 'video');
  * ```
  */
 export async function uploadMultipleToCloudflare(
   files: File[],
-  mutationType: 'image' | 'avatar' = 'image'
+  mutationType: 'image' | 'avatar' | 'video' = 'image'
 ): Promise<string[]> {
   try {
     const uploadPromises = files.map(file => uploadToCloudflare(file, mutationType));
-    const imageIds = await Promise.all(uploadPromises);
-    return imageIds;
+    const assetIds = await Promise.all(uploadPromises);
+    return assetIds;
   } catch (error) {
     throw error;
   }
@@ -165,6 +181,28 @@ export function validateImageFile(file: File, maxSizeMB: number = 2): string | u
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
     return 'نوع الملف غير مدعوم. استخدم JPG أو PNG أو WebP';
+  }
+
+  return undefined;
+}
+
+/**
+ * Validate video file before upload
+ *
+ * @param file - The file to validate
+ * @param maxSizeMB - Maximum file size in megabytes (default: 50MB per video)
+ * @returns Error message if invalid, undefined if valid
+ */
+export function validateVideoFile(file: File, maxSizeMB: number = 50): string | undefined {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+  if (file.size > maxSizeBytes) {
+    return `حجم الفيديو كبير جداً. الحد الأقصى ${maxSizeMB} ميجابايت`;
+  }
+
+  const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+  if (!allowedTypes.includes(file.type)) {
+    return 'نوع الفيديو غير مدعوم. استخدم MP4 أو WebM أو MOV';
   }
 
   return undefined;

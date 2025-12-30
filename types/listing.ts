@@ -81,6 +81,7 @@ export interface Listing {
   category?: {
     id: string;
     name: string;
+    nameAr?: string;
     slug: string;
   };
 }

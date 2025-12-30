@@ -74,7 +74,7 @@ export default function CreateListingPage() {
               { value: '', label: '-- اختر الفئة --' },
               ...categories.map(cat => ({
                 value: cat.id,
-                label: cat.name,
+                label: cat.nameAr || cat.name,
               })),
             ]}
             disabled={isLoadingCategories}
