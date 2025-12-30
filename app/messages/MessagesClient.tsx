@@ -95,10 +95,32 @@ export const MessagesClient: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Bottom nav visibility sync (for input wrapper animation)
+  const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Mobile nav visibility state (syncs with BottomNav animation)
-  const [isNavVisible, setIsNavVisible] = useState(true);
+  // Sync with BottomNav scroll behavior
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY.current;
+
+      // Show when at top or scrolling up
+      if (currentScrollY < 50 || scrollDelta < -5) {
+        setIsNavVisible(true);
+      }
+      // Hide when scrolling down
+      else if (scrollDelta > 5) {
+        setIsNavVisible(false);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Auth guard
   useEffect(() => {
@@ -206,37 +228,6 @@ export const MessagesClient: React.FC = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Sync with BottomNav scroll animation (for mobile input positioning)
-  // Uses exact same thresholds as BottomNav.tsx for perfect sync
-  useEffect(() => {
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (ticking) return;
-
-      ticking = true;
-      requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
-        const scrollDelta = currentScrollY - lastScrollY.current;
-
-        // Same thresholds as BottomNav.tsx
-        if (currentScrollY < 100) {
-          setIsNavVisible(true);
-        } else if (scrollDelta < -15) {
-          setIsNavVisible(true);
-        } else if (scrollDelta > 15) {
-          setIsNavVisible(false);
-        }
-
-        lastScrollY.current = currentScrollY;
-        ticking = false;
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Subscribe to realtime updates when thread is active
