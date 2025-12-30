@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Image } from "../Image/Image";
 import { Skeleton } from "../Skeleton";
 import { ImagePreview } from "../ImagePreview/ImagePreview";
 import { optimizeListingImage } from "../../../utils/cloudflare-images";
+import { isVideoUrl, MediaItem } from "../../../utils/media-helpers";
 import styles from "./ImageGallery.module.scss";
 
 export interface ImageGalleryProps {
   images: string[];
   alt: string;
+  videoUrl?: string | null; // Video URL for premium listings
   aspectRatio?: string;
   className?: string;
   viewMode?: "card" | "small" | "large" | "desktop" | "mobile" | "tablet" | "thumbnail" | "public";
@@ -23,6 +25,7 @@ export interface ImageGalleryProps {
 export const ImageGallery: React.FC<ImageGalleryProps> = ({
   images,
   alt,
+  videoUrl,
   aspectRatio = "4 / 3",
   className = "",
   viewMode = "card",
@@ -33,6 +36,39 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+
+  // Create unified media items array (images + video at end)
+  const mediaItems: MediaItem[] = useMemo(() => {
+    const items: MediaItem[] = [];
+
+    // Add images
+    if (images && images.length > 0) {
+      images.forEach((img, index) => {
+        items.push({
+          url: img,
+          type: 'image',
+          alt: `${alt} - ${index + 1}`,
+          id: img,
+        });
+      });
+    }
+
+    // Add video at the end if exists
+    if (videoUrl) {
+      items.push({
+        url: videoUrl,
+        type: 'video',
+        alt: 'فيديو',
+        id: 'video',
+      });
+    }
+
+    return items;
+  }, [images, videoUrl, alt]);
+
+  // Get current media item
+  const currentMedia = mediaItems[currentIndex];
+  const isCurrentVideo = currentMedia?.type === 'video';
 
   if (skeleton) {
     return (
@@ -46,7 +82,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
     );
   }
 
-  if (!images || images.length === 0) {
+  if (mediaItems.length === 0) {
     return (
       <div className={`${styles.gallery} ${className}`}>
         <Image
@@ -63,12 +99,12 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
 
   const handlePrevious = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentIndex((prev) => (prev === 0 ? mediaItems.length - 1 : prev - 1));
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => (prev === mediaItems.length - 1 ? 0 : prev + 1));
   };
 
   const handleImageClick = () => {
@@ -77,28 +113,58 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
     }
   };
 
-  // Prepare images for preview modal (use high quality 'public' variant)
-  const previewImages = images.map((img, index) => ({
-    url: optimizeListingImage(img, 'public'),
-    alt: `${alt} - ${index + 1}`,
+  // Prepare media items for preview modal (use high quality 'public' variant for images)
+  const previewImages = mediaItems.map((item, index) => ({
+    url: item.type === 'image' ? optimizeListingImage(item.url, 'public') : item.url,
+    alt: item.alt || `${alt} - ${index + 1}`,
+    type: item.type,
   }));
 
-  // Single image case
-  if (images.length === 1) {
+  // Render current media (image or video thumbnail with play overlay)
+  const renderCurrentMedia = () => {
+    if (!currentMedia) return null;
+
+    if (isCurrentVideo) {
+      // Show video thumbnail with play overlay (clicking opens preview modal)
+      return (
+        <div className={styles.videoContainer} style={{ aspectRatio }}>
+          <video
+            src={currentMedia.url}
+            className={styles.videoThumbnail}
+            playsInline
+            muted
+            preload="metadata"
+          >
+            متصفحك لا يدعم تشغيل الفيديو
+          </video>
+          <div className={styles.videoPlayOverlay}>
+            <Play size={48} fill="white" />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <Image
+        src={optimizeListingImage(currentMedia.url, viewMode)}
+        alt={currentMedia.alt || alt}
+        aspectRatio={aspectRatio}
+        className={styles.image}
+        sizes={sizes}
+        priority={priority}
+      />
+    );
+  };
+
+  // Single media item case
+  if (mediaItems.length === 1) {
     return (
       <>
         <div
           className={`${styles.gallery} ${className} ${enablePreview ? styles.clickable : ''}`}
           onClick={handleImageClick}
         >
-          <Image
-            src={optimizeListingImage(images[0], viewMode)}
-            alt={alt}
-            aspectRatio={aspectRatio}
-            className={styles.image}
-            sizes={sizes}
-            priority={priority}
-          />
+          {renderCurrentMedia()}
         </div>
 
         {/* Preview Modal */}
@@ -119,20 +185,13 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
         className={`${styles.gallery} ${className} ${enablePreview ? styles.clickable : ''}`}
         onClick={handleImageClick}
       >
-        <Image
-          src={optimizeListingImage(images[currentIndex], viewMode)}
-          alt={`${alt} - Image ${currentIndex + 1}`}
-          aspectRatio={aspectRatio}
-          className={styles.image}
-          sizes={sizes}
-          priority={priority}
-        />
+        {renderCurrentMedia()}
 
         {/* Navigation Buttons */}
         <button
           className={`${styles.navButton} ${styles.prevButton}`}
           onClick={handlePrevious}
-          aria-label="Previous image"
+          aria-label="السابق"
         >
           <ChevronLeft size={20} />
         </button>
@@ -145,9 +204,9 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           <ChevronRight size={20} />
         </button>
 
-        {/* Image Counter */}
+        {/* Media Counter */}
         <div className={styles.counter}>
-          {currentIndex + 1} / {images.length}
+          {currentIndex + 1} / {mediaItems.length}
         </div>
       </div>
 

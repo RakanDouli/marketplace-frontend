@@ -70,6 +70,12 @@ export interface InputProps
   icon?: React.ReactNode;
 }
 
+// Convert Arabic numerals (٠١٢٣٤٥٦٧٨٩) to English (0123456789)
+const convertArabicToEnglish = (str: string): string => {
+  const arabicNumerals = '٠١٢٣٤٥٦٧٨٩';
+  return str.replace(/[٠-٩]/g, (d) => String(arabicNumerals.indexOf(d)));
+};
+
 export const Input = forwardRef<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
   InputProps
@@ -133,6 +139,20 @@ export const Input = forwardRef<
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       let value = e.target.value;
 
+      // Convert Arabic numerals to English for number inputs
+      if (type === 'number') {
+        value = convertArabicToEnglish(value);
+        // Create a new synthetic event with converted value
+        const syntheticEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            value,
+          },
+        } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
+        e = syntheticEvent;
+      }
+
       // Run validation if provided
       if (validate) {
         const validationResult = validate(value);
@@ -177,12 +197,15 @@ export const Input = forwardRef<
         }, [props.value, selectedCurrency, getRate]);
 
         const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          const inputValue = e.target.value;
+          let inputValue = e.target.value;
+
+          // Convert Arabic numerals to English first
+          inputValue = convertArabicToEnglish(inputValue);
 
           // Remove commas for parsing
           const cleanValue = inputValue.replace(/,/g, '');
 
-          // Only allow numbers and commas
+          // Only allow numbers and commas (after Arabic conversion)
           if (inputValue && !/^[\d,]*$/.test(inputValue)) {
             return; // Ignore invalid input (anything except digits and commas)
           }

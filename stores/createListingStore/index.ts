@@ -349,8 +349,12 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       }
 
       // Add video if present (max 1 video)
+      console.log('📹 Video data:', formData.video);
       if (formData.video.length > 0 && formData.video[0].file) {
+        console.log('📹 Appending video to FormData:', formData.video[0].file.name, formData.video[0].file.size);
         formDataPayload.append('video', formData.video[0].file);
+      } else {
+        console.log('📹 No video to append (length:', formData.video.length, ', file:', formData.video[0]?.file ? 'exists' : 'undefined', ')');
       }
 
       // Submit to REST API endpoint

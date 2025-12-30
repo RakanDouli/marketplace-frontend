@@ -215,6 +215,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
               {/* Gallery */}
               <ImageGallery
                 images={listing.imageKeys || []}
+                videoUrl={listing.videoUrl}
                 alt={listing.title}
                 viewMode="large"
                 aspectRatio="4 / 3"

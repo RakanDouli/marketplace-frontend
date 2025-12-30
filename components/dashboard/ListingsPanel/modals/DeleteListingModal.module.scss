@@ -1,20 +1,73 @@
 @import "../../../../styles/variables.scss";
 
-.deleteModalContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-lg;
-  padding: $space-md 0;
-}
-
-.actionButtons {
+.content {
   display: flex;
   flex-direction: column;
   gap: $space-md;
-  width: 100%;
+}
 
-  button {
-    width: 100%;
+.reasonSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.reasonLabel {
+  color: $text;
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: $primary;
+    background: rgba($primary, 0.03);
   }
+
+  &.selected {
+    border-color: $primary;
+    background: rgba($primary, 0.05);
+  }
+}
+
+.radio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid $border;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .selected & {
+    border-color: $primary;
+  }
+}
+
+.radioDot {
+  width: 10px;
+  height: 10px;
+  background: $primary;
+  border-radius: 50%;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-sm;
+  margin-top: $space-sm;
 }

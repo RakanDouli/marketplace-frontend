@@ -285,11 +285,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           setImages(existingImages);
         }
 
-        // Load video from videoUrl (Cloudflare asset ID)
+        // Load video from videoUrl (R2 public URL)
         if (data.videoUrl) {
           setVideo([{
             id: data.videoUrl,
-            url: `https://customer-${process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_HASH || 'default'}.cloudflarestream.com/${data.videoUrl}/watch`,
+            url: data.videoUrl, // Use R2 URL directly
+            isVideo: true, // Mark as video so ImageUploadGrid renders it correctly
           }]);
         } else {
           setVideo([]);
@@ -548,6 +549,84 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
   };
 
+  // Video upload/change handler
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+
+  const handleVideoChange = async (newVideo: ImageItem[]) => {
+    // If video was deleted (empty array)
+    if (newVideo.length === 0) {
+      setVideo([]);
+      return;
+    }
+
+    // Check if there's a new file to upload
+    const newVideoItem = newVideo.find(v => v.file);
+    if (!newVideoItem || !newVideoItem.file) {
+      // No new file, just update state (e.g., existing video unchanged)
+      setVideo(newVideo);
+      return;
+    }
+
+    // Upload new video to R2
+    setIsUploadingVideo(true);
+    try {
+      // Get auth token
+      const authData = localStorage.getItem('user-auth-storage');
+      if (!authData) throw new Error('يرجى تسجيل الدخول أولاً');
+      const { state } = JSON.parse(authData);
+      const token = state?.user?.token;
+      if (!token) throw new Error('يرجى تسجيل الدخول أولاً');
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('video', newVideoItem.file);
+
+      // Upload to backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/listings/upload-video`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(errorData.message || 'فشل رفع الفيديو');
+      }
+
+      const result = await response.json();
+      if (!result.success || !result.videoUrl) {
+        throw new Error('فشل رفع الفيديو');
+      }
+
+      // Update video state with the R2 URL
+      setVideo([{
+        id: result.videoUrl, // Use the R2 URL as ID (will be saved to DB)
+        url: result.videoUrl,
+        isVideo: true,
+      }]);
+
+      addNotification({
+        type: 'success',
+        title: 'تم رفع الفيديو',
+        message: 'تم رفع الفيديو بنجاح',
+        duration: 3000,
+      });
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'خطأ في رفع الفيديو',
+        message: error instanceof Error ? error.message : 'فشل رفع الفيديو',
+        duration: 5000,
+      });
+      // Revert to previous state
+      setVideo(video);
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
@@ -622,7 +701,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         priceMinor: formData.priceMinor,
         status: formData.status,
         allowBidding: formData.allowBidding,
-        videoUrl: video.length > 0 ? video[0].id : undefined,
+        videoUrl: video.length > 0 ? video[0].id : null,
         location: formData.location,
       };
 
@@ -806,7 +885,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               }}
               maxImages={maxImagesAllowed}
               maxSize={2 * 1024 * 1024} // 2MB per image
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               label="الصور"
               onError={(error) => {
                 addNotification({
@@ -838,13 +917,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             {videoAllowed && (
               <div className={styles.videoSection}>
                 <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
-                  الفيديو (اختياري) - الحد الأقصى 50 ميجابايت
+                  الفيديو (اختياري) - الحد الأقصى 20 ميجابايت (30-45 ثانية)
                 </Text>
                 <ImageUploadGrid
                   images={video}
-                  onChange={(newVideo) => setVideo(newVideo)}
+                  onChange={handleVideoChange}
                   maxImages={1}
-                  maxSize={50 * 1024 * 1024}
+                  maxSize={20 * 1024 * 1024}
                   accept="video/*"
                   label="الفيديو"
                   onError={(error) => {
@@ -855,8 +934,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                       duration: 5000,
                     });
                   }}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploadingVideo}
                 />
+                {isUploadingVideo && (
+                  <Text variant="small" style={{ marginTop: '8px', color: 'var(--primary)' }}>
+                    جاري رفع الفيديو...
+                  </Text>
+                )}
               </div>
             )}
           </FormSection>

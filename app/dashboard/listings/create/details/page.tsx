@@ -206,34 +206,6 @@ export default function CreateListingDetailsPage() {
     };
   }, [formData, attributes, attributeGroups, brands.length, brandAttribute, modelAttribute, videoAllowed, touched]);
 
-  // For backwards compatibility, extract just status
-  const sectionStatus = useMemo(() => {
-    const result: Record<string, FormSectionStatus> = {};
-    Object.entries(sectionInfo).forEach(([key, info]) => {
-      result[key] = info.status;
-    });
-    return result;
-  }, [sectionInfo]);
-
-  // Auto-expand next incomplete section when current is completed
-  useEffect(() => {
-    const sections = ['basicInfo', 'media', 'brandModel', ...attributeGroups.map(g => g.name), 'location'];
-
-    // Find first incomplete section
-    for (const section of sections) {
-      if (sectionStatus[section] === 'incomplete') {
-        // If this section is not expanded, expand it
-        if (!expandedSections[section]) {
-          setExpandedSections(prev => ({
-            ...Object.fromEntries(Object.keys(prev).map(k => [k, false])),
-            [section]: true,
-          }));
-        }
-        break;
-      }
-    }
-  }, [sectionStatus, attributeGroups]);
-
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -495,46 +467,45 @@ export default function CreateListingDetailsPage() {
             <Text variant="h1">أكمل تفاصيل إعلانك</Text>
           </div>
 
-        <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
-          <div className={styles.sectionsContainer}>
-            {/* Section 1: Basic Info */}
-            <FormSection
-              number={++sectionNumber}
-              title="معلومات الإعلان"
-              status={sectionInfo.basicInfo.status}
-              filledCount={sectionInfo.basicInfo.filledCount}
-              totalCount={sectionInfo.basicInfo.totalCount}
-              hasError={sectionInfo.basicInfo.hasError}
-              isExpanded={expandedSections.basicInfo}
-              onToggle={() => toggleSection('basicInfo')}
-            >
-              <div className={styles.formFields}>
-                {/* Title */}
-                <Input
-                  type="text"
-                  label="عنوان الإعلان"
-                  placeholder="مثال: تويوتا كامري 2020 فل كامل"
-                  value={formData.title}
-                  onChange={(e) => setFormField('title', e.target.value)}
-                  onBlur={() => handleBlur('title')}
-                  error={getError('title', !formData.title.trim() ? 'العنوان مطلوب' : undefined)}
-                  maxLength={ListingValidationConfig.title.maxLength}
-                  required
-                />
+          <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
+            <div className={styles.sectionsContainer}>
+              {/* Section 1: Basic Info */}
+              <FormSection
+                number={++sectionNumber}
+                title="معلومات الإعلان"
+                status={sectionInfo.basicInfo.status}
+                filledCount={sectionInfo.basicInfo.filledCount}
+                totalCount={sectionInfo.basicInfo.totalCount}
+                hasError={sectionInfo.basicInfo.hasError}
+                isExpanded={expandedSections.basicInfo}
+                onToggle={() => toggleSection('basicInfo')}
+              >
+                <div className={styles.formFields}>
+                  {/* Title */}
+                  <Input
+                    type="text"
+                    label="عنوان الإعلان"
+                    placeholder="مثال: تويوتا كامري 2020 فل كامل"
+                    value={formData.title}
+                    onChange={(e) => setFormField('title', e.target.value)}
+                    onBlur={() => handleBlur('title')}
+                    error={getError('title', !formData.title.trim() ? 'العنوان مطلوب' : undefined)}
+                    maxLength={ListingValidationConfig.title.maxLength}
+                    required
+                  />
 
-                {/* Description */}
-                <Input
-                  type="textarea"
-                  label="الوصف"
-                  placeholder="أضف وصفاً تفصيلياً عن المنتج..."
-                  value={formData.description}
-                  onChange={(e) => setFormField('description', e.target.value)}
-                  maxLength={ListingValidationConfig.description.maxLength}
-                  rows={6}
-                />
+                  {/* Description */}
+                  <Input
+                    type="textarea"
+                    label="الوصف"
+                    placeholder="أضف وصفاً تفصيلياً عن المنتج..."
+                    value={formData.description}
+                    onChange={(e) => setFormField('description', e.target.value)}
+                    maxLength={ListingValidationConfig.description.maxLength}
+                    rows={6}
+                  />
 
-                {/* Price & Bidding */}
-                <div className={styles.formRow}>
+                  {/* Price */}
                   <Input
                     type="price"
                     label="السعر"
@@ -544,352 +515,350 @@ export default function CreateListingDetailsPage() {
                     required
                   />
 
+                  {/* Bidding Toggle - Separate line */}
                   <Input
                     type="switch"
                     label="السماح بالمزايدة"
                     checked={formData.allowBidding}
                     onChange={(e) => setFormField('allowBidding', (e.target as HTMLInputElement).checked)}
                   />
-                </div>
 
-                {/* Bidding Start Price (conditional) */}
-                {formData.allowBidding && (
-                  <Input
-                    type="number"
-                    label="سعر البداية للمزايدة (بالدولار)"
-                    placeholder="0 = مجاني"
-                    value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? 0 : parseInt(e.target.value);
-                      setFormField('biddingStartPrice', value);
-                    }}
-                    onBlur={() => handleBlur('biddingStartPrice')}
-                    error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
-                    helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
-                  />
-                )}
-              </div>
-            </FormSection>
-
-            {/* Section 2: Photos & Video */}
-            <FormSection
-              number={++sectionNumber}
-              title={videoAllowed ? 'الصور والفيديو' : 'الصور'}
-              status={sectionInfo.media.status}
-              filledCount={sectionInfo.media.filledCount}
-              totalCount={sectionInfo.media.totalCount}
-              hasError={sectionInfo.media.hasError}
-              isExpanded={expandedSections.media}
-              onToggle={() => toggleSection('media')}
-            >
-              <div className={styles.formFields}>
-                <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
-                  الحد الأدنى {ListingValidationConfig.images.min} صورة - مطلوب
-                </Text>
-                <ImageUploadGrid
-                  images={formData.images}
-                  onChange={(images) => {
-                    setFormField('images', images);
-                    setTouched({ ...touched, images: true });
-                  }}
-                  maxImages={maxImagesAllowed}
-                  maxSize={2 * 1024 * 1024} // 2MB per image
-                  accept="image/*"
-                  label="الصور"
-                  onError={(error) => {
-                    addNotification({
-                      type: 'error',
-                      title: 'خطأ في رفع الصورة',
-                      message: error,
-                      duration: 5000,
-                    });
-                  }}
-                />
-                {touched.images && formData.images.length < ListingValidationConfig.images.min && (
-                  <Text variant="small" color="error">
-                    يجب إضافة {ListingValidationConfig.images.min} صورة على الأقل
-                  </Text>
-                )}
-
-                {/* Video Upload - Only for users with videoAllowed permission */}
-                {videoAllowed && (
-                  <div className={styles.videoSection}>
-                    <Text variant="h4" className={styles.videoLabel}>
-                      الفيديو (اختياري) - ({formData.video.length}/1)
-                    </Text>
-                    <Text variant="small" color="secondary" className={styles.videoHint}>
-                      الحد الأقصى 50 ميجابايت - MP4, WebM, MOV
-                    </Text>
-                    <ImageUploadGrid
-                      images={formData.video}
-                      onChange={(video) => setFormField('video', video)}
-                      maxImages={1}
-                      maxSize={50 * 1024 * 1024} // 50MB for video
-                      accept="video/*"
-                      label="الفيديو"
-                      onError={(error) => {
-                        addNotification({
-                          type: 'error',
-                          title: 'خطأ في رفع الفيديو',
-                          message: error,
-                          duration: 5000,
-                        });
+                  {/* Bidding Start Price (conditional) - Uses same currency as main price */}
+                  {formData.allowBidding && (
+                    <Input
+                      type="price"
+                      label="سعر البداية للمزايدة"
+                      value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : 0}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 0;
+                        setFormField('biddingStartPrice', value);
                       }}
+                      onBlur={() => handleBlur('biddingStartPrice')}
+                      helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية بالعملة المختارة"
                     />
-                  </div>
-                )}
-              </div>
-            </FormSection>
+                  )}
+                </div>
+              </FormSection>
 
-            {/* Section 3: Brand & Model (conditional) */}
-            {brands.length > 0 && (
+              {/* Section 2: Photos & Video */}
               <FormSection
                 number={++sectionNumber}
-                title="العلامة التجارية والموديل"
-                status={sectionInfo.brandModel.status}
-                filledCount={sectionInfo.brandModel.filledCount}
-                totalCount={sectionInfo.brandModel.totalCount}
-                hasError={sectionInfo.brandModel.hasError}
-                isExpanded={expandedSections.brandModel}
-                onToggle={() => toggleSection('brandModel')}
+                title={videoAllowed ? 'الصور والفيديو' : 'الصور'}
+                status={sectionInfo.media.status}
+                filledCount={sectionInfo.media.filledCount}
+                totalCount={sectionInfo.media.totalCount}
+                hasError={sectionInfo.media.hasError}
+                isExpanded={expandedSections.media}
+                onToggle={() => toggleSection('media')}
               >
                 <div className={styles.formFields}>
-                  <div className={styles.formRow}>
-                    {/* Brand Selector */}
-                    <Input
-                      type="select"
-                      label="العلامة التجارية"
-                      value={formData.specs.brandId || ''}
-                      onChange={(e) => {
-                        setSpecField('brandId', e.target.value);
-                        // Clear model when brand changes
-                        setSpecField('modelId', '');
-                      }}
-                      onBlur={() => handleBlur('brandId')}
-                      options={[
-                        { value: '', label: '-- اختر العلامة التجارية --' },
-                        ...brands
-                          .filter(b => b.isActive)
-                          .map(brand => ({
-                            value: brand.id,
-                            label: brand.name,
-                          })),
-                      ]}
-                      disabled={isLoadingBrands}
-                      searchable
-                      creatable
-                      isLoading={isLoadingBrands}
-                      onCreateOption={handleCreateBrand}
-                      required={brandAttribute?.validation === 'REQUIRED'}
-                      error={getError('brandId',
-                        brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId
-                          ? `${brandAttribute.name} مطلوب`
-                          : undefined
-                      )}
-                    />
+                  <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
+                    الحد الأدنى {ListingValidationConfig.images.min} صورة - مطلوب
+                  </Text>
+                  <ImageUploadGrid
+                    images={formData.images}
+                    onChange={(images) => {
+                      setFormField('images', images);
+                      setTouched({ ...touched, images: true });
+                    }}
+                    maxImages={maxImagesAllowed}
+                    maxSize={2 * 1024 * 1024} // 2MB per image
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    label="الصور"
+                    onError={(error) => {
+                      addNotification({
+                        type: 'error',
+                        title: 'خطأ في رفع الصورة',
+                        message: error,
+                        duration: 5000,
+                      });
+                    }}
+                  />
+                  {touched.images && formData.images.length < ListingValidationConfig.images.min && (
+                    <Text variant="small" color="error">
+                      يجب إضافة {ListingValidationConfig.images.min} صورة على الأقل
+                    </Text>
+                  )}
 
-                    {/* Model Selector (appears after brand is selected) */}
-                    {formData.specs.brandId && (
+                  {/* Video Upload - Only for users with videoAllowed permission */}
+                  {videoAllowed && (
+                    <div className={styles.videoSection}>
+                      <Text variant="h4" className={styles.videoLabel}>
+                        الفيديو (اختياري) - ({formData.video.length}/1)
+                      </Text>
+                      <Text variant="small" color="secondary" className={styles.videoHint}>
+                        الحد الأقصى 20 ميجابايت - MP4 فقط (30-45 ثانية)
+                      </Text>
+                      <ImageUploadGrid
+                        images={formData.video}
+                        onChange={(video) => setFormField('video', video)}
+                        maxImages={1}
+                        maxSize={20 * 1024 * 1024} // 20MB for video
+                        accept="video/mp4"
+                        label="الفيديو"
+                        onError={(error) => {
+                          addNotification({
+                            type: 'error',
+                            title: 'خطأ في رفع الفيديو',
+                            message: error,
+                            duration: 5000,
+                          });
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </FormSection>
+
+              {/* Section 3: Brand & Model (conditional) */}
+              {brands.length > 0 && (
+                <FormSection
+                  number={++sectionNumber}
+                  title="العلامة التجارية والموديل"
+                  status={sectionInfo.brandModel.status}
+                  filledCount={sectionInfo.brandModel.filledCount}
+                  totalCount={sectionInfo.brandModel.totalCount}
+                  hasError={sectionInfo.brandModel.hasError}
+                  isExpanded={expandedSections.brandModel}
+                  onToggle={() => toggleSection('brandModel')}
+                >
+                  <div className={styles.formFields}>
+                    <div className={styles.formRow}>
+                      {/* Brand Selector */}
                       <Input
                         type="select"
-                        label="الموديل"
-                        value={formData.specs.modelId || ''}
-                        onChange={(e) => setSpecField('modelId', e.target.value)}
-                        onBlur={() => handleBlur('modelId')}
+                        label="العلامة التجارية"
+                        value={formData.specs.brandId || ''}
+                        onChange={(e) => {
+                          setSpecField('brandId', e.target.value);
+                          // Clear model when brand changes
+                          setSpecField('modelId', '');
+                        }}
+                        onBlur={() => handleBlur('brandId')}
                         options={[
-                          { value: '', label: '-- اختر الموديل --' },
-                          ...models
-                            .filter(m => m.isActive)
-                            .map(model => ({
-                              value: model.id,
-                              label: model.name,
+                          { value: '', label: '-- اختر العلامة التجارية --' },
+                          ...brands
+                            .filter(b => b.isActive)
+                            .map(brand => ({
+                              value: brand.id,
+                              label: brand.name,
                             })),
                         ]}
-                        disabled={isLoadingModels}
+                        disabled={isLoadingBrands}
                         searchable
                         creatable
-                        isLoading={isLoadingModels}
-                        onCreateOption={handleCreateModel}
-                        required={modelAttribute?.validation === 'REQUIRED'}
-                        error={getError('modelId',
-                          modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
-                            ? `${modelAttribute.name} مطلوب`
+                        isLoading={isLoadingBrands}
+                        onCreateOption={handleCreateBrand}
+                        required={brandAttribute?.validation === 'REQUIRED'}
+                        error={getError('brandId',
+                          brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId
+                            ? `${brandAttribute.name} مطلوب`
                             : undefined
                         )}
                       />
-                    )}
+
+                      {/* Model Selector (appears after brand is selected) */}
+                      {formData.specs.brandId && (
+                        <Input
+                          type="select"
+                          label="الموديل"
+                          value={formData.specs.modelId || ''}
+                          onChange={(e) => setSpecField('modelId', e.target.value)}
+                          onBlur={() => handleBlur('modelId')}
+                          options={[
+                            { value: '', label: '-- اختر الموديل --' },
+                            ...models
+                              .filter(m => m.isActive)
+                              .map(model => ({
+                                value: model.id,
+                                label: model.name,
+                              })),
+                          ]}
+                          disabled={isLoadingModels}
+                          searchable
+                          creatable
+                          isLoading={isLoadingModels}
+                          onCreateOption={handleCreateModel}
+                          required={modelAttribute?.validation === 'REQUIRED'}
+                          error={getError('modelId',
+                            modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
+                              ? `${modelAttribute.name} مطلوب`
+                              : undefined
+                          )}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </FormSection>
+              )}
+
+              {/* Section 4+: Dynamic Attribute Groups */}
+              {attributeGroups.length > 0 && attributeGroups.map((group) => {
+                // Filter out brand/model from display
+                const groupAttributes = group.attributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
+                if (groupAttributes.length === 0) return null;
+
+                // Initialize expanded state for this group if not exists
+                if (expandedSections[group.name] === undefined) {
+                  expandedSections[group.name] = false;
+                }
+
+                const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, filledCount: 0, totalCount: 0, hasError: false };
+
+                return (
+                  <FormSection
+                    key={group.name}
+                    number={++sectionNumber}
+                    title={group.name}
+                    status={groupInfo.status}
+                    filledCount={groupInfo.filledCount}
+                    totalCount={groupInfo.totalCount}
+                    hasError={groupInfo.hasError}
+                    isExpanded={expandedSections[group.name]}
+                    onToggle={() => toggleSection(group.name)}
+                  >
+                    <div className={styles.specsGrid}>
+                      {groupAttributes.map((attribute) => (
+                        <div key={attribute.key}>
+                          {renderAttributeField({
+                            attribute,
+                            value: formData.specs[attribute.key],
+                            onChange: (value) => setSpecField(attribute.key, value),
+                            error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
+                              ? `${attribute.name} مطلوب`
+                              : undefined,
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </FormSection>
+                );
+              })}
+
+              {/* Section: Location */}
+              <FormSection
+                number={++sectionNumber}
+                title="الموقع"
+                status={sectionInfo.location.status}
+                filledCount={sectionInfo.location.filledCount}
+                totalCount={sectionInfo.location.totalCount}
+                hasError={sectionInfo.location.hasError}
+                isExpanded={expandedSections.location}
+                onToggle={() => toggleSection('location')}
+              >
+                <div className={styles.formFields}>
+                  <div className={styles.formRow}>
+                    <Input
+                      type="select"
+                      label="المحافظة"
+                      value={formData.location.province}
+                      onChange={(e) => setLocationField('province', e.target.value)}
+                      onBlur={() => handleBlur('province')}
+                      options={[
+                        { value: '', label: '-- اختر المحافظة --' },
+                        ...provinces.map(p => ({ value: p.key, label: p.nameAr })),
+                      ]}
+                      error={getError('province', !formData.location.province ? 'المحافظة مطلوبة' : undefined)}
+                      required
+                    />
+
+                    <Input
+                      type="text"
+                      label="المدينة"
+                      placeholder="اختياري"
+                      value={formData.location.city}
+                      onChange={(e) => setLocationField('city', e.target.value)}
+                    />
+                  </div>
+
+                  <Input
+                    type="text"
+                    label="المنطقة"
+                    placeholder="اختياري"
+                    value={formData.location.area}
+                    onChange={(e) => setLocationField('area', e.target.value)}
+                  />
+
+                  <div className={styles.locationLinkRow}>
+                    <Input
+                      type="text"
+                      label="رابط الخريطة"
+                      placeholder="https://maps.google.com/..."
+                      value={formData.location.link}
+                      onChange={(e) => setLocationField('link', e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={styles.locationButton}
+                      onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                              const { latitude, longitude } = position.coords;
+                              const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                              setLocationField('link', mapsLink);
+                              addNotification({
+                                type: 'success',
+                                title: 'تم تحديد الموقع',
+                                message: 'تم إضافة رابط موقعك الحالي',
+                                duration: 3000,
+                              });
+                            },
+                            (error) => {
+                              addNotification({
+                                type: 'error',
+                                title: 'خطأ في تحديد الموقع',
+                                message: error.code === 1
+                                  ? 'يرجى السماح بالوصول إلى الموقع من إعدادات المتصفح'
+                                  : 'تعذر تحديد الموقع، حاول مرة أخرى',
+                                duration: 5000,
+                              });
+                            }
+                          );
+                        } else {
+                          addNotification({
+                            type: 'error',
+                            title: 'غير مدعوم',
+                            message: 'المتصفح لا يدعم تحديد الموقع الجغرافي',
+                            duration: 5000,
+                          });
+                        }
+                      }}
+                    >
+                      <MapPin size={16} />
+                      موقعي الحالي
+                    </Button>
                   </div>
                 </div>
               </FormSection>
-            )}
+            </div>
+            {/* Inline loader - shows during submission */}
+            <ListingSubmitLoader isVisible={!isSubmitting} />
 
-            {/* Section 4+: Dynamic Attribute Groups */}
-            {attributeGroups.length > 0 && attributeGroups.map((group) => {
-              // Filter out brand/model from display
-              const groupAttributes = group.attributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
-              if (groupAttributes.length === 0) return null;
-
-              // Initialize expanded state for this group if not exists
-              if (expandedSections[group.name] === undefined) {
-                expandedSections[group.name] = false;
-              }
-
-              const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, filledCount: 0, totalCount: 0, hasError: false };
-
-              return (
-                <FormSection
-                  key={group.name}
-                  number={++sectionNumber}
-                  title={group.name}
-                  status={groupInfo.status}
-                  filledCount={groupInfo.filledCount}
-                  totalCount={groupInfo.totalCount}
-                  hasError={groupInfo.hasError}
-                  isExpanded={expandedSections[group.name]}
-                  onToggle={() => toggleSection(group.name)}
-                >
-                  <div className={styles.specsGrid}>
-                    {groupAttributes.map((attribute) => (
-                      <div key={attribute.key}>
-                        {renderAttributeField({
-                          attribute,
-                          value: formData.specs[attribute.key],
-                          onChange: (value) => setSpecField(attribute.key, value),
-                          error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
-                            ? `${attribute.name} مطلوب`
-                            : undefined,
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </FormSection>
-              );
-            })}
-
-            {/* Section: Location */}
-            <FormSection
-              number={++sectionNumber}
-              title="الموقع"
-              status={sectionInfo.location.status}
-              filledCount={sectionInfo.location.filledCount}
-              totalCount={sectionInfo.location.totalCount}
-              hasError={sectionInfo.location.hasError}
-              isExpanded={expandedSections.location}
-              onToggle={() => toggleSection('location')}
-            >
-              <div className={styles.formFields}>
-                <div className={styles.formRow}>
-                  <Input
-                    type="select"
-                    label="المحافظة"
-                    value={formData.location.province}
-                    onChange={(e) => setLocationField('province', e.target.value)}
-                    onBlur={() => handleBlur('province')}
-                    options={[
-                      { value: '', label: '-- اختر المحافظة --' },
-                      ...provinces.map(p => ({ value: p.key, label: p.nameAr })),
-                    ]}
-                    error={getError('province', !formData.location.province ? 'المحافظة مطلوبة' : undefined)}
-                    required
-                  />
-
-                  <Input
-                    type="text"
-                    label="المدينة"
-                    placeholder="اختياري"
-                    value={formData.location.city}
-                    onChange={(e) => setLocationField('city', e.target.value)}
-                  />
-                </div>
-
-                <Input
-                  type="text"
-                  label="المنطقة"
-                  placeholder="اختياري"
-                  value={formData.location.area}
-                  onChange={(e) => setLocationField('area', e.target.value)}
-                />
-
-                <div className={styles.locationLinkRow}>
-                  <Input
-                    type="text"
-                    label="رابط الخريطة"
-                    placeholder="https://maps.google.com/..."
-                    value={formData.location.link}
-                    onChange={(e) => setLocationField('link', e.target.value)}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={styles.locationButton}
-                    onClick={() => {
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            const { latitude, longitude } = position.coords;
-                            const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                            setLocationField('link', mapsLink);
-                            addNotification({
-                              type: 'success',
-                              title: 'تم تحديد الموقع',
-                              message: 'تم إضافة رابط موقعك الحالي',
-                              duration: 3000,
-                            });
-                          },
-                          (error) => {
-                            addNotification({
-                              type: 'error',
-                              title: 'خطأ في تحديد الموقع',
-                              message: error.code === 1
-                                ? 'يرجى السماح بالوصول إلى الموقع من إعدادات المتصفح'
-                                : 'تعذر تحديد الموقع، حاول مرة أخرى',
-                              duration: 5000,
-                            });
-                          }
-                        );
-                      } else {
-                        addNotification({
-                          type: 'error',
-                          title: 'غير مدعوم',
-                          message: 'المتصفح لا يدعم تحديد الموقع الجغرافي',
-                          duration: 5000,
-                        });
-                      }
-                    }}
-                  >
-                    <MapPin size={16} />
-                    موقعي الحالي
-                  </Button>
-                </div>
+            {/* Sticky Actions */}
+            <div className={styles.stickyActions}>
+              <div className={styles.leftActions}>
+                <Button variant="outline" onClick={handleCancel}>
+                  إلغاء
+                </Button>
               </div>
-            </FormSection>
-          </div>
 
-          {/* Sticky Actions */}
-          <div className={styles.stickyActions}>
-            <div className={styles.leftActions}>
-              <Button variant="outline" onClick={handleCancel}>
-                إلغاء
-              </Button>
+              <div className={styles.rightActions}>
+
+                <SubmitButton
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isSuccess={!!success}
+                  isError={!!error}
+                >
+                  نشر الإعلان
+                </SubmitButton>
+              </div>
             </div>
-
-            <div className={styles.rightActions}>
-              <SubmitButton
-                type="submit"
-                isLoading={isSubmitting}
-                isSuccess={!!success}
-                isError={!!error}
-              >
-                نشر الإعلان
-              </SubmitButton>
-            </div>
-          </div>
-        </Form>
-
-        {/* AI Processing Loader - shows during submission */}
-        <ListingSubmitLoader isVisible={isSubmitting} />
-      </div>
-    </Container>
+          </Form>
+        </div>
+      </Container>
     </>
   );
 }

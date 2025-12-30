@@ -190,10 +190,10 @@ export function validateImageFile(file: File, maxSizeMB: number = 2): string | u
  * Validate video file before upload
  *
  * @param file - The file to validate
- * @param maxSizeMB - Maximum file size in megabytes (default: 50MB per video)
+ * @param maxSizeMB - Maximum file size in megabytes (default: 20MB per video)
  * @returns Error message if invalid, undefined if valid
  */
-export function validateVideoFile(file: File, maxSizeMB: number = 50): string | undefined {
+export function validateVideoFile(file: File, maxSizeMB: number = 20): string | undefined {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
   if (file.size > maxSizeBytes) {

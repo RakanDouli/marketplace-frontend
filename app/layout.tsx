@@ -6,7 +6,6 @@ import { ErrorBoundary } from '../components/slices';
 import { generateDefaultMetadata } from '../utils/seo';
 import { PublicLayoutClient } from '../components/layouts/PublicLayoutClient';
 import { AdSenseScriptLoader } from '../components/ads/AdSenseScriptLoader';
-import { EnvironmentBadge } from '../components/EnvironmentBadge';
 import { JsonLd, generateOrganizationSchema, generateWebsiteSchema } from '../components/seo';
 
 export const metadata: Metadata = generateDefaultMetadata('ar');
@@ -46,7 +45,6 @@ export default function RootLayout({
               <PublicLayoutClient>
                 {children}
               </PublicLayoutClient>
-              <EnvironmentBadge />
             </ErrorBoundary>
           </ThemeProvider>
         </LanguageProvider>

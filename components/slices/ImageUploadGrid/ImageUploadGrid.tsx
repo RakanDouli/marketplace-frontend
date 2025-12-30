@@ -2,13 +2,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Text, Button, Image } from '@/components/slices';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Play } from 'lucide-react';
 import styles from './ImageUploadGrid.module.scss';
 
 export interface ImageItem {
   id: string;
   url: string;
   file?: File;
+  isVideo?: boolean; // Track if this is a video file
 }
 
 interface ImageUploadGridProps {
@@ -88,7 +89,12 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
 
       // Validate file type
       if (!isFileTypeAccepted(file)) {
-        errors.push(`نوع الملف غير مدعوم: ${file.name}. الأنواع المسموحة: ${accept}`);
+        // Show user-friendly error message for images
+        const isImageAccept = accept.includes('image/');
+        const supportedFormats = isImageAccept
+          ? 'JPEG, PNG, WebP, GIF'
+          : accept.replace(/video\//g, '').replace(/,/g, ', ').toUpperCase();
+        errors.push(`نوع الملف غير مدعوم: ${file.name}. الأنواع المسموحة: ${supportedFormats}`);
         continue;
       }
 
@@ -103,7 +109,8 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
       // File is valid - add it
       const id = `${Date.now()}-${i}`;
       const url = URL.createObjectURL(file);
-      newImages.push({ id, url, file });
+      const isVideo = file.type.startsWith('video/');
+      newImages.push({ id, url, file, isVideo });
     }
 
     // Show errors if any
@@ -187,15 +194,29 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
       >
         {images.map((image) => (
           <div key={image.id} className={styles.imageCard}>
-            <Image
-              src={image.url}
-              alt={label}
-              width={200}
-              height={150}
-              className={styles.image}
-              showSkeleton={false}
-              variant="public"
-            />
+            {image.isVideo ? (
+              <div className={styles.videoPreview}>
+                <video
+                  src={image.url}
+                  className={styles.video}
+                  muted
+                  playsInline
+                />
+                <div className={styles.videoOverlay}>
+                  <Play size={32} />
+                </div>
+              </div>
+            ) : (
+              <Image
+                src={image.url}
+                alt={label}
+                width={200}
+                height={150}
+                className={styles.image}
+                showSkeleton={false}
+                variant="public"
+              />
+            )}
             {!disabled && (
               <Button
                 variant="danger"

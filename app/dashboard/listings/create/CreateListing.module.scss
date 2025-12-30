@@ -91,7 +91,7 @@
     gap: $space-md;
 
     @media (max-width: $breakpoint-sm) {
-      flex-direction: column;
+      flex-direction: column-reverse;
       padding: $space-md;
 
       button {
@@ -184,5 +184,5 @@
   display: flex;
   flex-direction: column;
   gap: $space-md;
-  margin-bottom: $space-lg;
+  margin-bottom: $space-md;
 }

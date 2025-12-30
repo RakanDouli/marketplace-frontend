@@ -45,6 +45,63 @@
   }
 }
 
+// Video container (thumbnail mode - clicking opens preview)
+.videoContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+  cursor: pointer;
+}
+
+// Video thumbnail (no controls, just shows first frame)
+.videoThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none; // Prevent video controls from appearing
+}
+
+// Play overlay on video thumbnail
+.videoPlayOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.75);
+  border-radius: $radius-full;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-light;
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.2s ease;
+
+  svg {
+    margin-left: 4px; // Offset for play icon visual center
+  }
+}
+
+// Hover effect on video
+.videoContainer:hover .videoPlayOverlay {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+// Legacy video player (for inline playback if needed)
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: $radius-lg;
+}
+
 .navButton {
   position: absolute;
   top: 50%;

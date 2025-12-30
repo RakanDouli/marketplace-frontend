@@ -108,9 +108,11 @@ export const useArchivedListingStore = create<ArchivedListingStore>((set) => ({
   archiveListing: async (listingId: string, reason: string) => {
     set({ isLoading: true, error: null });
     try {
+      // Convert reason to uppercase for GraphQL enum (e.g., "sold_externally" → "SOLD_EXTERNALLY")
+      const enumReason = reason.toUpperCase();
       await cachedGraphQLRequest(
         ARCHIVE_MY_LISTING_MUTATION,
-        { listingId, reason },
+        { listingId, reason: enumReason },
         { ttl: 0 } // No cache for mutations
       );
 

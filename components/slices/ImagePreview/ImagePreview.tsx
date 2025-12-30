@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, Download, Trash2, MoreVertical } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Download, Trash2, MoreVertical, Play } from 'lucide-react';
 import { Button, Text, Dropdown, DropdownMenuItem } from '@/components/slices';
 import styles from './ImagePreview.module.scss';
 
@@ -10,6 +10,7 @@ export interface ImagePreviewImage {
   url: string;
   alt?: string;
   id?: string;
+  type?: 'image' | 'video'; // Media type for video support
 }
 
 export interface ImagePreviewProps {
@@ -179,14 +180,26 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
           </div>
         </div>
 
-        {/* Image Container */}
+        {/* Media Container */}
         <div className={styles.imageContainer}>
-          <img
-            src={currentImage.url}
-            alt={currentImage.alt || `صورة ${currentIndex + 1}`}
-            className={styles.image}
-            draggable={false}
-          />
+          {currentImage.type === 'video' ? (
+            <video
+              src={currentImage.url}
+              controls
+              autoPlay
+              className={styles.video}
+              playsInline
+            >
+              متصفحك لا يدعم تشغيل الفيديو
+            </video>
+          ) : (
+            <img
+              src={currentImage.url}
+              alt={currentImage.alt || `صورة ${currentIndex + 1}`}
+              className={styles.image}
+              draggable={false}
+            />
+          )}
         </div>
 
         {/* Navigation Arrows (only if more than 1 image) */}
@@ -211,21 +224,27 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
           </>
         )}
 
-        {/* Thumbnail Navigation (if more than 1 image) */}
+        {/* Thumbnail Navigation (if more than 1 media item) */}
         {images.length > 1 && (
           <div className={styles.thumbnails}>
             {images.map((image, index) => (
               <button
                 key={index}
-                className={`${styles.thumbnail} ${index === safeIndex ? styles.thumbnailActive : ''}`}
+                className={`${styles.thumbnail} ${index === safeIndex ? styles.thumbnailActive : ''} ${image.type === 'video' ? styles.thumbnailVideo : ''}`}
                 onClick={() => setCurrentIndex(index)}
-                aria-label={`الذهاب إلى الصورة ${index + 1}`}
+                aria-label={image.type === 'video' ? 'الذهاب إلى الفيديو' : `الذهاب إلى الصورة ${index + 1}`}
               >
-                <img
-                  src={image.url}
-                  alt={image.alt || `صورة ${index + 1}`}
-                  draggable={false}
-                />
+                {image.type === 'video' ? (
+                  <div className={styles.videoThumbnail}>
+                    <Play size={24} />
+                  </div>
+                ) : (
+                  <img
+                    src={image.url}
+                    alt={image.alt || `صورة ${index + 1}`}
+                    draggable={false}
+                  />
+                )}
               </button>
             ))}
           </div>

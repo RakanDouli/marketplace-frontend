@@ -1,1 +1,0 @@
-export { EnvironmentBadge } from './EnvironmentBadge';
