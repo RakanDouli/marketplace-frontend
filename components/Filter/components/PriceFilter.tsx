@@ -21,12 +21,10 @@ export interface PriceFilterProps {
   onMinChange: (value: string | undefined) => void;
   /** Callback when max value changes (sends value in user's currency) */
   onMaxChange: (value: string | undefined) => void;
-  /** Callback when currency changes */
-  onCurrencyChange?: (currency: string) => void;
+  /** Callback when reset is triggered (clears both at once) */
+  onReset?: () => void;
   /** Total result count for this filter */
   resultCount?: number;
-  /** Callback when apply is triggered */
-  onApply?: () => void;
 }
 
 /**
@@ -106,9 +104,8 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
   categoryKey,
   onMinChange,
   onMaxChange,
-  onCurrencyChange,
+  onReset,
   resultCount,
-  onApply,
 }) => {
   const { t } = useTranslation();
   const { preferredCurrency, getRate } = useCurrencyStore();
@@ -152,18 +149,24 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
       return;
     }
 
-    // If user has price selected and currency changes, refresh results
-    if (hasSelection && onApply) {
-      onApply();
+    // If user has price selected and currency changes, trigger re-fetch with same values
+    // The parent will handle the actual fetch via onMinChange/onMaxChange
+    if (hasSelection && minValue) {
+      onMinChange(minValue);
+    } else if (hasSelection && maxValue) {
+      onMaxChange(maxValue);
     }
   }, [preferredCurrency]); // Only trigger on currency change
 
   const handleReset = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMinChange(undefined);
-    onMaxChange(undefined);
-    if (onApply) {
-      onApply();
+    // Use onReset if provided (clears both at once + fetches once)
+    if (onReset) {
+      onReset();
+    } else {
+      // Fallback: clear both values separately
+      onMinChange(undefined);
+      onMaxChange(undefined);
     }
   };
 
@@ -225,9 +228,6 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
           value={minValue || ""}
           onChange={(e) => {
             onMinChange(e.target.value || undefined);
-            // Send currency along with price value
-            if (onCurrencyChange) onCurrencyChange(preferredCurrency);
-            if (onApply) onApply();
           }}
           options={minOptions}
           size="sm"
@@ -237,9 +237,6 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
           value={maxValue || ""}
           onChange={(e) => {
             onMaxChange(e.target.value || undefined);
-            // Send currency along with price value
-            if (onCurrencyChange) onCurrencyChange(preferredCurrency);
-            if (onApply) onApply();
           }}
           options={maxOptions}
           size="sm"

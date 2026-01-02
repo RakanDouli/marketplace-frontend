@@ -16,6 +16,7 @@ import {
   useListingsStore,
   useSearchStore,
 } from "../../stores";
+import { useCurrencyStore } from "../../stores/currencyStore";
 import {
   RangeFilter,
   RangeSelectorFilter,
@@ -163,7 +164,7 @@ export const Filter: React.FC<FilterProps> = ({
     setDraftSpecFilter(attributeKey, cleanValue.length > 0 ? newValue : undefined);
   };
 
-  const { handleSpecChange, handleApplyPriceFilter } = filterActions;
+  const { handleSpecChange } = filterActions;
 
   const {
     getFilterableAttributes,
@@ -225,18 +226,31 @@ export const Filter: React.FC<FilterProps> = ({
   };
 
   // Apply handler - triggers both draft apply and backend fetch
-  const handleApplyFilter = async () => {
+  // Optional priceOverride allows immediate price filter without waiting for Zustand state
+  const handleApplyFilter = async (priceOverride?: { min?: number; max?: number }) => {
     applyDrafts();
 
     // Get fresh state from store (not stale component state)
     const freshDraftFilters = useSearchStore.getState().draftFilters;
+    // Get current currency from currency store (set by user in header)
+    const currentCurrency = useCurrencyStore.getState().preferredCurrency;
 
     const storeFilters: any = { categoryId: categorySlug };
 
-    // Price filters
-    if (freshDraftFilters.priceMinMinor) storeFilters.priceMinMinor = freshDraftFilters.priceMinMinor;
-    if (freshDraftFilters.priceMaxMinor) storeFilters.priceMaxMinor = freshDraftFilters.priceMaxMinor;
-    if (freshDraftFilters.priceCurrency) storeFilters.priceCurrency = freshDraftFilters.priceCurrency;
+    // Price filters - use override value if the key exists in override, otherwise use fresh store state
+    // This ensures the changed value is sent immediately while other values come from fresh state
+    const priceMin = priceOverride && 'min' in priceOverride
+      ? priceOverride.min
+      : freshDraftFilters.priceMinMinor;
+    const priceMax = priceOverride && 'max' in priceOverride
+      ? priceOverride.max
+      : freshDraftFilters.priceMaxMinor;
+
+    if (priceMin) storeFilters.priceMinMinor = priceMin;
+    if (priceMax) storeFilters.priceMaxMinor = priceMax;
+    if (priceMin || priceMax) {
+      storeFilters.priceCurrency = currentCurrency;
+    }
 
     // Search
     const searchValue = freshDraftFilters.specs?.search || freshDraftFilters.search;
@@ -359,18 +373,24 @@ export const Filter: React.FC<FilterProps> = ({
           minValue={getDraftPriceMin()}
           maxValue={getDraftPriceMax()}
           categoryKey={categorySlug}
-          onMinChange={(value) => setDraftPriceMin(value || "")}
-          onMaxChange={(value) => setDraftPriceMax(value || "")}
-          onCurrencyChange={(currency) => setDraftFilter("priceCurrency", currency)}
           resultCount={totalResults}
-          onApply={() => {
-            // Get fresh values from store and apply with currency conversion
-            const fresh = useSearchStore.getState().draftFilters;
-            handleApplyPriceFilter(
-              fresh.priceMinMinor?.toString() || "",
-              fresh.priceMaxMinor?.toString() || "",
-              fresh.priceCurrency || "USD"
-            );
+          onMinChange={(value) => {
+            const numValue = value ? parseFloat(value) : undefined;
+            setDraftPriceMin(value || "");
+            // Only pass min in override - let max come from fresh store state
+            handleApplyFilter({ min: numValue });
+          }}
+          onMaxChange={(value) => {
+            const numValue = value ? parseFloat(value) : undefined;
+            setDraftPriceMax(value || "");
+            // Only pass max in override - let min come from fresh store state
+            handleApplyFilter({ max: numValue });
+          }}
+          onReset={() => {
+            setDraftFilter("priceMinMinor", undefined);
+            setDraftFilter("priceMaxMinor", undefined);
+            // Pass explicit undefined values to clear price filters
+            handleApplyFilter({ min: undefined, max: undefined });
           }}
         />
       );

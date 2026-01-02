@@ -145,29 +145,38 @@ export const useSearchStore = create<SearchStore>()(
       set({ appliedFilters: newFilters });
     },
 
-    // Remove individual filter
+    // Remove individual filter (clears from both applied and draft)
     removeFilter: (key: keyof SearchFilters) => {
-      const { appliedFilters } = get();
-      const newFilters = { ...appliedFilters };
-      delete newFilters[key];
+      const { appliedFilters, draftFilters } = get();
+      const newAppliedFilters = { ...appliedFilters };
+      const newDraftFilters = { ...draftFilters };
+      delete newAppliedFilters[key];
+      delete newDraftFilters[key];
 
-      set({ appliedFilters: newFilters });
+      set({ appliedFilters: newAppliedFilters, draftFilters: newDraftFilters });
     },
 
-    // Remove spec filter
+    // Remove spec filter (clears from both applied and draft)
     removeSpecFilter: (specKey: string) => {
-      const { appliedFilters } = get();
-      if (!appliedFilters.specs) return;
+      const { appliedFilters, draftFilters } = get();
 
-      const newSpecs = { ...appliedFilters.specs };
-      delete newSpecs[specKey];
-
-      const newFilters = {
+      // Clear from applied filters
+      const newAppliedSpecs = appliedFilters.specs ? { ...appliedFilters.specs } : {};
+      delete newAppliedSpecs[specKey];
+      const newAppliedFilters = {
         ...appliedFilters,
-        specs: Object.keys(newSpecs).length > 0 ? newSpecs : undefined,
+        specs: Object.keys(newAppliedSpecs).length > 0 ? newAppliedSpecs : undefined,
       };
 
-      set({ appliedFilters: newFilters });
+      // Clear from draft filters
+      const newDraftSpecs = draftFilters.specs ? { ...draftFilters.specs } : {};
+      delete newDraftSpecs[specKey];
+      const newDraftFilters = {
+        ...draftFilters,
+        specs: Object.keys(newDraftSpecs).length > 0 ? newDraftSpecs : undefined,
+      };
+
+      set({ appliedFilters: newAppliedFilters, draftFilters: newDraftFilters });
     },
 
     // Clear all filters
