@@ -19,6 +19,8 @@ const initialFormData: CreateListingFormData = {
   priceMinor: 0,
   allowBidding: false,
   biddingStartPrice: undefined,
+  listingType: "", // Column-stored: "sale" | "rent"
+  condition: "", // Column-stored: "new" | "used_like_new" | "used"
   images: [],
   video: [], // Video upload (max 1 video)
   specs: {},
@@ -330,6 +332,9 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
       if (formData.allowBidding && formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null) {
         formDataPayload.append('biddingStartPrice', formData.biddingStartPrice.toString());
       }
+      // Column-stored global attributes
+      if (formData.listingType) formDataPayload.append('listingType', formData.listingType);
+      if (formData.condition) formDataPayload.append('condition', formData.condition);
       if (brandName) formDataPayload.append('brandName', brandName);
       if (modelName) formDataPayload.append('modelName', modelName);
       if (formData.location.province) formDataPayload.append('location', JSON.stringify(formData.location));

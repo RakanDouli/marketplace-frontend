@@ -104,6 +104,10 @@ export default function CreateListingDetailsPage() {
   const brandAttribute = attributes.find(attr => attr.key === 'brandId');
   const modelAttribute = attributes.find(attr => attr.key === 'modelId');
 
+  // Find column-stored global attributes (listingType, condition)
+  const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
+  const conditionAttribute = attributes.find(attr => attr.key === 'condition');
+
   // Section status and field counts
   // - status: 'incomplete' | 'required' | 'complete'
   // - filledCount / totalCount: for X/Y display
@@ -537,6 +541,60 @@ export default function CreateListingDetailsPage() {
                       helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية بالعملة المختارة"
                     />
                   )}
+
+                  {/* Listing Type - Sale/Rent (column-stored global attribute) */}
+                  {listingTypeAttribute && (
+                    <Input
+                      type="select"
+                      label={listingTypeAttribute.name}
+                      value={formData.listingType}
+                      onChange={(e) => setFormField('listingType', e.target.value)}
+                      onBlur={() => handleBlur('listingType')}
+                      options={[
+                        { value: '', label: `-- اختر ${listingTypeAttribute.name} --` },
+                        ...listingTypeAttribute.options
+                          .filter(opt => opt.isActive)
+                          .sort((a, b) => a.sortOrder - b.sortOrder)
+                          .map(opt => ({
+                            value: opt.key,
+                            label: opt.value,
+                          }))
+                      ]}
+                      required={listingTypeAttribute.validation === 'REQUIRED'}
+                      error={getError('listingType',
+                        listingTypeAttribute.validation === 'REQUIRED' && !formData.listingType
+                          ? `${listingTypeAttribute.name} مطلوب`
+                          : undefined
+                      )}
+                    />
+                  )}
+
+                  {/* Condition - New/Used (column-stored global attribute) */}
+                  {conditionAttribute && (
+                    <Input
+                      type="select"
+                      label={conditionAttribute.name}
+                      value={formData.condition}
+                      onChange={(e) => setFormField('condition', e.target.value)}
+                      onBlur={() => handleBlur('condition')}
+                      options={[
+                        { value: '', label: `-- اختر ${conditionAttribute.name} --` },
+                        ...conditionAttribute.options
+                          .filter(opt => opt.isActive)
+                          .sort((a, b) => a.sortOrder - b.sortOrder)
+                          .map(opt => ({
+                            value: opt.key,
+                            label: opt.value,
+                          }))
+                      ]}
+                      required={conditionAttribute.validation === 'REQUIRED'}
+                      error={getError('condition',
+                        conditionAttribute.validation === 'REQUIRED' && !formData.condition
+                          ? `${conditionAttribute.name} مطلوب`
+                          : undefined
+                      )}
+                    />
+                  )}
                 </div>
               </FormSection>
 
@@ -834,7 +892,7 @@ export default function CreateListingDetailsPage() {
               </FormSection>
             </div>
             {/* Inline loader - shows during submission */}
-            <ListingSubmitLoader isVisible={!isSubmitting} />
+            <ListingSubmitLoader isVisible={isSubmitting} />
 
             {/* Sticky Actions */}
             <div className={styles.stickyActions}>

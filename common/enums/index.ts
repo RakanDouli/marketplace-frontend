@@ -63,6 +63,29 @@ export enum UserRole {
   ADS_MANAGER = "ads_manager",
 }
 
+// ===== LISTING TYPE =====
+
+/**
+ * Listing Type Enum
+ * Backend: marketplace-backend/src/common/enums/listing-type.enum.ts
+ */
+export enum ListingType {
+  SALE = "sale",
+  RENT = "rent",
+}
+
+// ===== CONDITION =====
+
+/**
+ * Condition Enum
+ * Backend: marketplace-backend/src/common/enums/condition.enum.ts
+ */
+export enum Condition {
+  NEW = "new",
+  USED_LIKE_NEW = "used_like_new",
+  USED = "used",
+}
+
 // ===== LISTING STATUS =====
 
 /**

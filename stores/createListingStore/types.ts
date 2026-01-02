@@ -7,9 +7,11 @@ export type AttributeType =
   | 'SELECTOR'
   | 'MULTI_SELECTOR'
   | 'RANGE'
+  | 'RANGE_SELECTOR'
   | 'CURRENCY'
   | 'TEXTAREA'
-  | 'BOOLEAN';
+  | 'BOOLEAN'
+  | 'DATE_RANGE';
 
 export type AttributeValidation = 'REQUIRED' | 'OPTIONAL';
 
@@ -72,6 +74,9 @@ export interface CreateListingFormData {
   priceMinor: number; // USD dollars
   allowBidding: boolean;
   biddingStartPrice?: number;
+  // Column-stored global attributes
+  listingType: string; // "sale" | "rent"
+  condition: string; // "new" | "used_like_new" | "used"
 
   // Step 2: Images & Video
   images: ImageItem[];

@@ -50,6 +50,21 @@ export const ACCOUNT_BADGE_LABELS: Record<string, string> = {
   premium: "مميز",
 };
 
+// ===== LISTING TYPE LABELS =====
+
+export const LISTING_TYPE_LABELS: Record<string, string> = {
+  sale: "للبيع",
+  rent: "للإيجار",
+};
+
+// ===== CONDITION LABELS =====
+
+export const CONDITION_LABELS: Record<string, string> = {
+  new: "جديد",
+  used_like_new: "مستعمل كالجديد",
+  used: "مستعمل",
+};
+
 // ===== LISTING METADATA LABELS =====
 
 export const LISTING_STATUS_LABELS: Record<string, string> = {

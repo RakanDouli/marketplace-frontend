@@ -154,6 +154,31 @@ export const renderAttributeField = ({
         />
       );
 
+    case AttributeType.RANGE_SELECTOR:
+      // RANGE_SELECTOR: For listing creation, user enters a single value (e.g., year, mileage)
+      // The predefined options are ONLY used in filters (min/max dropdowns), not for data entry
+      // Here we render a simple number input
+      return (
+        <Input
+          type="text"
+          {...commonProps}
+          onChange={(e) => onChange(e.target.value)}
+          pattern="[0-9]*"
+          placeholder={`أدخل ${attribute.name}`}
+        />
+      );
+
+    case AttributeType.DATE_RANGE:
+      // DATE_RANGE: For listing creation, user enters a single date
+      // The "range" aspect is only used in filters (from/to dates)
+      return (
+        <Input
+          type="date"
+          {...commonProps}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
+
     default:
       console.warn(`Unknown attribute type: ${attribute.type}`);
       return null;
