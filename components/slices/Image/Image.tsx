@@ -6,18 +6,6 @@ import Loading from "../Loading/Loading";
 import { optimizeListingImage } from "@/utils/cloudflare-images";
 import styles from "./Image.module.scss";
 
-// Predefined aspect ratio dimensions to prevent CLS
-const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
-  "4/3": { width: 400, height: 300 },
-  "4 / 3": { width: 400, height: 300 },
-  "16/9": { width: 640, height: 360 },
-  "16 / 9": { width: 640, height: 360 },
-  "1/1": { width: 400, height: 400 },
-  "1 / 1": { width: 400, height: 400 },
-  "3/2": { width: 600, height: 400 },
-  "3 / 2": { width: 600, height: 400 },
-};
-
 export interface ImageProps extends Omit<NextImageProps, 'onLoad' | 'onError'> {
   skeletonClassName?: string;
   containerClassName?: string;
@@ -77,9 +65,6 @@ export const Image: React.FC<ImageProps> = ({
     setHasError(true);
   };
 
-  // Get dimensions from aspect ratio to prevent CLS
-  const dimensions = aspectRatio ? ASPECT_RATIO_DIMENSIONS[aspectRatio] : null;
-
   const containerStyles = {
     ...(aspectRatio ? { aspectRatio } : {}),
     ...containerStyle,
@@ -96,7 +81,7 @@ export const Image: React.FC<ImageProps> = ({
           <Loading />
         </div>
       )}
-
+      
       {/* Error state */}
       {hasError && (
         <div className={styles.errorState}>
@@ -104,7 +89,7 @@ export const Image: React.FC<ImageProps> = ({
           <span className={styles.errorText}>Failed to load image</span>
         </div>
       )}
-
+      
       {/* Actual image */}
       {!hasError && (
         <NextImage
@@ -117,8 +102,6 @@ export const Image: React.FC<ImageProps> = ({
           onLoad={handleLoad}
           onError={handleError}
           fill={!!aspectRatio} // Use fill when aspect ratio is set
-          width={!aspectRatio && dimensions ? dimensions.width : undefined}
-          height={!aspectRatio && dimensions ? dimensions.height : undefined}
           quality={85} // Optimize image quality vs file size
           sizes={props.sizes || "(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"}
         />

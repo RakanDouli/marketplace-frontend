@@ -2,56 +2,26 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { useRouter, notFound } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute, Listing } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, ClientPrice } from '@/components/slices';
+import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice, ClientPrice } from '@/components/slices';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
+import { LocationMap } from '@/components/LocationMap';
+import { BiddingSection } from '@/components/BiddingSection';
+
+import { AdContainer } from '@/components/ads';
+import { ContactSellerModal } from '@/components/chat/ContactSellerModal';
 import { ListingInfoCard } from '@/components/listing/ListingInfoCard';
 import { ListingActionBar } from '@/components/listing/ListingActionBar';
+import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
+import { ReportButton } from '@/components/ReportButton';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/components/seo';
 import styles from './ListingDetail.module.scss';
-
-// Dynamically import heavy components that aren't needed for initial render
-const LocationMap = dynamic(() => import('@/components/LocationMap').then(mod => mod.LocationMap), {
-  ssr: false,
-  loading: () => <div style={{ height: 300, background: '#f0f0f0', borderRadius: 8 }} />
-});
-
-const BiddingSection = dynamic(() => import('@/components/BiddingSection').then(mod => mod.BiddingSection), {
-  ssr: false,
-  loading: () => null
-});
-
-const ContactSellerModal = dynamic(() => import('@/components/chat/ContactSellerModal').then(mod => mod.ContactSellerModal), {
-  ssr: false
-});
-
-const OwnerInfoSection = dynamic(() => import('@/components/ListingOwnerInfo').then(mod => mod.OwnerInfoSection), {
-  ssr: false,
-  loading: () => <div style={{ height: 100, background: '#f0f0f0', borderRadius: 8 }} />
-});
-
-const AdContainer = dynamic(() => import('@/components/ads').then(mod => mod.AdContainer), {
-  ssr: false
-});
-
-const RelatedByBrand = dynamic(() => import('@/components/slices').then(mod => mod.RelatedByBrand), {
-  ssr: false
-});
-
-const RelatedByPrice = dynamic(() => import('@/components/slices').then(mod => mod.RelatedByPrice), {
-  ssr: false
-});
-
-const ReportButton = dynamic(() => import('@/components/ReportButton').then(mod => mod.ReportButton), {
-  ssr: false
-});
 
 interface ListingDetailClientProps {
   listing: Listing; // Pre-fetched from server (SSR)
