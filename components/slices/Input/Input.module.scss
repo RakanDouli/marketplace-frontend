@@ -434,6 +434,77 @@ textarea.input {
   }
 }
 
+// Bordered variant - full border instead of underline (for use inside collapsibles)
+.selectWrapperBordered {
+  width: 100%;
+
+  :global(.react-select__control) {
+    min-height: 40px !important;
+    background-color: $surface !important;
+    border: 1px solid $border !important;
+    border-radius: $radius-md !important;
+    color: $text !important;
+
+    &:hover {
+      border-color: $primary !important;
+    }
+
+    &.react-select__control--is-focused {
+      border-color: $primary !important;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1) !important;
+    }
+  }
+
+  :global(.react-select__single-value) {
+    color: $text !important;
+  }
+
+  :global(.react-select__input) {
+    color: $text !important;
+  }
+
+  :global(.react-select__menu) {
+    background-color: $bg !important;
+    border: 1px solid $border !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    z-index: 9999 !important;
+  }
+
+  :global(.react-select__menu-list) {
+    background-color: $bg !important;
+  }
+
+  :global(.react-select__option--is-selected) {
+    background-color: $primary !important;
+    color: $text-inverse !important;
+  }
+
+  :global(.react-select__option--is-focused:not(.react-select__option--is-selected)) {
+    background-color: $surface !important;
+    color: $text !important;
+  }
+
+  :global(.react-select__option:not(.react-select__option--is-selected):not(.react-select__option--is-focused)) {
+    background-color: transparent !important;
+    color: $text !important;
+  }
+
+  :global(.react-select__dropdown-indicator) {
+    color: $text-muted !important;
+    transition: transform 0.2s ease !important;
+  }
+
+  :global(.react-select__control--menu-is-open) {
+    :global(.react-select__dropdown-indicator) {
+      transform: rotate(180deg);
+    }
+  }
+
+  :global(.react-select__indicator-separator) {
+    display: none !important;
+  }
+}
+
 // Portal menu styles (renders at document.body level, outside .selectWrapper)
 :global(.react-select__menu-portal) {
   z-index: 9999 !important;

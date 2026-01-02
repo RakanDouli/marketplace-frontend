@@ -122,6 +122,7 @@ export interface Attribute {
     | "SELECTOR"
     | "MULTI_SELECTOR"
     | "RANGE"
+    | "RANGE_SELECTOR"
     | "CURRENCY"
     | "TEXT"
     | "TEXTAREA"

@@ -1,6 +1,9 @@
 export { RangeFilter } from "./RangeFilter";
 export type { RangeFilterProps } from "./RangeFilter";
 
+export { RangeSelectorFilter } from "./RangeSelectorFilter";
+export type { RangeSelectorFilterProps, RangeSelectorOption } from "./RangeSelectorFilter";
+
 export { SelectFilter } from "./SelectFilter";
 export type { SelectFilterProps, SelectOption } from "./SelectFilter";
 

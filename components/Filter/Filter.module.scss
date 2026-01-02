@@ -36,6 +36,24 @@
   }
 }
 
+// Filter group (inside Collapsible content)
+.filterGroup {
+  padding: 0;
+}
+
+// Individual filter field (no collapse, just label + input)
+.filterField {
+  padding: $space-sm 0;
+}
+
+.fieldLabel {
+  display: block;
+  padding-bottom: $space-xs;
+  color: $text !important;
+  // color: $text-secondary;
+  font-weight: $weight-semibold;
+}
+
 // Filter-specific form layouts (base input styles are in styles/base.scss)
 
 .priceInputs,
@@ -186,14 +204,21 @@
 
   .checkboxLabel {
     flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 0.875rem;
     color: $text;
     cursor: pointer;
 
+    .optionValue {
+      flex: 1;
+    }
+
     .optionCount {
       color: $text-muted;
       font-size: 0.75rem;
-      margin-left: $space-xs;
+      margin-right: $space-xs;
     }
   }
 
@@ -225,6 +250,25 @@
   }
 }
 
+// Show more/less button
+.showMoreButton {
+  width: 100%;
+  padding: $space-xs $space-sm;
+  margin-top: $space-xs;
+  background: transparent;
+  border: none;
+  color: $primary;
+  font-size: $font-base;
+  font-weight: $border;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 // Selection counter for limited multi-selectors
 .selectionCounter {
   padding: $space-xs $space-sm;
@@ -237,5 +281,55 @@
     color: $text-muted;
     font-size: 0.75rem;
     font-weight: 500;
+  }
+}
+
+// Range selector (two dropdowns for min/max)
+.rangeSelectorInputs {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding: $space-sm 0;
+}
+
+// Result count row with reset button (for range selectors)
+.rangeResultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-sm;
+}
+
+// Inline reset button (inside content, not in header)
+.resetButtonInline {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-xs;
+  background: transparent;
+  border: none;
+  color: $primary;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+// Reset button inside collapsible header (legacy - keep for other filters)
+.resetButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xs;
+  background: transparent;
+  border: none;
+  color: $primary;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.7;
   }
 }

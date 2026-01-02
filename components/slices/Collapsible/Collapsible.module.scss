@@ -36,28 +36,23 @@
 }
 
 .title {
-  font-weight: $weight-medium;
   color: $text;
   font-size: $font-base;
+  font-weight: $weight-semibold;
 }
 
 .toggleIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   color: $text-muted;
-  transition: transform 0.2s ease;
-
-  &.open {
-    transform: rotate(180deg);
-  }
 }
 
 .content {
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
 
   &.closed {
     max-height: 0;
@@ -123,12 +118,20 @@
 // Compact variant - no horizontal padding (for filters)
 .compact {
   .trigger {
-    padding: $space-sm 0;
+    padding: $space-sm 0 $space-sm $space-sm;
     border-bottom: 1px solid $border;
 
     &:hover {
       background: transparent;
     }
+  }
+
+  .title {
+    color: $primary;
+  }
+
+  .toggleIcon {
+    color: $primary;
   }
 
   .contentInner {

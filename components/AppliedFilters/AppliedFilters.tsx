@@ -2,6 +2,7 @@
 
 import { useTranslation } from "../../hooks/useTranslation";
 import { useSearchStore, useFiltersStore, useListingsStore } from "../../stores";
+import { useCurrencyStore, CURRENCY_SYMBOLS } from "../../stores/currencyStore";
 import { Button } from "../slices";
 import { Text } from "../slices";
 import { AttributeType } from "../../common/enums";
@@ -15,6 +16,7 @@ export function AppliedFilters() {
   const { appliedFilters: filters, removeFilter, removeSpecFilter, clearAllFilters, getStoreFilters, getBackendFilters } = useSearchStore();
   const { attributes, updateFiltersWithCascading, currentCategorySlug } = useFiltersStore();
   const { fetchListingsByCategory, setPagination } = useListingsStore();
+  const { preferredCurrency } = useCurrencyStore();
 
   // Handle filter removal with store coordination
   const handleRemoveFilter = async (filterKey: string) => {
@@ -153,9 +155,13 @@ export function AppliedFilters() {
     });
   }
 
-  // Add price filters - price is in dollars
+  // Add price filters - values are already in the stored currency
   if (filters.priceMinMinor || filters.priceMaxMinor) {
-    const currency = filters.priceCurrency || "USD";
+    // Use the stored currency, fallback to preferred currency
+    const displayCurrency = filters.priceCurrency || preferredCurrency;
+    const currencySymbol = CURRENCY_SYMBOLS[displayCurrency as keyof typeof CURRENCY_SYMBOLS] || displayCurrency;
+
+    // Values are already in user's currency, just format them
     const min = filters.priceMinMinor
       ? filters.priceMinMinor.toLocaleString()
       : "";
@@ -165,11 +171,11 @@ export function AppliedFilters() {
 
     let priceLabel = "";
     if (min && max) {
-      priceLabel = `${min} - ${max} ${currency}`;
+      priceLabel = `${min} - ${max} ${currencySymbol}`;
     } else if (min) {
-      priceLabel = `> ${min} ${currency}`;
+      priceLabel = `> ${min} ${currencySymbol}`;
     } else if (max) {
-      priceLabel = `< ${max} ${currency}`;
+      priceLabel = `< ${max} ${currencySymbol}`;
     }
 
     if (priceLabel) {

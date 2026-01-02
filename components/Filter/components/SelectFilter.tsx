@@ -55,8 +55,8 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
   }, [options]);
 
   return (
-    <div className={styles.filterSection}>
-      <Text variant="small" className={styles.sectionTitle}>
+    <div className={styles.filterField}>
+      <Text variant="small" className={styles.fieldLabel}>
         {label}
       </Text>
       <Input

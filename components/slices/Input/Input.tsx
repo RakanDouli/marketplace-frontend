@@ -68,6 +68,8 @@ export interface InputProps
   showCounter?: boolean;
   /** Icon to display inside the input (right side for RTL) */
   icon?: React.ReactNode;
+  /** Use bordered style for select (full border instead of underline) */
+  bordered?: boolean;
 }
 
 // Convert Arabic numerals (٠١٢٣٤٥٦٧٨٩) to English (0123456789)
@@ -101,6 +103,7 @@ export const Input = forwardRef<
       maxLength,
       showCounter,
       icon,
+      bordered = false,
       ...props
     },
     ref
@@ -411,7 +414,7 @@ export const Input = forwardRef<
         };
 
         return (
-          <div className={styles.selectWrapper}>
+          <div className={styles.selectWrapperBordered}>
             <SelectComponent
               instanceId={selectProps.id || generatedId}
               inputId={selectProps.id || generatedId}

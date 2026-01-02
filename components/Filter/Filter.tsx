@@ -18,6 +18,7 @@ import {
 } from "../../stores";
 import {
   RangeFilter,
+  RangeSelectorFilter,
   SelectFilter,
   MultiSelectFilter,
   SearchFilter,
@@ -100,7 +101,6 @@ export const Filter: React.FC<FilterProps> = ({
     setDraftFilter,
     setDraftSpecFilter,
     applyDrafts,
-    hasPriceDraftChanges,
     hasRangeDraftChanges,
   } = useSearchStore();
 
@@ -112,7 +112,11 @@ export const Filter: React.FC<FilterProps> = ({
   const {
     isLoading: listingsLoading,
     fetchListingsByCategory,
+    pagination,
   } = useListingsStore();
+
+  // Get totalResults from listings pagination (updates after each filter)
+  const totalResults = pagination?.total ?? 0;
 
   // Load filter data when category changes
   useEffect(() => {
@@ -120,10 +124,9 @@ export const Filter: React.FC<FilterProps> = ({
     fetchFilterData(categorySlug);
   }, [categorySlug, fetchFilterData]);
 
-  // Helper functions for draft values - price is in dollars
+  // Helper functions for draft values - price is in dollars (USD)
   const getDraftPriceMin = () => draftFilters.priceMinMinor ? draftFilters.priceMinMinor.toString() : "";
   const getDraftPriceMax = () => draftFilters.priceMaxMinor ? draftFilters.priceMaxMinor.toString() : "";
-  const getDraftCurrency = () => draftFilters.priceCurrency || "USD";
 
   const setDraftPriceMin = (value: string) => {
     const dollarValue = value ? parseFloat(value) : undefined;
@@ -133,10 +136,6 @@ export const Filter: React.FC<FilterProps> = ({
   const setDraftPriceMax = (value: string) => {
     const dollarValue = value ? parseFloat(value) : undefined;
     setDraftFilter("priceMaxMinor", dollarValue || undefined);
-  };
-
-  const setDraftCurrency = (value: string) => {
-    setDraftFilter("priceCurrency", value);
   };
 
   // Helper for range inputs
@@ -164,7 +163,7 @@ export const Filter: React.FC<FilterProps> = ({
     setDraftSpecFilter(attributeKey, cleanValue.length > 0 ? newValue : undefined);
   };
 
-  const { handleSpecChange } = filterActions;
+  const { handleSpecChange, handleApplyPriceFilter } = filterActions;
 
   const {
     getFilterableAttributes,
@@ -229,51 +228,54 @@ export const Filter: React.FC<FilterProps> = ({
   const handleApplyFilter = async () => {
     applyDrafts();
 
+    // Get fresh state from store (not stale component state)
+    const freshDraftFilters = useSearchStore.getState().draftFilters;
+
     const storeFilters: any = { categoryId: categorySlug };
 
     // Price filters
-    if (draftFilters.priceMinMinor) storeFilters.priceMinMinor = draftFilters.priceMinMinor;
-    if (draftFilters.priceMaxMinor) storeFilters.priceMaxMinor = draftFilters.priceMaxMinor;
-    if (draftFilters.priceCurrency) storeFilters.priceCurrency = draftFilters.priceCurrency;
+    if (freshDraftFilters.priceMinMinor) storeFilters.priceMinMinor = freshDraftFilters.priceMinMinor;
+    if (freshDraftFilters.priceMaxMinor) storeFilters.priceMaxMinor = freshDraftFilters.priceMaxMinor;
+    if (freshDraftFilters.priceCurrency) storeFilters.priceCurrency = freshDraftFilters.priceCurrency;
 
     // Search
-    const searchValue = draftFilters.specs?.search || draftFilters.search;
+    const searchValue = freshDraftFilters.specs?.search || freshDraftFilters.search;
     if (searchValue && typeof searchValue === 'string' && searchValue.trim()) {
       storeFilters.search = searchValue.trim();
     }
 
     // Location
-    const provinceValue = draftFilters.specs?.location || draftFilters.province;
+    const provinceValue = freshDraftFilters.specs?.location || freshDraftFilters.province;
     if (provinceValue) {
       storeFilters.province = provinceValue;
     }
-    if (draftFilters.city) {
-      storeFilters.city = draftFilters.city;
+    if (freshDraftFilters.city) {
+      storeFilters.city = freshDraftFilters.city;
     }
 
     // Account Type
-    const sellerTypeValue = draftFilters.specs?.accountType || draftFilters.accountType;
+    const sellerTypeValue = freshDraftFilters.specs?.accountType || freshDraftFilters.accountType;
     if (sellerTypeValue) {
       storeFilters.accountType = sellerTypeValue;
     }
 
     // Brand/Model
-    if (draftFilters.brandId) {
+    if (freshDraftFilters.brandId) {
       if (!storeFilters.specs) storeFilters.specs = {};
-      storeFilters.specs.brandId = draftFilters.brandId;
+      storeFilters.specs.brandId = freshDraftFilters.brandId;
     }
-    if (draftFilters.modelId) {
+    if (freshDraftFilters.modelId) {
       if (!storeFilters.specs) storeFilters.specs = {};
-      storeFilters.specs.modelId = draftFilters.modelId;
+      storeFilters.specs.modelId = freshDraftFilters.modelId;
     }
 
     // Sort
-    if (draftFilters.sort) storeFilters.sort = draftFilters.sort;
+    if (freshDraftFilters.sort) storeFilters.sort = freshDraftFilters.sort;
 
     // All other specs
-    if (draftFilters.specs && Object.keys(draftFilters.specs).length > 0) {
+    if (freshDraftFilters.specs && Object.keys(freshDraftFilters.specs).length > 0) {
       if (!storeFilters.specs) storeFilters.specs = {};
-      Object.entries(draftFilters.specs).forEach(([key, value]) => {
+      Object.entries(freshDraftFilters.specs).forEach(([key, value]) => {
         if (key !== 'search' && key !== 'location' && key !== 'sellerType') {
           storeFilters.specs[key] = value;
         }
@@ -348,7 +350,7 @@ export const Filter: React.FC<FilterProps> = ({
       );
     }
 
-    // CURRENCY (price filter with currency selector)
+    // CURRENCY (price filter with dropdown selectors)
     if (attribute.type === AttributeType.CURRENCY) {
       return (
         <PriceFilter
@@ -356,13 +358,20 @@ export const Filter: React.FC<FilterProps> = ({
           label={attribute.name}
           minValue={getDraftPriceMin()}
           maxValue={getDraftPriceMax()}
-          currency={getDraftCurrency()}
-          onMinChange={setDraftPriceMin}
-          onMaxChange={setDraftPriceMax}
-          onCurrencyChange={setDraftCurrency}
-          onApply={handleApplyFilter}
-          applyDisabled={!hasPriceDraftChanges()}
-          isLoading={listingsLoading}
+          categoryKey={categorySlug}
+          onMinChange={(value) => setDraftPriceMin(value || "")}
+          onMaxChange={(value) => setDraftPriceMax(value || "")}
+          onCurrencyChange={(currency) => setDraftFilter("priceCurrency", currency)}
+          resultCount={totalResults}
+          onApply={() => {
+            // Get fresh values from store and apply with currency conversion
+            const fresh = useSearchStore.getState().draftFilters;
+            handleApplyPriceFilter(
+              fresh.priceMinMinor?.toString() || "",
+              fresh.priceMaxMinor?.toString() || "",
+              fresh.priceCurrency || "USD"
+            );
+          }}
         />
       );
     }
@@ -381,6 +390,36 @@ export const Filter: React.FC<FilterProps> = ({
           onApply={handleApplyFilter}
           applyDisabled={!hasRangeDraftChanges(attribute.key)}
           isLoading={listingsLoading}
+        />
+      );
+    }
+
+    // RANGE_SELECTOR (min-max dropdown selects with options)
+    // Same logic as RANGE but auto-applies on selection change (no Apply button)
+    if (attribute.type === AttributeType.RANGE_SELECTOR && attribute.processedOptions) {
+      return (
+        <RangeSelectorFilter
+          key={attribute.id}
+          attributeKey={attribute.key}
+          label={attribute.name}
+          options={attribute.processedOptions}
+          minValue={getDraftRangeValue(attribute.key, "min")}
+          maxValue={getDraftRangeValue(attribute.key, "max")}
+          resultCount={totalResults}
+          onMinChange={(value) => {
+            updateDraftRangeInput(attribute.key, "min", value || "");
+            handleApplyFilter();
+          }}
+          onMaxChange={(value) => {
+            updateDraftRangeInput(attribute.key, "max", value || "");
+            handleApplyFilter();
+          }}
+          onReset={() => {
+            // Clear the filter from draftFilters, then applyDrafts syncs to appliedFilters
+            setDraftSpecFilter(attribute.key, undefined);
+            // Fetch with cleared filter
+            handleApplyFilter();
+          }}
         />
       );
     }
@@ -433,7 +472,7 @@ export const Filter: React.FC<FilterProps> = ({
                 return renderAttribute(item.attributes[0]);
               }
 
-              // Grouped fields
+              // Grouped fields - wrap in Collapsible with group name as title
               return (
                 <Collapsible
                   key={`group-${item.groupOrder}-${item.groupName}`}
@@ -441,7 +480,9 @@ export const Filter: React.FC<FilterProps> = ({
                   defaultOpen={true}
                   variant="compact"
                 >
-                  {item.attributes.map(renderAttribute)}
+                  <div className={styles.filterGroup}>
+                    {item.attributes.map(renderAttribute)}
+                  </div>
                 </Collapsible>
               );
             })}

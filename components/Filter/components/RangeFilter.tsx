@@ -52,8 +52,8 @@ export const RangeFilter: React.FC<RangeFilterProps> = ({
     : `${t("search.max")} ${label}`;
 
   return (
-    <div className={styles.filterSection}>
-      <Text variant="small" className={styles.sectionTitle}>
+    <div className={styles.filterField}>
+      <Text variant="small" className={styles.fieldLabel}>
         {label}
       </Text>
       <div className={styles.rangeInputs}>

@@ -18,6 +18,7 @@ export const useAttributeFilters = () => {
           (attr.type === AttributeType.SELECTOR ||
             attr.type === AttributeType.MULTI_SELECTOR ||
             attr.type === AttributeType.RANGE ||
+            attr.type === AttributeType.RANGE_SELECTOR ||
             attr.type === AttributeType.CURRENCY ||
             attr.type === AttributeType.TEXT) // Include TEXT type for search fields (uppercase from backend)
       );

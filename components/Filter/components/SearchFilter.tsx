@@ -38,8 +38,8 @@ export const SearchFilter: React.FC<SearchFilterProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className={styles.filterSection}>
-      <Text variant="small" className={styles.sectionTitle}>
+    <div className={styles.filterField}>
+      <Text variant="small" className={styles.fieldLabel}>
         {label}
       </Text>
       <div className={styles.rangeInputs}>

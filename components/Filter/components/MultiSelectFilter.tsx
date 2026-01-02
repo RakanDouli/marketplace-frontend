@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Text } from "../../slices";
 import styles from "../Filter.module.scss";
 
@@ -29,6 +29,8 @@ export interface MultiSelectFilterProps {
 
 // Threshold for "long list" - hide zeros if more than this
 const LONG_LIST_THRESHOLD = 10;
+// Maximum options to show before "show more"
+const INITIAL_VISIBLE_OPTIONS = 4;
 
 export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
   attributeKey,
@@ -40,21 +42,30 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
   showCounts = true,
 }) => {
   const selectedArray = Array.isArray(selected) ? selected : [];
+  const [showAll, setShowAll] = useState(false);
 
   // Process options: for long lists, hide zeros; for short lists, keep all but dim zeros
   const processedOptions = useMemo(() => {
     const isLongList = options.length > LONG_LIST_THRESHOLD;
 
     if (isLongList) {
-      // Long list: hide zeros, sort by count descending
-      return options
-        .filter(opt => opt.count === undefined || opt.count > 0)
-        .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+      // Long list: hide zeros (no sorting - preserve original order)
+      return options.filter(opt => opt.count === undefined || opt.count > 0);
     }
 
     // Short list: keep all, no sorting (preserve original order)
     return options;
   }, [options]);
+
+  // Get visible options based on showAll state
+  const visibleOptions = useMemo(() => {
+    if (showAll || processedOptions.length <= INITIAL_VISIBLE_OPTIONS) {
+      return processedOptions;
+    }
+    return processedOptions.slice(0, INITIAL_VISIBLE_OPTIONS);
+  }, [processedOptions, showAll]);
+
+  const hasMoreOptions = processedOptions.length > INITIAL_VISIBLE_OPTIONS;
 
   const isSelected = (key: string) => selectedArray.includes(key);
 
@@ -81,8 +92,8 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
   };
 
   return (
-    <div className={styles.filterSection}>
-      <Text variant="small" className={styles.sectionTitle}>
+    <div className={styles.filterField}>
+      <Text variant="small" className={styles.fieldLabel}>
         {label}
       </Text>
       <div className={styles.checkboxGroup}>
@@ -92,7 +103,7 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
           </div>
         )}
 
-        {processedOptions.map((option) => {
+        {visibleOptions.map((option) => {
           const optionSelected = isSelected(option.key);
           const optionDisabled = isDisabled(option.key);
           const optionEmpty = isEmpty(option.count);
@@ -112,7 +123,7 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
                 }}
               />
               <span className={styles.checkboxLabel}>
-                {option.value}
+                <span className={styles.optionValue}>{option.value}</span>
                 {showCounts && option.count !== undefined && (
                   <span className={styles.optionCount}>({option.count})</span>
                 )}
@@ -120,6 +131,19 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
             </label>
           );
         })}
+
+        {/* Show more/less button */}
+        {hasMoreOptions && (
+          <button
+            type="button"
+            className={styles.showMoreButton}
+            onClick={() => setShowAll(!showAll)}
+          >
+            {showAll
+              ? "عرض أقل"
+              : `عرض المزيد (${processedOptions.length - INITIAL_VISIBLE_OPTIONS})`}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 import styles from './Collapsible.module.scss';
 
 interface CollapsibleProps {
@@ -44,8 +44,8 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
           {icon && <span className={styles.icon}>{icon}</span>}
           <span className={styles.title}>{title}</span>
         </div>
-        <span className={`${styles.toggleIcon} ${isOpen ? styles.open : ''}`}>
-          <ChevronDown size={24} />
+        <span className={styles.toggleIcon}>
+          {isOpen ? <Minus size={20} /> : <Plus size={20} />}
         </span>
       </button>
 

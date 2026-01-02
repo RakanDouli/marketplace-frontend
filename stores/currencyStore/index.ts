@@ -6,7 +6,7 @@ export type Currency = "USD" | "EUR" | "SYP";
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   USD: "$",
   EUR: "€",
-  SYP: "S£",
+  SYP: "ل.س",
 };
 
 export const CURRENCY_LABELS: Record<Currency, string> = {
