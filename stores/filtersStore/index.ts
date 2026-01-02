@@ -60,6 +60,13 @@ interface FiltersActions {
   fetchFilterData: (categorySlug: string) => Promise<void>;
   // fetchCities removed - cities handled through unified attributes
 
+  // SSR Hydration - populate store with server-fetched data (no API call)
+  hydrateFromSSR: (
+    categorySlug: string,
+    attributes: Attribute[],
+    totalResults: number
+  ) => void;
+
   // Cascading filter support
   updateFiltersWithCascading: (
     categorySlug: string,
@@ -385,6 +392,54 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   // Models are handled through dynamic attributes - no separate fetch needed
 
   // Cities are now handled through unified attributes - no separate fetch needed
+
+  // SSR Hydration - populate store with server-fetched data (no API call needed!)
+  // This is called when page is rendered with SSR data, skipping the initial fetch
+  hydrateFromSSR: (
+    categorySlug: string,
+    attributes: Attribute[],
+    totalResults: number
+  ) => {
+    const now = Date.now();
+
+    // Extract base attributes for cache (without processedOptions counts)
+    const baseAttributes: Attribute[] = attributes.map((attr) => ({
+      id: attr.id,
+      key: attr.key,
+      name: attr.name,
+      type: attr.type,
+      validation: attr.validation,
+      sortOrder: attr.sortOrder,
+      group: attr.group,
+      groupOrder: attr.groupOrder,
+      isActive: attr.isActive,
+      showInGrid: attr.showInGrid,
+      showInList: attr.showInList,
+      showInDetail: attr.showInDetail,
+      showInFilter: attr.showInFilter,
+      options: attr.options || [],
+    }));
+
+    // Update cache with SSR data
+    const newCache = {
+      ...get().categoryCache,
+      [categorySlug]: {
+        baseAttributes,
+        cachedAt: now,
+      },
+    };
+
+    // Set store state immediately with SSR data - no loading state needed!
+    set({
+      attributes: attributes as AttributeWithProcessedOptions[],
+      totalResults,
+      currentCategorySlug: categorySlug,
+      categoryCache: newCache,
+      isLoading: false,
+      isLoadingCounts: false,
+      error: null,
+    });
+  },
 
   // Update filters with cascading logic (when user selects a brand, update other filters)
   updateFiltersWithCascading: async (

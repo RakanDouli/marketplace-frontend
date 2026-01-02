@@ -6,10 +6,9 @@ import { useRouter, notFound } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
 import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
-import type { Attribute } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice } from '@/components/slices';
+import type { Attribute, Listing } from '@/types/listing';
+import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice, ClientPrice } from '@/components/slices';
 import { ChevronLeft, Eye } from 'lucide-react';
-import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
 import { LocationMap } from '@/components/LocationMap';
 import { BiddingSection } from '@/components/BiddingSection';
@@ -25,41 +24,45 @@ import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/componen
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
+  listing: Listing; // Pre-fetched from server (SSR)
   listingId: string;
   categorySlug: string;
 }
 
-export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listingId, categorySlug }) => {
+export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
+  listing: serverListing,
+  listingId,
+  categorySlug
+}) => {
   const router = useRouter();
-  const { currentListing, isLoading, error, fetchListingById } = useListingsStore();
+  // Use server-fetched listing, but also sync to store for other components
+  const { setCurrentListing } = useListingsStore();
   const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
   const { user: currentUser } = useUserAuthStore();
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false);
 
+  // Sync server listing to store (for components that read from store)
   useEffect(() => {
-    if (listingId) {
-      fetchListingById(listingId).finally(() => {
-        setHasFetched(true);
-      });
+    if (serverListing) {
+      setCurrentListing(serverListing);
     }
-  }, [listingId, fetchListingById]);
+  }, [serverListing, setCurrentListing]);
 
   // Fetch attributes when listing is loaded (uses filtersStore cache)
   useEffect(() => {
-    const catSlug = currentListing?.category?.slug || categorySlug;
+    const catSlug = serverListing?.category?.slug || categorySlug;
     if (catSlug) {
       fetchFilterData(catSlug);
     }
-  }, [currentListing?.category?.slug, categorySlug, fetchFilterData]);
+  }, [serverListing?.category?.slug, categorySlug, fetchFilterData]);
 
-  // Track listing view when listing is loaded
+  // Track listing view (client-side only, after hydration)
   useEffect(() => {
-    if (currentListing?.id) {
-      trackListingView(currentListing.id);
+    if (serverListing?.id) {
+      trackListingView(serverListing.id);
     }
-  }, [currentListing?.id]);
+  }, [serverListing?.id]);
 
   // Back button handler - navigates to parent category
   const handleBack = () => {
@@ -68,7 +71,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
   // Separate grouped and ungrouped specifications
   const { groupedSpecs, ungroupedSpecs } = useMemo(() => {
-    if (!currentListing?.specsDisplay || attributes.length === 0) {
+    if (!serverListing?.specsDisplay || attributes.length === 0) {
       return { groupedSpecs: {}, ungroupedSpecs: [] };
     }
 
@@ -87,7 +90,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     });
 
     // Separate specs into grouped and ungrouped
-    Object.entries(currentListing.specsDisplay).forEach(([key, value]: [string, any]) => {
+    Object.entries(serverListing.specsDisplay).forEach(([key, value]: [string, any]) => {
       const attribute = attributeMap.get(key);
 
       if (attribute) {
@@ -130,7 +133,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
     ungrouped.sort((a, b) => a.sortOrder - b.sortOrder);
 
     return { groupedSpecs: groups, ungroupedSpecs: ungrouped };
-  }, [currentListing?.specsDisplay, attributes]);
+  }, [serverListing?.specsDisplay, attributes]);
 
   // Sort groups by groupOrder
   const sortedGroups = useMemo(() => {
@@ -142,30 +145,13 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
   // Generate schema based on category (Vehicle for cars, Product for others)
   // IMPORTANT: This hook must be called before any early returns to follow Rules of Hooks
   const schemaData = useMemo(() => {
-    if (!currentListing) return null;
-    const isVehicle = categorySlug === 'cars' || currentListing.category?.slug === 'cars';
-    return isVehicle ? generateVehicleSchema(currentListing) : generateListingSchema(currentListing);
-  }, [currentListing, categorySlug]);
+    if (!serverListing) return null;
+    const isVehicle = categorySlug === 'cars' || serverListing.category?.slug === 'cars';
+    return isVehicle ? generateVehicleSchema(serverListing) : generateListingSchema(serverListing);
+  }, [serverListing, categorySlug]);
 
-  // Show loading until fetch completes
-  if (isLoading || !hasFetched) {
-    return (
-      <div className={styles.loadingContainer}>
-        <Loading type="svg" />
-      </div>
-    );
-  }
-
-  // Show 404 page if listing not found or error occurred (only after fetch attempted)
-  if (error || !currentListing) {
-    notFound();
-  }
-
-  if (!currentListing) {
-    return null;
-  }
-
-  const listing = currentListing;
+  // Use server-fetched listing directly (no loading state needed - SSR!)
+  const listing = serverListing;
 
   const hasLocation = listing.location && (
     listing.location.city ||
@@ -254,7 +240,11 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
 
                 </div>
                 <Text variant="h3" className={styles.mobilePrice}>
-                  {listing.priceMinor ? formatPrice(listing.priceMinor) : 'السعر غير محدد'}
+                  {listing.priceMinor ? (
+                    <ClientPrice price={listing.priceMinor} fallback="السعر غير محدد" />
+                  ) : (
+                    'السعر غير محدد'
+                  )}
                 </Text>
                 <div className={styles.mobileMeta}>
                   {listing.createdAt && (
@@ -389,22 +379,22 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({ listin
       )}
 
       {/* Contact Seller Modal */}
-      {currentListing && (
+      {listing && (
         <ContactSellerModal
           isVisible={isContactModalOpen}
           onClose={() => setIsContactModalOpen(false)}
-          listingId={currentListing.id}
-          listingTitle={currentListing.title}
-          sellerId={currentListing.user?.id || ''}
+          listingId={listing.id}
+          listingTitle={listing.title}
+          sellerId={listing.user?.id || ''}
         />
       )}
 
       {/* Mobile Action Bar - Above BottomNav */}
-      {currentListing && (
+      {listing && (
         <ListingActionBar
-          phone={currentListing.user?.phone || currentListing.user?.contactPhone}
+          phone={listing.user?.phone || listing.user?.contactPhone}
           onMessageClick={() => setIsContactModalOpen(true)}
-          isOwnListing={currentUser?.id === currentListing.user?.id}
+          isOwnListing={currentUser?.id === listing.user?.id}
         />
       )}
     </>

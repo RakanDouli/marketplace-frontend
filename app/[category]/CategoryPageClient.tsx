@@ -15,7 +15,7 @@ import {
   useSearchStore,
   useListingsStore,
 } from "../../stores";
-import type { Category } from "../../types/listing";
+import type { Category, Attribute } from "../../types/listing";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
@@ -30,11 +30,16 @@ interface CategoryPageClientProps {
     city?: string;
     search?: string;
   };
+  // SSR props - pre-fetched on server
+  initialAttributes?: Attribute[];
+  initialTotalResults?: number;
 }
 
 export default function CategoryPageClient({
   categorySlug,
   searchParams,
+  initialAttributes,
+  initialTotalResults,
 }: CategoryPageClientProps) {
   const router = useRouter();
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
@@ -52,7 +57,7 @@ export default function CategoryPageClient({
     setSelectedCategory,
   } = useCategoriesStore();
 
-  const { fetchFilterData, currentCategorySlug } = useFiltersStore();
+  const { fetchFilterData, hydrateFromSSR, currentCategorySlug } = useFiltersStore();
 
   // Search store for search functionality
   const {
@@ -128,8 +133,14 @@ export default function CategoryPageClient({
       setCurrentCategory(category);
       setSelectedCategory(category);
 
-      // Initialize filter data with search params
-      fetchFilterData(categorySlug);
+      // HYBRID SSR: Use server-fetched data if available, otherwise fetch client-side
+      if (initialAttributes && initialAttributes.length > 0) {
+        // Hydrate store with SSR data - no API call needed!
+        hydrateFromSSR(categorySlug, initialAttributes, initialTotalResults || 0);
+      } else {
+        // Fallback to client-side fetch
+        fetchFilterData(categorySlug);
+      }
 
       setIsCategoryLoading(false);
       initializedRef.current = true;

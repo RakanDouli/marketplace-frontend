@@ -1,38 +1,60 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import { Container, Text, TextSection, Grid, FeatureCard, FAQ, ContactForm } from "@/components/slices";
 import { Phone, Mail, MapPin, Clock, Building2 } from "lucide-react";
 import styles from "./Contact.module.scss";
 
-export default function ContactPage() {
-  const contactInfo = [
-    {
-      icon: <Phone size={24} />,
-      title: "الهاتف",
-      value: "+963 123 456 789",
-      href: "tel:+963123456789",
-    },
-    {
-      icon: <Mail size={24} />,
-      title: "البريد الإلكتروني",
-      value: "info@syrianmarketplace.com",
-      href: "mailto:info@syrianmarketplace.com",
-    },
-    {
-      icon: <MapPin size={24} />,
-      title: "العنوان",
-      value: "دمشق، سوريا",
-      href: null,
-    },
-    {
-      icon: <Clock size={24} />,
-      title: "ساعات العمل",
-      value: "السبت - الخميس: 9 صباحاً - 6 مساءً",
-      href: null,
-    },
-  ];
+// SEO Metadata (Server-side)
+export const metadata: Metadata = {
+  title: "اتصل بنا | السوق السوري للسيارات",
+  description: "تواصل معنا للاستفسارات والدعم الفني. نحن هنا لمساعدتك في بيع وشراء السيارات في سوريا.",
+  keywords: ["اتصل بنا", "تواصل", "دعم", "سوق السيارات", "سوريا"],
+  openGraph: {
+    title: "اتصل بنا | السوق السوري للسيارات",
+    description: "تواصل معنا للاستفسارات والدعم الفني",
+    type: "website",
+    locale: "ar_SY",
+  },
+};
 
+// Static contact info
+const contactInfo = [
+  {
+    icon: <Phone size={24} />,
+    title: "الهاتف",
+    value: "+963 123 456 789",
+    href: "tel:+963123456789",
+  },
+  {
+    icon: <Mail size={24} />,
+    title: "البريد الإلكتروني",
+    value: "info@syrianmarketplace.com",
+    href: "mailto:info@syrianmarketplace.com",
+  },
+  {
+    icon: <MapPin size={24} />,
+    title: "العنوان",
+    value: "دمشق، سوريا",
+    href: null,
+  },
+  {
+    icon: <Clock size={24} />,
+    title: "ساعات العمل",
+    value: "السبت - الخميس: 9 صباحاً - 6 مساءً",
+    href: null,
+  },
+];
+
+// Static FAQ items
+const faqItems = [
+  { question: "كيف يمكنني نشر إعلان؟", answer: "لنشر إعلان، قم بتسجيل الدخول إلى حسابك، ثم اضغط على \"أضف إعلان\" واتبع الخطوات لإضافة تفاصيل سيارتك والصور." },
+  { question: "هل الموقع مجاني؟", answer: "نعم، يمكنك التسجيل وتصفح الإعلانات مجاناً. نوفر أيضاً باقات اشتراك متميزة للبائعين المحترفين." },
+  { question: "كيف أتواصل مع البائع؟", answer: "يمكنك التواصل مع البائع مباشرة عبر نظام المراسلة في الموقع بعد تسجيل الدخول." },
+  { question: "كم يستغرق الرد على استفساراتي؟", answer: "نسعى للرد على جميع الاستفسارات خلال 24 ساعة في أيام العمل." },
+  { question: "هل يمكنني تعديل إعلاني بعد النشر؟", answer: "نعم، يمكنك تعديل إعلانك في أي وقت من لوحة التحكم الخاصة بك." },
+];
+
+// Server Component - renders static content, ContactForm is Client Component
+export default function ContactPage() {
   return (
     <div className={styles.ContactPage}>
       <TextSection
@@ -67,7 +89,7 @@ export default function ContactPage() {
       {/* Main Content Grid */}
       <Container paddingY="lg">
         <div className={styles.mainContent}>
-          {/* Contact Form */}
+          {/* Contact Form - Client Component */}
           <ContactForm />
 
           {/* Business Info */}
@@ -91,16 +113,7 @@ export default function ContactPage() {
       </Container>
 
       {/* FAQ Section */}
-      <FAQ
-        title="الأسئلة الشائعة"
-        items={[
-          { question: "كيف يمكنني نشر إعلان؟", answer: "لنشر إعلان، قم بتسجيل الدخول إلى حسابك، ثم اضغط على \"أضف إعلان\" واتبع الخطوات لإضافة تفاصيل سيارتك والصور." },
-          { question: "هل الموقع مجاني؟", answer: "نعم، يمكنك التسجيل وتصفح الإعلانات مجاناً. نوفر أيضاً باقات اشتراك متميزة للبائعين المحترفين." },
-          { question: "كيف أتواصل مع البائع؟", answer: "يمكنك التواصل مع البائع مباشرة عبر نظام المراسلة في الموقع بعد تسجيل الدخول." },
-          { question: "كم يستغرق الرد على استفساراتي؟", answer: "نسعى للرد على جميع الاستفسارات خلال 24 ساعة في أيام العمل." },
-          { question: "هل يمكنني تعديل إعلاني بعد النشر؟", answer: "نعم، يمكنك تعديل إعلانك في أي وقت من لوحة التحكم الخاصة بك." },
-        ]}
-      />
+      <FAQ title="الأسئلة الشائعة" items={faqItems} />
     </div>
   );
 }

@@ -76,3 +76,4 @@ export { CollapsibleSection } from "./CollapsibleSection";
 export type { default as CollapsibleSectionDefault } from "./CollapsibleSection";
 export { FormSection } from "./FormSection";
 export type { FormSectionStatus } from "./FormSection";
+export { ClientPrice } from "./ClientPrice";

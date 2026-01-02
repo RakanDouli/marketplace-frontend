@@ -4,14 +4,12 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Phone, Globe, MessageCircle } from 'lucide-react';
-import { Text, Button, ShareButton, FavoriteButton } from '@/components/slices';
+import { Text, Button, ShareButton, FavoriteButton, ClientPrice } from '@/components/slices';
 
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useListingsStore } from '@/stores/listingsStore';
-import { useCurrencyStore } from '@/stores/currencyStore';
-import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
 import { ListingStatus } from '@/common/enums';
 import styles from './ListingInfoCard.module.scss';
@@ -25,11 +23,10 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
   onContactClick,
 }) => {
   const router = useRouter();
-  const { user: currentUser } = useUserAuthStore();
+  const { user: currentUser, openAuthModal } = useUserAuthStore();
   const { isUserBlocked, fetchBlockedUsers } = useChatStore();
   const { addNotification } = useNotificationStore();
   const { currentListing } = useListingsStore();
-  const { preferredCurrency } = useCurrencyStore();
 
   // Fetch blocked users when user is logged in
   useEffect(() => {
@@ -38,7 +35,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
     }
   }, [currentUser, fetchBlockedUsers]);
 
-  // Guard: No listing data
+  // Guard: No listing data - must be AFTER all hooks
   if (!currentListing) {
     return null;
   }
@@ -54,14 +51,6 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
     location,
     createdAt,
   } = currentListing;
-
-  // DEBUG: Log user business fields (uncomment when debugging user data issues)
-  // console.log('🔍 ListingInfoCard - User Data:', {
-  //   userId: user?.id, name: user?.name, accountType: user?.accountType,
-  //   companyName: user?.companyName, website: user?.website, phone: user?.phone,
-  // });
-
-  const { openAuthModal } = useUserAuthStore();
 
   const handleContactClick = () => {
     // Check if user is logged in - open auth modal if not
@@ -116,7 +105,11 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           {title}
         </Text>
         <Text variant="h3" className={styles.price}>
-          {priceMinor ? formatPrice(priceMinor) : 'السعر غير محدد'}
+          {priceMinor ? (
+            <ClientPrice price={priceMinor} fallback="السعر غير محدد" />
+          ) : (
+            'السعر غير محدد'
+          )}
         </Text>
       </div>
       {/* Owner Info Component - Hidden on mobile (shown in main content) */}
