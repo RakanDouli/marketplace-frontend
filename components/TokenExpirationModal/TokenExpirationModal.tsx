@@ -75,8 +75,9 @@ export const TokenExpirationModal: React.FC<TokenExpirationModalProps> = ({
   return (
     <Modal
       isVisible={isVisible}
-      onClose={() => { }} // Prevent closing by clicking outside
+      closeable={false}
       className={styles.tokenModal}
+      maxWidth='lg'
     >
       <div className={`${styles.modalContent} ${styles[urgencyLevel]}`}>
         {/* Icon and Title */}
