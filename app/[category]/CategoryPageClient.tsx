@@ -1,14 +1,24 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { notFound, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import Container from "../../components/slices/Container/Container";
-import Filter from "../../components/Filter/Filter";
 import ListingArea from "../../components/ListingArea/ListingArea";
 import { Loading } from "../../components/slices/Loading/Loading";
 import { MobileBackButton, Input, Button } from "../../components/slices";
-import { MobileFilterBar } from "../../components/MobileFilterBar";
+
+// Dynamic imports for code-splitting - reduces unused JS on initial load
+const Filter = dynamic(() => import("../../components/Filter/Filter"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: 400 }} />
+});
+
+const MobileFilterBar = dynamic(
+  () => import("../../components/MobileFilterBar").then(mod => mod.MobileFilterBar),
+  { ssr: false }
+);
 import {
   useCategoriesStore,
   useFiltersStore,
