@@ -81,8 +81,8 @@ const TYPE_LABELS: Record<string, string> = {
 export default function PaymentsPage() {
   const router = useRouter();
   const { user } = useUserAuthStore();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // Fetch transactions

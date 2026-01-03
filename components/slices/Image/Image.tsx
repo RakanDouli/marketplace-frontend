@@ -77,11 +77,11 @@ export const Image: React.FC<ImageProps> = ({
     >
       {/* Skeleton loader */}
       {isLoading && showSkeleton && (
-        <div className={`${styles.skeleton} ${skeletonClassName}`.trim()}>
+        <div className={`${styles.loadingContainer} ${styles.skeleton} ${skeletonClassName}`.trim()}>
           <Loading />
         </div>
       )}
-      
+
       {/* Error state */}
       {hasError && (
         <div className={styles.errorState}>
@@ -89,7 +89,7 @@ export const Image: React.FC<ImageProps> = ({
           <span className={styles.errorText}>Failed to load image</span>
         </div>
       )}
-      
+
       {/* Actual image */}
       {!hasError && (
         <NextImage

@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
               </Text>
             </div>
 
-            <Grid columns={3} gap="md">
+            <Grid columns={3} mobileColumns={1} gap="md">
               {analyticsSummary.topPerformers.map((listing) => (
                 <div
                   key={listing.id}

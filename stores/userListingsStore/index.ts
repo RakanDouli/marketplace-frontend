@@ -15,7 +15,7 @@ export type ListingStatus = 'ACTIVE' | 'DRAFT' | 'SOLD' | 'HIDDEN' | 'PENDING_AP
 interface UserListingsState {
   listings: Listing[];
   currentListing: Listing | null;
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
   pagination: {
     page: number;
@@ -65,7 +65,7 @@ type UserListingsStore = UserListingsState & UserListingsActions;
 const initialState: UserListingsState = {
   listings: [],
   currentListing: null,
-  loading: false,
+  isLoading: false,
   error: null,
   pagination: {
     page: 1,
@@ -79,7 +79,7 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
   ...initialState,
 
   loadMyListings: async (filters?: Partial<UserListingsState['filters']>, page?: number) => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       const state = get();
@@ -115,18 +115,18 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
           page: currentPage,
           total: countData.myListingsCount,
         },
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       set({
         error: error.message || 'Failed to load listings',
-        loading: false,
+        isLoading: false,
       });
     }
   },
 
   loadMyListingById: async (id: string) => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       const data = await cachedGraphQLRequest(
@@ -137,21 +137,21 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
 
       set({
         currentListing: data.myListingById,
-        loading: false,
+        isLoading: false,
       });
 
       return data.myListingById;
     } catch (error: any) {
       set({
         error: error.message || 'Failed to load listing',
-        loading: false,
+        isLoading: false,
       });
       throw error;
     }
   },
 
   createMyListing: async (input: any) => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       const data = await cachedGraphQLRequest(
@@ -164,19 +164,19 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
       invalidateGraphQLCache('myListings');
       await get().refreshMyListings();
 
-      set({ loading: false });
+      set({ isLoading: false });
       return data.createMyListing;
     } catch (error: any) {
       set({
         error: error.message || 'Failed to create listing',
-        loading: false,
+        isLoading: false,
       });
       throw error;
     }
   },
 
   updateMyListing: async (id: string, input: any) => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       await cachedGraphQLRequest(
@@ -189,18 +189,18 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
       invalidateGraphQLCache('myListings');
       await get().refreshMyListings();
 
-      set({ loading: false });
+      set({ isLoading: false });
     } catch (error: any) {
       set({
         error: error.message || 'Failed to update listing',
-        loading: false,
+        isLoading: false,
       });
       throw error; // Re-throw for modal error handling
     }
   },
 
   deleteMyListing: async (id: string, archivalReason: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale') => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       await cachedGraphQLRequest(
@@ -213,11 +213,11 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
       invalidateGraphQLCache('myListings');
       await get().refreshMyListings();
 
-      set({ loading: false });
+      set({ isLoading: false });
     } catch (error: any) {
       set({
         error: error.message || 'Failed to delete listing',
-        loading: false,
+        isLoading: false,
       });
       throw error; // Re-throw for modal error handling
     }

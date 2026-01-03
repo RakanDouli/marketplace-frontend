@@ -25,7 +25,7 @@ export const ListingsPanel: React.FC = () => {
   // Use user listings store
   const {
     listings,
-    loading,
+    isLoading,
     error,
     pagination,
     filters,
@@ -312,9 +312,9 @@ export const ListingsPanel: React.FC = () => {
 
         {/* Listings Grid Section */}
         <Container paddingX="none" paddingY="none" background="bg" innerPadding="lg" innerBorder>
-          {loading ? (
+          {isLoading ? (
             <div className={styles.loadingContainer}>
-              <Loading />
+              <Loading type="svg" />
               <Text variant="paragraph">جاري تحميل الإعلانات...</Text>
             </div>
           ) : listings.length === 0 ? (

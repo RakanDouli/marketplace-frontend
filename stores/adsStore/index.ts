@@ -99,7 +99,7 @@ interface AdsState {
   allAdsFetchedAt: number | null; // NEW: Timestamp of last fetch
   adsByType: Record<AdMediaType, AdCampaign[]>; // DEPRECATED - kept for backward compatibility
   adSenseSettings: AdSenseSettings | null;
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
 
   // Actions
@@ -121,7 +121,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     VIDEO: [],
   },
   adSenseSettings: null,
-  loading: false,
+  isLoading: false,
   error: null,
 
   // NEW: Smart fetch - fetch all active ads once and cache
@@ -138,7 +138,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       return allAds;
     }
 
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       const data = await cachedGraphQLRequest(
@@ -153,7 +153,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       set({
         allAds: ads,
         allAdsFetchedAt: Date.now(),
-        loading: false,
+        isLoading: false,
         error: null,
       });
 
@@ -161,7 +161,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     } catch (error: any) {
       console.error(`❌ AdsStore: Failed to fetch ads:`, error);
       set({
-        loading: false,
+        isLoading: false,
         error: error.message || "Failed to load ads",
       });
       return [];
@@ -219,7 +219,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
       return adsByType[adType];
     }
 
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
 
     try {
       // Convert uppercase enum to lowercase for database compatibility
@@ -239,7 +239,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
           ...get().adsByType,
           [adType]: ads,
         },
-        loading: false,
+        isLoading: false,
         error: null,
       });
 
@@ -247,7 +247,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
     } catch (error: any) {
       console.error(`❌ AdsStore: Failed to fetch ads for ${adType}:`, error);
       set({
-        loading: false,
+        isLoading: false,
         error: error.message || "Failed to load ads",
       });
       return [];
@@ -312,7 +312,7 @@ export const useAdsStore = create<AdsState>((set, get) => ({
 // Selectors for easy access
 export const useAdsByType = (adType: AdMediaType) =>
   useAdsStore((state) => state.adsByType[adType]);
-export const useAdsLoading = () => useAdsStore((state) => state.loading);
+export const useAdsLoading = () => useAdsStore((state) => state.isLoading);
 export const useAdsError = () => useAdsStore((state) => state.error);
 export const useAdSenseSettings = () =>
   useAdsStore((state) => state.adSenseSettings);

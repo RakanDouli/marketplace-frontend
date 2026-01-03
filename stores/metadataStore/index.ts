@@ -68,7 +68,7 @@ interface MetadataState {
   provinces: Province[];
 
   // Loading states
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
 
   // Actions
@@ -104,7 +104,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
   adPlacements: [],
   adFormats: [],
   provinces: [],
-  loading: false,
+  isLoading: false,
   error: null,
 
   // Fetch all metadata at once
@@ -122,7 +122,7 @@ export const useMetadataStore = create<MetadataState>((set) => ({
 
   // Fetch user-related metadata
   fetchUserMetadata: async () => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const [statusesData, rolesData, accountTypesData, accountBadgesData] = await Promise.all([
         cachedGraphQLRequest(GET_USER_STATUSES_QUERY),
@@ -136,17 +136,17 @@ export const useMetadataStore = create<MetadataState>((set) => ({
         userRoles: (rolesData as any).getUserRoles || [],
         accountTypes: (accountTypesData as any).getAccountTypes || [],
         accountBadges: (accountBadgesData as any).getAccountBadges || [],
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch user metadata:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, isLoading: false });
     }
   },
 
   // Fetch listing-related metadata
   fetchListingMetadata: async () => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const [listingStatusesData, rejectionReasonsData] = await Promise.all([
         cachedGraphQLRequest(GET_LISTING_STATUSES_QUERY),
@@ -156,17 +156,17 @@ export const useMetadataStore = create<MetadataState>((set) => ({
       set({
         listingStatuses: (listingStatusesData as any).getListingStatuses || [],
         rejectionReasons: (rejectionReasonsData as any).getRejectionReasons || [],
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch listing metadata:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, isLoading: false });
     }
   },
 
   // Fetch subscription-related metadata
   fetchSubscriptionMetadata: async () => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const [cyclesData, statusesData, accountTypesData] = await Promise.all([
         cachedGraphQLRequest(GET_BILLING_CYCLES_QUERY),
@@ -178,17 +178,17 @@ export const useMetadataStore = create<MetadataState>((set) => ({
         billingCycles: (cyclesData as any).getBillingCycles || [],
         subscriptionStatuses: (statusesData as any).getSubscriptionStatuses || [],
         subscriptionAccountTypes: (accountTypesData as any).getSubscriptionAccountTypes || [],
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch subscription metadata:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, isLoading: false });
     }
   },
 
   // Fetch attribute-related metadata
   fetchAttributeMetadata: async () => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const [typesData, validationsData, storageTypesData] = await Promise.all([
         cachedGraphQLRequest(GET_ATTRIBUTE_TYPES_QUERY),
@@ -200,17 +200,17 @@ export const useMetadataStore = create<MetadataState>((set) => ({
         attributeTypes: (typesData as any).getAttributeTypes || [],
         attributeValidations: (validationsData as any).getAttributeValidations || [],
         attributeStorageTypes: (storageTypesData as any).getAttributeStorageTypes || [],
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch attribute metadata:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, isLoading: false });
     }
   },
 
   // Fetch ad system-related metadata
   fetchAdMetadata: async () => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const [
         mediaTypesData,
@@ -235,27 +235,27 @@ export const useMetadataStore = create<MetadataState>((set) => ({
         campaignStartPreferences: (startPreferencesData as any).getCampaignStartPreferences || [],
         adPlacements: (placementsData as any).getAdPlacements || [],
         adFormats: (formatsData as any).getAdFormats || [],
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch ad metadata:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, isLoading: false });
     }
   },
 
   // Fetch location-related metadata
   fetchLocationMetadata: async () => {
-    set({ loading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const provincesData = await cachedGraphQLRequest(GET_PROVINCES_QUERY);
 
       set({
         provinces: (provincesData as any).getProvinces || [],
-        loading: false,
+        isLoading: false,
       });
     } catch (error: any) {
       console.error("❌ Failed to fetch location metadata:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, isLoading: false });
     }
   },
 }));

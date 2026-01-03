@@ -37,7 +37,27 @@ async function fetchListingSSR(id: string): Promise<Listing | null> {
       return null;
     }
 
-    return result.data?.listing || null;
+    const listing = result.data?.listing;
+    if (!listing) return null;
+
+    // Parse JSON fields that come as strings from GraphQL
+    if (listing.specsDisplay && typeof listing.specsDisplay === 'string') {
+      try {
+        listing.specsDisplay = JSON.parse(listing.specsDisplay);
+      } catch (e) {
+        console.error('Failed to parse specsDisplay:', e);
+        listing.specsDisplay = {};
+      }
+    }
+    if (listing.specs && typeof listing.specs === 'string') {
+      try {
+        listing.specs = JSON.parse(listing.specs);
+      } catch (e) {
+        listing.specs = {};
+      }
+    }
+
+    return listing;
   } catch (error) {
     console.error('SSR Fetch Exception:', error);
     return null;
