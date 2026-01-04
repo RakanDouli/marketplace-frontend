@@ -1,13 +1,16 @@
 @import "../../styles/variables";
 
-.authModal {
-  max-width: 420px;
-}
+// .authModal {
+//   max-width: 420px;
+// }
 
 .modalContent {
   display: flex;
   flex-direction: column;
   gap: $space-sm;
+  @media (max-width: $breakpoint-sm) {
+    margin-top: $space-sm;
+  }
 }
 
 // Header tabs

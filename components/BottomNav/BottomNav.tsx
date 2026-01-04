@@ -174,19 +174,33 @@ export const BottomNav: React.FC = () => {
           const needsAuth = item.requiresAuth && !user;
           const itemIsActive = isActive(item.id, item.href);
 
-          const handleClick = (e: React.MouseEvent) => {
-            if (needsAuth) {
-              e.preventDefault();
-              openAuthModal('login');
-            }
-          };
+          // If auth required but not logged in, render button instead of Link
+          if (needsAuth) {
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`${styles.navItem} ${itemIsActive ? styles.active : ''}`}
+                onClick={() => openAuthModal('login')}
+                data-index={index}
+              >
+                <span className={styles.iconWrapper}>
+                  {item.icon}
+                  {item.badge && item.badge > 0 && (
+                    <span className={styles.badge}>
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </span>
+              </button>
+            );
+          }
 
           return (
             <Link
               key={item.id}
-              href={needsAuth ? '#' : item.href}
+              href={item.href}
               className={`${styles.navItem} ${itemIsActive ? styles.active : ''}`}
-              onClick={handleClick}
               data-index={index}
             >
               <span className={styles.iconWrapper}>

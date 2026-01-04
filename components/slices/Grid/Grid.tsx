@@ -9,6 +9,7 @@ export interface GridProps {
   children: React.ReactNode;
   // Header (when used as section)
   title?: string;
+  titleAlign?: "right" | "center";
   action?: React.ReactNode;
   // Grid settings
   columns?: 1 | 2 | 3 | 4 | 5 | 6;
@@ -26,6 +27,7 @@ export const Grid: React.FC<GridProps> = ({
   children,
   // Header
   title,
+  titleAlign = "right",
   action,
   // Grid settings
   columns = 4,
@@ -58,7 +60,7 @@ export const Grid: React.FC<GridProps> = ({
         outerBackground={outerBackground}
         className={className}
       >
-        <div className={styles.header}>
+        <div className={`${styles.header} ${titleAlign === 'center' ? styles.headerCenter : ''}`}>
           {title && <Text variant="h3">{title}</Text>}
           {action}
         </div>
