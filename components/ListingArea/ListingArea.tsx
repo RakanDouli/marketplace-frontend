@@ -64,6 +64,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   // Filter toggle is now handled by Filter component itself (self-sufficient)
 
   // Fetch listings when component mounts or category changes
+  // Skip if SSR already hydrated the store with listings
   useEffect(() => {
     const fetchInitialListings = async () => {
       if (!categorySlug) {
@@ -73,6 +74,12 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       // Convert slug to ID using cached categories
       const category = getCategoryBySlug(categorySlug);
       if (!category) {
+        return;
+      }
+
+      // Skip fetch if we already have listings from SSR hydration
+      // The store will have listings and not be loading if hydrated
+      if (listings && listings.length > 0 && !loading) {
         return;
       }
 
@@ -88,7 +95,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     };
 
     fetchInitialListings();
-  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug]);
+  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, listings, loading]);
 
   // Sync local viewMode with store viewType for backward compatibility
   const [viewMode, setViewMode] = useState<"grid" | "list">(

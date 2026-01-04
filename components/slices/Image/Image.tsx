@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import NextImage, { ImageProps as NextImageProps } from "next/image";
+import { ImageOff } from "lucide-react";
 import Loading from "../Loading/Loading";
 import { optimizeListingImage } from "@/utils/cloudflare-images";
 import styles from "./Image.module.scss";
@@ -29,12 +30,15 @@ export const Image: React.FC<ImageProps> = ({
   src,
   ...props
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  // Check if src is empty/null/undefined
+  const hasNoSrc = !src || (typeof src === 'string' && src.trim() === '');
+
+  const [isLoading, setIsLoading] = useState(!hasNoSrc);
+  const [hasError, setHasError] = useState(hasNoSrc);
 
   // Automatically convert Cloudflare image IDs to full URLs
   const processedSrc = useMemo(() => {
-    if (!src) return src;
+    if (!src) return '';
 
     const srcString = typeof src === 'string' ? src : '';
 
@@ -85,8 +89,7 @@ export const Image: React.FC<ImageProps> = ({
       {/* Error state */}
       {hasError && (
         <div className={styles.errorState}>
-          <div className={styles.errorIcon}>📷</div>
-          <span className={styles.errorText}>Failed to load image</span>
+          <ImageOff size={32} className={styles.errorIcon} />
         </div>
       )}
 

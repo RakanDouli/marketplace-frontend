@@ -15,7 +15,7 @@ import {
   useSearchStore,
   useListingsStore,
 } from "../../stores";
-import type { Category, Attribute } from "../../types/listing";
+import type { Category, Attribute, Listing } from "../../types/listing";
 import styles from "./CategoryPage.module.scss";
 
 interface CategoryPageClientProps {
@@ -33,6 +33,7 @@ interface CategoryPageClientProps {
   // SSR props - pre-fetched on server
   initialAttributes?: Attribute[];
   initialTotalResults?: number;
+  initialListings?: Listing[];
 }
 
 export default function CategoryPageClient({
@@ -40,6 +41,7 @@ export default function CategoryPageClient({
   searchParams,
   initialAttributes,
   initialTotalResults,
+  initialListings,
 }: CategoryPageClientProps) {
   const router = useRouter();
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
@@ -67,7 +69,7 @@ export default function CategoryPageClient({
     getBackendFilters,
   } = useSearchStore();
 
-  const { fetchListingsByCategory, setPagination } = useListingsStore();
+  const { fetchListingsByCategory, setPagination, hydrateFromSSR: hydrateListingsFromSSR } = useListingsStore();
   const { updateFiltersWithCascading } = useFiltersStore();
 
   // Local search state for controlled input
@@ -135,12 +137,19 @@ export default function CategoryPageClient({
 
       // HYBRID SSR: Use server-fetched data if available, otherwise fetch client-side
       if (initialAttributes && initialAttributes.length > 0) {
-        // Hydrate store with SSR data - no API call needed!
+        // Hydrate filters store with SSR data - no API call needed!
         hydrateFromSSR(categorySlug, initialAttributes, initialTotalResults || 0);
       } else {
-        // Fallback to client-side fetch
+        // Fallback to client-side fetch for filters
         fetchFilterData(categorySlug);
       }
+
+      // HYBRID SSR: Hydrate listings store with SSR data if available
+      if (initialListings && initialListings.length > 0) {
+        // Hydrate listings store with SSR data - no API call needed!
+        hydrateListingsFromSSR(categorySlug, initialListings, initialTotalResults || 0);
+      }
+      // Note: If no SSR listings, ListingArea will fetch client-side via useEffect
 
       setIsCategoryLoading(false);
       initializedRef.current = true;

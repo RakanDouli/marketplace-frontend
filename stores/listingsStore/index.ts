@@ -22,6 +22,12 @@ interface ListingsActions {
   resetPagination: () => void;
   setSortFilter: (sort: string) => void;
   setViewType: (viewType: "grid" | "list" | "detail") => void;
+  // SSR Hydration - populate store with server-fetched listings (no API call needed!)
+  hydrateFromSSR: (
+    categorySlug: string,
+    listings: Listing[],
+    totalResults: number
+  ) => void;
   // Data fetching methods
   fetchListings: (
     filters?: Partial<ListingsState["filters"]>,
@@ -160,6 +166,26 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     }
 
     set({ viewType });
+  },
+
+  // SSR Hydration - populate store with server-fetched listings (no API call needed!)
+  hydrateFromSSR: (
+    categorySlug: string,
+    listings: Listing[],
+    totalResults: number
+  ) => {
+    // Set store state immediately with SSR data - no loading state needed!
+    set({
+      listings,
+      currentCategoryId: categorySlug,
+      isLoading: false,
+      error: null,
+      pagination: {
+        ...initialPagination,
+        total: totalResults,
+        hasMore: listings.length < totalResults,
+      },
+    });
   },
 
   // Data fetching methods

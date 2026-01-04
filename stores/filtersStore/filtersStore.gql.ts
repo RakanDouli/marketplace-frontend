@@ -40,6 +40,7 @@ export const CATEGORIES_QUERY = `
     categories {
       id
       name
+      nameAr
       slug
       isActive
     }

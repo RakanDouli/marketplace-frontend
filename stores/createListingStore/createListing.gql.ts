@@ -82,3 +82,27 @@ export const CREATE_MY_LISTING_MUTATION = `
     }
   }
 `;
+
+// Query to get brands by category
+export const GET_BRANDS_QUERY = `
+  query GetBrands($categoryId: String!) {
+    brands(categoryId: $categoryId) {
+      id
+      name
+      slug
+      isActive
+    }
+  }
+`;
+
+// Query to get models by brand
+export const GET_MODELS_QUERY = `
+  query GetModels($brandId: String!) {
+    models(brandId: $brandId) {
+      id
+      name
+      slug
+      isActive
+    }
+  }
+`;

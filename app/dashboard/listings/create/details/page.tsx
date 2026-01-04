@@ -8,6 +8,7 @@ import Text from '@/components/slices/Text/Text';
 import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
+import { GET_BRANDS_QUERY, GET_MODELS_QUERY } from '@/stores/createListingStore/createListing.gql';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
@@ -22,29 +23,6 @@ import {
 import { MapPin, ArrowLeft } from 'lucide-react';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
 import styles from '../CreateListing.module.scss';
-
-// GraphQL Queries
-const GET_BRANDS_QUERY = `
-  query GetBrands($categoryId: String!) {
-    brands(categoryId: $categoryId) {
-      id
-      name
-      slug
-      isActive
-    }
-  }
-`;
-
-const GET_MODELS_QUERY = `
-  query GetModels($brandId: String!) {
-    models(brandId: $brandId) {
-      id
-      name
-      slug
-      isActive
-    }
-  }
-`;
 
 interface Brand {
   id: string;

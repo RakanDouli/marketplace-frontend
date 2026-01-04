@@ -1,73 +1,12 @@
 import type { Metadata } from "next";
 import CategoryPageClient from "./CategoryPageClient";
-import type { Attribute } from "../../types/listing";
-
-// GraphQL query for server-side fetching
-const GET_CATEGORY_ATTRIBUTES_QUERY = `
-  query GetAttributesByCategorySlug($categorySlug: String!) {
-    getAttributesByCategorySlug(categorySlug: $categorySlug) {
-      id
-      key
-      name
-      type
-      validation
-      sortOrder
-      group
-      groupOrder
-      isActive
-      isGlobal
-      showInGrid
-      showInList
-      showInDetail
-      showInFilter
-      maxSelections
-      options {
-        id
-        key
-        value
-        sortOrder
-        isActive
-        showInGrid
-        showInList
-        showInDetail
-        showInFilter
-      }
-    }
-  }
-`;
-
-const GET_LISTING_AGGREGATIONS_QUERY = `
-  query GetListingAggregations($filter: ListingFilterInput) {
-    listingsAggregations(filter: $filter) {
-      totalResults
-      provinces {
-        value
-        count
-      }
-      attributes {
-        field
-        totalCount
-        options {
-          value
-          count
-          key
-        }
-      }
-    }
-  }
-`;
-
-const CATEGORIES_QUERY = `
-  query GetCategories {
-    categories {
-      id
-      name
-      nameAr
-      slug
-      isActive
-    }
-  }
-`;
+import type { Attribute, Listing } from "../../types/listing";
+import { LISTINGS_GRID_QUERY } from "../../stores/listingsStore/listingsStore.gql";
+import {
+  GET_CATEGORY_ATTRIBUTES_QUERY,
+  GET_LISTING_AGGREGATIONS_QUERY,
+  CATEGORIES_QUERY,
+} from "../../stores/filtersStore/filtersStore.gql";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -208,6 +147,77 @@ async function fetchCategoryMetadata(categorySlug: string): Promise<{
   }
 }
 
+// Fetch listings server-side using existing query from store
+async function fetchListingsSSR(categorySlug: string): Promise<{
+  listings: Listing[];
+  totalResults: number;
+}> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+  try {
+    const response = await fetch(`${apiUrl}/graphql`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: LISTINGS_GRID_QUERY,
+        variables: {
+          filter: {
+            categoryId: categorySlug,
+            status: "ACTIVE",
+            viewType: "grid",
+          },
+          limit: 20,
+          offset: 0,
+        },
+      }),
+      next: { revalidate: 120 }, // Cache for 2 minutes (same as client-side)
+    });
+
+    const data = await response.json();
+    const rawListings = data.data?.listingsSearch || [];
+    const totalResults = data.data?.listingsAggregations?.totalResults || 0;
+
+    // Parse listings (same logic as listingsStore.fetchListings)
+    const listings: Listing[] = rawListings.map((item: any) => {
+      let specs = {};
+      try {
+        specs = item.specs ? JSON.parse(item.specs) : {};
+      } catch {
+        specs = {};
+      }
+
+      let specsDisplay = {};
+      try {
+        specsDisplay = item.specsDisplay ? JSON.parse(item.specsDisplay) : {};
+      } catch {
+        specsDisplay = {};
+      }
+
+      return {
+        id: item.id,
+        title: item.title,
+        priceMinor: item.priceMinor,
+        prices: [{ currency: "USD", value: item.priceMinor?.toString() || "0" }],
+        city: (specs as any).location || item.location?.city || "",
+        status: "active" as const,
+        allowBidding: false,
+        specs,
+        specsDisplay,
+        imageKeys: item.imageKeys || [],
+        accountType: item.accountType as "individual" | "dealer" | "business",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user: item.user ? { id: item.user.id } : undefined,
+      };
+    });
+
+    return { listings, totalResults };
+  } catch (error) {
+    console.error("Error fetching listings SSR:", error);
+    return { listings: [], totalResults: 0 };
+  }
+}
+
 // Dynamic metadata generation
 export async function generateMetadata({
   params,
@@ -252,16 +262,19 @@ export default async function CategoryPage({
   const { category } = await params;
   const resolvedSearchParams = await searchParams;
 
-  // Fetch filter attributes server-side (SSR)
-  const { attributes: initialAttributes, totalResults: initialTotalResults } =
-    await fetchFilterAttributes(category);
+  // Fetch filter attributes AND listings server-side (SSR) in parallel
+  const [filterData, listingsData] = await Promise.all([
+    fetchFilterAttributes(category),
+    fetchListingsSSR(category),
+  ]);
 
   return (
     <CategoryPageClient
       categorySlug={category}
       searchParams={resolvedSearchParams}
-      initialAttributes={initialAttributes}
-      initialTotalResults={initialTotalResults}
+      initialAttributes={filterData.attributes}
+      initialTotalResults={filterData.totalResults}
+      initialListings={listingsData.listings}
     />
   );
 }

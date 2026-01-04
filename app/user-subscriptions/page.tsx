@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { SubscriptionPlan } from '@/stores/subscriptionPlansStore/types';
+import { GET_PUBLIC_SUBSCRIPTION_PLANS_QUERY } from '@/stores/subscriptionPlansStore/subscriptionPlansStore.gql';
 import UserSubscriptionsClient from './UserSubscriptionsClient';
 
 // SEO Metadata
@@ -20,37 +21,6 @@ export const metadata: Metadata = {
     description: 'خطط مرنة تناسب جميع احتياجاتك مع ميزات متقدمة للبائعين المحترفين.',
   },
 };
-
-// GraphQL query for subscription plans
-const GET_PUBLIC_SUBSCRIPTION_PLANS_QUERY = `
-  query GetPublicSubscriptionPlans {
-    userSubscriptions {
-      id
-      name
-      title
-      description
-      monthlyPrice
-      yearlyPrice
-      yearlySavingsPercent
-      maxListings
-      maxImagesPerListing
-      videoAllowed
-      priorityPlacement
-      analyticsAccess
-      customBranding
-      featuredListings
-      accountType
-      sortOrder
-      status
-      isPublic
-      isDefault
-      originalPrice
-      discountPercentage
-      discountLabel
-      discountValidUntil
-    }
-  }
-`;
 
 // Server-side data fetching
 async function fetchSubscriptionPlans(): Promise<SubscriptionPlan[]> {

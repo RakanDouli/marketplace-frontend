@@ -64,14 +64,17 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Handle message icon click - always refresh threads
+  // Handle message icon click - check auth first
   const handleMessagesClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // Always refresh threads
-    fetchMyThreads();
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
 
-    // Navigate to messages page (even if already there, will trigger re-render)
+    // Refresh threads and navigate
+    fetchMyThreads();
     router.push('/messages');
   };
 
@@ -143,19 +146,17 @@ export const Header: React.FC = () => {
                 <Heart size={24} />
               </button>
 
-              {/* Messages Icon - only for logged in users */}
-              {user && (
-                <button
-                  onClick={handleMessagesClick}
-                  className={styles.messagesIcon}
-                  aria-label="الرسائل"
-                >
-                  <MessageCircle size={24} />
-                  {unreadCount > 0 && (
-                    <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
-                  )}
-                </button>
-              )}
+              {/* Messages Icon - shows for all users, auth check on click */}
+              <button
+                onClick={handleMessagesClick}
+                className={styles.messagesIcon}
+                aria-label="الرسائل"
+              >
+                <MessageCircle size={24} />
+                {user && unreadCount > 0 && (
+                  <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
+                )}
+              </button>
               <UserMenu />
               <ThemeToggle />
             </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { AdPackage } from '@/stores/adPackagesStore/types';
+import { GET_ACTIVE_AD_PACKAGES_QUERY } from '@/stores/adPackagesStore/adPackagesStore.gql';
 import AdvertiseClient from './AdvertiseClient';
 
 // SEO Metadata
@@ -20,36 +21,6 @@ export const metadata: Metadata = {
     description: 'إعلانات احترافية بمعايير IAB العالمية مع تقارير شفافة وأسعار تنافسية.',
   },
 };
-
-// GraphQL query for ad packages
-const GET_ACTIVE_AD_PACKAGES_QUERY = `
-  query GetActiveAdPackages {
-    activeAdPackages {
-      id
-      packageName
-      description
-      adType
-      placement
-      format
-      dimensions {
-        desktop {
-          width
-          height
-        }
-        mobile {
-          width
-          height
-        }
-      }
-      durationDays
-      impressionLimit
-      basePrice
-      currency
-      mediaRequirements
-      isActive
-    }
-  }
-`;
 
 // Server-side data fetching
 async function fetchAdPackages(): Promise<AdPackage[]> {

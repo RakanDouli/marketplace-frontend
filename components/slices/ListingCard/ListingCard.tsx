@@ -83,9 +83,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         <div className={styles.imageContainer}>
           {isLoading ? (
             <div className={styles.imageSkeleton} />
-          ) : images && images.length > 0 ? (
+          ) : (
             <Image
-              src={images[0]}
+              src={images?.[0] || ''}
               alt={title}
               variant="card"
               aspectRatio="4/3"
@@ -98,10 +98,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               priority={priority}
               showSkeleton={false}
             />
-          ) : (
-            <div className={styles.noImage}>
-              <span>لا توجد صورة</span>
-            </div>
           )}
 
           {/* Image count badge */}
