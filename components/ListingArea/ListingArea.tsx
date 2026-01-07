@@ -43,6 +43,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     listings,
     isLoading: loading,
     pagination,
+    currentCategoryId,
     setSortFilter,
     setViewType,
     fetchListings,
@@ -77,9 +78,10 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
         return;
       }
 
-      // Skip fetch if we already have listings from SSR hydration
-      // The store will have listings and not be loading if hydrated
-      if (listings && listings.length > 0 && !loading) {
+      // Skip fetch if we already fetched for this category (even if 0 results)
+      // currentCategoryId is set after each successful fetch
+      // This prevents infinite loop when category has no listings
+      if (!loading && currentCategoryId === categorySlug) {
         return;
       }
 
@@ -95,7 +97,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     };
 
     fetchInitialListings();
-  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, listings, loading]);
+  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, loading, currentCategoryId]);
 
   // Sync local viewMode with store viewType for backward compatibility
   const [viewMode, setViewMode] = useState<"grid" | "list">(

@@ -335,7 +335,6 @@ export const Filter: React.FC<FilterProps> = ({
                 attribute.key,
                 newSelected.length > 0 ? newSelected : undefined
               )}
-              maxSelections={attribute.maxSelections}
               iconBasePath="/images/car-types"
               options={attribute.processedOptions.map((opt: any) => ({
                 key: opt.key,
@@ -359,7 +358,6 @@ export const Filter: React.FC<FilterProps> = ({
             attribute.key,
             newSelected.length > 0 ? newSelected : undefined
           )}
-          maxSelections={attribute.maxSelections}
         />
       );
     }

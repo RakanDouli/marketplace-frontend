@@ -21,8 +21,6 @@ export interface MultiSelectFilterProps {
   selected: string[];
   /** Callback when selection changes */
   onChange: (selected: string[]) => void;
-  /** Maximum number of selections allowed */
-  maxSelections?: number;
   /** Whether to show counts in options */
   showCounts?: boolean;
 }
@@ -38,7 +36,6 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
   options,
   selected,
   onChange,
-  maxSelections,
   showCounts = true,
 }) => {
   const selectedArray = Array.isArray(selected) ? selected : [];
@@ -69,11 +66,6 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
 
   const isSelected = (key: string) => selectedArray.includes(key);
 
-  const isDisabled = (key: string) => {
-    if (!maxSelections) return false;
-    return !isSelected(key) && selectedArray.length >= maxSelections;
-  };
-
   const isEmpty = (count?: number) => count === 0;
 
   const handleChange = (key: string, checked: boolean) => {
@@ -86,41 +78,25 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
     onChange(newSelected.length > 0 ? newSelected : []);
   };
 
-  const getSelectionCounterText = () => {
-    if (!maxSelections) return null;
-    return `${selectedArray.length} / ${maxSelections}`;
-  };
-
   return (
     <div className={styles.filterField}>
       <Text variant="small" className={styles.fieldLabel}>
         {label}
       </Text>
       <div className={styles.checkboxGroup}>
-        {maxSelections && (
-          <div className={styles.selectionCounter}>
-            <Text variant="xs">{getSelectionCounterText()}</Text>
-          </div>
-        )}
-
         {visibleOptions.map((option) => {
           const optionSelected = isSelected(option.key);
-          const optionDisabled = isDisabled(option.key);
           const optionEmpty = isEmpty(option.count);
 
           return (
             <label
               key={option.key}
-              className={`${styles.checkboxOption} ${optionDisabled ? styles.disabled : ""} ${optionEmpty ? styles.empty : ""}`}
+              className={`${styles.checkboxOption} ${optionEmpty ? styles.empty : ""}`}
             >
               <input
                 type="checkbox"
                 checked={optionSelected}
-                disabled={optionDisabled}
-                onChange={(e) => {
-                  if (optionDisabled) return;
-                  handleChange(option.key, e.target.checked);
-                }}
+                onChange={(e) => handleChange(option.key, e.target.checked)}
               />
               <span className={styles.checkboxLabel}>
                 <span className={styles.optionValue}>{option.value}</span>

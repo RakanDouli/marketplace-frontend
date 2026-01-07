@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import CategoryPageClient from "./CategoryPageClient";
 import type { Attribute, Listing } from "../../types/listing";
 import { LISTINGS_GRID_QUERY } from "../../stores/listingsStore/listingsStore.gql";
@@ -261,6 +262,14 @@ export default async function CategoryPage({
 }: CategoryPageProps) {
   const { category } = await params;
   const resolvedSearchParams = await searchParams;
+
+  // First, check if the category exists
+  const categoryData = await fetchCategoryMetadata(category);
+
+  // If category doesn't exist, show 404 page
+  if (!categoryData) {
+    notFound();
+  }
 
   // Fetch filter attributes AND listings server-side (SSR) in parallel
   const [filterData, listingsData] = await Promise.all([

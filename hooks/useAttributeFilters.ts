@@ -56,39 +56,11 @@ export const useAttributeFilters = () => {
     }
   };
 
-  // Check if selection is at limit for multi selector
-  const isAtSelectionLimit = (attributeKey: string, maxSelections?: number) => {
-    if (!maxSelections) return false;
-    const selectedCount = getSelectedOptions(attributeKey).length;
-    return selectedCount >= maxSelections;
-  };
-
-  // Check if option should be disabled (at limit and not selected)
-  const shouldDisableOption = (
-    attributeKey: string,
-    optionKey: string,
-    maxSelections?: number
-  ) => {
-    const isSelected = isOptionSelectedInMulti(attributeKey, optionKey);
-    const isAtLimit = isAtSelectionLimit(attributeKey, maxSelections);
-    return isAtLimit && !isSelected;
-  };
-
   // Get current value for single selector
   const getSingleSelectorValue = (attributeKey: string): string => {
     const currentSpec = appliedFilters.specs?.[attributeKey];
     if (!currentSpec) return "";
     return typeof currentSpec === "string" ? currentSpec : "";
-  };
-
-  // Get selection counter text for multi selector
-  const getSelectionCounterText = (
-    attributeKey: string,
-    maxSelections?: number
-  ): string => {
-    if (!maxSelections) return "";
-    const selectedCount = getSelectedOptions(attributeKey).length;
-    return `${selectedCount}/${maxSelections} selected`;
   };
 
   // Toggle selection for multi selector
@@ -139,9 +111,6 @@ export const useAttributeFilters = () => {
     // Multi selector helpers
     isOptionSelectedInMulti,
     getSelectedOptions,
-    isAtSelectionLimit,
-    shouldDisableOption,
-    getSelectionCounterText,
     toggleMultiSelection,
     handleCheckboxChange,
   };
