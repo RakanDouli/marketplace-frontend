@@ -9,6 +9,7 @@ interface RenderAttributeFieldProps {
   attribute: Attribute;
   value: any;
   onChange: (value: any) => void;
+  onBlur?: () => void;
   error?: string;
 }
 
@@ -16,12 +17,14 @@ export const renderAttributeField = ({
   attribute,
   value,
   onChange,
+  onBlur,
   error,
 }: RenderAttributeFieldProps): JSX.Element | null => {
   const commonProps = {
     label: attribute.name, // Arabic label from backend
     value: value ?? '',
     error: error,
+    onBlur: onBlur,
     helpText: undefined, // Can add description field to attribute if needed
     required: attribute.validation === 'REQUIRED', // Input component will add asterisk automatically via SCSS
   };

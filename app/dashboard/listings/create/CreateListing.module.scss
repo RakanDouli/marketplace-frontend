@@ -186,3 +186,108 @@
   gap: $space-md;
   margin-bottom: $space-md;
 }
+
+// ===== DRAFTS SECTION (Continue Draft Feature) =====
+.draftsSection {
+  margin-bottom: $space-lg;
+  padding: $space-md;
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+
+  .sectionTitle {
+    margin-bottom: $space-md;
+  }
+}
+
+.draftsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.draftCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm $space-md;
+  background-color: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    gap: $space-sm;
+    align-items: stretch;
+  }
+}
+
+.draftInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.draftImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+}
+
+.draftDetails {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+// ===== LOADING INDICATOR =====
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-top: $space-md;
+  padding: $space-sm $space-md;
+  background-color: $surface;
+  border-radius: $radius-sm;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ===== CATEGORY CARD =====
+.categoryCard {
+  padding: $space-md;
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+
+  .sectionTitle {
+    margin-bottom: $space-md;
+  }
+}
+
+// ===== HEADER WITH SAVING INDICATOR =====
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  margin-bottom: $space-lg;
+}
+
+.savingIndicator {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+}

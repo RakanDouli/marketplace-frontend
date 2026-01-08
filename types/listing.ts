@@ -1,4 +1,5 @@
 // Core business entities - aligned with backend GraphQL schema
+import { AccountType, ListingType, Condition, AccountBadge, UserStatus, ListingStatus } from '@/common/enums';
 
 export interface Price {
   value: string;
@@ -28,14 +29,7 @@ export interface Listing {
   // Legacy fields for backward compatibility (deprecated)
   province?: string;
   city?: string;
-  status:
-    | "DRAFT"
-    | "PENDING_APPROVAL"
-    | "REJECTED" // AI auto-rejected (user can edit & resubmit)
-    | "ACTIVE"
-    | "SOLD"
-    | "SOLD_VIA_PLATFORM"
-    | "HIDDEN";
+  status: `${ListingStatus}`;
   allowBidding: boolean;
   biddingStartPrice?: number;
   specs?: Record<string, any>; // Dynamic attribute specs (English keys for backend processing)
@@ -44,8 +38,10 @@ export interface Listing {
   videoUrl?: string; // Video URL for premium accounts (Business/Dealer)
   images?: Array<{ url: string; alt?: string }>; // For ImageGallery component
   accountLabel?: string;
-  accountBadge?: string;
-  accountType?: "individual" | "dealer" | "business"; // Lowercase to match backend enum values
+  accountBadge?: `${AccountBadge}`;
+  accountType?: `${AccountType}`;
+  listingType?: `${ListingType}`;
+  condition?: `${Condition}`;
   // AI Moderation fields
   moderationScore?: number | null;
   moderationFlags?: string[] | null;
@@ -63,10 +59,10 @@ export interface Listing {
     name: string;
     email: string;
     role: string;
-    status: "pending" | "active" | "banned"; // Lowercase to match backend
-    accountType: "individual" | "dealer" | "business"; // Lowercase to match backend
+    status: `${UserStatus}`;
+    accountType: `${AccountType}`;
     companyName?: string;
-    accountBadge: "none" | "verified" | "premium"; // Lowercase to match backend
+    accountBadge: `${AccountBadge}`;
     businessVerified: boolean;
     phone?: string;
     phoneIsWhatsApp?: boolean;

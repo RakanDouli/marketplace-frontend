@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Text, Button, Image } from '@/components/slices';
-import { Trash2, Play } from 'lucide-react';
+import { Trash2, Play, Check, Loader2 } from 'lucide-react';
 import styles from './ImageUploadGrid.module.scss';
 
 export interface ImageItem {
@@ -10,6 +10,9 @@ export interface ImageItem {
   url: string;
   file?: File;
   isVideo?: boolean; // Track if this is a video file
+  isUploading?: boolean; // Track if this image is currently uploading
+  uploadProgress?: number; // Upload progress 0-100
+  isUploaded?: boolean; // Track if upload completed successfully
 }
 
 interface ImageUploadGridProps {
@@ -193,7 +196,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
         onDrop={handleDrop}
       >
         {images.map((image) => (
-          <div key={image.id} className={styles.imageCard}>
+          <div key={image.id} className={`${styles.imageCard} ${image.isUploading ? styles.uploading : ''}`}>
             {image.isVideo ? (
               <div className={styles.videoPreview}>
                 <video
@@ -217,7 +220,30 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
                 variant="public"
               />
             )}
-            {!disabled && (
+
+            {/* Upload progress overlay */}
+            {image.isUploading && (
+              <div className={styles.uploadOverlay}>
+                <Loader2 className={styles.uploadSpinner} size={24} />
+                {image.uploadProgress !== undefined && (
+                  <div className={styles.progressBar}>
+                    <div
+                      className={styles.progressFill}
+                      style={{ width: `${image.uploadProgress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Success indicator (top-left, aligned with delete button) */}
+            {!image.isUploading && !image.file && (
+              <div className={styles.successBadge}>
+                <Check size={16} />
+              </div>
+            )}
+
+            {!disabled && !image.isUploading && (
               <Button
                 variant="danger"
                 size="sm"

@@ -21,6 +21,7 @@ import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/components/seo';
+import { LISTING_TYPE_LABELS, CONDITION_LABELS, ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -89,8 +90,14 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
       }
     });
 
+    // Keys to exclude from specs (shown separately in core info section)
+    const excludedKeys = ['listingType', 'condition', 'accountType'];
+
     // Separate specs into grouped and ungrouped
     Object.entries(serverListing.specsDisplay).forEach(([key, value]: [string, any]) => {
+      // Skip keys that are shown in the core info section
+      if (excludedKeys.includes(key)) return;
+
       const attribute = attributeMap.get(key);
 
       if (attribute) {
@@ -260,6 +267,38 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
               <Text variant="h2" className={styles.title}>
                 {listing.title}
               </Text>
+
+              {/* Listing Type, Condition & Account Type - Core listing info */}
+              {(listing.listingType || listing.condition || listing.accountType) && (
+                <div className={styles.section}>
+                  <div className={styles.specsList}>
+                    {listing.listingType && (
+                      <div className={styles.specRow}>
+                        <span className={styles.specLabel}>نوع العرض</span>
+                        <span className={styles.specValue}>
+                          {LISTING_TYPE_LABELS[listing.listingType.toLowerCase()] || listing.listingType}
+                        </span>
+                      </div>
+                    )}
+                    {listing.condition && (
+                      <div className={styles.specRow}>
+                        <span className={styles.specLabel}>الحالة</span>
+                        <span className={styles.specValue}>
+                          {CONDITION_LABELS[listing.condition.toLowerCase()] || listing.condition}
+                        </span>
+                      </div>
+                    )}
+                    {listing.accountType && (
+                      <div className={styles.specRow}>
+                        <span className={styles.specLabel}>نوع المعلن</span>
+                        <span className={styles.specValue}>
+                          {ACCOUNT_TYPE_LABELS[listing.accountType.toLowerCase()] || listing.accountType}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Ungrouped Specifications - Individual Fields */}
               {!attributesLoading && ungroupedSpecs.length > 0 && (

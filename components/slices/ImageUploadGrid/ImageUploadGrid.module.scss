@@ -123,6 +123,91 @@
   }
 }
 
+// Upload progress overlay
+.uploadOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  z-index: 2;
+}
+
+.uploadSpinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progressBar {
+  width: 80%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: $success;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+// Success badge (top-left, aligned with delete button)
+.successBadge {
+  position: absolute;
+  top: $space-xs;
+  left: $space-xs;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $success;
+  color: white;
+  border-radius: $radius-sm;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1;
+
+  .imageCard:hover & {
+    opacity: 1;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    opacity: 1; // Always visible on mobile
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+// Uploading state
+.imageCard.uploading {
+  pointer-events: none;
+}
+
 .addButton {
   aspect-ratio: 1;
   display: flex;

@@ -1,20 +1,29 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, Button } from '@/components/slices';
+import { Container } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
 import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
 import { useCategoriesStore } from '@/stores/categoriesStore';
+import { Loader2 } from 'lucide-react';
 import styles from './CreateListing.module.scss';
 
 export default function CreateListingPage() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useUserAuthStore();
-  const { formData, setFormField, fetchAttributes, reset } = useCreateListingStore();
+  const {
+    formData,
+    setCategory,
+    reset,
+    error,
+    isLoadingAttributes,
+  } = useCreateListingStore();
   const { categories, isLoading: isLoadingCategories, initializeCategories } = useCategoriesStore();
+
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -23,7 +32,7 @@ export default function CreateListingPage() {
     }
   }, [user, isAuthLoading, router]);
 
-  // Initialize categories on mount (only fetches once if not already loaded)
+  // Initialize categories on mount
   useEffect(() => {
     initializeCategories();
   }, [initializeCategories]);
@@ -38,15 +47,15 @@ export default function CreateListingPage() {
   }
 
   const handleCategorySelect = async (categoryId: string) => {
-    if (!categoryId) return;
+    if (!categoryId || isNavigating) return;
 
-    // Save category to store
-    setFormField('categoryId', categoryId);
+    setIsNavigating(true);
 
-    // Fetch attributes in background (don't wait)
-    fetchAttributes(categoryId);
+    // Set category locally and fetch attributes (NO database draft yet!)
+    // Draft will be created lazily on first image/video upload
+    await setCategory(categoryId);
 
-    // Navigate to form page immediately
+    // Navigate to form page
     router.push('/dashboard/listings/create/details');
   };
 
@@ -60,6 +69,14 @@ export default function CreateListingPage() {
           </Text>
         </div>
 
+        {/* Show error if any */}
+        {error && (
+          <div className={styles.errorMessage}>
+            <Text variant="paragraph" color="error">{error}</Text>
+          </div>
+        )}
+
+        {/* Category Selection */}
         <div className={styles.categoryCard}>
           <Text variant="h3" className={styles.sectionTitle}>
             اختر الفئة
@@ -77,8 +94,15 @@ export default function CreateListingPage() {
                 label: cat.nameAr || cat.name,
               })),
             ]}
-            disabled={isLoadingCategories}
+            disabled={isLoadingCategories || isNavigating || isLoadingAttributes}
           />
+
+          {(isNavigating || isLoadingAttributes) && (
+            <div className={styles.loadingIndicator}>
+              <Loader2 className={styles.spinner} size={20} />
+              <Text variant="small" color="secondary">جاري تحميل الخصائص...</Text>
+            </div>
+          )}
         </div>
       </div>
     </Container>

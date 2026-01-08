@@ -5,10 +5,13 @@ import { Plus, Minus } from 'lucide-react';
 import styles from './Collapsible.module.scss';
 
 interface CollapsibleProps {
-  title: string;
+  /** Title can be a string or ReactNode for custom headers */
+  title: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
   icon?: React.ReactNode;
+  /** Custom toggle icon - when provided, replaces Plus/Minus icons */
+  toggleIcon?: React.ReactNode;
   variant?: 'default' | 'bordered' | 'card' | 'compact';
   className?: string;
   onToggle?: (isOpen: boolean) => void;
@@ -19,6 +22,7 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
   children,
   defaultOpen = false,
   icon,
+  toggleIcon,
   variant = 'default',
   className,
   onToggle
@@ -45,7 +49,7 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
           <span className={styles.title}>{title}</span>
         </div>
         <span className={styles.toggleIcon}>
-          {isOpen ? <Minus size={20} /> : <Plus size={20} />}
+          {toggleIcon ?? (isOpen ? <Minus size={20} /> : <Plus size={20} />)}
         </span>
       </button>
 

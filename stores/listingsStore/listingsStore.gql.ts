@@ -135,6 +135,8 @@ export const LISTING_BY_ID_QUERY = `
       categoryId
       allowBidding
       biddingStartPrice
+      listingType
+      condition
       category {
         id
         name

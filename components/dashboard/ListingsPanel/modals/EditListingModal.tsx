@@ -139,17 +139,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
 
-  // Expanded sections state - matches create page order
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    basicInfo: true,
-    media: false,
-    brandModel: false,
-    location: false,
-  });
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  // Note: Section expansion is now handled internally by Collapsible component
+  // Using defaultExpanded prop for initial state
 
   // Calculate section statuses and field counts - matches create page structure
   const sectionInfo = useMemo(() => {
@@ -804,8 +795,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             status={sectionInfo.basicInfo.status}
             filledCount={sectionInfo.basicInfo.filled}
             totalCount={sectionInfo.basicInfo.total}
-            isExpanded={expandedSections.basicInfo}
-            onToggle={() => toggleSection('basicInfo')}
+            defaultExpanded={true}
           >
             <Input
               type="text"
@@ -868,8 +858,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             status={sectionInfo.media.status}
             filledCount={sectionInfo.media.filled}
             totalCount={sectionInfo.media.total}
-            isExpanded={expandedSections.media}
-            onToggle={() => toggleSection('media')}
+            defaultExpanded={false}
           >
             <ImageUploadGrid
               images={images}
@@ -953,8 +942,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               status={sectionInfo.brandModel.status}
               filledCount={sectionInfo.brandModel.filled}
               totalCount={sectionInfo.brandModel.total}
-              isExpanded={expandedSections.brandModel}
-              onToggle={() => toggleSection('brandModel')}
+              defaultExpanded={false}
             >
               <div className={styles.formRow}>
                 <Input
@@ -1076,8 +1064,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             status={sectionInfo.location.status}
             filledCount={sectionInfo.location.filled}
             totalCount={sectionInfo.location.total}
-            isExpanded={expandedSections.location}
-            onToggle={() => toggleSection('location')}
+            defaultExpanded={false}
           >
             <Input
               type="select"

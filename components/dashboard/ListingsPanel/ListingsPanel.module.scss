@@ -175,3 +175,110 @@
   background-color: $surface;
   color: $text-muted;
 }
+
+// ===== DRAFTS SECTION =====
+.draftsSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.draftsSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  color: $primary;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.draftsLoading {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.draftsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.draftCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-sm $space-md;
+  background-color: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: $primary;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    gap: $space-sm;
+    align-items: stretch;
+  }
+}
+
+.draftInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.draftImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+}
+
+.draftImagePlaceholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $surface;
+  border: 1px dashed $border;
+  border-radius: $radius-sm;
+  color: $text-muted;
+}
+
+.draftDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.draftTitle {
+  font-weight: $weight-medium;
+}
+
+.draftActions {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+}

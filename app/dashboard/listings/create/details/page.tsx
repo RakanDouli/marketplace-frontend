@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Container, Button, ImageUploadGrid, Form, SubmitButton, FormSection, MobileBackButton } from '@/components/slices';
 import type { FormSectionStatus } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
@@ -20,7 +20,7 @@ import {
   ListingValidationConfig,
   type ValidationErrors,
 } from '@/lib/validation/listingValidation';
-import { MapPin, ArrowLeft } from 'lucide-react';
+import { MapPin, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
 import styles from '../CreateListing.module.scss';
 
@@ -38,22 +38,36 @@ interface Model {
   isActive: boolean;
 }
 
+
 export default function CreateListingDetailsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const draftIdFromUrl = searchParams.get('draftId');
+
   const { user, userPackage, isLoading: isAuthLoading } = useUserAuthStore();
   const { provinces } = useMetadataStore();
   const { addNotification } = useNotificationStore();
   const {
+    draftId,
     formData,
     attributes,
     attributeGroups,
     isLoadingAttributes,
     isSubmitting,
+    isDraftSaving,
+    lastSavedAt,
     error,
     setFormField,
     setSpecField,
     setLocationField,
     submitListing,
+    saveDraft,
+    loadDraft,
+    uploadAndAddImage,
+    removeImage,
+    uploadAndAddVideo,
+    removeVideo,
+    deleteDraft,
     reset,
   } = useCreateListingStore();
 
@@ -65,31 +79,28 @@ export default function CreateListingDetailsPage() {
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [success, setSuccess] = useState<string>('');
   const [validationError, setValidationError] = useState<string>('');
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [uploadingImageIds, setUploadingImageIds] = useState<Set<string>>(new Set());
 
-  // Expanded sections state - default first section open
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    basicInfo: true,
-    media: false,
-    brandModel: false,
-    location: false,
-  });
+  // Note: Section expansion is now handled internally by Collapsible component
+  // Using defaultExpanded prop for initial state
+
 
   // Get subscription limits
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
 
-  // Find brand and model attributes from fetched attributes
+  // Find brand and model attributes
   const brandAttribute = attributes.find(attr => attr.key === 'brandId');
   const modelAttribute = attributes.find(attr => attr.key === 'modelId');
 
-  // Find column-stored global attributes (listingType, condition)
+  // Find column-stored global attributes
   const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
   const conditionAttribute = attributes.find(attr => attr.key === 'condition');
 
-  // Section status and field counts
-  // - status: 'incomplete' | 'required' | 'complete'
-  // - filledCount / totalCount: for X/Y display
-  // - hasError: true when touched but required fields missing
+  // Section status info
   interface SectionInfo {
     status: FormSectionStatus;
     filledCount: number;
@@ -98,24 +109,22 @@ export default function CreateListingDetailsPage() {
   }
 
   const sectionInfo: Record<string, SectionInfo> = useMemo(() => {
-    // Helper to determine status
     const getStatus = (requiredFilled: boolean, allFilled: boolean): FormSectionStatus => {
       if (!requiredFilled) return 'incomplete';
       if (allFilled) return 'complete';
       return 'required';
     };
 
-    // Section 1: Basic Info (title*, price*, description)
+    // Basic Info
     const titleFilled = formData.title.trim().length >= ListingValidationConfig.title.minLength;
     const priceFilled = formData.priceMinor > 0;
     const descriptionFilled = formData.description.trim().length > 0;
     const basicInfoRequired = titleFilled && priceFilled;
     const basicInfoAll = basicInfoRequired && descriptionFilled;
     const basicInfoFilled = [titleFilled, priceFilled, descriptionFilled].filter(Boolean).length;
-    // Error if touched but required not filled
     const basicInfoError = (touched.title && !titleFilled) || (touched.price && !priceFilled);
 
-    // Section 2: Media (images*, video)
+    // Media
     const imagesRequired = formData.images.length >= ListingValidationConfig.images.min;
     const videoFilled = formData.video.length > 0;
     const mediaAll = imagesRequired && (!videoAllowed || videoFilled);
@@ -123,7 +132,7 @@ export default function CreateListingDetailsPage() {
     const mediaFilled = [imagesRequired, videoFilled].filter(Boolean).length;
     const mediaError = touched.images && !imagesRequired;
 
-    // Section 3: Brand & Model
+    // Brand & Model
     const brandRequired = brandAttribute?.validation === 'REQUIRED';
     const modelRequired = modelAttribute?.validation === 'REQUIRED';
     const brandFilled = !!formData.specs.brandId;
@@ -137,7 +146,7 @@ export default function CreateListingDetailsPage() {
     const brandModelError = (touched.brandId && brandRequired && !brandFilled) ||
       (touched.modelId && modelRequired && brandFilled && !modelFilled);
 
-    // Section 4+: Dynamic attribute groups
+    // Dynamic attribute groups
     const attributeGroupsInfo: Record<string, SectionInfo> = {};
     attributeGroups.forEach((group) => {
       const groupAttrs = group.attributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
@@ -155,7 +164,6 @@ export default function CreateListingDetailsPage() {
         if (value !== undefined && value !== null && value !== '') {
           filledCount++;
         }
-        // Check if touched and required but empty
         if (touched[`spec_${attr.key}`] && attr.validation === 'REQUIRED' && !value) {
           hasGroupError = true;
         }
@@ -171,7 +179,7 @@ export default function CreateListingDetailsPage() {
       };
     });
 
-    // Section: Location (province*, city, area)
+    // Location
     const provinceRequired = !!formData.location.province;
     const cityFilled = !!formData.location.city;
     const areaFilled = !!formData.location.area;
@@ -188,12 +196,6 @@ export default function CreateListingDetailsPage() {
     };
   }, [formData, attributes, attributeGroups, brands.length, brandAttribute, modelAttribute, videoAllowed, touched]);
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
 
   // Auth guard
   useEffect(() => {
@@ -202,14 +204,24 @@ export default function CreateListingDetailsPage() {
     }
   }, [user, isAuthLoading, router]);
 
-  // Redirect if no category selected
+  // Load draft from URL parameter (Continue Draft feature)
   useEffect(() => {
-    if (!formData.categoryId) {
+    if (draftIdFromUrl && !draftId && !isLoadingDraft) {
+      setIsLoadingDraft(true);
+      loadDraft(draftIdFromUrl).finally(() => {
+        setIsLoadingDraft(false);
+      });
+    }
+  }, [draftIdFromUrl, draftId, loadDraft, isLoadingDraft]);
+
+  // Redirect if no draft (neither from URL nor from category selection)
+  useEffect(() => {
+    if (!isLoadingDraft && !draftId && !draftIdFromUrl && !formData.categoryId) {
       router.push('/dashboard/listings/create');
     }
-  }, [formData.categoryId, router]);
+  }, [draftId, draftIdFromUrl, formData.categoryId, router, isLoadingDraft]);
 
-  // Fetch provinces if not already loaded
+  // Fetch provinces
   useEffect(() => {
     const metadataStore = useMetadataStore.getState();
     if (provinces.length === 0) {
@@ -223,7 +235,6 @@ export default function CreateListingDetailsPage() {
       const fetchBrands = async () => {
         setIsLoadingBrands(true);
         try {
-          // Bypass cache to get fresh brand list
           const data = await cachedGraphQLRequest(GET_BRANDS_QUERY, {
             categoryId: formData.categoryId,
           }, { ttl: 0 });
@@ -241,7 +252,6 @@ export default function CreateListingDetailsPage() {
   // Fetch models when brand is selected
   useEffect(() => {
     const brandId = formData.specs.brandId;
-    // Don't fetch models if brand is temporary (not yet created in DB)
     if (brandId && !brandId.startsWith('temp_')) {
       const fetchModels = async () => {
         setIsLoadingModels(true);
@@ -258,44 +268,119 @@ export default function CreateListingDetailsPage() {
       };
       fetchModels();
     } else {
-      setModels([]); // Clear models if brand is temp or empty
+      setModels([]);
     }
   }, [formData.specs.brandId]);
 
-  if (isAuthLoading || !user || !formData.categoryId) {
-    return null;
+  if (isAuthLoading || !user || isLoadingDraft) {
+    return (
+      <Container className={styles.container}>
+        <div className={styles.loadingIndicator}>
+          <Loader2 className={styles.spinner} size={24} />
+          <Text variant="paragraph">جاري التحميل...</Text>
+        </div>
+      </Container>
+    );
   }
 
   const handleBlur = (field: string) => {
     setTouched(prev => ({ ...prev, [field]: true }));
+    // Trigger auto-save on blur
+    saveDraft();
   };
 
   const getError = (field: string, errorMessage?: string) => {
     return touched[field] ? errorMessage : undefined;
   };
 
-  // Comprehensive validation function using Zod
-  const validateForm = (): { isValid: boolean; errors: string[] } => {
-    // 1. Validate core listing fields using Zod
-    const validationErrors = validateListingForm(formData);
+  // Handle image upload via draft system
+  const handleImagesChange = async (images: any[]) => {
+    // Find new files to upload
+    const existingIds = formData.images.map(img => img.id);
+    const newImages = images.filter(img => img.file && !existingIds.includes(img.id));
 
+    // Upload new images
+    for (const newImage of newImages) {
+      if (newImage.file) {
+        // Mark image as uploading
+        setUploadingImageIds(prev => new Set([...prev, newImage.id]));
+        setIsUploadingImage(true);
+        try {
+          await uploadAndAddImage(newImage.file);
+        } catch (err: any) {
+          addNotification({
+            type: 'error',
+            title: 'خطأ في رفع الصورة',
+            message: err.message || 'فشل رفع الصورة',
+            duration: 5000,
+          });
+        } finally {
+          // Remove from uploading set
+          setUploadingImageIds(prev => {
+            const next = new Set(prev);
+            next.delete(newImage.id);
+            return next;
+          });
+          setIsUploadingImage(false);
+        }
+      }
+    }
+
+    // Find removed images
+    const newIds = images.map(img => img.id);
+    const removedImages = formData.images.filter(img => !newIds.includes(img.id));
+
+    // Remove images
+    for (const removedImage of removedImages) {
+      await removeImage(removedImage.id);
+    }
+
+    setTouched({ ...touched, images: true });
+  };
+
+  // Merge formData.images with uploading state for display
+  const imagesWithUploadState = formData.images.map(img => ({
+    ...img,
+    isUploading: uploadingImageIds.has(img.id),
+  }));
+
+  // Handle video upload via draft system
+  const handleVideoChange = async (videos: any[]) => {
+    if (videos.length > 0 && videos[0].file) {
+      // New video to upload
+      setIsUploadingVideo(true);
+      try {
+        await uploadAndAddVideo(videos[0].file);
+      } catch (err: any) {
+        addNotification({
+          type: 'error',
+          title: 'خطأ في رفع الفيديو',
+          message: err.message || 'فشل رفع الفيديو',
+          duration: 5000,
+        });
+      } finally {
+        setIsUploadingVideo(false);
+      }
+    } else if (videos.length === 0 && formData.video.length > 0) {
+      // Video removed
+      await removeVideo();
+    }
+  };
+
+  // Validation function
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const validationErrors = validateListingForm(formData);
     const errors: string[] = [];
 
-    // Convert validation errors object to array of messages
     Object.entries(validationErrors).forEach(([field, message]) => {
       if (message) {
         errors.push(message);
       }
     });
 
-    // 2. Validate dynamic attributes (specs only, not column-based attributes)
     attributes.forEach(attr => {
-      // Skip attributes stored as columns (title, price, accountType) - they're validated by Zod
-      if (attr.storageType === 'column') {
-        return;
-      }
+      if (attr.storageType === 'column') return;
 
-      // Validate using the attribute validator from listingValidation.ts
       const value = formData.specs[attr.key];
       const attrError = validateAttribute(value, {
         key: attr.key,
@@ -320,7 +405,7 @@ export default function CreateListingDetailsPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    // Mark all fields as touched to show errors
+    // Mark all fields as touched
     const allFields: Record<string, boolean> = {
       title: true,
       price: true,
@@ -328,7 +413,6 @@ export default function CreateListingDetailsPage() {
       province: true,
     };
 
-    // Mark all spec fields as touched
     attributes.forEach(attr => {
       allFields[attr.key] = true;
       allFields[`spec_${attr.key}`] = true;
@@ -336,26 +420,21 @@ export default function CreateListingDetailsPage() {
 
     setTouched(allFields);
 
-    // Validate form
+    // Validate
     const validation = validateForm();
 
     if (!validation.isValid) {
-      // Show validation errors to user
       setValidationError(`يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`);
-      // Scroll to top to show error message
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return; // Stop submission
+      return;
     }
 
-    // Clear any previous errors
     setValidationError('');
     setSuccess('');
 
     try {
       await submitListing();
-      // Only show success if no error occurred
       if (!error) {
-        // Show success toast
         addNotification({
           type: 'success',
           title: 'نجح',
@@ -363,67 +442,56 @@ export default function CreateListingDetailsPage() {
           duration: 5000,
         });
         setSuccess('تم استلام إعلانك! جاري المراجعة والنشر خلال دقيقتين...');
-        // Wait 2 seconds to show success message, then redirect
         setTimeout(() => {
           router.push('/dashboard/listings');
         }, 2000);
       }
     } catch (err: any) {
-      // Error is already set in store, Form component will display it
+      // Error displayed by Form component
     }
   };
 
-  const handleCancel = () => {
-    const confirm = window.confirm('هل أنت متأكد من إلغاء الإعلان؟ سيتم فقدان جميع البيانات المدخلة.');
+  const handleCancel = async () => {
+    const confirm = window.confirm('هل أنت متأكد من إلغاء الإعلان؟ سيتم حذف المسودة وجميع الصور المرفوعة.');
     if (confirm) {
-      reset();
+      await deleteDraft();
       router.push('/dashboard/listings');
     }
   };
 
-  // Handle creating a new brand - Just store the name (backend handles creation & formatting)
+  // Brand/model handlers
   const handleCreateBrand = (brandName: string) => {
-    // Create a temporary brand object for the dropdown UI
     const tempBrand: Brand = {
       id: `temp_${brandName}`,
       name: brandName,
       slug: brandName.toLowerCase().replace(/\s+/g, '-'),
       isActive: true,
     };
-
-    // Add to brands list so user can see it in dropdown
     setBrands(prev => [...prev, tempBrand]);
-
-    // Store temp ID and raw name (backend will format and create brand)
     setFormField('specs', {
       ...formData.specs,
       brandId: tempBrand.id,
       _brandName: brandName,
     });
+    saveDraft();
   };
 
-  // Handle creating a new model - Just store the name (backend handles creation & formatting)
   const handleCreateModel = (modelName: string) => {
-    // Create a temporary model object for the dropdown UI
     const tempModel: Model = {
       id: `temp_${modelName}`,
       name: modelName,
       slug: modelName.toLowerCase().replace(/\s+/g, '-'),
       isActive: true,
     };
-
-    // Add to models list so user can see it in dropdown
     setModels(prev => [...prev, tempModel]);
-
-    // Store temp ID and raw name (backend will format and create model)
     setFormField('specs', {
       ...formData.specs,
       modelId: tempModel.id,
       _modelName: modelName,
     });
+    saveDraft();
   };
 
-  // Calculate section number dynamically
   let sectionNumber = 0;
 
   return (
@@ -447,6 +515,18 @@ export default function CreateListingDetailsPage() {
         <div className={styles.detailsPage}>
           <div className={styles.header}>
             <Text variant="h1">أكمل تفاصيل إعلانك</Text>
+            {/* Auto-save indicator */}
+            {isDraftSaving && (
+              <div className={styles.savingIndicator}>
+                <Loader2 className={styles.spinner} size={14} />
+                <Text variant="small" color="secondary">جاري الحفظ...</Text>
+              </div>
+            )}
+            {lastSavedAt && !isDraftSaving && (
+              <Text variant="small" color="secondary">
+                آخر حفظ: {lastSavedAt.toLocaleTimeString('ar-EG')}
+              </Text>
+            )}
           </div>
 
           <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
@@ -459,11 +539,10 @@ export default function CreateListingDetailsPage() {
                 filledCount={sectionInfo.basicInfo.filledCount}
                 totalCount={sectionInfo.basicInfo.totalCount}
                 hasError={sectionInfo.basicInfo.hasError}
-                isExpanded={expandedSections.basicInfo}
-                onToggle={() => toggleSection('basicInfo')}
+                hasRequiredFields
+                defaultExpanded={true}
               >
                 <div className={styles.formFields}>
-                  {/* Title */}
                   <Input
                     type="text"
                     label="عنوان الإعلان"
@@ -476,36 +555,37 @@ export default function CreateListingDetailsPage() {
                     required
                   />
 
-                  {/* Description */}
                   <Input
                     type="textarea"
                     label="الوصف"
                     placeholder="أضف وصفاً تفصيلياً عن المنتج..."
                     value={formData.description}
                     onChange={(e) => setFormField('description', e.target.value)}
+                    onBlur={() => handleBlur('description')}
                     maxLength={ListingValidationConfig.description.maxLength}
                     rows={6}
                   />
 
-                  {/* Price */}
                   <Input
                     type="price"
                     label="السعر"
                     value={formData.priceMinor}
                     onChange={(e) => setFormField('priceMinor', parseInt(e.target.value) || 0)}
+                    onBlur={() => handleBlur('price')}
                     error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
                     required
                   />
 
-                  {/* Bidding Toggle - Separate line */}
                   <Input
                     type="switch"
                     label="السماح بالمزايدة"
                     checked={formData.allowBidding}
-                    onChange={(e) => setFormField('allowBidding', (e.target as HTMLInputElement).checked)}
+                    onChange={(e) => {
+                      setFormField('allowBidding', (e.target as HTMLInputElement).checked);
+                      saveDraft();
+                    }}
                   />
 
-                  {/* Bidding Start Price (conditional) - Uses same currency as main price */}
                   {formData.allowBidding && (
                     <Input
                       type="price"
@@ -520,13 +600,15 @@ export default function CreateListingDetailsPage() {
                     />
                   )}
 
-                  {/* Listing Type - Sale/Rent (column-stored global attribute) */}
                   {listingTypeAttribute && (
                     <Input
                       type="select"
                       label={listingTypeAttribute.name}
                       value={formData.listingType}
-                      onChange={(e) => setFormField('listingType', e.target.value)}
+                      onChange={(e) => {
+                        setFormField('listingType', e.target.value);
+                        saveDraft();
+                      }}
                       onBlur={() => handleBlur('listingType')}
                       options={[
                         { value: '', label: `-- اختر ${listingTypeAttribute.name} --` },
@@ -547,13 +629,15 @@ export default function CreateListingDetailsPage() {
                     />
                   )}
 
-                  {/* Condition - New/Used (column-stored global attribute) */}
                   {conditionAttribute && (
                     <Input
                       type="select"
                       label={conditionAttribute.name}
                       value={formData.condition}
-                      onChange={(e) => setFormField('condition', e.target.value)}
+                      onChange={(e) => {
+                        setFormField('condition', e.target.value);
+                        saveDraft();
+                      }}
                       onBlur={() => handleBlur('condition')}
                       options={[
                         { value: '', label: `-- اختر ${conditionAttribute.name} --` },
@@ -584,21 +668,19 @@ export default function CreateListingDetailsPage() {
                 filledCount={sectionInfo.media.filledCount}
                 totalCount={sectionInfo.media.totalCount}
                 hasError={sectionInfo.media.hasError}
-                isExpanded={expandedSections.media}
-                onToggle={() => toggleSection('media')}
+                hasRequiredFields
+                defaultExpanded={false}
               >
                 <div className={styles.formFields}>
                   <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
                     الحد الأدنى {ListingValidationConfig.images.min} صورة - مطلوب
+                    {isUploadingImage && ' (جاري الرفع...)'}
                   </Text>
                   <ImageUploadGrid
-                    images={formData.images}
-                    onChange={(images) => {
-                      setFormField('images', images);
-                      setTouched({ ...touched, images: true });
-                    }}
+                    images={imagesWithUploadState}
+                    onChange={handleImagesChange}
                     maxImages={maxImagesAllowed}
-                    maxSize={2 * 1024 * 1024} // 2MB per image
+                    maxSize={2 * 1024 * 1024}
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     label="الصور"
                     onError={(error) => {
@@ -616,20 +698,20 @@ export default function CreateListingDetailsPage() {
                     </Text>
                   )}
 
-                  {/* Video Upload - Only for users with videoAllowed permission */}
                   {videoAllowed && (
                     <div className={styles.videoSection}>
                       <Text variant="h4" className={styles.videoLabel}>
                         الفيديو (اختياري) - ({formData.video.length}/1)
+                        {isUploadingVideo && ' (جاري الرفع...)'}
                       </Text>
                       <Text variant="small" color="secondary" className={styles.videoHint}>
                         الحد الأقصى 20 ميجابايت - MP4 فقط (30-45 ثانية)
                       </Text>
                       <ImageUploadGrid
                         images={formData.video}
-                        onChange={(video) => setFormField('video', video)}
+                        onChange={handleVideoChange}
                         maxImages={1}
-                        maxSize={20 * 1024 * 1024} // 20MB for video
+                        maxSize={20 * 1024 * 1024}
                         accept="video/mp4"
                         label="الفيديو"
                         onError={(error) => {
@@ -646,7 +728,7 @@ export default function CreateListingDetailsPage() {
                 </div>
               </FormSection>
 
-              {/* Section 3: Brand & Model (conditional) */}
+              {/* Section 3: Brand & Model */}
               {brands.length > 0 && (
                 <FormSection
                   number={++sectionNumber}
@@ -655,20 +737,19 @@ export default function CreateListingDetailsPage() {
                   filledCount={sectionInfo.brandModel.filledCount}
                   totalCount={sectionInfo.brandModel.totalCount}
                   hasError={sectionInfo.brandModel.hasError}
-                  isExpanded={expandedSections.brandModel}
-                  onToggle={() => toggleSection('brandModel')}
+                  hasRequiredFields={brandAttribute?.validation === 'REQUIRED' || modelAttribute?.validation === 'REQUIRED'}
+                  defaultExpanded={false}
                 >
                   <div className={styles.formFields}>
                     <div className={styles.formRow}>
-                      {/* Brand Selector */}
                       <Input
                         type="select"
                         label="العلامة التجارية"
                         value={formData.specs.brandId || ''}
                         onChange={(e) => {
                           setSpecField('brandId', e.target.value);
-                          // Clear model when brand changes
                           setSpecField('modelId', '');
+                          saveDraft();
                         }}
                         onBlur={() => handleBlur('brandId')}
                         options={[
@@ -693,13 +774,15 @@ export default function CreateListingDetailsPage() {
                         )}
                       />
 
-                      {/* Model Selector (appears after brand is selected) */}
                       {formData.specs.brandId && (
                         <Input
                           type="select"
                           label="الموديل"
                           value={formData.specs.modelId || ''}
-                          onChange={(e) => setSpecField('modelId', e.target.value)}
+                          onChange={(e) => {
+                            setSpecField('modelId', e.target.value);
+                            saveDraft();
+                          }}
                           onBlur={() => handleBlur('modelId')}
                           options={[
                             { value: '', label: '-- اختر الموديل --' },
@@ -728,18 +811,15 @@ export default function CreateListingDetailsPage() {
                 </FormSection>
               )}
 
-              {/* Section 4+: Dynamic Attribute Groups */}
+              {/* Dynamic Attribute Groups */}
               {attributeGroups.length > 0 && attributeGroups.map((group) => {
-                // Filter out brand/model from display
                 const groupAttributes = group.attributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
                 if (groupAttributes.length === 0) return null;
 
-                // Initialize expanded state for this group if not exists
-                if (expandedSections[group.name] === undefined) {
-                  expandedSections[group.name] = false;
-                }
-
                 const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, filledCount: 0, totalCount: 0, hasError: false };
+
+                // Check if group has any required attributes
+                const hasRequiredFields = groupAttributes.some(attr => attr.validation === 'REQUIRED');
 
                 return (
                   <FormSection
@@ -750,8 +830,8 @@ export default function CreateListingDetailsPage() {
                     filledCount={groupInfo.filledCount}
                     totalCount={groupInfo.totalCount}
                     hasError={groupInfo.hasError}
-                    isExpanded={expandedSections[group.name]}
-                    onToggle={() => toggleSection(group.name)}
+                    hasRequiredFields={hasRequiredFields}
+                    defaultExpanded={false}
                   >
                     <div className={styles.specsGrid}>
                       {groupAttributes.map((attribute) => (
@@ -759,7 +839,11 @@ export default function CreateListingDetailsPage() {
                           {renderAttributeField({
                             attribute,
                             value: formData.specs[attribute.key],
-                            onChange: (value) => setSpecField(attribute.key, value),
+                            onChange: (value) => {
+                              setSpecField(attribute.key, value);
+                              saveDraft();
+                            },
+                            onBlur: () => handleBlur(`spec_${attribute.key}`),
                             error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
                               ? `${attribute.name} مطلوب`
                               : undefined,
@@ -771,7 +855,7 @@ export default function CreateListingDetailsPage() {
                 );
               })}
 
-              {/* Section: Location */}
+              {/* Location Section */}
               <FormSection
                 number={++sectionNumber}
                 title="الموقع"
@@ -779,8 +863,8 @@ export default function CreateListingDetailsPage() {
                 filledCount={sectionInfo.location.filledCount}
                 totalCount={sectionInfo.location.totalCount}
                 hasError={sectionInfo.location.hasError}
-                isExpanded={expandedSections.location}
-                onToggle={() => toggleSection('location')}
+                hasRequiredFields
+                defaultExpanded={false}
               >
                 <div className={styles.formFields}>
                   <div className={styles.formRow}>
@@ -788,7 +872,10 @@ export default function CreateListingDetailsPage() {
                       type="select"
                       label="المحافظة"
                       value={formData.location.province}
-                      onChange={(e) => setLocationField('province', e.target.value)}
+                      onChange={(e) => {
+                        setLocationField('province', e.target.value);
+                        saveDraft();
+                      }}
                       onBlur={() => handleBlur('province')}
                       options={[
                         { value: '', label: '-- اختر المحافظة --' },
@@ -804,6 +891,10 @@ export default function CreateListingDetailsPage() {
                       placeholder="اختياري"
                       value={formData.location.city}
                       onChange={(e) => setLocationField('city', e.target.value)}
+                      onBlur={() => {
+                        handleBlur('city');
+                        saveDraft();
+                      }}
                     />
                   </div>
 
@@ -813,6 +904,10 @@ export default function CreateListingDetailsPage() {
                     placeholder="اختياري"
                     value={formData.location.area}
                     onChange={(e) => setLocationField('area', e.target.value)}
+                    onBlur={() => {
+                      handleBlur('area');
+                      saveDraft();
+                    }}
                   />
 
                   <div className={styles.locationLinkRow}>
@@ -822,6 +917,10 @@ export default function CreateListingDetailsPage() {
                       placeholder="https://maps.google.com/..."
                       value={formData.location.link}
                       onChange={(e) => setLocationField('link', e.target.value)}
+                      onBlur={() => {
+                        handleBlur('link');
+                        saveDraft();
+                      }}
                     />
                     <Button
                       type="button"
@@ -834,6 +933,7 @@ export default function CreateListingDetailsPage() {
                               const { latitude, longitude } = position.coords;
                               const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
                               setLocationField('link', mapsLink);
+                              saveDraft();
                               addNotification({
                                 type: 'success',
                                 title: 'تم تحديد الموقع',
@@ -869,19 +969,18 @@ export default function CreateListingDetailsPage() {
                 </div>
               </FormSection>
             </div>
-            {/* Inline loader - shows during submission */}
+
             <ListingSubmitLoader isVisible={isSubmitting} />
 
             {/* Sticky Actions */}
             <div className={styles.stickyActions}>
               <div className={styles.leftActions}>
                 <Button variant="outline" onClick={handleCancel}>
-                  إلغاء
+                  إلغاء وحذف المسودة
                 </Button>
               </div>
 
               <div className={styles.rightActions}>
-
                 <SubmitButton
                   type="submit"
                   isLoading={isSubmitting}

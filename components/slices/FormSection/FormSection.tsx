@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import React from 'react';
+import { Check } from 'lucide-react';
 import { Text } from '../Text/Text';
+import { Collapsible } from '../Collapsible/Collapsible';
 import styles from './FormSection.module.scss';
 
 export type FormSectionStatus = 'incomplete' | 'required' | 'complete';
@@ -24,8 +25,8 @@ interface FormSectionProps {
   totalCount?: number;
   /** Whether this section has validation errors (shows red border) */
   hasError?: boolean;
-  /** Whether this section is currently expanded */
-  isExpanded?: boolean;
+  /** Whether this section contains required fields (shows asterisk next to title) */
+  hasRequiredFields?: boolean;
   /** Default expanded state */
   defaultExpanded?: boolean;
   /** Callback when section is toggled */
@@ -43,25 +44,12 @@ export const FormSection: React.FC<FormSectionProps> = ({
   filledCount,
   totalCount,
   hasError = false,
-  isExpanded: controlledExpanded,
+  hasRequiredFields = false,
   defaultExpanded = false,
   onToggle,
   children,
   className = '',
 }) => {
-  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
-
-  // Use controlled or internal state
-  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
-
-  const handleToggle = () => {
-    const newState = !isExpanded;
-    if (controlledExpanded === undefined) {
-      setInternalExpanded(newState);
-    }
-    onToggle?.(newState);
-  };
-
   // Determine CSS classes based on status (error takes priority)
   const statusClass = hasError
     ? styles.error
@@ -82,41 +70,36 @@ export const FormSection: React.FC<FormSectionProps> = ({
   // Show field count next to title (always, if counts provided)
   const showFieldCount = filledCount !== undefined && totalCount !== undefined;
 
-  return (
-    <div className={`${styles.section} ${isExpanded ? styles.expanded : ''} ${statusClass} ${className}`}>
-      <button
-        type="button"
-        className={styles.header}
-        onClick={handleToggle}
-        aria-expanded={isExpanded}
-      >
-        <div className={styles.headerLeft}>
-          <div className={`${styles.indicator} ${statusClass}`}>
-            {renderIndicatorContent()}
-          </div>
-          <div className={styles.titleGroup}>
-            <Text variant="h4" className={styles.title}>
-              {title}
-            </Text>
-            {showFieldCount && (
-              <Text variant="small" className={styles.fieldCount}>
-                {filledCount}/{totalCount}
-              </Text>
-            )}
-          </div>
-        </div>
-        <ChevronDown
-          size={20}
-          className={`${styles.chevron} ${isExpanded ? styles.rotated : ''}`}
-        />
-      </button>
-
-      <div className={`${styles.content} ${isExpanded ? styles.open : ''}`}>
-        <div className={styles.contentInner}>
-          {children}
-        </div>
+  // Custom header content as ReactNode
+  const headerContent = (
+    <div className={styles.headerLeft}>
+      <div className={`${styles.indicator} ${statusClass}`}>
+        {renderIndicatorContent()}
+      </div>
+      <div className={styles.titleGroup}>
+        <Text variant="h4" className={styles.title}>
+          {title}
+          {hasRequiredFields && <span className={styles.asterisk}>*</span>}
+        </Text>
+        {showFieldCount && (
+          <Text variant="small" className={styles.fieldCount}>
+            {filledCount}/{totalCount}
+          </Text>
+        )}
       </div>
     </div>
+  );
+
+  return (
+    <Collapsible
+      title={headerContent}
+      defaultOpen={defaultExpanded}
+      onToggle={onToggle}
+      variant="default"
+      className={`${styles.section} ${statusClass} ${className}`}
+    >
+      {children}
+    </Collapsible>
   );
 };
 

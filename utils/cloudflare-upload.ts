@@ -209,6 +209,65 @@ export function validateVideoFile(file: File, maxSizeMB: number = 20): string | 
 }
 
 /**
+ * Upload video to R2 storage via backend REST API
+ *
+ * @param file - The video file to upload
+ * @returns Promise with the R2 public URL
+ *
+ * @example
+ * ```typescript
+ * const videoUrl = await uploadVideoToR2(file);
+ * // Returns: "https://pub-xxx.r2.dev/videos/xxx.mp4"
+ * ```
+ */
+export async function uploadVideoToR2(file: File): Promise<string> {
+  const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '') || 'http://localhost:4000';
+
+  // Get auth token
+  let token: string | null = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const authData = localStorage.getItem('user-auth-storage');
+      if (authData) {
+        const { state } = JSON.parse(authData);
+        token = state?.user?.token;
+      }
+    } catch (error) {
+      console.warn('Could not get auth token:', error);
+    }
+  }
+
+  if (!token) {
+    throw new Error('يرجى تسجيل الدخول أولاً');
+  }
+
+  // Create form data with video file
+  const formData = new FormData();
+  formData.append('video', file);
+
+  const response = await fetch(`${endpoint}/api/listings/upload-video`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || 'فشل رفع الفيديو');
+  }
+
+  const result = await response.json();
+
+  if (!result.videoUrl) {
+    throw new Error('لم يتم الحصول على رابط الفيديو');
+  }
+
+  return result.videoUrl;
+}
+
+/**
  * Delete image from Cloudflare via backend
  *
  * @param imageId - The Cloudflare image ID to delete

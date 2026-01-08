@@ -2,17 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Loading, Text, Pagination, ListingCard, Container, Grid } from '@/components/slices';
+import { Button, Loading, Text, Pagination, ListingCard, Container, Grid, Modal } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { EditListingModal, DeleteListingModal } from './modals';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore';
 import { useArchivedListingStore } from '@/stores/archivedListingStore';
+import { useCreateListingStore } from '@/stores/createListingStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { LISTING_STATUS_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { ListingStatus as ListingStatusEnum } from '@/common/enums';
-import { Edit, Trash2, Eye, Plus, AlertTriangle } from 'lucide-react';
+import { Edit, Trash2, Eye, Plus, AlertTriangle, FileEdit } from 'lucide-react';
 import { Listing } from '@/types/listing';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import sharedStyles from '../SharedDashboardPanel.module.scss';
@@ -39,11 +40,17 @@ export const ListingsPanel: React.FC = () => {
   // Use archived listing store for archiving
   const { archiveListing } = useArchivedListingStore();
 
+  // Use create listing store for draft operations
+  const {
+    deleteDraft,
+    loadDraft,
+  } = useCreateListingStore();
+
   // Get user subscription limits and current user
   const { userPackage, user } = useUserAuthStore();
   const maxListings = userPackage?.userSubscription?.maxListings || 0;
-  // Use pagination.total from listings store - this is the actual count of user's listings
-  const currentListingsCount = pagination.total;
+  // Count listings excluding drafts for limit calculation
+  const currentListingsCount = listings.filter(l => l.status !== 'DRAFT').length;
   // Check if user is at or over limit (0 = unlimited)
   const isAtLimit = maxListings > 0 && currentListingsCount >= maxListings;
   const isOverLimit = maxListings > 0 && currentListingsCount > maxListings;
@@ -52,6 +59,10 @@ export const ListingsPanel: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [listingToDelete, setListingToDelete] = useState<Listing | null>(null);
+
+  // Draft deletion state
+  const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
+  const [isDeletingDraft, setIsDeletingDraft] = useState(false);
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -95,6 +106,56 @@ export const ListingsPanel: React.FC = () => {
   // Handle create listing - navigate to create page
   const handleCreateListing = () => {
     router.push('/dashboard/listings/create');
+  };
+
+  // Handle continue draft - navigate to details page with draftId
+  const handleContinueDraft = (draftId: string) => {
+    router.push(`/dashboard/listings/create/details?draftId=${draftId}`);
+  };
+
+  // Handle delete draft
+  const handleDeleteDraft = async (draftId: string) => {
+    setDraftToDelete(draftId);
+  };
+
+  // Confirm delete draft
+  const confirmDeleteDraft = async () => {
+    if (!draftToDelete) return;
+
+    setIsDeletingDraft(true);
+    try {
+      // Load the draft first to set it in store, then delete
+      await loadDraft(draftToDelete);
+      const success = await deleteDraft();
+
+      if (success) {
+        addNotification({
+          type: 'success',
+          title: 'تم الحذف',
+          message: 'تم حذف المسودة بنجاح',
+          duration: 3000,
+        });
+        // Refresh listings list
+        loadMyListings();
+      } else {
+        addNotification({
+          type: 'error',
+          title: 'خطأ',
+          message: 'فشل حذف المسودة',
+          duration: 5000,
+        });
+      }
+    } catch (err) {
+      addNotification({
+        type: 'error',
+        title: 'خطأ',
+        message: 'فشل حذف المسودة',
+        duration: 5000,
+      });
+    } finally {
+      setIsDeletingDraft(false);
+      setDraftToDelete(null);
+    }
   };
 
   // Handle edit listing
@@ -286,6 +347,7 @@ export const ListingsPanel: React.FC = () => {
           </Container>
         )}
 
+
         {/* Search & Filters Section */}
         <Container paddingX="none" paddingY="none" background="bg" innerPadding="md" innerBorder>
           <div className={styles.searchRow}>
@@ -367,22 +429,53 @@ export const ListingsPanel: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className={styles.cardActions}>
-                      <Button
-                        onClick={(e) => handleEditListing(listing, e)}
-                        variant="outline"
-                        size="sm"
-                        icon={<Edit size={16} />}
-                      >
-                        تعديل
-                      </Button>
-                      <Button
-                        onClick={(e) => handleDeleteListing(listing, e)}
-                        variant="danger"
-                        size="sm"
-                        icon={<Trash2 size={16} />}
-                      >
-                        حذف
-                      </Button>
+                      {listing.status === ListingStatusEnum.DRAFT ? (
+                        <Button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleContinueDraft(listing.id);
+                          }}
+                          variant="primary"
+                          size="sm"
+                          icon={<FileEdit size={16} />}
+                        >
+                          إكمال
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={(e) => handleEditListing(listing, e)}
+                          variant="outline"
+                          size="sm"
+                          icon={<Edit size={16} />}
+                        >
+                          تعديل
+                        </Button>
+                      )}
+                      {listing.status === ListingStatusEnum.DRAFT ? (
+                        <Button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteDraft(listing.id);
+                          }}
+                          variant="danger"
+                          size="sm"
+                          icon={<Trash2 size={16} />}
+                          disabled={isDeletingDraft && draftToDelete === listing.id}
+                        >
+                          حذف
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={(e) => handleDeleteListing(listing, e)}
+                          variant="danger"
+                          size="sm"
+                          icon={<Trash2 size={16} />}
+                        >
+                          حذف
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -426,6 +519,32 @@ export const ListingsPanel: React.FC = () => {
           onConfirm={handleDeleteConfirm}
         />
       )}
+
+      {/* Draft Delete Confirmation */}
+      <Modal
+        isVisible={!!draftToDelete}
+        onClose={() => !isDeletingDraft && setDraftToDelete(null)}
+        title="حذف المسودة"
+        description="هل أنت متأكد من حذف هذه المسودة؟ سيتم حذف جميع الصور والفيديو المرتبطة بها."
+        closeable={!isDeletingDraft}
+      >
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <Button
+            variant="danger"
+            onClick={confirmDeleteDraft}
+            disabled={isDeletingDraft}
+          >
+            {isDeletingDraft ? 'جاري الحذف...' : 'حذف'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setDraftToDelete(null)}
+            disabled={isDeletingDraft}
+          >
+            إلغاء
+          </Button>
+        </div>
+      </Modal>
 
     </>
   );

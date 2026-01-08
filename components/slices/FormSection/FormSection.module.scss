@@ -27,21 +27,24 @@
   &.error {
     border-color: $error;
   }
-}
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: $space-md $space-lg;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  // Override Collapsible's default trigger border
+  :global(.trigger) {
+    border-bottom: none;
+    padding: $space-md $space-lg;
 
-  &:hover {
-    background: rgba(0, 0, 0, 0.02);
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  // Override Collapsible's content inner padding
+  :global(.contentInner) {
+    padding: $space-md $space-lg $space-lg;
+    border-top: 1px solid $border;
+    display: flex;
+    flex-direction: column;
+    gap: $space-md;
   }
 }
 
@@ -101,19 +104,17 @@
   font-weight: $weight-semibold;
 }
 
+.asterisk {
+  color: $error;
+  margin-inline-start: $space-xs;
+  font-weight: $weight-bold;
+}
+
 .fieldCount {
   color: $text-secondary;
   font-variant-numeric: tabular-nums;
 }
 
-.chevron {
-  color: $text-secondary;
-  transition: transform 0.3s ease;
-
-  &.rotated {
-    transform: rotate(180deg);
-  }
-}
 
 .content {
   max-height: 0;
@@ -136,11 +137,23 @@
 
 // Mobile: reduce horizontal padding for more field space
 @media (max-width: $breakpoint-md) {
-  .header {
-    padding: $space-md $space-sm;
+  .section {
+    :global(.trigger) {
+      padding: $space-md $space-sm;
+    }
+
+    :global(.contentInner) {
+      padding: $space-md $space-sm $space-lg;
+    }
   }
 
-  .contentInner {
-    padding: $space-md $space-sm $space-lg;
+  .indicator {
+    width: 28px;
+    height: 28px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 }

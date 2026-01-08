@@ -65,6 +65,37 @@ export interface Step {
   attributeGroup?: AttributeGroup; // For dynamic attribute steps
 }
 
+// Draft listing from backend
+export interface DraftListing {
+  id: string;
+  title: string;
+  description: string | null;
+  priceMinor: number;
+  allowBidding: boolean;
+  biddingStartPrice: number | null;
+  listingType: string | null;
+  condition: string | null;
+  imageKeys: string[];
+  videoUrl: string | null;
+  specs: Record<string, any>;
+  location: {
+    province?: string;
+    city?: string;
+    area?: string;
+    link?: string;
+  } | null;
+  status: string;
+  categoryId: string;
+  category?: {
+    id: string;
+    name: string;
+    nameAr: string;
+    icon?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Form data structure
 export interface CreateListingFormData {
   // Step 1: Basic Info
@@ -96,6 +127,16 @@ export interface CreateListingFormData {
 
 // Store state
 export interface CreateListingStore {
+  // Draft state
+  draftId: string | null;
+  isDraftSaving: boolean;
+  lastSavedAt: Date | null;
+  isCreatingDraft: boolean;
+
+  // Draft listings for "Continue" feature
+  myDrafts: DraftListing[];
+  isLoadingDrafts: boolean;
+
   // Form data
   formData: CreateListingFormData;
 
@@ -114,7 +155,41 @@ export interface CreateListingStore {
   // Error handling
   error: string | null;
 
-  // Actions
+  // ===== DRAFT ACTIONS =====
+
+  // Set category and fetch attributes (NO database draft yet - lazy creation)
+  setCategory: (categoryId: string) => Promise<void>;
+
+  // Internal: Create draft only when needed (first media upload)
+  ensureDraftExists: () => Promise<string | null>;
+
+  // Load existing draft by ID (for "Continue" feature)
+  loadDraft: (draftId: string) => Promise<void>;
+
+  // Load all user's drafts (for dashboard "Continue Draft" cards)
+  fetchMyDrafts: () => Promise<void>;
+
+  // Auto-save form data to draft (only if draft exists)
+  saveDraft: () => Promise<void>;
+
+  // Delete draft and all media
+  deleteDraft: () => Promise<boolean>;
+
+  // ===== IMAGE/VIDEO ACTIONS =====
+
+  // Upload and add image to draft
+  uploadAndAddImage: (file: File, position?: number) => Promise<string | null>;
+
+  // Remove image from draft (also deletes from Cloudflare)
+  removeImage: (imageKey: string) => Promise<void>;
+
+  // Upload and add video to draft (via REST API)
+  uploadAndAddVideo: (file: File) => Promise<string | null>;
+
+  // Remove video from draft (also deletes from R2)
+  removeVideo: () => Promise<void>;
+
+  // ===== FORM FIELD UPDATERS =====
   setFormField: <K extends keyof CreateListingFormData>(
     field: K,
     value: CreateListingFormData[K]
@@ -138,10 +213,7 @@ export interface CreateListingStore {
   fetchAttributes: (categoryId: string) => Promise<void>;
   generateSteps: () => void;
 
-  // Image upload
-  uploadImages: () => Promise<string[]>;
-
-  // Submission
+  // Submission (submits draft to PENDING_APPROVAL)
   submitListing: () => Promise<void>;
 
   // Reset
