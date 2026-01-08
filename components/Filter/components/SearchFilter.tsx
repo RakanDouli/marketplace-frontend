@@ -23,6 +23,8 @@ export interface SearchFilterProps {
   isLoading?: boolean;
   /** Placeholder text */
   placeholder?: string;
+  /** Hide the label (when wrapped in Collapsible) */
+  hideLabel?: boolean;
 }
 
 export const SearchFilter: React.FC<SearchFilterProps> = ({
@@ -34,14 +36,17 @@ export const SearchFilter: React.FC<SearchFilterProps> = ({
   applyDisabled = false,
   isLoading = false,
   placeholder,
+  hideLabel = false,
 }) => {
   const { t } = useTranslation();
 
   return (
     <div className={styles.filterField}>
-      <Text variant="small" className={styles.fieldLabel}>
-        {label}
-      </Text>
+      {!hideLabel && (
+        <Text variant="small" className={styles.fieldLabel}>
+          {label}
+        </Text>
+      )}
       <div className={styles.rangeInputs}>
         <Input
           type="text"

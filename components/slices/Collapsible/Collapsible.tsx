@@ -57,8 +57,10 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
         className={`${styles.content} ${isOpen ? styles.open : styles.closed}`}
         id="collapsible-content"
       >
-        <div className={styles.contentInner}>
-          {children}
+        <div className={styles.contentWrapper}>
+          <div className={styles.contentInner}>
+            {children}
+          </div>
         </div>
       </div>
     </div>

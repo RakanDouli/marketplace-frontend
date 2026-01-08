@@ -245,6 +245,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
 
             {!disabled && !image.isUploading && (
               <Button
+                type="button"
                 variant="danger"
                 size="sm"
                 onClick={() => handleDelete(image.id)}

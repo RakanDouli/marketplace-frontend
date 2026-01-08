@@ -25,6 +25,8 @@ export interface PriceFilterProps {
   onReset?: () => void;
   /** Total result count for this filter */
   resultCount?: number;
+  /** Hide the label (when wrapped in Collapsible) */
+  hideLabel?: boolean;
 }
 
 /**
@@ -106,6 +108,7 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
   onMaxChange,
   onReset,
   resultCount,
+  hideLabel = false,
 }) => {
   const { t } = useTranslation();
   const { preferredCurrency, getRate } = useCurrencyStore();
@@ -200,9 +203,11 @@ export const PriceFilter: React.FC<PriceFilterProps> = ({
 
   return (
     <div className={styles.filterField}>
-      <Text variant="small" className={styles.fieldLabel}>
-        {label}
-      </Text>
+      {!hideLabel && (
+        <Text variant="small" className={styles.fieldLabel}>
+          {label}
+        </Text>
+      )}
       {/* Result count and reset button row */}
       {hasSelection && (
         <div className={styles.rangeResultRow}>

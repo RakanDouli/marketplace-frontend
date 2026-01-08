@@ -8,7 +8,7 @@ import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
 import { useCategoriesStore } from '@/stores/categoriesStore';
-import { Loader2 } from 'lucide-react';
+import { Loading } from '@/components/slices';
 import styles from './CreateListing.module.scss';
 
 export default function CreateListingPage() {
@@ -60,7 +60,7 @@ export default function CreateListingPage() {
   };
 
   return (
-    <Container className={styles.container}>
+    <Container background="bg" className={styles.container}>
       <div className={styles.categorySelectionPage}>
         <div className={styles.header}>
           <Text variant="h2">إنشاء إعلان جديد</Text>
@@ -99,8 +99,8 @@ export default function CreateListingPage() {
 
           {(isNavigating || isLoadingAttributes) && (
             <div className={styles.loadingIndicator}>
-              <Loader2 className={styles.spinner} size={20} />
-              <Text variant="small" color="secondary">جاري تحميل الخصائص...</Text>
+              <Text variant="small" color="secondary">جاري تحميل الخصائص</Text>
+              <Loading />
             </div>
           )}
         </div>

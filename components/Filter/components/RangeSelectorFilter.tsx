@@ -32,6 +32,8 @@ export interface RangeSelectorFilterProps {
   onReset?: () => void;
   /** Total result count for this filter */
   resultCount?: number;
+  /** Hide the label (when wrapped in Collapsible) */
+  hideLabel?: boolean;
 }
 
 export const RangeSelectorFilter: React.FC<RangeSelectorFilterProps> = ({
@@ -43,6 +45,7 @@ export const RangeSelectorFilter: React.FC<RangeSelectorFilterProps> = ({
   onMaxChange,
   onReset,
   resultCount,
+  hideLabel = false,
 }) => {
   const { t } = useTranslation();
 
@@ -102,9 +105,11 @@ export const RangeSelectorFilter: React.FC<RangeSelectorFilterProps> = ({
 
   return (
     <div className={styles.filterField}>
-      <Text variant="small" className={styles.fieldLabel}>
-        {label}
-      </Text>
+      {!hideLabel && (
+        <Text variant="small" className={styles.fieldLabel}>
+          {label}
+        </Text>
+      )}
       {/* Result count and reset button row */}
       {hasSelection && (
         <div className={styles.rangeResultRow}>

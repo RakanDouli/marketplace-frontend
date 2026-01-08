@@ -246,30 +246,18 @@
 .loadingIndicator {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: $space-sm;
-  margin-top: $space-md;
+  margin-top: $space-lg;
   padding: $space-sm $space-md;
-  background-color: $surface;
   border-radius: $radius-sm;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 // ===== CATEGORY CARD =====
 .categoryCard {
   padding: $space-md;
-  background-color: $surface;
+  // background-color: $surface;
   border: 1px solid $border;
   border-radius: $radius-md;
 

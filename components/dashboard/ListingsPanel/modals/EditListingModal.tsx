@@ -142,8 +142,57 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   // Note: Section expansion is now handled internally by Collapsible component
   // Using defaultExpanded prop for initial state
 
+  // Get brand and model attributes from the attributes list
+  const brandAttribute = attributes.find(attr => attr.key === 'brandId');
+  const modelAttribute = attributes.find(attr => attr.key === 'modelId');
+
+  // Calculate attribute groups and section numbers for consistency with create page
+  // MUST be before sectionInfo since sectionInfo uses attributeGroups
+  const { attributeGroups, locationSectionNum } = useMemo(() => {
+    // Group attributes by group field (like create page does)
+    const groupedAttributes: Record<string, Attribute[]> = {};
+
+    // Filter out non-spec attributes - but KEEP brandId/modelId (they're in their group now)
+    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location'];
+
+    attributes
+      .filter(attr => !excludedKeys.includes(attr.key))
+      .forEach(attr => {
+        const groupName = attr.group || 'المواصفات';
+        if (!groupedAttributes[groupName]) {
+          groupedAttributes[groupName] = [];
+        }
+        groupedAttributes[groupName].push(attr);
+      });
+
+    // Sort groups by groupOrder
+    const sortedGroups = Object.entries(groupedAttributes).sort((a, b) => {
+      const aOrder = a[1][0]?.groupOrder || 0;
+      const bOrder = b[1][0]?.groupOrder || 0;
+      return aOrder - bOrder;
+    });
+
+    // Calculate base section number (after basicInfo, media)
+    // Order: 1=basicInfo, 2=media, then dynamic groups, then location
+    const baseSectionNum = 2;
+
+    // Location is the last section
+    const locationNum = baseSectionNum + sortedGroups.length + 1;
+
+    return {
+      attributeGroups: sortedGroups,
+      locationSectionNum: locationNum,
+    };
+  }, [attributes]);
+
   // Calculate section statuses and field counts - matches create page structure
   const sectionInfo = useMemo(() => {
+    const getStatus = (requiredFilled: boolean, allFilled: boolean): FormSectionStatus => {
+      if (allFilled) return 'complete';
+      if (requiredFilled) return 'required';
+      return 'incomplete';
+    };
+
     // Section 1: Basic info (title*, price*, description)
     const basicInfoRequired = 2; // title, price
     let basicInfoFilled = 0;
@@ -163,13 +212,62 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     const mediaStatus: FormSectionStatus = imagesFilled ?
       (mediaFilled === mediaTotal ? 'complete' : 'required') : 'incomplete';
 
-    // Section 3: Brand/Model
-    let brandModelFilled = 0;
-    const brandModelTotal = brands.length > 0 ? 2 : 0;
-    if (formData.specs.brandId) brandModelFilled++;
-    if (formData.specs.modelId) brandModelFilled++;
-    const brandModelStatus: FormSectionStatus = brandModelTotal === 0 ? 'complete' :
-      brandModelFilled === brandModelTotal ? 'complete' : 'incomplete';
+    // Brand & Model (for use in dynamic groups)
+    const brandRequired = brandAttribute?.validation === 'REQUIRED';
+    const modelRequired = modelAttribute?.validation === 'REQUIRED';
+    const brandFilled = !!formData.specs.brandId;
+    const modelFilled = !!formData.specs.modelId;
+
+    // Dynamic attribute groups (now includes brand/model in their group)
+    const attributeGroupsInfo: Record<string, { status: FormSectionStatus; filled: number; total: number }> = {};
+    attributeGroups.forEach(([groupName, groupAttrs]) => {
+      // Calculate required filled status
+      let requiredFilled = true;
+      let filledCount = 0;
+      let totalCount = 0;
+
+      groupAttrs.forEach(attr => {
+        // Handle brand/model specially
+        if (attr.key === 'brandId') {
+          if (brands.length > 0) {
+            totalCount++;
+            if (brandFilled) filledCount++;
+            if (brandRequired && !brandFilled) requiredFilled = false;
+          }
+          return;
+        }
+        if (attr.key === 'modelId') {
+          if (brands.length > 0 && brandFilled) {
+            totalCount++;
+            if (modelFilled) filledCount++;
+            if (modelRequired && !modelFilled) requiredFilled = false;
+          }
+          return;
+        }
+
+        // Regular attributes
+        totalCount++;
+        const value = formData.specs[attr.key];
+        if (value !== undefined && value !== null && value !== '' &&
+          !(Array.isArray(value) && value.length === 0)) {
+          filledCount++;
+        }
+        if (attr.validation === 'REQUIRED') {
+          if (!value) requiredFilled = false;
+        }
+      });
+
+      // Skip empty groups (e.g., brand/model group when no brands available)
+      if (totalCount === 0) return;
+
+      const allFilled = filledCount === totalCount;
+
+      attributeGroupsInfo[groupName] = {
+        status: getStatus(requiredFilled, allFilled),
+        filled: filledCount,
+        total: totalCount,
+      };
+    });
 
     // Section N (last): Location (province*, city, area)
     const locationRequired = 1; // province
@@ -184,48 +282,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     return {
       basicInfo: { status: basicInfoStatus, filled: basicInfoFilled, total: basicInfoTotal },
       media: { status: mediaStatus, filled: mediaFilled, total: mediaTotal },
-      brandModel: { status: brandModelStatus, filled: brandModelFilled, total: brandModelTotal },
       location: { status: locationStatus, filled: locationFilled, total: locationTotal },
+      ...attributeGroupsInfo,
     };
-  }, [images, video, formData, brands.length, videoAllowed]);
-
-  // Calculate attribute groups and section numbers for consistency with create page
-  const { attributeGroups, locationSectionNum } = useMemo(() => {
-    // Group attributes by group field (like create page does)
-    const groupedAttributes: Record<string, Attribute[]> = {};
-
-    // Filter out non-spec attributes - SAME as create listing store does
-    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location', 'brandId', 'modelId'];
-
-    attributes
-      .filter(attr => !excludedKeys.includes(attr.key))
-      .forEach(attr => {
-        const groupName = attr.group || 'المواصفات';
-        if (!groupedAttributes[groupName]) {
-          groupedAttributes[groupName] = [];
-        }
-        groupedAttributes[groupName].push(attr);
-      });
-
-    // Sort groups by groupOrder
-    const sortedGroups = Object.entries(groupedAttributes).sort((a, b) => {
-      const aOrder = a[1][0]?.groupOrder || 0;
-      const bOrder = b[1][0]?.groupOrder || 0;
-      return aOrder - bOrder;
-    });
-
-    // Calculate base section number (after basicInfo, media, brandModel)
-    // Order: 1=basicInfo, 2=media, 3=brandModel (if exists)
-    const baseSectionNum = 2 + (brands.length > 0 ? 1 : 0);
-
-    // Location is the last section
-    const locationNum = baseSectionNum + sortedGroups.length + 1;
-
-    return {
-      attributeGroups: sortedGroups,
-      locationSectionNum: locationNum,
-    };
-  }, [attributes, brands.length]);
+  }, [images, video, formData, brands.length, videoAllowed, attributeGroups, brandAttribute, modelAttribute]);
 
   // Load detailed listing data - runs every time modal opens
   useEffect(() => {
@@ -934,93 +994,54 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             )}
           </FormSection>
 
-          {/* Section 3: Brand and Model Selection - matches create page */}
-          {brands.length > 0 && (
-            <FormSection
-              number={3}
-              title="العلامة التجارية والموديل"
-              status={sectionInfo.brandModel.status}
-              filledCount={sectionInfo.brandModel.filled}
-              totalCount={sectionInfo.brandModel.total}
-              defaultExpanded={false}
-            >
-              <div className={styles.formRow}>
-                <Input
-                  type="select"
-                  label="العلامة التجارية"
-                  value={formData.specs.brandId || ''}
-                  onChange={(e) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      specs: { ...prev.specs, brandId: e.target.value, modelId: '' },
-                    }));
-                  }}
-                  options={[
-                    { value: '', label: '-- اختر العلامة التجارية --' },
-                    ...brands
-                      .filter(b => b.isActive)
-                      .map(brand => ({
-                        value: brand.id,
-                        label: brand.name,
-                      })),
-                  ]}
-                  disabled={isLoadingBrands}
-                  searchable
-                  creatable
-                  isLoading={isLoadingBrands}
-                  onCreateOption={handleCreateBrand}
-                />
-
-                {formData.specs.brandId && (
-                  <Input
-                    type="select"
-                    label="الموديل"
-                    value={formData.specs.modelId || ''}
-                    onChange={(e) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        specs: { ...prev.specs, modelId: e.target.value },
-                      }));
-                    }}
-                    options={[
-                      { value: '', label: '-- اختر الموديل --' },
-                      ...models
-                        .filter(m => m.isActive)
-                        .map(model => ({
-                          value: model.id,
-                          label: model.name,
-                        })),
-                    ]}
-                    disabled={isLoadingModels || !formData.specs.brandId || formData.specs.brandId.startsWith('temp_')}
-                    searchable
-                    creatable
-                    isLoading={isLoadingModels}
-                    onCreateOption={handleCreateModel}
-                  />
-                )}
-              </div>
-            </FormSection>
-          )}
-
-          {/* Dynamic Attribute Sections - uses pre-calculated attributeGroups */}
+          {/* Dynamic Attribute Sections - includes brand/model in their group */}
           {attributeGroups.map(([groupName, groupAttrs], groupIndex) => {
-            // Calculate filled count for this group
-            const filledCount = groupAttrs.filter(attr => {
+            // Check if this group has brand/model attributes
+            const hasBrandInGroup = groupAttrs.some(attr => attr.key === 'brandId');
+            const hasModelInGroup = groupAttrs.some(attr => attr.key === 'modelId');
+            const groupHasBrandModel = hasBrandInGroup || hasModelInGroup;
+
+            // Filter out brand/model from regular attributes (they render specially)
+            const regularAttrs = groupAttrs.filter(attr =>
+              attr.key !== 'brandId' && attr.key !== 'modelId'
+            );
+
+            // Calculate filled count for this group (matches sectionInfo logic)
+            let filledCount = 0;
+            let totalCount = 0;
+
+            groupAttrs.forEach(attr => {
+              if (attr.key === 'brandId') {
+                if (brands.length > 0) {
+                  totalCount++;
+                  if (formData.specs.brandId) filledCount++;
+                }
+                return;
+              }
+              if (attr.key === 'modelId') {
+                if (brands.length > 0 && formData.specs.brandId) {
+                  totalCount++;
+                  if (formData.specs.modelId) filledCount++;
+                }
+                return;
+              }
+              totalCount++;
               const value = formData.specs[attr.key];
-              return value !== undefined && value !== null && value !== '' &&
-                !(Array.isArray(value) && value.length === 0);
-            }).length;
-            const totalCount = groupAttrs.length;
-            const requiredCount = groupAttrs.filter(attr => attr.validation === 'REQUIRED').length;
-            const requiredFilled = groupAttrs.filter(attr =>
-              attr.validation === 'REQUIRED' && formData.specs[attr.key]
-            ).length;
+              if (value !== undefined && value !== null && value !== '' &&
+                !(Array.isArray(value) && value.length === 0)) {
+                filledCount++;
+              }
+            });
 
-            const status: FormSectionStatus = filledCount === totalCount ? 'complete' :
-              requiredFilled === requiredCount && requiredCount > 0 ? 'required' : 'incomplete';
+            // Skip empty groups (e.g., brand/model group when no brands available)
+            if (totalCount === 0) return null;
 
-            // Section number: 1=basicInfo, 2=media, 3=brandModel (if exists), then attributes
-            const baseSectionNum = 2 + (brands.length > 0 ? 1 : 0);
+            // Use pre-calculated status from sectionInfo (dynamic keys from attributeGroupsInfo)
+            const groupInfo = (sectionInfo as Record<string, { status: FormSectionStatus; filled: number; total: number }>)[groupName];
+            const status: FormSectionStatus = groupInfo?.status || 'incomplete';
+
+            // Section number: 1=basicInfo, 2=media, then dynamic groups
+            const baseSectionNum = 2;
 
             return (
               <FormSection
@@ -1033,7 +1054,67 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 defaultExpanded={false}
               >
                 <div className={styles.specsGrid}>
-                  {groupAttrs
+                  {/* Render brand/model if in this group */}
+                  {groupHasBrandModel && brands.length > 0 && (
+                    <>
+                      <Input
+                        type="select"
+                        label="العلامة التجارية"
+                        value={formData.specs.brandId || ''}
+                        onChange={(e) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            specs: { ...prev.specs, brandId: e.target.value, modelId: '' },
+                          }));
+                        }}
+                        options={[
+                          { value: '', label: '-- اختر العلامة التجارية --' },
+                          ...brands
+                            .filter(b => b.isActive)
+                            .map(brand => ({
+                              value: brand.id,
+                              label: brand.name,
+                            })),
+                        ]}
+                        disabled={isLoadingBrands}
+                        searchable
+                        creatable
+                        isLoading={isLoadingBrands}
+                        onCreateOption={handleCreateBrand}
+                      />
+
+                      {formData.specs.brandId && (
+                        <Input
+                          type="select"
+                          label="الموديل"
+                          value={formData.specs.modelId || ''}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              specs: { ...prev.specs, modelId: e.target.value },
+                            }));
+                          }}
+                          options={[
+                            { value: '', label: '-- اختر الموديل --' },
+                            ...models
+                              .filter(m => m.isActive)
+                              .map(model => ({
+                                value: model.id,
+                                label: model.name,
+                              })),
+                          ]}
+                          disabled={isLoadingModels || !formData.specs.brandId || formData.specs.brandId.startsWith('temp_')}
+                          searchable
+                          creatable
+                          isLoading={isLoadingModels}
+                          onCreateOption={handleCreateModel}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {/* Render regular attributes */}
+                  {regularAttrs
                     .sort((a, b) => a.sortOrder - b.sortOrder)
                     .map(attribute => (
                       <div key={attribute.key}>

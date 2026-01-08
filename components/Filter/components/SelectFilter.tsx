@@ -25,6 +25,8 @@ export interface SelectFilterProps {
   onChange: (value: string | undefined) => void;
   /** Whether to show counts in options */
   showCounts?: boolean;
+  /** Hide the label (when wrapped in Collapsible) */
+  hideLabel?: boolean;
 }
 
 // Threshold for "long list" - hide zeros if more than this
@@ -36,6 +38,7 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
   value,
   onChange,
   showCounts = true,
+  hideLabel = false,
 }) => {
   const { t } = useTranslation();
 
@@ -56,9 +59,11 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
 
   return (
     <div className={styles.filterField}>
-      <Text variant="small" className={styles.fieldLabel}>
-        {label}
-      </Text>
+      {!hideLabel && (
+        <Text variant="small" className={styles.fieldLabel}>
+          {label}
+        </Text>
+      )}
       <Input
         type="select"
         value={value}

@@ -172,57 +172,11 @@ export const Filter: React.FC<FilterProps> = ({
     getSingleSelectorValue,
   } = attributeFilters;
 
-  // Organize attributes: mix of standalone fields and groups
-  const getOrganizedAttributes = () => {
+  // Get sorted attributes for filters (no grouping - each attribute is its own section)
+  const getSortedAttributes = () => {
     const attributes = getFilterableAttributes();
-
-    // Group by groupOrder AND group name
-    const itemsByKey: Record<string, typeof attributes> = {};
-
-    attributes.forEach(attr => {
-      const key = attr.group && attr.group.trim() !== ''
-        ? `${attr.groupOrder}|${attr.group}`
-        : `${attr.groupOrder}|standalone-${attr.id}`;
-
-      if (!itemsByKey[key]) {
-        itemsByKey[key] = [];
-      }
-      itemsByKey[key].push(attr);
-    });
-
-    // Create ordered array
-    const orderedItems: Array<{
-      type: 'standalone' | 'group';
-      groupOrder: number;
-      groupName?: string;
-      attributes: typeof attributes;
-    }> = [];
-
-    Object.entries(itemsByKey)
-      .sort(([keyA], [keyB]) => {
-        const orderA = Number(keyA.split('|')[0]);
-        const orderB = Number(keyB.split('|')[0]);
-        return orderA - orderB;
-      })
-      .forEach(([key, attrs]) => {
-        const firstAttr = attrs[0];
-        if (!firstAttr.group || firstAttr.group.trim() === '') {
-          orderedItems.push({
-            type: 'standalone',
-            groupOrder: firstAttr.groupOrder,
-            attributes: [firstAttr],
-          });
-        } else {
-          orderedItems.push({
-            type: 'group',
-            groupOrder: firstAttr.groupOrder,
-            groupName: firstAttr.group,
-            attributes: attrs,
-          });
-        }
-      });
-
-    return orderedItems;
+    // Sort by sortOrder to maintain consistent order matching the form
+    return attributes.sort((a, b) => a.sortOrder - b.sortOrder);
   };
 
   // Apply handler - triggers both draft apply and backend fetch
@@ -316,6 +270,7 @@ export const Filter: React.FC<FilterProps> = ({
           options={attribute.processedOptions}
           value={getSingleSelectorValue(attribute.key)}
           onChange={(value) => handleSpecChange(attribute.key, value)}
+          hideLabel
         />
       );
     }
@@ -358,6 +313,7 @@ export const Filter: React.FC<FilterProps> = ({
             attribute.key,
             newSelected.length > 0 ? newSelected : undefined
           )}
+          hideLabel
         />
       );
     }
@@ -390,6 +346,7 @@ export const Filter: React.FC<FilterProps> = ({
             // Pass explicit undefined values to clear price filters
             handleApplyFilter({ min: undefined, max: undefined });
           }}
+          hideLabel
         />
       );
     }
@@ -408,6 +365,7 @@ export const Filter: React.FC<FilterProps> = ({
           onApply={handleApplyFilter}
           applyDisabled={!hasRangeDraftChanges(attribute.key)}
           isLoading={listingsLoading}
+          hideLabel
         />
       );
     }
@@ -438,6 +396,7 @@ export const Filter: React.FC<FilterProps> = ({
             // Fetch with cleared filter
             handleApplyFilter();
           }}
+          hideLabel
         />
       );
     }
@@ -454,6 +413,7 @@ export const Filter: React.FC<FilterProps> = ({
           onApply={handleApplyFilter}
           applyDisabled={!(draftFilters.specs?.[attribute.key] as string)?.trim()}
           isLoading={listingsLoading}
+          hideLabel
         />
       );
     }
@@ -485,22 +445,19 @@ export const Filter: React.FC<FilterProps> = ({
         )}
         {!filtersLoading && (
           <>
-            {getOrganizedAttributes().map((item) => {
-              if (item.type === 'standalone') {
-                return renderAttribute(item.attributes[0]);
-              }
+            {getSortedAttributes().map((attribute) => {
+              // Skip search attribute - it's in the header
+              if (attribute.key === 'search') return null;
 
-              // Grouped fields - wrap in Collapsible with group name as title
+              // Each attribute gets its own Collapsible section
               return (
                 <Collapsible
-                  key={`group-${item.groupOrder}-${item.groupName}`}
-                  title={item.groupName || ''}
+                  key={attribute.id}
+                  title={attribute.name}
                   defaultOpen={true}
                   variant="compact"
                 >
-                  <div className={styles.filterGroup}>
-                    {item.attributes.map(renderAttribute)}
-                  </div>
+                  {renderAttribute(attribute)}
                 </Collapsible>
               );
             })}

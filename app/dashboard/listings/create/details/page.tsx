@@ -132,49 +132,68 @@ export default function CreateListingDetailsPage() {
     const mediaFilled = [imagesRequired, videoFilled].filter(Boolean).length;
     const mediaError = touched.images && !imagesRequired;
 
-    // Brand & Model
+    // Brand & Model (for use in dynamic groups)
     const brandRequired = brandAttribute?.validation === 'REQUIRED';
     const modelRequired = modelAttribute?.validation === 'REQUIRED';
     const brandFilled = !!formData.specs.brandId;
     const modelFilled = !!formData.specs.modelId;
-    const brandModelRequiredOk = brands.length === 0 || (
-      (!brandRequired || brandFilled) &&
-      (!modelRequired || !brandFilled || modelFilled)
-    );
-    const brandModelAll = brands.length === 0 || (brandFilled && modelFilled);
-    const brandModelFilled = [brandFilled, modelFilled].filter(Boolean).length;
-    const brandModelError = (touched.brandId && brandRequired && !brandFilled) ||
-      (touched.modelId && modelRequired && brandFilled && !modelFilled);
 
-    // Dynamic attribute groups
+    // Dynamic attribute groups (now includes brand/model in their group)
     const attributeGroupsInfo: Record<string, SectionInfo> = {};
     attributeGroups.forEach((group) => {
-      const groupAttrs = group.attributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
+      const groupAttrs = group.attributes;
+      const hasBrandModel = groupAttrs.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
 
-      const requiredFilled = groupAttrs.every(attr => {
-        if (attr.validation !== 'REQUIRED') return true;
-        const value = formData.specs[attr.key];
-        return value !== undefined && value !== null && value !== '';
-      });
-
+      // Calculate required filled status
+      let requiredFilled = true;
       let filledCount = 0;
+      let totalCount = 0;
       let hasGroupError = false;
+
       groupAttrs.forEach(attr => {
+        // Handle brand/model specially
+        if (attr.key === 'brandId') {
+          if (brands.length > 0) {
+            totalCount++;
+            if (brandFilled) filledCount++;
+            if (brandRequired && !brandFilled) requiredFilled = false;
+            if (touched.brandId && brandRequired && !brandFilled) hasGroupError = true;
+          }
+          return;
+        }
+        if (attr.key === 'modelId') {
+          if (brands.length > 0 && brandFilled) {
+            totalCount++;
+            if (modelFilled) filledCount++;
+            if (modelRequired && !modelFilled) requiredFilled = false;
+            if (touched.modelId && modelRequired && !modelFilled) hasGroupError = true;
+          }
+          return;
+        }
+
+        // Regular attributes
+        totalCount++;
         const value = formData.specs[attr.key];
         if (value !== undefined && value !== null && value !== '') {
           filledCount++;
+        }
+        if (attr.validation === 'REQUIRED') {
+          if (!value) requiredFilled = false;
         }
         if (touched[`spec_${attr.key}`] && attr.validation === 'REQUIRED' && !value) {
           hasGroupError = true;
         }
       });
 
-      const allFilled = filledCount === groupAttrs.length;
+      // Skip empty groups (e.g., brand/model group when no brands available)
+      if (totalCount === 0) return;
+
+      const allFilled = filledCount === totalCount;
 
       attributeGroupsInfo[group.name] = {
         status: getStatus(requiredFilled, allFilled),
         filledCount,
-        totalCount: groupAttrs.length,
+        totalCount,
         hasError: hasGroupError,
       };
     });
@@ -190,7 +209,6 @@ export default function CreateListingDetailsPage() {
     return {
       basicInfo: { status: getStatus(basicInfoRequired, basicInfoAll), filledCount: basicInfoFilled, totalCount: 3, hasError: basicInfoError },
       media: { status: getStatus(imagesRequired, mediaAll), filledCount: mediaFilled, totalCount: mediaTotal, hasError: mediaError },
-      brandModel: { status: getStatus(brandModelRequiredOk, brandModelAll), filledCount: brandModelFilled, totalCount: 2, hasError: brandModelError },
       location: { status: getStatus(provinceRequired, locationAll), filledCount: locationFilled, totalCount: 3, hasError: locationError },
       ...attributeGroupsInfo,
     };
@@ -728,23 +746,34 @@ export default function CreateListingDetailsPage() {
                 </div>
               </FormSection>
 
-              {/* Section 3: Brand & Model */}
-              {brands.length > 0 && (
-                <FormSection
-                  number={++sectionNumber}
-                  title="العلامة التجارية والموديل"
-                  status={sectionInfo.brandModel.status}
-                  filledCount={sectionInfo.brandModel.filledCount}
-                  totalCount={sectionInfo.brandModel.totalCount}
-                  hasError={sectionInfo.brandModel.hasError}
-                  hasRequiredFields={brandAttribute?.validation === 'REQUIRED' || modelAttribute?.validation === 'REQUIRED'}
-                  defaultExpanded={false}
-                >
-                  <div className={styles.formFields}>
+              {/* Dynamic Attribute Groups */}
+              {attributeGroups.length > 0 && attributeGroups.map((group) => {
+                const groupAttributes = group.attributes;
+                if (groupAttributes.length === 0) return null;
+
+                // Check if this group has brand/model attributes
+                const hasBrandModel = groupAttributes.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
+                // Skip brand/model group entirely if no brands available for this category
+                if (hasBrandModel && brands.length === 0) {
+                  // Filter out brand/model and check if there are other attributes
+                  const otherAttrs = groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
+                  if (otherAttrs.length === 0) return null;
+                }
+
+                const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, filledCount: 0, totalCount: 0, hasError: false };
+
+                // Check if group has any required attributes
+                const hasRequiredFields = groupAttributes.some(attr => attr.validation === 'REQUIRED');
+
+                // Helper function to render brand/model fields
+                const renderBrandModelFields = () => {
+                  if (!hasBrandModel || brands.length === 0) return null;
+
+                  return (
                     <div className={styles.formRow}>
                       <Input
                         type="select"
-                        label="العلامة التجارية"
+                        label={brandAttribute?.name || "العلامة التجارية"}
                         value={formData.specs.brandId || ''}
                         onChange={(e) => {
                           setSpecField('brandId', e.target.value);
@@ -753,7 +782,7 @@ export default function CreateListingDetailsPage() {
                         }}
                         onBlur={() => handleBlur('brandId')}
                         options={[
-                          { value: '', label: '-- اختر العلامة التجارية --' },
+                          { value: '', label: `-- اختر ${brandAttribute?.name || 'العلامة التجارية'} --` },
                           ...brands
                             .filter(b => b.isActive)
                             .map(brand => ({
@@ -769,7 +798,7 @@ export default function CreateListingDetailsPage() {
                         required={brandAttribute?.validation === 'REQUIRED'}
                         error={getError('brandId',
                           brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId
-                            ? `${brandAttribute.name} مطلوب`
+                            ? `${brandAttribute?.name || 'العلامة التجارية'} مطلوب`
                             : undefined
                         )}
                       />
@@ -777,7 +806,7 @@ export default function CreateListingDetailsPage() {
                       {formData.specs.brandId && (
                         <Input
                           type="select"
-                          label="الموديل"
+                          label={modelAttribute?.name || "الموديل"}
                           value={formData.specs.modelId || ''}
                           onChange={(e) => {
                             setSpecField('modelId', e.target.value);
@@ -785,7 +814,7 @@ export default function CreateListingDetailsPage() {
                           }}
                           onBlur={() => handleBlur('modelId')}
                           options={[
-                            { value: '', label: '-- اختر الموديل --' },
+                            { value: '', label: `-- اختر ${modelAttribute?.name || 'الموديل'} --` },
                             ...models
                               .filter(m => m.isActive)
                               .map(model => ({
@@ -801,25 +830,19 @@ export default function CreateListingDetailsPage() {
                           required={modelAttribute?.validation === 'REQUIRED'}
                           error={getError('modelId',
                             modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
-                              ? `${modelAttribute.name} مطلوب`
+                              ? `${modelAttribute?.name || 'الموديل'} مطلوب`
                               : undefined
                           )}
                         />
                       )}
                     </div>
-                  </div>
-                </FormSection>
-              )}
+                  );
+                };
 
-              {/* Dynamic Attribute Groups */}
-              {attributeGroups.length > 0 && attributeGroups.map((group) => {
-                const groupAttributes = group.attributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
-                if (groupAttributes.length === 0) return null;
-
-                const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, filledCount: 0, totalCount: 0, hasError: false };
-
-                // Check if group has any required attributes
-                const hasRequiredFields = groupAttributes.some(attr => attr.validation === 'REQUIRED');
+                // Filter out brand/model for regular rendering (they're rendered specially)
+                const regularAttributes = hasBrandModel
+                  ? groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId')
+                  : groupAttributes;
 
                 return (
                   <FormSection
@@ -834,7 +857,11 @@ export default function CreateListingDetailsPage() {
                     defaultExpanded={false}
                   >
                     <div className={styles.specsGrid}>
-                      {groupAttributes.map((attribute) => (
+                      {/* Render brand/model first if present */}
+                      {renderBrandModelFields()}
+
+                      {/* Render other attributes */}
+                      {regularAttributes.map((attribute) => (
                         <div key={attribute.key}>
                           {renderAttributeField({
                             attribute,

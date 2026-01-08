@@ -51,18 +51,21 @@
 }
 
 .content {
-  overflow: hidden;
-  transition: all 0.1s ease;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 150ms ease-out;
 
   &.closed {
-    max-height: 0;
-    opacity: 0;
+    grid-template-rows: 0fr;
   }
 
   &.open {
-    max-height: 2000px; // Large enough for most content
-    opacity: 1;
+    grid-template-rows: 1fr;
   }
+}
+
+.contentWrapper {
+  overflow: hidden;
 }
 
 .contentInner {
@@ -118,7 +121,7 @@
 // Compact variant - no horizontal padding (for filters)
 .compact {
   .trigger {
-    padding: $space-sm 0 $space-sm $space-sm;
+    padding: $space-sm 0 $space-sm $space-xs;
     border-bottom: 1px solid $border;
 
     &:hover {
@@ -126,13 +129,13 @@
     }
   }
 
-  .title {
-    color: $primary;
-  }
+  // .title {
+  //   color: $primary;
+  // }
 
-  .toggleIcon {
-    color: $primary;
-  }
+  // .toggleIcon {
+  //   color: $primary;
+  // }
 
   .contentInner {
     padding: $space-sm 0;

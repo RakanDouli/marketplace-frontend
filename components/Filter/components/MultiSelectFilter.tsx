@@ -23,6 +23,8 @@ export interface MultiSelectFilterProps {
   onChange: (selected: string[]) => void;
   /** Whether to show counts in options */
   showCounts?: boolean;
+  /** Hide the label (when wrapped in Collapsible) */
+  hideLabel?: boolean;
 }
 
 // Threshold for "long list" - hide zeros if more than this
@@ -37,6 +39,7 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
   selected,
   onChange,
   showCounts = true,
+  hideLabel = false,
 }) => {
   const selectedArray = Array.isArray(selected) ? selected : [];
   const [showAll, setShowAll] = useState(false);
@@ -80,9 +83,11 @@ export const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
 
   return (
     <div className={styles.filterField}>
-      <Text variant="small" className={styles.fieldLabel}>
-        {label}
-      </Text>
+      {!hideLabel && (
+        <Text variant="small" className={styles.fieldLabel}>
+          {label}
+        </Text>
+      )}
       <div className={styles.checkboxGroup}>
         {visibleOptions.map((option) => {
           const optionSelected = isSelected(option.key);

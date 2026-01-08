@@ -27,6 +27,8 @@ export interface RangeFilterProps {
   isLoading?: boolean;
   /** Optional placeholder prefix */
   placeholderPrefix?: string;
+  /** Hide the label (when wrapped in Collapsible) */
+  hideLabel?: boolean;
 }
 
 export const RangeFilter: React.FC<RangeFilterProps> = ({
@@ -40,6 +42,7 @@ export const RangeFilter: React.FC<RangeFilterProps> = ({
   applyDisabled = false,
   isLoading = false,
   placeholderPrefix,
+  hideLabel = false,
 }) => {
   const { t } = useTranslation();
 
@@ -53,9 +56,11 @@ export const RangeFilter: React.FC<RangeFilterProps> = ({
 
   return (
     <div className={styles.filterField}>
-      <Text variant="small" className={styles.fieldLabel}>
-        {label}
-      </Text>
+      {!hideLabel && (
+        <Text variant="small" className={styles.fieldLabel}>
+          {label}
+        </Text>
+      )}
       <div className={styles.rangeInputs}>
         <div className={styles.rangeInputFields}>
           <Input
