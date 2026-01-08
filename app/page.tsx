@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ar_SY',
     siteName: 'السوق السوري للسيارات',
-    url: 'https://akarkar.com',
+    url: 'https://shambay.com',
   },
   twitter: {
     card: 'summary_large_image',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description: 'أكبر سوق إلكتروني للسيارات في سوريا. آلاف الإعلانات المحدثة يومياً.',
   },
   alternates: {
-    canonical: 'https://akarkar.com',
+    canonical: 'https://shambay.com',
   },
   robots: {
     index: true,

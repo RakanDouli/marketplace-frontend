@@ -250,7 +250,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://akarkar.com/${category}`,
+      canonical: `https://shambay.com/${category}`,
     },
   };
 }

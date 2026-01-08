@@ -67,7 +67,7 @@ async function fetchListingSSR(id: string): Promise<Listing | null> {
 // Generate Cloudflare image URL for og:image
 function getImageUrl(imageKey: string | undefined): string {
   if (!imageKey) {
-    return 'https://akarkar.com/og-default.jpg'; // Default OG image
+    return 'https://shambay.com/og-default.jpg'; // Default OG image
   }
 
   const accountHash = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_HASH;

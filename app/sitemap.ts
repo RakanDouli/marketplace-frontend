@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akarkar.com';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shambay.com';
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 // GraphQL query to fetch all active listings

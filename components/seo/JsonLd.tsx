@@ -35,7 +35,7 @@ export function generateListingSchema(listing: {
   specs?: Record<string, any>;
   specsDisplay?: Record<string, any>;
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akarkar.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shambay.com';
   const cloudflareUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_IMAGES_URL || 'https://imagedelivery.net';
 
   // Get first image or use placeholder
@@ -131,7 +131,7 @@ export function generateVehicleSchema(listing: {
   specs?: Record<string, any>;
   specsDisplay?: Record<string, any>;
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akarkar.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shambay.com';
   const cloudflareUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_IMAGES_URL || 'https://imagedelivery.net';
 
   const specs = listing.specsDisplay || listing.specs || {};
@@ -238,13 +238,13 @@ export function generateVehicleSchema(listing: {
  * Generate Organization schema for the website
  */
 export function generateOrganizationSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akarkar.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shambay.com';
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'عقاركار',
-    alternateName: 'Akarkar',
+    name: 'شمباي',
+    alternateName: 'Shambay',
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     description: 'أكبر سوق إلكتروني في سوريا لبيع وشراء السيارات والعقارات',
@@ -262,13 +262,13 @@ export function generateOrganizationSchema() {
  * Generate WebSite schema with search action
  */
 export function generateWebsiteSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akarkar.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shambay.com';
 
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'عقاركار',
-    alternateName: 'Akarkar',
+    name: 'شمباي',
+    alternateName: 'Shambay',
     url: baseUrl,
     potentialAction: {
       '@type': 'SearchAction',
