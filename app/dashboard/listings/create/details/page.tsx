@@ -86,6 +86,8 @@ export default function CreateListingDetailsPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [uploadingImageIds, setUploadingImageIds] = useState<Set<string>>(new Set());
+  const [pendingImages, setPendingImages] = useState<any[]>([]); // Images being uploaded (for display)
+  const [pendingVideo, setPendingVideo] = useState<any | null>(null); // Video being uploaded (for display)
   const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   // Model suggestion specs - used to filter dropdown options
@@ -205,12 +207,14 @@ export default function CreateListingDetailsPage() {
           return;
         }
         if (attr.key === 'modelId') {
-          if (brands.length > 0 && brandFilled) {
+          // Always count modelId in total (it's a field in the group)
+          if (brands.length > 0) {
             groupTotal++;
-            if (modelFilled) groupFilled++;
-            if (modelRequired && !modelFilled) requiredFilled = false;
+            // Only count as filled if brand is selected AND model is selected
+            if (brandFilled && modelFilled) groupFilled++;
+            if (modelRequired && brandFilled && !modelFilled) requiredFilled = false;
             if (!modelFilled) allFilled = false;
-            if (touched.modelId && modelRequired && !modelFilled) hasGroupError = true;
+            if (touched.modelId && modelRequired && brandFilled && !modelFilled) hasGroupError = true;
           }
           return;
         }
@@ -421,11 +425,18 @@ export default function CreateListingDetailsPage() {
     // Upload new images
     for (const newImage of newImages) {
       if (newImage.file) {
-        // Mark image as uploading
+        // Add to pending images with uploading state (for display)
+        setPendingImages(prev => [...prev, { ...newImage, isUploading: true, uploadProgress: 0 }]);
         setUploadingImageIds(prev => new Set([...prev, newImage.id]));
         setIsUploadingImage(true);
         try {
-          await uploadAndAddImage(newImage.file);
+          // Upload with progress callback
+          await uploadAndAddImage(newImage.file, undefined, (progress) => {
+            // Update progress for this specific image
+            setPendingImages(prev => prev.map(img =>
+              img.id === newImage.id ? { ...img, uploadProgress: progress } : img
+            ));
+          });
         } catch (err: any) {
           addNotification({
             type: 'error',
@@ -434,7 +445,8 @@ export default function CreateListingDetailsPage() {
             duration: 5000,
           });
         } finally {
-          // Remove from uploading set
+          // Remove from pending and uploading sets
+          setPendingImages(prev => prev.filter(img => img.id !== newImage.id));
           setUploadingImageIds(prev => {
             const next = new Set(prev);
             next.delete(newImage.id);
@@ -457,19 +469,28 @@ export default function CreateListingDetailsPage() {
     setTouched({ ...touched, images: true });
   };
 
-  // Merge formData.images with uploading state for display
-  const imagesWithUploadState = formData.images.map(img => ({
-    ...img,
-    isUploading: uploadingImageIds.has(img.id),
-  }));
+  // Merge formData.images with pending images for display
+  // pendingImages are shown while uploading, formData.images are the actual uploaded ones
+  const imagesWithUploadState = [
+    ...formData.images.map(img => ({
+      ...img,
+      isUploading: false, // Already uploaded
+    })),
+    ...pendingImages, // Images currently being uploaded (have isUploading: true)
+  ];
 
   // Handle video upload via draft system
   const handleVideoChange = async (videos: any[]) => {
     if (videos.length > 0 && videos[0].file) {
-      // New video to upload
+      // New video to upload - add to pending for display with progress
+      const newVideo = videos[0];
+      setPendingVideo({ ...newVideo, isUploading: true, isVideo: true, uploadProgress: 0 });
       setIsUploadingVideo(true);
       try {
-        await uploadAndAddVideo(videos[0].file);
+        await uploadAndAddVideo(newVideo.file, (progress: number) => {
+          // Update video progress
+          setPendingVideo((prev: any) => prev ? { ...prev, uploadProgress: progress } : null);
+        });
       } catch (err: any) {
         addNotification({
           type: 'error',
@@ -478,6 +499,7 @@ export default function CreateListingDetailsPage() {
           duration: 5000,
         });
       } finally {
+        setPendingVideo(null);
         setIsUploadingVideo(false);
       }
     } else if (videos.length === 0 && formData.video.length > 0) {
@@ -485,6 +507,11 @@ export default function CreateListingDetailsPage() {
       await removeVideo();
     }
   };
+
+  // Merge formData.video with pending video for display
+  const videoWithUploadState = pendingVideo
+    ? [pendingVideo]
+    : formData.video.map(v => ({ ...v, isUploading: false }));
 
   // Validation function
   const validateForm = (): { isValid: boolean; errors: string[] } => {
@@ -990,7 +1017,7 @@ export default function CreateListingDetailsPage() {
                         الحد الأقصى 20 ميجابايت - MP4 فقط (30-45 ثانية)
                       </Text>
                       <ImageUploadGrid
-                        images={formData.video}
+                        images={videoWithUploadState}
                         onChange={handleVideoChange}
                         maxImages={1}
                         maxSize={20 * 1024 * 1024}

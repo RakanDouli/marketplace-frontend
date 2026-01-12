@@ -14,6 +14,8 @@ export interface CloudflareUploadError {
   code?: string;
 }
 
+export type ProgressCallback = (progress: number) => void;
+
 /**
  * Upload a single file (image or video) to Cloudflare
  *
@@ -139,6 +141,89 @@ export async function uploadToCloudflare(
 }
 
 /**
+ * Upload a single file with progress tracking using XMLHttpRequest
+ *
+ * @param file - The file to upload
+ * @param mutationType - The GraphQL mutation to use
+ * @param onProgress - Callback for progress updates (0-100)
+ * @returns Promise with the Cloudflare asset ID
+ */
+export async function uploadToCloudflareWithProgress(
+  file: File,
+  mutationType: 'image' | 'avatar' | 'video' = 'image',
+  onProgress?: ProgressCallback
+): Promise<string> {
+  try {
+    // Step 1: Get fresh Cloudflare upload URL from backend
+    let mutation: string;
+    let field: string;
+
+    if (mutationType === 'avatar') {
+      mutation = 'mutation { createAvatarUploadUrl { uploadUrl assetKey } }';
+      field = 'createAvatarUploadUrl';
+    } else {
+      mutation = 'mutation { createImageUploadUrl { uploadUrl assetKey } }';
+      field = 'createImageUploadUrl';
+    }
+
+    const data = await directGraphQLRequest(mutation);
+    const { uploadUrl } = data[field];
+
+    // Step 2: Upload file to Cloudflare with progress tracking using XMLHttpRequest
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress(percent);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const result = JSON.parse(xhr.responseText);
+            resolve(result);
+          } catch {
+            reject(new Error('فشل تحليل استجابة الخادم'));
+          }
+        } else {
+          const errorMsg = mutationType === 'video' ? 'فشل رفع الفيديو إلى Cloudflare' : 'فشل رفع الصورة إلى Cloudflare';
+          reject(new Error(errorMsg));
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('فشل الاتصال بالخادم'));
+      };
+
+      xhr.open('POST', uploadUrl);
+      xhr.send(formData);
+    });
+
+    if (!uploadResult.success) {
+      const errorMsg = mutationType === 'video' ? 'فشل رفع الفيديو' : 'فشل رفع الصورة';
+      throw new Error(errorMsg);
+    }
+
+    const actualAssetId = uploadResult?.result?.id;
+    if (!actualAssetId) {
+      const errorMsg = mutationType === 'video' ? 'لم يتم الحصول على معرف الفيديو من Cloudflare' : 'لم يتم الحصول على معرف الصورة من Cloudflare';
+      throw new Error(errorMsg);
+    }
+
+    return actualAssetId;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
  * Upload multiple files (images or videos) to Cloudflare in parallel
  *
  * @param files - Array of files to upload
@@ -212,15 +297,16 @@ export function validateVideoFile(file: File, maxSizeMB: number = 20): string | 
  * Upload video to R2 storage via backend REST API
  *
  * @param file - The video file to upload
+ * @param onProgress - Optional callback for upload progress (0-100)
  * @returns Promise with the R2 public URL
  *
  * @example
  * ```typescript
- * const videoUrl = await uploadVideoToR2(file);
+ * const videoUrl = await uploadVideoToR2(file, (progress) => console.log(progress));
  * // Returns: "https://pub-xxx.r2.dev/videos/xxx.mp4"
  * ```
  */
-export async function uploadVideoToR2(file: File): Promise<string> {
+export async function uploadVideoToR2(file: File, onProgress?: ProgressCallback): Promise<string> {
   const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '') || 'http://localhost:4000';
 
   // Get auth token
@@ -245,20 +331,43 @@ export async function uploadVideoToR2(file: File): Promise<string> {
   const formData = new FormData();
   formData.append('video', file);
 
-  const response = await fetch(`${endpoint}/api/listings/upload-video`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
+  // Use XMLHttpRequest for progress tracking
+  const result = await new Promise<{ videoUrl?: string }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        onProgress(percent);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response);
+        } catch {
+          reject(new Error('فشل تحليل استجابة الخادم'));
+        }
+      } else {
+        try {
+          const errorData = JSON.parse(xhr.responseText);
+          reject(new Error(errorData.message || 'فشل رفع الفيديو'));
+        } catch {
+          reject(new Error('فشل رفع الفيديو'));
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('فشل الاتصال بالخادم'));
+    };
+
+    xhr.open('POST', `${endpoint}/api/listings/upload-video`);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(errorData.message || 'فشل رفع الفيديو');
-  }
-
-  const result = await response.json();
 
   if (!result.videoUrl) {
     throw new Error('لم يتم الحصول على رابط الفيديو');

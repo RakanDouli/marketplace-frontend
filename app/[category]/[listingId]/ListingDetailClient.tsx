@@ -21,7 +21,7 @@ import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/components/seo';
-import { LISTING_TYPE_LABELS, CONDITION_LABELS, ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
+import { LISTING_TYPE_LABELS, CONDITION_LABELS, ACCOUNT_TYPE_LABELS, CAR_FEATURES_LABELS } from '@/constants/metadata-labels';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -102,7 +102,18 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
 
       if (attribute) {
         const label = typeof value === 'object' ? value.label : attribute.name;
-        const displayValue = typeof value === 'object' ? value.value : value;
+        let displayValue = typeof value === 'object' ? value.value : value;
+
+        // Translate feature keys to Arabic if they're raw keys (not already translated)
+        if (key === 'features' && typeof displayValue === 'string') {
+          // Split by both English and Arabic commas, translate each key, and rejoin
+          displayValue = displayValue
+            .split(/[,،]/)
+            .map((v: string) => v.trim())
+            .filter((v: string) => v) // Remove empty strings
+            .map((v: string) => CAR_FEATURES_LABELS[v] || v)
+            .join('، ');
+        }
 
         if (attribute.group) {
           // Has a group - add to groups
@@ -276,7 +287,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                       <div className={styles.specRow}>
                         <span className={styles.specLabel}>نوع العرض</span>
                         <span className={styles.specValue}>
-                          {LISTING_TYPE_LABELS[listing.listingType.toLowerCase()] || listing.listingType}
+                          {LISTING_TYPE_LABELS[listing.listingType.toUpperCase()] || listing.listingType}
                         </span>
                       </div>
                     )}
@@ -284,7 +295,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                       <div className={styles.specRow}>
                         <span className={styles.specLabel}>الحالة</span>
                         <span className={styles.specValue}>
-                          {CONDITION_LABELS[listing.condition.toLowerCase()] || listing.condition}
+                          {CONDITION_LABELS[listing.condition.toUpperCase()] || listing.condition}
                         </span>
                       </div>
                     )}
@@ -292,7 +303,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                       <div className={styles.specRow}>
                         <span className={styles.specLabel}>نوع المعلن</span>
                         <span className={styles.specValue}>
-                          {ACCOUNT_TYPE_LABELS[listing.accountType.toLowerCase()] || listing.accountType}
+                          {ACCOUNT_TYPE_LABELS[listing.accountType.toUpperCase()] || listing.accountType}
                         </span>
                       </div>
                     )}
@@ -321,6 +332,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                     <Collapsible
                       key={groupName}
                       title={groupName}
+                      defaultOpen={true}
                       className={styles.specGroup}
                     >
                       <div className={styles.specsList}>

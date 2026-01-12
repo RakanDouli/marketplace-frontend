@@ -197,14 +197,14 @@ export interface CreateListingStore {
 
   // ===== IMAGE/VIDEO ACTIONS =====
 
-  // Upload and add image to draft
-  uploadAndAddImage: (file: File, position?: number) => Promise<string | null>;
+  // Upload and add image to draft (with optional progress callback)
+  uploadAndAddImage: (file: File, position?: number, onProgress?: (progress: number) => void) => Promise<string | null>;
 
   // Remove image from draft (also deletes from Cloudflare)
   removeImage: (imageKey: string) => Promise<void>;
 
-  // Upload and add video to draft (via REST API)
-  uploadAndAddVideo: (file: File) => Promise<string | null>;
+  // Upload and add video to draft (via REST API, with optional progress callback)
+  uploadAndAddVideo: (file: File, onProgress?: (progress: number) => void) => Promise<string | null>;
 
   // Remove video from draft (also deletes from R2)
   removeVideo: () => Promise<void>;

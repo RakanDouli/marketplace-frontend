@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { cachedGraphQLRequest, invalidateGraphQLCache } from "../../utils/graphql-cache";
-import { uploadToCloudflare, uploadVideoToR2 } from "@/utils/cloudflare-upload";
+import { uploadToCloudflare, uploadToCloudflareWithProgress, uploadVideoToR2, type ProgressCallback } from "@/utils/cloudflare-upload";
 import {
   GET_ATTRIBUTES_BY_CATEGORY,
   GET_MY_DRAFTS,
@@ -338,7 +338,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
    * Upload image to Cloudflare and add to draft
    * Creates draft lazily on first upload (no wasted API calls)
    */
-  uploadAndAddImage: async (file: File, position?: number): Promise<string | null> => {
+  uploadAndAddImage: async (file: File, position?: number, onProgress?: ProgressCallback): Promise<string | null> => {
     const { formData } = get();
 
     // Ensure we have a category
@@ -348,8 +348,10 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     }
 
     try {
-      // 1. Upload to Cloudflare FIRST (before creating draft)
-      const imageKey = await uploadToCloudflare(file, 'image');
+      // 1. Upload to Cloudflare FIRST (before creating draft) - with progress tracking
+      const imageKey = onProgress
+        ? await uploadToCloudflareWithProgress(file, 'image', onProgress)
+        : await uploadToCloudflare(file, 'image');
 
       // 2. Ensure draft exists (creates if needed - lazy creation)
       const draftId = await get().ensureDraftExists();
@@ -431,7 +433,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
    * Upload video to R2 via REST API and add to draft
    * Creates draft lazily on first upload (no wasted API calls)
    */
-  uploadAndAddVideo: async (file: File): Promise<string | null> => {
+  uploadAndAddVideo: async (file: File, onProgress?: ProgressCallback): Promise<string | null> => {
     const { formData } = get();
 
     // Ensure we have a category
@@ -442,7 +444,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
 
     try {
       // 1. Upload video to R2 FIRST (before creating draft)
-      const videoUrl = await uploadVideoToR2(file);
+      const videoUrl = await uploadVideoToR2(file, onProgress);
 
       // 2. Ensure draft exists (creates if needed - lazy creation)
       const draftId = await get().ensureDraftExists();
@@ -612,9 +614,10 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     set({ isLoadingAttributes: true, error: null });
 
     try {
+      // Always fetch fresh attributes (ttl: 0) to ensure newly created attributes appear
       const data = await cachedGraphQLRequest(GET_ATTRIBUTES_BY_CATEGORY, {
         categoryId,
-      });
+      }, { ttl: 0 });
       const attributes: Attribute[] =
         (data as any).getAttributesByCategory || [];
 

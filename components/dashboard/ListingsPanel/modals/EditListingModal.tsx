@@ -15,7 +15,7 @@ import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel 
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { ListingStatus } from '@/common/enums';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
-import { uploadMultipleToCloudflare } from '@/utils/cloudflare-upload';
+import { uploadToCloudflareWithProgress } from '@/utils/cloudflare-upload';
 import {
   validateListingForm,
   validateAttribute,
@@ -51,6 +51,15 @@ interface AttributeConfig {
   maxLength?: number;
   maxSelections?: number;
   dataSource?: string;
+  min?: number;
+  max?: number;
+}
+
+interface AttributeOption {
+  key: string;
+  value: string;
+  sortOrder: number;
+  isActive: boolean;
 }
 
 interface Attribute {
@@ -61,11 +70,17 @@ interface Attribute {
   validation: string;
   storageType: string;
   columnName: string | null;
-  options?: Array<{ key: string; value: string; sortOrder: number; isActive: boolean }>;
+  options: AttributeOption[];
   config: AttributeConfig | null;
   sortOrder: number;
   group: string;
   groupOrder: number;
+}
+
+interface AttributeGroup {
+  name: string;
+  groupOrder: number;
+  attributes: Attribute[];
 }
 
 // GraphQL Queries
@@ -87,6 +102,18 @@ const GET_MODELS_QUERY = `
       name
       slug
       isActive
+    }
+  }
+`;
+
+const GET_MODEL_SUGGESTION_QUERY = `
+  query GetModelSuggestion($brandId: String!, $modelId: String!, $year: Int) {
+    getModelSuggestion(brandId: $brandId, modelId: $modelId, year: $year) {
+      id
+      brandId
+      modelId
+      year
+      specs
     }
   }
 `;
@@ -126,11 +153,25 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const [detailedListing, setDetailedListing] = useState<Listing | null>(null);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [video, setVideo] = useState<ImageItem[]>([]);
+  const [pendingImages, setPendingImages] = useState<ImageItem[]>([]); // Images being uploaded
+  const [pendingVideo, setPendingVideo] = useState<ImageItem | null>(null); // Video being uploaded
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+
+  // Model suggestion specs - used to filter dropdown options (like create page)
+  const [suggestionSpecs, setSuggestionSpecs] = useState<{
+    fuel_type?: string[];
+    transmission?: string[];
+    body_type?: string[];
+    engine_size?: string[];
+    cylinders?: string[];
+    seats?: number[];
+    doors?: number[];
+    drive_type?: string[];
+  } | null>(null);
 
   // Form state - Will be populated by loadData useEffect with fresh data from API
   const [formData, setFormData] = useState({
@@ -140,6 +181,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     status: listing.status,
     allowBidding: listing.allowBidding,
     biddingStartPrice: listing.biddingStartPrice || 0,
+    listingType: '',
+    condition: '',
     specs: listing.specs || {},
     location: listing.location || { province: '', city: '', area: '', link: '' },
   });
@@ -148,95 +191,114 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
 
-  // Note: Section expansion is now handled internally by Collapsible component
-  // Using defaultExpanded prop for initial state
-
-  // Get brand and model attributes from the attributes list
+  // Find brand and model attributes
   const brandAttribute = attributes.find(attr => attr.key === 'brandId');
   const modelAttribute = attributes.find(attr => attr.key === 'modelId');
 
-  // Calculate attribute groups and section numbers for consistency with create page
-  // MUST be before sectionInfo since sectionInfo uses attributeGroups
-  const { attributeGroups, locationSectionNum } = useMemo(() => {
-    // Group attributes by group field (like create page does)
-    const groupedAttributes: Record<string, Attribute[]> = {};
+  // Find column-stored global attributes (like create page)
+  const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
+  const conditionAttribute = attributes.find(attr => attr.key === 'condition');
 
-    // Filter out non-spec attributes - but KEEP brandId/modelId (they're in their group now)
-    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location'];
+  // Group attributes by group field (like create page store does)
+  const attributeGroups: AttributeGroup[] = useMemo(() => {
+    // Filter out non-spec attributes
+    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location', 'listingType', 'condition'];
+
+    const groupsMap = new Map<string, Attribute[]>();
 
     attributes
       .filter(attr => !excludedKeys.includes(attr.key))
       .forEach(attr => {
-        const groupName = attr.group || 'المواصفات';
-        if (!groupedAttributes[groupName]) {
-          groupedAttributes[groupName] = [];
+        const groupName = attr.group || 'other';
+        if (!groupsMap.has(groupName)) {
+          groupsMap.set(groupName, []);
         }
-        groupedAttributes[groupName].push(attr);
+        groupsMap.get(groupName)!.push(attr);
       });
 
-    // Sort groups by groupOrder
-    const sortedGroups = Object.entries(groupedAttributes).sort((a, b) => {
-      const aOrder = a[1][0]?.groupOrder || 0;
-      const bOrder = b[1][0]?.groupOrder || 0;
-      return aOrder - bOrder;
+    // Convert to array and sort by groupOrder
+    const groups: AttributeGroup[] = [];
+    groupsMap.forEach((attrs, name) => {
+      // Skip "other" group (attributes without group won't render - as per admin instructions)
+      if (attrs.length && name !== 'other') {
+        groups.push({
+          name,
+          groupOrder: attrs[0]?.groupOrder || 0,
+          attributes: attrs.sort((a, b) => a.sortOrder - b.sortOrder),
+        });
+      }
     });
 
-    // Calculate base section number (after basicInfo, media)
-    // Order: 1=basicInfo, 2=media, then dynamic groups, then location
-    const baseSectionNum = 2;
-
-    // Location is the last section
-    const locationNum = baseSectionNum + sortedGroups.length + 1;
-
-    return {
-      attributeGroups: sortedGroups,
-      locationSectionNum: locationNum,
-    };
+    return groups.sort((a, b) => a.groupOrder - b.groupOrder);
   }, [attributes]);
 
-  // Calculate section statuses and field counts - matches create page structure
+  // Separate "اختر السيارة" group from other dynamic groups (like create page)
+  const firstGroup = attributeGroups.find(g => g.name === 'اختر السيارة');
+  const otherGroups = attributeGroups.filter(g => g.name !== 'اختر السيارة');
+
+  // Section status info with counts (matching create page logic)
   const sectionInfo = useMemo(() => {
     const getStatus = (requiredFilled: boolean, allFilled: boolean): FormSectionStatus => {
+      if (!requiredFilled) return 'incomplete';
       if (allFilled) return 'complete';
-      if (requiredFilled) return 'required';
-      return 'incomplete';
+      return 'required';
     };
 
-    // Section 1: Basic info (title*, price*, description)
-    const basicInfoRequired = 2; // title, price
+    // Basic Info
+    const titleFilled = !!formData.title.trim();
+    const descriptionFilled = !!formData.description.trim();
+    const priceFilled = formData.priceMinor > 0;
+    const listingTypeRequired = listingTypeAttribute?.validation === 'REQUIRED';
+    const conditionRequired = conditionAttribute?.validation === 'REQUIRED';
+    const listingTypeFilled = !!formData.listingType;
+    const conditionFilled = !!formData.condition;
+
+    let basicInfoTotal = 3; // title, description, price
     let basicInfoFilled = 0;
-    if (formData.title.trim()) basicInfoFilled++;
-    if (formData.priceMinor > 0) basicInfoFilled++;
-    if (formData.description.trim()) basicInfoFilled++;
-    const basicInfoTotal = 3;
-    const basicInfoStatus: FormSectionStatus = basicInfoFilled >= basicInfoRequired ?
-      (basicInfoFilled === basicInfoTotal ? 'complete' : 'required') : 'incomplete';
+    if (titleFilled) basicInfoFilled++;
+    if (descriptionFilled) basicInfoFilled++;
+    if (priceFilled) basicInfoFilled++;
+    if (listingTypeAttribute) {
+      basicInfoTotal++;
+      if (listingTypeFilled) basicInfoFilled++;
+    }
+    if (conditionAttribute) {
+      basicInfoTotal++;
+      if (conditionFilled) basicInfoFilled++;
+    }
 
-    // Section 2: Media (images* + video if allowed)
-    const imagesRequired = 1;
-    const imagesFilled = images.length >= imagesRequired;
-    const videoFilled = video.length > 0;
+    const basicInfoRequiredOk = titleFilled && priceFilled &&
+      (!listingTypeRequired || listingTypeFilled) &&
+      (!conditionRequired || conditionFilled);
+    const basicInfoAllFilled = basicInfoFilled === basicInfoTotal;
+
+    // Media
+    const imagesOk = images.length >= 1;
     const mediaTotal = videoAllowed ? 2 : 1;
-    const mediaFilled = (imagesFilled ? 1 : 0) + (videoFilled ? 1 : 0);
-    const mediaStatus: FormSectionStatus = imagesFilled ?
-      (mediaFilled === mediaTotal ? 'complete' : 'required') : 'incomplete';
+    let mediaFilled = 0;
+    if (images.length > 0) mediaFilled++;
+    if (videoAllowed && video.length > 0) mediaFilled++;
+    const mediaAllFilled = mediaFilled === mediaTotal;
 
-    // Brand & Model (for use in dynamic groups)
+    // Location
+    const provinceFilled = !!formData.location.province;
+    const locationTotal = 4;
+    const locationFilled = +provinceFilled + +!!formData.location.city + +!!formData.location.area + +!!formData.location.link;
+    const locationAllFilled = locationFilled === locationTotal;
+
+    // Dynamic attribute groups
     const brandRequired = brandAttribute?.validation === 'REQUIRED';
     const modelRequired = modelAttribute?.validation === 'REQUIRED';
     const brandFilled = !!formData.specs.brandId;
     const modelFilled = !!formData.specs.modelId;
 
-    // Dynamic attribute groups (now includes brand/model in their group)
     const attributeGroupsInfo: Record<string, { status: FormSectionStatus; filled: number; total: number }> = {};
-    attributeGroups.forEach(([groupName, groupAttrs]) => {
-      // Calculate required filled status
+    attributeGroups.forEach((group) => {
       let requiredFilled = true;
       let filledCount = 0;
       let totalCount = 0;
 
-      groupAttrs.forEach(attr => {
-        // Handle brand/model specially
+      group.attributes.forEach(attr => {
         if (attr.key === 'brandId') {
           if (brands.length > 0) {
             totalCount++;
@@ -246,85 +308,68 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           return;
         }
         if (attr.key === 'modelId') {
-          if (brands.length > 0 && brandFilled) {
+          // Always count modelId in total (like create page fix)
+          if (brands.length > 0) {
             totalCount++;
-            if (modelFilled) filledCount++;
-            if (modelRequired && !modelFilled) requiredFilled = false;
+            if (brandFilled && modelFilled) filledCount++;
+            if (modelRequired && brandFilled && !modelFilled) requiredFilled = false;
           }
           return;
         }
 
-        // Regular attributes
         totalCount++;
         const value = formData.specs[attr.key];
-        if (value !== undefined && value !== null && value !== '' &&
-          !(Array.isArray(value) && value.length === 0)) {
-          filledCount++;
-        }
-        if (attr.validation === 'REQUIRED') {
-          if (!value) requiredFilled = false;
-        }
+        const isFilled = value !== undefined && value !== null && value !== '' &&
+          !(Array.isArray(value) && value.length === 0);
+        if (isFilled) filledCount++;
+        if (attr.validation === 'REQUIRED' && !isFilled) requiredFilled = false;
       });
 
-      // Skip empty groups (e.g., brand/model group when no brands available)
+      // Skip empty groups
       if (totalCount === 0) return;
 
       const allFilled = filledCount === totalCount;
-
-      attributeGroupsInfo[groupName] = {
+      attributeGroupsInfo[group.name] = {
         status: getStatus(requiredFilled, allFilled),
         filled: filledCount,
         total: totalCount,
       };
     });
 
-    // Section N (last): Location (province*, city, area)
-    const locationRequired = 1; // province
-    let locationFilled = 0;
-    if (formData.location.province) locationFilled++;
-    if (formData.location.city) locationFilled++;
-    if (formData.location.area) locationFilled++;
-    const locationTotal = 3; // match create page (no link in count)
-    const locationStatus: FormSectionStatus = locationFilled >= locationRequired ?
-      (locationFilled === locationTotal ? 'complete' : 'required') : 'incomplete';
-
     return {
-      basicInfo: { status: basicInfoStatus, filled: basicInfoFilled, total: basicInfoTotal },
-      media: { status: mediaStatus, filled: mediaFilled, total: mediaTotal },
-      location: { status: locationStatus, filled: locationFilled, total: locationTotal },
+      basicInfo: { status: getStatus(basicInfoRequiredOk, basicInfoAllFilled), filled: basicInfoFilled, total: basicInfoTotal },
+      media: { status: getStatus(imagesOk, mediaAllFilled), filled: mediaFilled, total: mediaTotal },
+      location: { status: getStatus(provinceFilled, locationAllFilled), filled: locationFilled, total: locationTotal },
       ...attributeGroupsInfo,
     };
-  }, [images, video, formData, brands.length, videoAllowed, attributeGroups, brandAttribute, modelAttribute]);
+  }, [images, video, formData, brands.length, videoAllowed, attributeGroups, brandAttribute, modelAttribute, listingTypeAttribute, conditionAttribute]);
 
   // Load detailed listing data - runs every time modal opens
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Force fresh fetch by bypassing cache (ttl: 0) to ensure we get latest data
         const response = await cachedGraphQLRequest(
           `query GetMyListingById($id: ID!) {
             myListingById(id: $id) {
               id title description priceMinor status allowBidding biddingStartPrice
-              videoUrl imageKeys specs
+              videoUrl imageKeys specs listingType condition
               location { province city area link }
               category { id name nameAr slug }
               rejectionReason rejectionMessage
-             moderationScore moderationFlags
+              moderationScore moderationFlags
               createdAt updatedAt
             }
           }`,
           { id: listing.id },
-          { ttl: 0 } // Bypass cache to get fresh data
+          { ttl: 0 }
         );
         const data: Listing = (response as any).myListingById;
         setDetailedListing(data);
 
-        // Parse specs from JSON string to object
         const parsedSpecs = data.specs
           ? (typeof data.specs === 'string' ? JSON.parse(data.specs) : data.specs)
           : {};
 
-        // Update form data with detailed listing
         setFormData({
           title: data.title,
           description: data.description || '',
@@ -332,11 +377,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           status: data.status,
           allowBidding: data.allowBidding,
           biddingStartPrice: data.biddingStartPrice || 0,
+          listingType: data.listingType || '',
+          condition: data.condition || '',
           specs: parsedSpecs,
           location: data.location || { province: '', city: '', area: '', link: '' },
         });
 
-        // Load images from imageKeys
         if (data.imageKeys && data.imageKeys.length > 0) {
           const existingImages: ImageItem[] = data.imageKeys.map((key: string) => ({
             id: key,
@@ -345,12 +391,11 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           setImages(existingImages);
         }
 
-        // Load video from videoUrl (R2 public URL)
         if (data.videoUrl) {
           setVideo([{
             id: data.videoUrl,
-            url: data.videoUrl, // Use R2 URL directly
-            isVideo: true, // Mark as video so ImageUploadGrid renders it correctly
+            url: data.videoUrl,
+            isVideo: true,
           }]);
         } else {
           setVideo([]);
@@ -367,7 +412,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     };
 
     loadData();
-  }, [listing]); // Re-run when listing object changes (not just ID)
+  }, [listing]);
 
   // Fetch provinces if not already loaded
   useEffect(() => {
@@ -385,7 +430,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       try {
         const data = await cachedGraphQLRequest(GET_ATTRIBUTES_QUERY, {
           categoryId: listing.category.id,
-        });
+        }, { ttl: 0 });
         setAttributes((data as any).getAttributesByCategory || []);
       } catch (error) {
         // Silently fail - attributes are optional for editing
@@ -404,7 +449,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
       setIsLoadingBrands(true);
       try {
-        // Force fresh fetch - use 0 TTL to bypass cache
         const data = await cachedGraphQLRequest(GET_BRANDS_QUERY, {
           categoryId: listing.category.id,
         }, { ttl: 0 });
@@ -443,7 +487,57 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
   }, [formData.specs.brandId]);
 
-  // Handle creating a new brand - EXACTLY like create page
+  // Fetch model suggestions when brand + model + year are selected (like create page)
+  useEffect(() => {
+    const brandId = formData.specs.brandId;
+    const modelId = formData.specs.modelId;
+    const year = formData.specs.year;
+
+    if (!brandId || !modelId || brandId.startsWith('temp_') || modelId.startsWith('temp_')) {
+      setSuggestionSpecs(null);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const data = await cachedGraphQLRequest(GET_MODEL_SUGGESTION_QUERY, {
+          brandId,
+          modelId,
+          year: year ? parseInt(String(year)) : null,
+        }, { ttl: 0 });
+
+        const suggestion = (data as any).getModelSuggestion;
+        if (suggestion?.specs) {
+          setSuggestionSpecs(suggestion.specs);
+
+          // Auto-fill fields where there's only ONE option (auto-select)
+          const autoFillFields = [
+            'fuel_type', 'transmission', 'body_type', 'engine_size',
+            'cylinders', 'seats', 'doors', 'drive_type',
+          ] as const;
+
+          autoFillFields.forEach((field) => {
+            const options = suggestion.specs[field];
+            if (Array.isArray(options) && options.length === 1 && !formData.specs[field]) {
+              setFormData(prev => ({
+                ...prev,
+                specs: { ...prev.specs, [field]: options[0] },
+              }));
+            }
+          });
+        } else {
+          setSuggestionSpecs(null);
+        }
+      } catch (error) {
+        console.error('Error fetching model suggestions:', error);
+        setSuggestionSpecs(null);
+      }
+    };
+
+    fetchSuggestions();
+  }, [formData.specs.brandId, formData.specs.modelId, formData.specs.year]);
+
+  // Handle creating a new brand
   const handleCreateBrand = (brandName: string) => {
     const tempBrand: Brand = {
       id: `temp_${brandName}`,
@@ -465,7 +559,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }));
   };
 
-  // Handle creating a new model - EXACTLY like create page
+  // Handle creating a new model
   const handleCreateModel = (modelName: string) => {
     const tempModel: Model = {
       id: `temp_${modelName}`,
@@ -494,7 +588,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       return;
     }
 
-    // Check subscription limits
     if (images.length + addedImages.length > maxImagesAllowed) {
       addNotification({
         type: 'error',
@@ -505,18 +598,28 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       return;
     }
 
+    // Add to pending images for upload progress display
+    const pendingWithState = addedImages.map(img => ({ ...img, isUploading: true, uploadProgress: 0 }));
+    setPendingImages(pendingWithState);
     setIsUploadingImage(true);
     setImageOperationSuccess(false);
 
     try {
-      // Upload new images using unified utility
-      const filesToUpload = addedImages
-        .filter(img => img.file)
-        .map(img => img.file!);
+      // Upload images one by one with progress tracking
+      const uploadedImageKeys: string[] = [];
+      for (let i = 0; i < addedImages.length; i++) {
+        const img = addedImages[i];
+        if (img.file) {
+          const imageKey = await uploadToCloudflareWithProgress(img.file, 'image', (progress) => {
+            // Update progress for this specific image
+            setPendingImages(prev => prev.map((p, idx) =>
+              idx === i ? { ...p, uploadProgress: progress } : p
+            ));
+          });
+          uploadedImageKeys.push(imageKey);
+        }
+      }
 
-      const uploadedImageKeys = await uploadMultipleToCloudflare(filesToUpload, 'image');
-
-      // Update listing images immediately
       const allImageKeys = [...images.map(img => img.id), ...uploadedImageKeys];
 
       await cachedGraphQLRequest(
@@ -528,16 +631,14 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         { id: listing.id, imageKeys: allImageKeys }
       );
 
-      // Update local state - keep blob URLs temporarily, then update to Cloudflare URLs after a delay
       const newImagesWithBlobUrls: ImageItem[] = addedImages.map((img, index) => ({
         id: uploadedImageKeys[index],
-        url: img.url, // Keep blob URL temporarily
+        url: img.url,
         file: img.file,
       }));
 
       setImages(prev => [...prev, ...newImagesWithBlobUrls]);
 
-      // After 2 seconds, replace blob URLs with Cloudflare URLs (gives time for processing)
       setTimeout(() => {
         setImages(prevImages =>
           prevImages.map(img => {
@@ -545,7 +646,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               return {
                 ...img,
                 url: optimizeListingImage(img.id, 'public'),
-                file: undefined, // Remove file reference
+                file: undefined,
               };
             }
             return img;
@@ -553,7 +654,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         );
       }, 2000);
 
-      // Show success message inline
       setImageOperationSuccess(true);
       setTimeout(() => setImageOperationSuccess(false), 3000);
     } catch (error) {
@@ -564,6 +664,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         duration: 5000,
       });
     } finally {
+      setPendingImages([]);
       setIsUploadingImage(false);
     }
   };
@@ -580,7 +681,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setImageOperationSuccess(false);
 
     try {
-      // Update listing images immediately
       const remainingImageKeys = newImages.map(img => img.id);
 
       await cachedGraphQLRequest(
@@ -594,7 +694,6 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
       setImages(newImages);
 
-      // Show success message inline
       setImageOperationSuccess(true);
       setTimeout(() => setImageOperationSuccess(false), 3000);
     } catch (error) {
@@ -609,60 +708,77 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
   };
 
-  // Video upload/change handler
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   const handleVideoChange = async (newVideo: ImageItem[]) => {
-    // If video was deleted (empty array)
     if (newVideo.length === 0) {
       setVideo([]);
       return;
     }
 
-    // Check if there's a new file to upload
     const newVideoItem = newVideo.find(v => v.file);
     if (!newVideoItem || !newVideoItem.file) {
-      // No new file, just update state (e.g., existing video unchanged)
       setVideo(newVideo);
       return;
     }
 
-    // Upload new video to R2
+    // Add pending video for upload progress display
+    setPendingVideo({ ...newVideoItem, isUploading: true, isVideo: true, uploadProgress: 0 });
     setIsUploadingVideo(true);
     try {
-      // Get auth token
       const authData = localStorage.getItem('user-auth-storage');
       if (!authData) throw new Error('يرجى تسجيل الدخول أولاً');
       const { state } = JSON.parse(authData);
       const token = state?.user?.token;
       if (!token) throw new Error('يرجى تسجيل الدخول أولاً');
 
-      // Create FormData
-      const formData = new FormData();
-      formData.append('video', newVideoItem.file);
+      const formDataObj = new FormData();
+      formDataObj.append('video', newVideoItem.file);
 
-      // Upload to backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/listings/upload-video`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
+      // Use XMLHttpRequest for progress tracking
+      const result = await new Promise<{ success: boolean; videoUrl?: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setPendingVideo(prev => prev ? { ...prev, uploadProgress: percent } : null);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              resolve(response);
+            } catch {
+              reject(new Error('فشل تحليل استجابة الخادم'));
+            }
+          } else {
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              reject(new Error(errorData.message || 'فشل رفع الفيديو'));
+            } catch {
+              reject(new Error('فشل رفع الفيديو'));
+            }
+          }
+        };
+
+        xhr.onerror = () => {
+          reject(new Error('فشل الاتصال بالخادم'));
+        };
+
+        xhr.open('POST', `${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/listings/upload-video`);
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.send(formDataObj);
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(errorData.message || 'فشل رفع الفيديو');
-      }
-
-      const result = await response.json();
       if (!result.success || !result.videoUrl) {
         throw new Error('فشل رفع الفيديو');
       }
 
-      // Update video state with the R2 URL
       setVideo([{
-        id: result.videoUrl, // Use the R2 URL as ID (will be saved to DB)
+        id: result.videoUrl,
         url: result.videoUrl,
         isVideo: true,
       }]);
@@ -680,20 +796,32 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         message: error instanceof Error ? error.message : 'فشل رفع الفيديو',
         duration: 5000,
       });
-      // Revert to previous state
       setVideo(video);
     } finally {
+      setPendingVideo(null);
       setIsUploadingVideo(false);
     }
   };
 
+  // Computed values for displaying images and videos with upload state
+  const imagesWithUploadState = useMemo(() => [
+    ...images.map(img => ({ ...img, isUploading: false })),
+    ...pendingImages,
+  ], [images, pendingImages]);
+
+  const videoWithUploadState = useMemo(() => {
+    if (pendingVideo) {
+      return [pendingVideo];
+    }
+    return video.map(v => ({ ...v, isUploading: false }));
+  }, [video, pendingVideo]);
+
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    // 1. Validate basic fields using Zod (from listingValidation.ts)
     const validationErrors = validateListingForm({
       ...formData,
-      images, // Pass images array for validation
+      images,
       location: {
         province: formData.location.province || '',
         city: formData.location.city,
@@ -702,17 +830,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       },
     } as any);
 
-    // Convert ValidationErrors object to string array
     Object.entries(validationErrors).forEach(([field, message]) => {
       if (message) errors.push(message);
     });
 
-    // 2. Validate dynamic attributes (same as create listing page)
     attributes.forEach(attr => {
-      // Skip column-based attributes (like title, price, accountType)
       if (attr.storageType === 'column') return;
-
-      // Skip location-based attributes (handled by Zod)
       if (attr.storageType === 'location') return;
 
       const value = formData.specs[attr.key];
@@ -741,17 +864,15 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setIsSubmitting(true);
     setSubmitError(false);
     setSubmitSuccess(false);
-    setErrorMessage(null); // Clear previous error
+    setErrorMessage(null);
 
-    // Validate form
     const validation = validateForm();
 
     if (!validation.isValid) {
-      // Show error inside modal (not toast)
       setErrorMessage(`يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`);
       setSubmitError(true);
       setIsSubmitting(false);
-      return; // Stop submission
+      return;
     }
 
     try {
@@ -763,26 +884,144 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         allowBidding: formData.allowBidding,
         videoUrl: video.length > 0 ? video[0].id : null,
         location: formData.location,
+        // GraphQL enums expect UPPERCASE values
+        listingType: formData.listingType ? formData.listingType.toUpperCase() : undefined,
+        condition: formData.condition ? formData.condition.toUpperCase() : undefined,
+        specs: formData.specs,
       };
 
-      // Only include biddingStartPrice if bidding is allowed (0 is valid)
       if (formData.allowBidding && formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null) {
         updateData.biddingStartPrice = formData.biddingStartPrice;
       }
 
       await onSave(updateData);
       setSubmitSuccess(true);
-
-      // Close modal immediately (parent will show success toast)
       onClose();
     } catch (error) {
       setSubmitError(true);
-      // Show error inside modal (not toast)
       const message = error instanceof Error ? error.message : 'حدث خطأ في تحديث الإعلان';
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper function to render brand/model fields (like create page)
+  const renderBrandModelFields = () => {
+    if (brands.length === 0) return null;
+
+    return (
+      <>
+        <Input
+          type="select"
+          label={brandAttribute?.name || "العلامة التجارية"}
+          value={formData.specs.brandId || ''}
+          onChange={(e) => {
+            setFormData(prev => ({
+              ...prev,
+              specs: { ...prev.specs, brandId: e.target.value, modelId: '' },
+            }));
+          }}
+          options={[
+            { value: '', label: `-- اختر ${brandAttribute?.name || 'العلامة التجارية'} --` },
+            ...brands.filter(b => b.isActive).map(brand => ({
+              value: brand.id,
+              label: brand.name,
+            })),
+          ]}
+          disabled={isLoadingBrands}
+          searchable
+          creatable
+          isLoading={isLoadingBrands}
+          onCreateOption={handleCreateBrand}
+          required={brandAttribute?.validation === 'REQUIRED'}
+        />
+
+        <Input
+          type="select"
+          label={modelAttribute?.name || "الموديل"}
+          value={formData.specs.modelId || ''}
+          onChange={(e) => {
+            setFormData(prev => ({
+              ...prev,
+              specs: { ...prev.specs, modelId: e.target.value },
+            }));
+          }}
+          options={[
+            { value: '', label: formData.specs.brandId ? `-- اختر ${modelAttribute?.name || 'الموديل'} --` : '-- اختر العلامة التجارية أولاً --' },
+            ...models.filter(m => m.isActive).map(model => ({
+              value: model.id,
+              label: model.name,
+            })),
+          ]}
+          disabled={!formData.specs.brandId || isLoadingModels}
+          searchable={!!formData.specs.brandId}
+          creatable={!!formData.specs.brandId}
+          isLoading={isLoadingModels}
+          onCreateOption={handleCreateModel}
+          required={modelAttribute?.validation === 'REQUIRED'}
+        />
+      </>
+    );
+  };
+
+  // Helper function to render a dynamic attribute group (like create page)
+  const renderDynamicGroup = (group: AttributeGroup, sectionNum: number, isFirstSection: boolean = false) => {
+    const groupAttributes = group.attributes;
+    if (groupAttributes.length === 0) return null;
+
+    const hasBrandModel = groupAttributes.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
+    if (hasBrandModel && brands.length === 0) {
+      const otherAttrs = groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
+      if (otherAttrs.length === 0) return null;
+    }
+
+    const groupInfo = (sectionInfo as Record<string, { status: FormSectionStatus; filled: number; total: number }>)[group.name];
+    const status: FormSectionStatus = groupInfo?.status || 'incomplete';
+    const filledCount = groupInfo?.filled || 0;
+    const totalCount = groupInfo?.total || 0;
+
+    if (totalCount === 0) return null;
+
+    const regularAttributes = hasBrandModel
+      ? groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId')
+      : groupAttributes;
+
+    return (
+      <FormSection
+        key={group.name}
+        number={sectionNum}
+        title={group.name}
+        status={status}
+        filledCount={filledCount}
+        totalCount={totalCount}
+        defaultExpanded={isFirstSection}
+      >
+        <div className={styles.specsGrid}>
+          {hasBrandModel && renderBrandModelFields()}
+
+          {regularAttributes.map((attribute) => {
+            const suggestedValues = suggestionSpecs?.[attribute.key as keyof typeof suggestionSpecs];
+
+            return (
+              <div key={attribute.key}>
+                {renderAttributeField({
+                  attribute: attribute as any,
+                  value: formData.specs[attribute.key],
+                  onChange: (value) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      specs: { ...prev.specs, [attribute.key]: value },
+                    }));
+                  },
+                  suggestedValues: suggestedValues as (string | number)[] | undefined,
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </FormSection>
+    );
   };
 
   // Don't render form until we have fresh data
@@ -796,6 +1035,9 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       </Modal>
     );
   }
+
+  // Calculate section numbers dynamically
+  let sectionNumber = 0;
 
   return (
     <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
@@ -857,72 +1099,117 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             </div>
           )}
 
-          {/* Section 1: Basic Info - matches create page */}
+          {/* Section 1: First Dynamic Group (اختر السيارة) - like create page */}
+          {firstGroup && renderDynamicGroup(firstGroup, ++sectionNumber, true)}
+
+          {/* Section 2: Basic Info */}
           <FormSection
-            number={1}
+            number={++sectionNumber}
             title="معلومات الإعلان"
             status={sectionInfo.basicInfo.status}
             filledCount={sectionInfo.basicInfo.filled}
             totalCount={sectionInfo.basicInfo.total}
-            defaultExpanded={true}
+            defaultExpanded={!firstGroup}
           >
-            <Input
-              type="text"
-              label="عنوان الإعلان"
-              placeholder="أدخل عنوان الإعلان"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              maxLength={ListingValidationConfig.title.maxLength}
-              required
-            />
-
-            <Input
-              type="textarea"
-              label="الوصف"
-              placeholder="أدخل وصف تفصيلي للإعلان"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              maxLength={ListingValidationConfig.description.maxLength}
-              rows={5}
-            />
-
-            <div className={styles.formRow}>
+            <div className={styles.formFields}>
               <Input
-                type="price"
-                label="السعر"
-                value={formData.priceMinor}
-                onChange={(e) => setFormData({ ...formData, priceMinor: parseInt(e.target.value) || 0 })}
+                type="text"
+                label="عنوان الإعلان"
+                placeholder="أدخل عنوان الإعلان"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                maxLength={ListingValidationConfig.title.maxLength}
                 required
               />
 
               <Input
-                type="switch"
-                label="السماح بالمزايدة"
-                checked={formData.allowBidding}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, allowBidding: e.target.checked })}
+                type="textarea"
+                label="الوصف"
+                placeholder="أدخل وصف تفصيلي للإعلان"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                maxLength={ListingValidationConfig.description.maxLength}
+                rows={5}
               />
-            </div>
 
-            {formData.allowBidding && (
-              <Input
-                type="number"
-                label="سعر البداية للمزايدة (بالدولار)"
-                placeholder="0 = مجاني"
-                value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? 0 : parseInt(e.target.value);
-                  setFormData({ ...formData, biddingStartPrice: value });
-                }}
-                min={0}
-                step={1}
-                helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
-              />
-            )}
+              <div className={styles.formRow}>
+                <Input
+                  type="price"
+                  label="السعر"
+                  value={formData.priceMinor}
+                  onChange={(e) => setFormData({ ...formData, priceMinor: parseInt(e.target.value) || 0 })}
+                  required
+                />
+
+                <Input
+                  type="switch"
+                  label="السماح بالمزايدة"
+                  checked={formData.allowBidding}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, allowBidding: e.target.checked })}
+                />
+              </div>
+
+              {formData.allowBidding && (
+                <Input
+                  type="number"
+                  label="سعر البداية للمزايدة (بالدولار)"
+                  placeholder="0 = مجاني"
+                  value={formData.biddingStartPrice !== undefined && formData.biddingStartPrice !== null ? formData.biddingStartPrice : ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                    setFormData({ ...formData, biddingStartPrice: value });
+                  }}
+                  min={0}
+                  step={1}
+                  helpText="0 = مزايدة مجانية من أي سعر، أو حدد سعر البداية"
+                />
+              )}
+
+              {listingTypeAttribute && (
+                <Input
+                  type="select"
+                  label={listingTypeAttribute.name}
+                  value={formData.listingType}
+                  onChange={(e) => setFormData({ ...formData, listingType: e.target.value })}
+                  options={[
+                    { value: '', label: `-- اختر ${listingTypeAttribute.name} --` },
+                    ...listingTypeAttribute.options
+                      .filter(opt => opt.isActive)
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .map(opt => ({
+                        value: opt.key,
+                        label: opt.value,
+                      }))
+                  ]}
+                  required={listingTypeAttribute.validation === 'REQUIRED'}
+                />
+              )}
+
+              {conditionAttribute && (
+                <Input
+                  type="select"
+                  label={conditionAttribute.name}
+                  value={formData.condition}
+                  onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+                  options={[
+                    { value: '', label: `-- اختر ${conditionAttribute.name} --` },
+                    ...conditionAttribute.options
+                      .filter(opt => opt.isActive)
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .map(opt => ({
+                        value: opt.key,
+                        label: opt.value,
+                      }))
+                  ]}
+                  required={conditionAttribute.validation === 'REQUIRED'}
+                />
+              )}
+            </div>
           </FormSection>
 
-          {/* Section 2: Media (Images + Video) - matches create page */}
+          {/* Section 3: Media (Images + Video) */}
           <FormSection
-            number={2}
+            number={++sectionNumber}
             title={videoAllowed ? 'الصور والفيديو' : 'الصور'}
             status={sectionInfo.media.status}
             filledCount={sectionInfo.media.filled}
@@ -930,19 +1217,20 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             defaultExpanded={false}
           >
             <ImageUploadGrid
-              images={images}
+              images={imagesWithUploadState}
               onChange={(newImages) => {
-                // Detect if images were added or removed
-                if (newImages.length > images.length) {
+                // Filter out pending images to get actual change
+                const actualImages = newImages.filter(img => !img.isUploading);
+                if (actualImages.length > images.length) {
                   handleImageAdd(newImages);
-                } else if (newImages.length < images.length) {
-                  handleImageDelete(newImages);
+                } else if (actualImages.length < images.length) {
+                  handleImageDelete(actualImages);
                 } else {
-                  setImages(newImages);
+                  setImages(actualImages);
                 }
               }}
               maxImages={maxImagesAllowed}
-              maxSize={2 * 1024 * 1024} // 2MB per image
+              maxSize={2 * 1024 * 1024}
               accept="image/jpeg,image/png,image/webp,image/gif"
               label="الصور"
               onError={(error) => {
@@ -971,14 +1259,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
               </Text>
             )}
 
-            {/* Video Upload - Only for Business/Dealer accounts with videoAllowed */}
             {videoAllowed && (
               <div className={styles.videoSection}>
                 <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
                   الفيديو (اختياري) - الحد الأقصى 20 ميجابايت (30-45 ثانية)
                 </Text>
                 <ImageUploadGrid
-                  images={video}
+                  images={videoWithUploadState}
                   onChange={handleVideoChange}
                   maxImages={1}
                   maxSize={20 * 1024 * 1024}
@@ -1003,153 +1290,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             )}
           </FormSection>
 
-          {/* Dynamic Attribute Sections - includes brand/model in their group */}
-          {attributeGroups.map(([groupName, groupAttrs], groupIndex) => {
-            // Check if this group has brand/model attributes
-            const hasBrandInGroup = groupAttrs.some(attr => attr.key === 'brandId');
-            const hasModelInGroup = groupAttrs.some(attr => attr.key === 'modelId');
-            const groupHasBrandModel = hasBrandInGroup || hasModelInGroup;
-
-            // Filter out brand/model from regular attributes (they render specially)
-            const regularAttrs = groupAttrs.filter(attr =>
-              attr.key !== 'brandId' && attr.key !== 'modelId'
-            );
-
-            // Calculate filled count for this group (matches sectionInfo logic)
-            let filledCount = 0;
-            let totalCount = 0;
-
-            groupAttrs.forEach(attr => {
-              if (attr.key === 'brandId') {
-                if (brands.length > 0) {
-                  totalCount++;
-                  if (formData.specs.brandId) filledCount++;
-                }
-                return;
-              }
-              if (attr.key === 'modelId') {
-                if (brands.length > 0 && formData.specs.brandId) {
-                  totalCount++;
-                  if (formData.specs.modelId) filledCount++;
-                }
-                return;
-              }
-              totalCount++;
-              const value = formData.specs[attr.key];
-              if (value !== undefined && value !== null && value !== '' &&
-                !(Array.isArray(value) && value.length === 0)) {
-                filledCount++;
-              }
-            });
-
-            // Skip empty groups (e.g., brand/model group when no brands available)
-            if (totalCount === 0) return null;
-
-            // Use pre-calculated status from sectionInfo (dynamic keys from attributeGroupsInfo)
-            const groupInfo = (sectionInfo as Record<string, { status: FormSectionStatus; filled: number; total: number }>)[groupName];
-            const status: FormSectionStatus = groupInfo?.status || 'incomplete';
-
-            // Section number: 1=basicInfo, 2=media, then dynamic groups
-            const baseSectionNum = 2;
-
-            return (
-              <FormSection
-                key={groupName}
-                number={baseSectionNum + groupIndex + 1}
-                title={groupName}
-                status={status}
-                filledCount={filledCount}
-                totalCount={totalCount}
-                defaultExpanded={false}
-              >
-                <div className={styles.specsGrid}>
-                  {/* Render brand/model if in this group */}
-                  {groupHasBrandModel && brands.length > 0 && (
-                    <>
-                      <Input
-                        type="select"
-                        label="العلامة التجارية"
-                        value={formData.specs.brandId || ''}
-                        onChange={(e) => {
-                          setFormData(prev => ({
-                            ...prev,
-                            specs: { ...prev.specs, brandId: e.target.value, modelId: '' },
-                          }));
-                        }}
-                        options={[
-                          { value: '', label: '-- اختر العلامة التجارية --' },
-                          ...brands
-                            .filter(b => b.isActive)
-                            .map(brand => ({
-                              value: brand.id,
-                              label: brand.name,
-                            })),
-                        ]}
-                        disabled={isLoadingBrands}
-                        searchable
-                        creatable
-                        isLoading={isLoadingBrands}
-                        onCreateOption={handleCreateBrand}
-                      />
-
-                      {formData.specs.brandId && (
-                        <Input
-                          type="select"
-                          label="الموديل"
-                          value={formData.specs.modelId || ''}
-                          onChange={(e) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              specs: { ...prev.specs, modelId: e.target.value },
-                            }));
-                          }}
-                          options={[
-                            { value: '', label: '-- اختر الموديل --' },
-                            ...models
-                              .filter(m => m.isActive)
-                              .map(model => ({
-                                value: model.id,
-                                label: model.name,
-                              })),
-                          ]}
-                          disabled={isLoadingModels || !formData.specs.brandId || formData.specs.brandId.startsWith('temp_')}
-                          searchable
-                          creatable
-                          isLoading={isLoadingModels}
-                          onCreateOption={handleCreateModel}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  {/* Render regular attributes */}
-                  {regularAttrs
-                    .sort((a, b) => a.sortOrder - b.sortOrder)
-                    .map(attribute => (
-                      <div key={attribute.key}>
-                        {renderAttributeField({
-                          attribute: attribute as any,
-                          value: formData.specs[attribute.key],
-                          onChange: (value) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              specs: {
-                                ...prev.specs,
-                                [attribute.key]: value,
-                              },
-                            }));
-                          },
-                        })}
-                      </div>
-                    ))}
-                </div>
-              </FormSection>
-            );
-          })}
+          {/* Remaining Dynamic Attribute Groups */}
+          {otherGroups.map((group) => renderDynamicGroup(group, ++sectionNumber, false))}
 
           {/* Location Section */}
           <FormSection
-            number={locationSectionNum}
+            number={++sectionNumber}
             title="الموقع"
             status={sectionInfo.location.status}
             filledCount={sectionInfo.location.filled}

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Text, Button, Image } from '@/components/slices';
-import { Trash2, Play, Check, Loader2 } from 'lucide-react';
+import { Trash2, Play, Check } from 'lucide-react';
 import styles from './ImageUploadGrid.module.scss';
 
 export interface ImageItem {
@@ -224,7 +224,9 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
             {/* Upload progress overlay */}
             {image.isUploading && (
               <div className={styles.uploadOverlay}>
-                <Loader2 className={styles.uploadSpinner} size={24} />
+                <Text variant="small" className={styles.uploadText}>
+                  جاري الرفع... {image.uploadProgress !== undefined ? `${image.uploadProgress}%` : ''}
+                </Text>
                 {image.uploadProgress !== undefined && (
                   <div className={styles.progressBar}>
                     <div

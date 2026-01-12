@@ -157,6 +157,80 @@ export const ATTRIBUTE_STORAGE_TYPE_LABELS: Record<string, string> = {
   LOCATION: "موقع (JSONB)",
 };
 
+// ===== CAR FEATURES LABELS =====
+// Fallback labels for car features (multi_selector) when specsDisplay has raw keys
+
+export const CAR_FEATURES_LABELS: Record<string, string> = {
+  // Safety Features
+  abs: "نظام ABS",
+  esp: "نظام الثبات الإلكتروني (ESP)",
+  airbags_front: "وسائد هوائية أمامية",
+  airbags_side: "وسائد هوائية جانبية",
+  airbags_curtain: "وسائد هوائية ستائرية",
+  parking_sensors_rear: "حساسات ركن خلفية",
+  parking_sensors_front: "حساسات ركن أمامية",
+  backup_camera: "كاميرا خلفية",
+  camera_360: "كاميرا 360 درجة",
+  blind_spot_monitor: "مراقبة النقطة العمياء",
+  lane_departure_warning: "تنبيه الخروج عن المسار",
+  forward_collision_warning: "تنبيه الاصطدام الأمامي",
+  adaptive_cruise_control: "مثبت سرعة تكيفي",
+
+  // Comfort Features
+  leather_seats: "مقاعد جلد",
+  heated_seats: "مقاعد مدفأة",
+  cooled_seats: "مقاعد مبردة",
+  electric_seats: "مقاعد كهربائية",
+  memory_seats: "مقاعد بذاكرة",
+  sunroof: "فتحة سقف",
+  panoramic_roof: "سقف بانوراما",
+  power_windows: "نوافذ كهربائية",
+  power_mirrors: "مرايا كهربائية",
+  power_tailgate: "باب خلفي كهربائي",
+  keyless_entry: "دخول بدون مفتاح",
+  push_start: "تشغيل بزر",
+  remote_start: "تشغيل عن بعد",
+  climate_control: "تحكم بالمناخ",
+  dual_zone_climate: "تكييف ثنائي المنطقة",
+  rear_ac: "تكييف خلفي",
+
+  // Technology Features
+  navigation: "نظام ملاحة",
+  bluetooth: "بلوتوث",
+  apple_carplay: "Apple CarPlay",
+  android_auto: "Android Auto",
+  wireless_charging: "شحن لاسلكي",
+  usb_ports: "منافذ USB",
+  premium_audio: "نظام صوت فاخر",
+  head_up_display: "شاشة عرض أمامية",
+  digital_cluster: "عداد رقمي",
+  touch_screen: "شاشة لمس",
+
+  // Exterior Features
+  led_headlights: "مصابيح LED أمامية",
+  led_taillights: "مصابيح LED خلفية",
+  fog_lights: "مصابيح ضباب",
+  auto_headlights: "مصابيح أوتوماتيكية",
+  rain_sensors: "حساسات مطر",
+  alloy_wheels: "جنوط ألمنيوم",
+  roof_rails: "قضبان سقف",
+  tow_hitch: "خطاف سحب",
+
+  // Performance Features
+  turbo: "تيربو",
+  sport_mode: "وضع رياضي",
+  paddle_shifters: "مبدلات خلف المقود",
+  limited_slip_diff: "ديفرنشل محدود الانزلاق",
+  awd: "دفع رباعي",
+  "4wd": "دفع رباعي",
+
+  // Other Features
+  spare_tire: "إطار احتياطي",
+  jack: "رافعة",
+  first_aid_kit: "حقيبة إسعافات أولية",
+  fire_extinguisher: "طفاية حريق",
+};
+
 // ===== AD SYSTEM METADATA LABELS =====
 
 export const AD_MEDIA_TYPE_LABELS: Record<string, string> = {
