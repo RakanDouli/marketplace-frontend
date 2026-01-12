@@ -45,6 +45,14 @@ interface Model {
   isActive: boolean;
 }
 
+interface AttributeConfig {
+  expectedValue?: 'string' | 'number' | 'date' | 'array' | 'boolean';
+  dateFormat?: 'year' | 'month' | 'day' | 'full';
+  maxLength?: number;
+  maxSelections?: number;
+  dataSource?: string;
+}
+
 interface Attribute {
   id: string;
   key: string;
@@ -54,7 +62,7 @@ interface Attribute {
   storageType: string;
   columnName: string | null;
   options?: Array<{ key: string; value: string; sortOrder: number; isActive: boolean }>;
-  maxSelections?: number;
+  config: AttributeConfig | null;
   sortOrder: number;
   group: string;
   groupOrder: number;
@@ -93,6 +101,7 @@ const GET_ATTRIBUTES_QUERY = `
       validation
       storageType
       columnName
+      config
       options { key value sortOrder isActive }
       sortOrder
       group
@@ -713,7 +722,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         name: attr.name,
         validation: attr.validation as "REQUIRED" | "OPTIONAL",
         type: attr.type,
-        maxSelections: attr.maxSelections,
+        maxSelections: attr.config?.maxSelections,
       });
 
       if (attrError) {

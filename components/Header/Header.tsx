@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { MessageCircle, Heart } from "lucide-react";
+import { MessageCircle, Heart, Plus } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
-import { ThemeToggle, Spacer } from "@/components/slices";
+import { ThemeToggle, Spacer, Button } from "@/components/slices";
 import { UserMenu } from "@/components/UserMenu";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
@@ -92,6 +92,18 @@ export const Header: React.FC = () => {
     router.push('/dashboard/wishlist');
   };
 
+  // Handle create listing button click - check auth first
+  const handleCreateListingClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+
+    router.push('/dashboard/listings/create');
+  };
+
   return (
     <>
       <Spacer />
@@ -137,6 +149,16 @@ export const Header: React.FC = () => {
 
             {/* Desktop Actions */}
             <div className={styles.actions}>
+              {/* Create Listing Button - shows for all users, auth check on click */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCreateListingClick}
+                icon={<Plus size={18} />}
+              >
+                أضف إعلانك
+              </Button>
+
               {/* Wishlist Icon - shows for all users, auth check on click */}
               <button
                 onClick={handleWishlistClick}

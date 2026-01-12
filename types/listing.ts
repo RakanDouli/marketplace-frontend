@@ -110,6 +110,22 @@ export interface Category {
 // Brand and Model are now dynamic - handled through specs and aggregations
 // No need for hardcoded types since they're category-specific
 
+/**
+ * Attribute config for validation and behavior
+ * - expectedValue: "string" | "number" | "date" | "array" | "boolean"
+ * - dateFormat: "year" | "month" | "day" | "full" (only when expectedValue = "date")
+ * - maxLength: number (for text/number inputs)
+ * - maxSelections: number (only when expectedValue = "array")
+ * - dataSource: "provider_api" (for brand/model)
+ */
+export interface AttributeConfig {
+  expectedValue?: 'string' | 'number' | 'date' | 'array' | 'boolean';
+  dateFormat?: 'year' | 'month' | 'day' | 'full';
+  maxLength?: number;
+  maxSelections?: number;
+  dataSource?: string;
+}
+
 export interface Attribute {
   id: string;
   key: string;
@@ -130,7 +146,7 @@ export interface Attribute {
   group: string | null; // Group name (null = standalone)
   groupOrder: number; // Order of the group itself in the filter list
   isActive: boolean;
-  maxSelections?: number | null; // Maximum selections for multi-selector types
+  config: AttributeConfig | null; // Validation and behavior config
   // Display Control Flags for View-Specific Filtering
   showInGrid: boolean;
   showInList: boolean;

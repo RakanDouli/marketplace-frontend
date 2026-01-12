@@ -22,6 +22,7 @@ export const GET_ATTRIBUTES_BY_CATEGORY = `
       showInList
       showInDetail
       showInFilter
+      config
       options {
         id
         key

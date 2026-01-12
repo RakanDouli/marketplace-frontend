@@ -207,7 +207,82 @@ export const hasValidationErrors = (errors: ValidationErrors): boolean => {
   return Object.values(errors).some(error => error !== undefined && error !== '');
 };
 
-// Validate dynamic attribute based on attribute type and validation rules
+/**
+ * Config-based field validation
+ * Uses the config JSONB field from attribute for validation rules
+ */
+export interface AttributeConfig {
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  maxSelections?: number;
+  expectedValue?: 'string' | 'number' | 'array' | 'date' | 'boolean';
+  dateFormat?: 'year' | 'month' | 'day' | 'full';
+  dataSource?: string;
+  pattern?: string;
+}
+
+/**
+ * Validate a field value using attribute config
+ * Used for title, description, and dynamic attribute fields
+ */
+export const validateFieldWithConfig = (
+  value: any,
+  fieldName: string,
+  config: AttributeConfig,
+  required: boolean = false
+): string | undefined => {
+  // Check required
+  if (required) {
+    if (value === undefined || value === null || value === '' ||
+        (Array.isArray(value) && value.length === 0)) {
+      return `${fieldName} مطلوب`;
+    }
+  }
+
+  // Skip validation if empty and not required
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  const strValue = typeof value === 'string' ? value.trim() : String(value);
+
+  // minLength validation
+  if (config.minLength !== undefined && strValue.length < config.minLength) {
+    return `${fieldName} يجب أن يكون ${config.minLength} أحرف على الأقل`;
+  }
+
+  // maxLength validation
+  if (config.maxLength !== undefined && strValue.length > config.maxLength) {
+    return `${fieldName} يجب أن يكون أقل من ${config.maxLength} حرف`;
+  }
+
+  // Number min validation
+  if (config.min !== undefined && typeof value === 'number') {
+    if (value < config.min) {
+      return `${fieldName} يجب أن يكون ${config.min} على الأقل`;
+    }
+  }
+
+  // Number max validation
+  if (config.max !== undefined && typeof value === 'number') {
+    if (value > config.max) {
+      return `${fieldName} يجب أن يكون أقل من ${config.max}`;
+    }
+  }
+
+  // Array maxSelections validation
+  if (config.maxSelections !== undefined && Array.isArray(value)) {
+    if (value.length > config.maxSelections) {
+      return `${fieldName} يجب ألا يتجاوز ${config.maxSelections} خيارات`;
+    }
+  }
+
+  return undefined;
+};
+
+// Validate dynamic attribute based on attribute type, validation rules, and config
 export const validateAttribute = (
   value: any,
   attribute: {
@@ -216,78 +291,90 @@ export const validateAttribute = (
     validation: 'REQUIRED' | 'OPTIONAL';
     type: string;
     maxSelections?: number;
+    config?: AttributeConfig;
   }
 ): string | undefined => {
+  const isRequired = attribute.validation === 'REQUIRED';
+  const config = attribute.config || {};
+
   // Required validation
-  if (attribute.validation === 'REQUIRED') {
+  if (isRequired) {
     if (value === undefined || value === null || value === '' ||
         (Array.isArray(value) && value.length === 0)) {
       return `${attribute.name} مطلوب`;
     }
   }
 
+  // Skip further validation if empty and not required
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  // Config-based validation (minLength, maxLength, maxSelections)
+  const configError = validateFieldWithConfig(value, attribute.name, {
+    ...config,
+    maxSelections: attribute.maxSelections || config.maxSelections,
+  }, false); // Don't check required again
+  if (configError) return configError;
+
   // Type-specific validation
-  if (value !== undefined && value !== null && value !== '') {
-    switch (attribute.type) {
-      case AttributeType.SELECTOR:
-        if (typeof value !== 'string' || !value.trim()) {
-          return `${attribute.name} غير صحيح`;
-        }
-        break;
-
-      case AttributeType.MULTI_SELECTOR:
-        // For listings: MULTI_SELECTOR stores a single string value (a car has ONE body type)
-        // For filters: MULTI_SELECTOR uses array (filter by multiple body types)
-        // Accept both formats
-        if (Array.isArray(value)) {
-          // Filter mode: validate array
-          if (attribute.maxSelections && value.length > attribute.maxSelections) {
-            return `${attribute.name} يجب ألا يتجاوز ${attribute.maxSelections} خيارات`;
-          }
-        } else if (typeof value !== 'string' || !value.trim()) {
-          // Listing mode: validate string
-          return `${attribute.name} غير صحيح`;
-        }
-        break;
-
-      case AttributeType.RANGE:
-        // RANGE has two use cases:
-        // 1. Listing creation/editing: single value (string or number) - e.g., year: "2018"
-        // 2. Filtering: {min, max} object - e.g., year: {min: 2015, max: 2020}
-
-        // Accept single value (string or number)
-        if (typeof value === 'string' || typeof value === 'number') {
-          // Valid: single value for listing data
-          break;
-        }
-
-        // OR accept {min, max} object (for filter compatibility)
-        if (typeof value === 'object' && value !== null) {
-          if (!value.min && !value.max) {
-            return `${attribute.name} غير صحيح`;
-          }
-          if (value.min && value.max && parseFloat(value.min) > parseFloat(value.max)) {
-            return `${attribute.name}: القيمة الدنيا يجب أن تكون أصغر من القيمة القصوى`;
-          }
-          break;
-        }
-
-        // Neither single value nor valid object
+  switch (attribute.type) {
+    case AttributeType.SELECTOR:
+      if (typeof value !== 'string' || !value.trim()) {
         return `${attribute.name} غير صحيح`;
-        break;
+      }
+      break;
 
-      case AttributeType.NUMBER:
-        if (isNaN(Number(value))) {
-          return `${attribute.name} يجب أن يكون رقماً`;
+    case AttributeType.MULTI_SELECTOR:
+      // For listings: MULTI_SELECTOR stores array of selected options
+      // Accept array format
+      if (Array.isArray(value)) {
+        const maxSel = attribute.maxSelections || config.maxSelections;
+        if (maxSel && value.length > maxSel) {
+          return `${attribute.name} يجب ألا يتجاوز ${maxSel} خيارات`;
         }
-        break;
+      } else if (typeof value !== 'string' || !value.trim()) {
+        // Single value mode (backwards compatibility)
+        return `${attribute.name} غير صحيح`;
+      }
+      break;
 
-      case AttributeType.TEXT:
-        if (typeof value !== 'string') {
+    case AttributeType.RANGE:
+      // RANGE has two use cases:
+      // 1. Listing creation/editing: single value (string or number) - e.g., year: "2018"
+      // 2. Filtering: {min, max} object - e.g., year: {min: 2015, max: 2020}
+
+      // Accept single value (string or number)
+      if (typeof value === 'string' || typeof value === 'number') {
+        // Valid: single value for listing data
+        break;
+      }
+
+      // OR accept {min, max} object (for filter compatibility)
+      if (typeof value === 'object' && value !== null) {
+        if (!value.min && !value.max) {
           return `${attribute.name} غير صحيح`;
         }
+        if (value.min && value.max && parseFloat(value.min) > parseFloat(value.max)) {
+          return `${attribute.name}: القيمة الدنيا يجب أن تكون أصغر من القيمة القصوى`;
+        }
         break;
-    }
+      }
+
+      // Neither single value nor valid object
+      return `${attribute.name} غير صحيح`;
+
+    case AttributeType.NUMBER:
+      if (isNaN(Number(value))) {
+        return `${attribute.name} يجب أن يكون رقماً`;
+      }
+      break;
+
+    case AttributeType.TEXT:
+      if (typeof value !== 'string') {
+        return `${attribute.name} غير صحيح`;
+      }
+      break;
   }
 
   return undefined;

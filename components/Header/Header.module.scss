@@ -156,6 +156,31 @@
   }
 }
 
+.createListingButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+  padding: $space-xs $space-md;
+  border-radius: $radius-md;
+  border: 1px solid $primary;
+  background-color: transparent;
+  color: $primary;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background-color: $primary;
+    color: $text-inverse;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
 .badge {
   position: absolute;
   top: 6px;

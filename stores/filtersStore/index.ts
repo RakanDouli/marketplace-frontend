@@ -354,8 +354,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         validation: attr.validation,
         sortOrder: attr.sortOrder,
         group: attr.group,
-        groupOrder: attr.groupOrder, // ← Added groupOrder
+        groupOrder: attr.groupOrder,
         isActive: attr.isActive,
+        config: attr.config || null,
         showInGrid: attr.showInGrid,
         showInList: attr.showInList,
         showInDetail: attr.showInDetail,
@@ -413,6 +414,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       group: attr.group,
       groupOrder: attr.groupOrder,
       isActive: attr.isActive,
+      config: attr.config || null,
       showInGrid: attr.showInGrid,
       showInList: attr.showInList,
       showInDetail: attr.showInDetail,

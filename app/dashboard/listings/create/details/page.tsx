@@ -17,6 +17,9 @@ import {
   validateListingForm,
   hasValidationErrors,
   validateAttribute,
+  validateTitle,
+  validateDescription,
+  validatePriceMinor,
   ListingValidationConfig,
   type ValidationErrors,
 } from '@/lib/validation/listingValidation';
@@ -131,9 +134,9 @@ export default function CreateListingDetailsPage() {
     };
 
     // Basic Info - count fields dynamically
-    const titleFilled = formData.title.trim().length >= ListingValidationConfig.title.minLength;
+    const titleFilled = !validateTitle(formData.title);
     const descriptionFilled = formData.description.trim().length > 0;
-    const priceFilled = formData.priceMinor > 0;
+    const priceFilled = !validatePriceMinor(formData.priceMinor);
     const listingTypeRequired = listingTypeAttribute?.validation === 'REQUIRED';
     const conditionRequired = conditionAttribute?.validation === 'REQUIRED';
     const listingTypeFilled = !!formData.listingType;
@@ -371,14 +374,7 @@ export default function CreateListingDetailsPage() {
             }
           });
 
-          if (filledCount > 0) {
-            addNotification({
-              type: 'success',
-              title: 'تعبئة تلقائية',
-              message: `تم ملء ${filledCount} حقول تلقائياً بناءً على الماركة والموديل`,
-              duration: 3000,
-            });
-          }
+          // Auto-fill complete - badge shows "تم التعبئة تلقائياً ✓" in field label
         } else {
           // No suggestions found
           setSuggestionSpecs(null);
@@ -510,7 +506,7 @@ export default function CreateListingDetailsPage() {
         name: attr.name,
         validation: attr.validation,
         type: attr.type,
-        maxSelections: attr.maxSelections,
+        maxSelections: attr.config?.maxSelections,
       });
 
       if (attrError) {
@@ -547,7 +543,7 @@ export default function CreateListingDetailsPage() {
     const validation = validateForm();
 
     if (!validation.isValid) {
-      setValidationError(`يرجى ملء جميع الحقول المطلوبة:\n${validation.errors.join('\n')}`);
+      setValidationError(`يرجى ملء جميع الحقول المطلوبة: ${validation.errors.join(' - ')}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -752,8 +748,15 @@ export default function CreateListingDetailsPage() {
                     saveDraft();
                   },
                   onBlur: () => handleBlur(`spec_${attribute.key}`),
-                  error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
-                    ? `${attribute.name} مطلوب`
+                  error: touched[`spec_${attribute.key}`]
+                    ? validateAttribute(formData.specs[attribute.key], {
+                      key: attribute.key,
+                      name: attribute.name,
+                      validation: attribute.validation as 'REQUIRED' | 'OPTIONAL',
+                      type: attribute.type,
+                      maxSelections: attribute.config?.maxSelections,
+                      config: attribute.config || undefined,
+                    })
                     : undefined,
                   suggestedValues: suggestedValues as (string | number)[] | undefined,
                 })}
@@ -824,7 +827,7 @@ export default function CreateListingDetailsPage() {
                     value={formData.title}
                     onChange={(e) => setFormField('title', e.target.value)}
                     onBlur={() => handleBlur('title')}
-                    error={getError('title', !formData.title.trim() ? 'العنوان مطلوب' : undefined)}
+                    error={getError('title', validateTitle(formData.title))}
                     maxLength={ListingValidationConfig.title.maxLength}
                     required
                   />
@@ -836,6 +839,7 @@ export default function CreateListingDetailsPage() {
                     value={formData.description}
                     onChange={(e) => setFormField('description', e.target.value)}
                     onBlur={() => handleBlur('description')}
+                    error={getError('description', validateDescription(formData.description))}
                     maxLength={ListingValidationConfig.description.maxLength}
                     rows={6}
                   />
@@ -846,7 +850,7 @@ export default function CreateListingDetailsPage() {
                     value={formData.priceMinor}
                     onChange={(e) => setFormField('priceMinor', parseInt(e.target.value) || 0)}
                     onBlur={() => handleBlur('price')}
-                    error={getError('price', formData.priceMinor <= 0 ? 'السعر مطلوب' : undefined)}
+                    error={getError('price', validatePriceMinor(formData.priceMinor))}
                     required
                   />
 

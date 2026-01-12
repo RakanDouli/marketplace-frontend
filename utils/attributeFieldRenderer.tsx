@@ -1,7 +1,7 @@
 'use client';
 
 import { Input } from '@/components/slices/Input/Input';
-import type { Attribute } from '@/stores/createListingStore/types';
+import type { Attribute, AttributeConfig } from '@/stores/createListingStore/types';
 import { AttributeType } from '@/common/enums';
 import styles from './attributeFieldRenderer.module.scss';
 
@@ -19,6 +19,13 @@ interface AttributeFieldProps {
    */
   suggestedValues?: (string | number)[];
 }
+
+/**
+ * Get config value with fallback
+ */
+const getConfig = (attribute: Attribute): AttributeConfig => {
+  return attribute.config || {};
+};
 
 /**
  * Render attribute field with optional suggestion chips
@@ -145,21 +152,86 @@ export const renderAttributeField = ({
     );
   };
 
+  /**
+   * Render multi-select using react-select Input component
+   * Used for MULTI_SELECTOR type (features, etc.)
+   * Uses type="multiselect" which renders react-select with isMulti={true}
+   * Returns array of selected option keys
+   */
+  const renderMultiSelect = () => {
+    const allOptions = getAllOptions();
+    const selectedValues: string[] = Array.isArray(value) ? value : [];
+
+    // Build label with multi-select hint
+    const labelWithHint = (
+      <>
+        {attribute.name}
+        <span className={styles.multiSelectHint}>يمكن اختيار أكثر من خيار</span>
+      </>
+    );
+
+    return (
+      <Input
+        type="multiselect"
+        label={labelWithHint}
+        options={allOptions.map(opt => ({
+          value: opt.key,
+          label: opt.value,
+        }))}
+        value={selectedValues}
+        onChange={(e: any) => {
+          // e.target.value is an array of selected keys from Input multiselect
+          const selectedKeys = e.target?.value || [];
+          onChange(selectedKeys);
+        }}
+        error={error}
+        onBlur={onBlur}
+        required={attribute.validation === 'REQUIRED'}
+      />
+    );
+  };
+
+  const config = getConfig(attribute);
+
   switch (attribute.type) {
     case AttributeType.SELECTOR:
-    case AttributeType.MULTI_SELECTOR:
+      // Single-select dropdown
       return renderDropdownWithChips();
 
+    case AttributeType.MULTI_SELECTOR:
+      // Multi-select dropdown (returns array of selected keys)
+      // Uses react-select with isMulti={true}
+      return renderMultiSelect();
+
     case AttributeType.RANGE:
-      if (attribute.options && attribute.options.length > 0) {
-        return renderDropdownWithChips();
+      // RANGE type = always input field (not dropdown)
+      // Dropdowns with ranges are only for filters, not for form input
+      // Config determines input behavior:
+      // - dateFormat: 'year' → number input (4-digit year)
+      // - expectedValue: 'number' → number input
+      // - maxLength → text input with character limit
+      // - min/max → number validation from config
+
+      if (config.expectedValue === 'number' || config.dateFormat === 'year') {
+        // Number input: year, mileage, engine_size, etc.
+        return (
+          <Input
+            type="number"
+            {...commonProps}
+            min={config.min}
+            max={config.max}
+            onChange={(e) => onChange(e.target.value ? parseInt(e.target.value, 10) : '')}
+            placeholder={`أدخل ${attribute.name}`}
+          />
+        );
       } else {
+        // Text input with maxLength
         return (
           <Input
             type="text"
             {...commonProps}
+            maxLength={config.maxLength}
             onChange={(e) => onChange(e.target.value)}
-            pattern="[0-9]*"
             placeholder={`أدخل ${attribute.name}`}
           />
         );
@@ -170,6 +242,7 @@ export const renderAttributeField = ({
         <Input
           type="text"
           {...commonProps}
+          maxLength={config.maxLength}
           onChange={(e) => onChange(e.target.value)}
         />
       );
@@ -180,6 +253,7 @@ export const renderAttributeField = ({
           type="textarea"
           rows={3}
           {...commonProps}
+          maxLength={config.maxLength}
           onChange={(e) => onChange(e.target.value)}
         />
       );
@@ -189,6 +263,7 @@ export const renderAttributeField = ({
         <Input
           type="number"
           {...commonProps}
+          maxLength={config.maxLength}
           onChange={(e) => onChange(e.target.value ? parseFloat(e.target.value) : '')}
         />
       );
@@ -216,15 +291,38 @@ export const renderAttributeField = ({
       );
 
     case AttributeType.RANGE_SELECTOR:
-      return (
-        <Input
-          type="text"
-          {...commonProps}
-          onChange={(e) => onChange(e.target.value)}
-          pattern="[0-9]*"
-          placeholder={`أدخل ${attribute.name}`}
-        />
-      );
+      // RANGE_SELECTOR = input field in form, range filter in search
+      // Config determines input behavior:
+      // - dateFormat: 'year' → number input (4-digit year)
+      // - expectedValue: 'number' → number input with min/max validation
+      // - maxLength → text input with character limit
+      // - min/max → number validation from config
+
+      if (config.expectedValue === 'number' || config.dateFormat === 'year') {
+        // Number input: year, mileage, etc.
+        return (
+          <Input
+            type="number"
+            {...commonProps}
+            min={config.min}
+            max={config.max}
+            onChange={(e) => onChange(e.target.value ? parseInt(e.target.value, 10) : '')}
+            placeholder={`أدخل ${attribute.name}`}
+          />
+        );
+      } else {
+        // Text input with maxLength (fallback)
+        return (
+          <Input
+            type="text"
+            {...commonProps}
+            maxLength={config.maxLength}
+            onChange={(e) => onChange(e.target.value)}
+            pattern="[0-9]*"
+            placeholder={`أدخل ${attribute.name}`}
+          />
+        );
+      }
 
     case AttributeType.DATE_RANGE:
       return (

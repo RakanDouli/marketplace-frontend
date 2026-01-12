@@ -23,6 +23,26 @@ export interface AttributeOption {
   isActive: boolean;
 }
 
+/**
+ * Attribute config for validation and behavior
+ * - expectedValue: "string" | "number" | "date" | "array" | "boolean"
+ * - dateFormat: "year" | "month" | "day" | "full" (only when expectedValue = "date")
+ * - maxLength: number (for text/number inputs)
+ * - maxSelections: number (only when expectedValue = "array")
+ * - dataSource: "provider_api" (for brand/model)
+ */
+export interface AttributeConfig {
+  expectedValue?: 'string' | 'number' | 'date' | 'array' | 'boolean';
+  dateFormat?: 'year' | 'month' | 'day' | 'full';
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  maxSelections?: number;
+  dataSource?: string;
+  pattern?: string;
+}
+
 export interface Attribute {
   id: string;
   key: string;
@@ -44,8 +64,8 @@ export interface Attribute {
   showInList: boolean;
   showInDetail: boolean;
   showInFilter: boolean;
+  config: AttributeConfig | null; // Validation and behavior config
   options: AttributeOption[];
-  maxSelections?: number; // For MULTI_SELECTOR
 }
 
 export interface AttributeGroup {

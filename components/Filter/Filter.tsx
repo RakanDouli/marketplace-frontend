@@ -175,8 +175,18 @@ export const Filter: React.FC<FilterProps> = ({
   // Get sorted attributes for filters (no grouping - each attribute is its own section)
   const getSortedAttributes = () => {
     const attributes = getFilterableAttributes();
-    // Sort by sortOrder to maintain consistent order matching the form
-    return attributes.sort((a, b) => a.sortOrder - b.sortOrder);
+    // Sort by groupOrder FIRST, then by sortOrder within each group
+    // This matches the create form order:
+    //   groupOrder 1 = Car selection (brand, model, year, mileage)
+    //   groupOrder 2 = Basic info (listingType, condition, price)
+    //   groupOrder 3 = Specs (fuel, transmission, body_type, etc.)
+    //   groupOrder 4 = Location & seller (location, accountType)
+    return attributes.sort((a, b) => {
+      if (a.groupOrder !== b.groupOrder) {
+        return a.groupOrder - b.groupOrder;
+      }
+      return a.sortOrder - b.sortOrder;
+    });
   };
 
   // Apply handler - triggers both draft apply and backend fetch

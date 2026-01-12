@@ -124,3 +124,70 @@
     color: var(--text-inverse);
   }
 }
+
+// Multi-select container (features, etc.)
+.multiSelectContainer {
+  margin-bottom: $space-lg;
+}
+
+.multiSelectLabel {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: var(--text);
+  margin-bottom: $space-sm;
+}
+
+.selectionCount {
+  font-size: $font-xs;
+  color: var(--text-secondary);
+  font-weight: $weight-normal;
+}
+
+.multiSelectOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-sm;
+}
+
+.multiSelectChip {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  padding: $space-sm $space-md;
+  color: var(--text);
+  font-size: $font-sm;
+  cursor: pointer;
+  border-radius: $radius-md;
+  transition: all 0.15s ease;
+
+  &:hover:not(.disabled) {
+    border-color: var(--primary);
+  }
+
+  &.selected {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--text-inverse);
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.errorText {
+  display: block;
+  margin-top: $space-xs;
+  font-size: $font-xs;
+  color: $error;
+}
+
+// Multi-select hint (shown next to label)
+.multiSelectHint {
+  font-size: $font-xs;
+  font-weight: $weight-normal;
+  margin-inline-start: $space-sm;
+}
