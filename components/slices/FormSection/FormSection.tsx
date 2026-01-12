@@ -15,8 +15,8 @@ interface FormSectionProps {
   title: string;
   /** Section completion status:
    * - 'incomplete': Required fields missing (gray border, shows X/Y or number)
-   * - 'required': Required fields filled (primary border + primary check)
-   * - 'complete': All fields filled (primary background + white check)
+   * - 'required': Required fields filled (success border + success check)
+   * - 'complete': All fields filled (success background + white check)
    */
   status: FormSectionStatus;
   /** Number of filled fields (for X/Y display when incomplete) */
@@ -31,6 +31,8 @@ interface FormSectionProps {
   defaultExpanded?: boolean;
   /** Callback when section is toggled */
   onToggle?: (expanded: boolean) => void;
+  /** Content padding size: 'sm' | 'md' | 'lg' (default: 'lg') */
+  contentPadding?: 'sm' | 'md' | 'lg';
   /** Children content */
   children: React.ReactNode;
   /** Additional class name */
@@ -47,6 +49,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
   hasRequiredFields = false,
   defaultExpanded = false,
   onToggle,
+  contentPadding = 'lg',
   children,
   className = '',
 }) => {
@@ -96,6 +99,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
       defaultOpen={defaultExpanded}
       onToggle={onToggle}
       variant="default"
+      contentPadding={contentPadding}
       className={`${styles.section} ${statusClass} ${className}`}
     >
       {children}

@@ -14,7 +14,10 @@
 
 // Label
 .label {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   font-size: $font-sm;
   font-weight: $weight-medium;
   color: $text;
@@ -24,6 +27,19 @@
 .required {
   color: $error;
   margin-inline-start: 2px;
+}
+
+// Label badge (e.g., "تم التعبئة تلقائياً ✓" for auto-filled fields)
+.labelBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 2px $space-sm;
+  background-color: $success-bg;
+  color: $success;
+  border-radius: $radius-sm;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
 }
 
 // Base input styles (text, email, password, number, url, date, etc.)
@@ -103,9 +119,27 @@
   &--error {
     border-color: $error;
 
+    &:hover:not(:disabled) {
+      border-color: $error;
+    }
+
     &:focus {
       border-color: $error;
       box-shadow: 0 0 0 3px rgba($error, 0.1);
+    }
+  }
+
+  // Success state (valid and filled)
+  &--success {
+    border-color: $success;
+
+    &:hover:not(:disabled) {
+      border-color: $success;
+    }
+
+    &:focus {
+      border-color: $success;
+      box-shadow: 0 0 0 3px rgba($success, 0.1);
     }
   }
 
@@ -502,6 +536,18 @@ textarea.input {
 
   :global(.react-select__indicator-separator) {
     display: none !important;
+  }
+
+  // Success state for react-select
+  &.selectSuccess {
+    :global(.react-select__control) {
+      border-color: $success !important;
+
+      &.react-select__control--is-focused {
+        border-color: $success !important;
+        box-shadow: 0 0 0 3px rgba($success, 0.1) !important;
+      }
+    }
   }
 }
 

@@ -72,3 +72,55 @@
     }
   }
 }
+
+// Required asterisk (for custom labels)
+.required {
+  color: $error;
+  margin-inline-start: 2px;
+}
+
+// Auto-fill badge (matches Input component's labelBadge style)
+.autoFillBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 2px $space-sm;
+  background-color: $success-bg;
+  color: $success;
+  border-radius: $radius-sm;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+}
+
+// Chips container (inline with label)
+.chipsContainer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+}
+
+// Suggestion chip (clickable)
+.suggestionChip {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px $space-sm;
+  color: var(--text);
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  border-radius: $radius-full;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--text-inverse);
+  }
+
+  // Selected state
+  &.selected {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--text-inverse);
+  }
+}

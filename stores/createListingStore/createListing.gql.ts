@@ -284,3 +284,16 @@ export const GET_MODELS_QUERY = `
     }
   }
 `;
+
+// Query to get auto-fill suggestions for brand + model + year
+export const GET_MODEL_SUGGESTION_QUERY = `
+  query GetModelSuggestion($brandId: String!, $modelId: String!, $year: Int) {
+    getModelSuggestion(brandId: $brandId, modelId: $modelId, year: $year) {
+      id
+      brandId
+      modelId
+      year
+      specs
+    }
+  }
+`;

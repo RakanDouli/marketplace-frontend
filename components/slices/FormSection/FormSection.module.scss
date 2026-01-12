@@ -5,22 +5,23 @@
   border: 2px solid $border;
   border-radius: $radius-lg;
   overflow: hidden;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: $space-md; // Gap between collapsed sections
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:last-child {
     margin-bottom: 0;
   }
 
-  // Status: Required fields filled - primary border
+  // Status: Required fields filled - success border
   &.required {
-    border-color: $primary;
+    border-color: $success;
   }
 
-  // Status: All fields complete - primary border + subtle glow
+  // Status: All fields complete - success border + subtle glow
   &.complete {
-    border-color: $primary;
-    box-shadow: 0 0 0 1px $primary;
+    border-color: $success;
+    box-shadow: 0 0 0 1px $success;
   }
 
   // Status: Has validation errors - red border
@@ -38,9 +39,8 @@
     }
   }
 
-  // Override Collapsible's content inner padding
+  // Add border-top and flex layout to content
   :global(.contentInner) {
-    padding: $space-md $space-lg $space-lg;
     border-top: 1px solid $border;
     display: flex;
     flex-direction: column;
@@ -68,17 +68,17 @@
   color: $text-secondary;
   transition: all 0.3s ease;
 
-  // Status: Required fields filled - primary border + primary check
+  // Status: Required fields filled - success border + success check
   &.required {
-    border-color: $primary;
-    color: $primary;
+    border-color: $success;
+    color: $success;
     background: transparent;
   }
 
-  // Status: All fields complete - primary background + white check
+  // Status: All fields complete - success background + white check
   &.complete {
-    background: $primary;
-    border-color: $primary;
+    background: $success;
+    border-color: $success;
     color: white;
   }
 
@@ -115,7 +115,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-
 .content {
   max-height: 0;
   overflow: hidden;
@@ -135,15 +134,11 @@
   gap: $space-md;
 }
 
-// Mobile: reduce horizontal padding for more field space
+// Mobile: reduce trigger padding and indicator size
 @media (max-width: $breakpoint-md) {
   .section {
     :global(.trigger) {
-      padding: $space-md $space-sm;
-    }
-
-    :global(.contentInner) {
-      padding: $space-md $space-sm $space-lg;
+      padding: $space-sm $space-xs;
     }
   }
 

@@ -1,102 +1,159 @@
-import React from 'react';
+'use client';
+
 import { Input } from '@/components/slices/Input/Input';
-import Text from '@/components/slices/Text/Text';
 import type { Attribute } from '@/stores/createListingStore/types';
 import { AttributeType } from '@/common/enums';
 import styles from './attributeFieldRenderer.module.scss';
 
-interface RenderAttributeFieldProps {
+interface AttributeFieldProps {
   attribute: Attribute;
   value: any;
   onChange: (value: any) => void;
   onBlur?: () => void;
   error?: string;
+  /**
+   * Suggested values from model_suggestions specs.
+   * - If 1 value: Auto-selected, shows "تم التعبئة تلقائياً ✓" badge next to label
+   * - If multiple values: Shows clickable chips next to label for quick selection
+   * - All options remain visible in dropdown
+   */
+  suggestedValues?: (string | number)[];
 }
 
+/**
+ * Render attribute field with optional suggestion chips
+ */
 export const renderAttributeField = ({
   attribute,
   value,
   onChange,
   onBlur,
   error,
-}: RenderAttributeFieldProps): JSX.Element | null => {
+  suggestedValues,
+}: AttributeFieldProps): JSX.Element | null => {
+  /**
+   * Check if field was auto-filled (exactly 1 suggestion and value matches it)
+   */
+  const isAutoFilled = (): boolean => {
+    if (!suggestedValues || suggestedValues.length !== 1) return false;
+    return String(value).toLowerCase() === String(suggestedValues[0]).toLowerCase();
+  };
+
+  /**
+   * Check if we have multiple suggestions to show as chips
+   */
+  const hasMultipleSuggestions = (): boolean => {
+    if (!suggestedValues || suggestedValues.length <= 1) return false;
+    // Also check that suggestions match actual options
+    const suggestedSet = new Set(suggestedValues.map(v => String(v).toLowerCase()));
+    const matchingOptions = attribute.options.filter(opt =>
+      suggestedSet.has(String(opt.key).toLowerCase())
+    );
+    return matchingOptions.length > 1;
+  };
+
   const commonProps = {
-    label: attribute.name, // Arabic label from backend
+    label: attribute.name,
     value: value ?? '',
     error: error,
     onBlur: onBlur,
-    helpText: undefined, // Can add description field to attribute if needed
-    required: attribute.validation === 'REQUIRED', // Input component will add asterisk automatically via SCSS
+    helpText: undefined,
+    required: attribute.validation === 'REQUIRED',
+  };
+
+  /**
+   * Get all active options sorted by order.
+   */
+  const getAllOptions = () => {
+    return attribute.options
+      .filter(opt => opt.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  };
+
+  /**
+   * Get suggested options with their labels (for clickable chips)
+   */
+  const getSuggestedOptions = (): Array<{ key: string; label: string }> => {
+    if (!suggestedValues || suggestedValues.length === 0) return [];
+
+    const suggestedSet = new Set(suggestedValues.map(v => String(v).toLowerCase()));
+    return attribute.options
+      .filter(opt => suggestedSet.has(String(opt.key).toLowerCase()))
+      .map(opt => ({ key: opt.key, label: opt.value }));
+  };
+
+  /**
+   * Build custom label with chips or auto-fill badge
+   */
+  const buildLabelWithChips = (): React.ReactNode => {
+    const suggestedOptions = getSuggestedOptions();
+    const showChips = hasMultipleSuggestions();
+    const autoFilled = isAutoFilled();
+
+    return (
+      <>
+        <span>
+          {attribute.name}
+          {attribute.validation === 'REQUIRED' && <span className={styles.required}>*</span>}
+        </span>
+
+        {/* Show auto-fill badge OR suggestion chips */}
+        {autoFilled ? (
+          <span className={styles.autoFillBadge}>تم التعبئة تلقائياً ✓</span>
+        ) : showChips ? (
+          <span className={styles.chipsContainer}>
+            {suggestedOptions.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                className={`${styles.suggestionChip} ${value === opt.key ? styles.selected : ''}`}
+                onClick={() => onChange(opt.key)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </span>
+        ) : null}
+      </>
+    );
+  };
+
+  /**
+   * Render dropdown with custom label containing chips
+   */
+  const renderDropdownWithChips = () => {
+    const hasSuggestions = isAutoFilled() || hasMultipleSuggestions();
+
+    return (
+      <Input
+        type="select"
+        options={[
+          { value: '', label: `-- اختر ${attribute.name} --` },
+          ...getAllOptions().map(opt => ({
+            value: opt.key,
+            label: opt.value,
+          }))
+        ]}
+        // Use custom ReactNode label if we have suggestions, otherwise use string label
+        label={hasSuggestions ? buildLabelWithChips() : attribute.name}
+        value={value ?? ''}
+        error={error}
+        onBlur={onBlur}
+        required={attribute.validation === 'REQUIRED'}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
   };
 
   switch (attribute.type) {
     case AttributeType.SELECTOR:
-      return (
-        <Input
-          type="select"
-          options={[
-            { value: '', label: `-- اختر ${attribute.name} --` },
-            ...attribute.options
-              .filter(opt => opt.isActive)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map(opt => ({
-                value: opt.key,
-                label: opt.value, // Arabic label
-              }))
-          ]}
-          {...commonProps}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-
     case AttributeType.MULTI_SELECTOR:
-      // For listing creation, MULTI_SELECTOR is rendered as a regular SELECTOR
-      // (A specific item has ONE value, not multiple)
-      // MULTI_SELECTOR is only used in filters (e.g., "show cars with 1.6L OR 2.0L")
-      return (
-        <Input
-          type="select"
-          options={[
-            { value: '', label: `-- اختر ${attribute.name} --` },
-            ...attribute.options
-              .filter(opt => opt.isActive)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map(opt => ({
-                value: opt.key,
-                label: opt.value,
-              }))
-          ]}
-          {...commonProps}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
+      return renderDropdownWithChips();
 
     case AttributeType.RANGE:
-      // RANGE type can have two behaviors:
-      // 1. NO OPTIONS → Free text/number input (e.g., year: "2018", mileage: "50000")
-      // 2. WITH OPTIONS → Selector dropdown (rare, but supported)
-
       if (attribute.options && attribute.options.length > 0) {
-        // Has predefined options → render as dropdown
-        return (
-          <Input
-            type="select"
-            options={[
-              { value: '', label: `-- اختر ${attribute.name} --` },
-              ...attribute.options
-                .filter(opt => opt.isActive)
-                .sort((a, b) => a.sortOrder - b.sortOrder)
-                .map(opt => ({
-                  value: opt.key,
-                  label: opt.value,
-                }))
-            ]}
-            {...commonProps}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        );
+        return renderDropdownWithChips();
       } else {
-        // No options → free text input for number (e.g., year, mileage)
         return (
           <Input
             type="text"
@@ -107,6 +164,7 @@ export const renderAttributeField = ({
           />
         );
       }
+
     case AttributeType.TEXT:
       return (
         <Input
@@ -158,9 +216,6 @@ export const renderAttributeField = ({
       );
 
     case AttributeType.RANGE_SELECTOR:
-      // RANGE_SELECTOR: For listing creation, user enters a single value (e.g., year, mileage)
-      // The predefined options are ONLY used in filters (min/max dropdowns), not for data entry
-      // Here we render a simple number input
       return (
         <Input
           type="text"
@@ -172,8 +227,6 @@ export const renderAttributeField = ({
       );
 
     case AttributeType.DATE_RANGE:
-      // DATE_RANGE: For listing creation, user enters a single date
-      // The "range" aspect is only used in filters (from/to dates)
       return (
         <Input
           type="date"

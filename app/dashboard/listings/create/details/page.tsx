@@ -8,7 +8,7 @@ import Text from '@/components/slices/Text/Text';
 import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
-import { GET_BRANDS_QUERY, GET_MODELS_QUERY } from '@/stores/createListingStore/createListing.gql';
+import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
@@ -83,6 +83,20 @@ export default function CreateListingDetailsPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [uploadingImageIds, setUploadingImageIds] = useState<Set<string>>(new Set());
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  // Model suggestion specs - used to filter dropdown options
+  // Each field contains an array of valid options for the selected brand+model+year
+  const [suggestionSpecs, setSuggestionSpecs] = useState<{
+    fuel_type?: string[];
+    transmission?: string[];
+    body_type?: string[];
+    engine_size?: string[];
+    cylinders?: string[];
+    seats?: number[];
+    doors?: number[];
+    drive_type?: string[];
+  } | null>(null);
 
   // Note: Section expansion is now handled internally by Collapsible component
   // Using defaultExpanded prop for initial state
@@ -100,119 +114,133 @@ export default function CreateListingDetailsPage() {
   const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
   const conditionAttribute = attributes.find(attr => attr.key === 'condition');
 
-  // Section status info
+  // Section status info with counts
   interface SectionInfo {
     status: FormSectionStatus;
+    hasError: boolean;
     filledCount: number;
     totalCount: number;
-    hasError: boolean;
   }
 
   const sectionInfo: Record<string, SectionInfo> = useMemo(() => {
+    // Status: incomplete (required missing), required (required filled), complete (all filled)
     const getStatus = (requiredFilled: boolean, allFilled: boolean): FormSectionStatus => {
       if (!requiredFilled) return 'incomplete';
       if (allFilled) return 'complete';
       return 'required';
     };
 
-    // Basic Info
+    // Basic Info - count fields dynamically
     const titleFilled = formData.title.trim().length >= ListingValidationConfig.title.minLength;
-    const priceFilled = formData.priceMinor > 0;
     const descriptionFilled = formData.description.trim().length > 0;
-    const basicInfoRequired = titleFilled && priceFilled;
-    const basicInfoAll = basicInfoRequired && descriptionFilled;
-    const basicInfoFilled = [titleFilled, priceFilled, descriptionFilled].filter(Boolean).length;
-    const basicInfoError = (touched.title && !titleFilled) || (touched.price && !priceFilled);
+    const priceFilled = formData.priceMinor > 0;
+    const listingTypeRequired = listingTypeAttribute?.validation === 'REQUIRED';
+    const conditionRequired = conditionAttribute?.validation === 'REQUIRED';
+    const listingTypeFilled = !!formData.listingType;
+    const conditionFilled = !!formData.condition;
 
-    // Media
-    const imagesRequired = formData.images.length >= ListingValidationConfig.images.min;
-    const videoFilled = formData.video.length > 0;
-    const mediaAll = imagesRequired && (!videoAllowed || videoFilled);
-    const mediaTotal = videoAllowed ? 2 : 1;
-    const mediaFilled = [imagesRequired, videoFilled].filter(Boolean).length;
-    const mediaError = touched.images && !imagesRequired;
+    // Basic info fields: title, description, price, allowBidding, biddingStartPrice (conditional), listingType (conditional), condition (conditional)
+    let basicInfoTotal = 3; // title, description, price always present
+    let basicInfoFilled = 0;
+    if (titleFilled) basicInfoFilled++;
+    if (descriptionFilled) basicInfoFilled++;
+    if (priceFilled) basicInfoFilled++;
+    if (listingTypeAttribute) {
+      basicInfoTotal++;
+      if (listingTypeFilled) basicInfoFilled++;
+    }
+    if (conditionAttribute) {
+      basicInfoTotal++;
+      if (conditionFilled) basicInfoFilled++;
+    }
 
-    // Brand & Model (for use in dynamic groups)
+    const basicInfoRequiredOk = titleFilled && priceFilled &&
+      (!listingTypeRequired || listingTypeFilled) &&
+      (!conditionRequired || conditionFilled);
+    const basicInfoError = (touched.title && !titleFilled) || (touched.price && !priceFilled) ||
+      (touched.listingType && listingTypeRequired && !listingTypeFilled) ||
+      (touched.condition && conditionRequired && !conditionFilled);
+
+    // Media - count images and video
+    const imagesOk = formData.images.length >= ListingValidationConfig.images.min;
+    const mediaError = touched.images && !imagesOk;
+    const mediaTotal = videoAllowed ? 2 : 1; // images + video (if allowed)
+    let mediaFilled = 0;
+    if (formData.images.length > 0) mediaFilled++;
+    if (videoAllowed && formData.video.length > 0) mediaFilled++;
+
+    // Location - only province is defined in backend, others are hardcoded optional fields
+    const provinceFilled = !!formData.location.province;
+    const locationError = touched.province && !provinceFilled;
+    // TODO: Add city, area, link as backend attributes so admin can control them
+    const locationTotal = 4; // province, city, area, link (all rendered in form)
+    const locationFilled = +provinceFilled + +!!formData.location.city + +!!formData.location.area + +!!formData.location.link;
+
+    // Dynamic attribute groups
     const brandRequired = brandAttribute?.validation === 'REQUIRED';
     const modelRequired = modelAttribute?.validation === 'REQUIRED';
     const brandFilled = !!formData.specs.brandId;
     const modelFilled = !!formData.specs.modelId;
 
-    // Dynamic attribute groups (now includes brand/model in their group)
     const attributeGroupsInfo: Record<string, SectionInfo> = {};
     attributeGroups.forEach((group) => {
-      const groupAttrs = group.attributes;
-      const hasBrandModel = groupAttrs.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
-
-      // Calculate required filled status
       let requiredFilled = true;
-      let filledCount = 0;
-      let totalCount = 0;
+      let allFilled = true;
       let hasGroupError = false;
+      let groupTotal = 0;
+      let groupFilled = 0;
 
-      groupAttrs.forEach(attr => {
-        // Handle brand/model specially
+      group.attributes.forEach(attr => {
         if (attr.key === 'brandId') {
           if (brands.length > 0) {
-            totalCount++;
-            if (brandFilled) filledCount++;
+            groupTotal++;
+            if (brandFilled) groupFilled++;
             if (brandRequired && !brandFilled) requiredFilled = false;
+            if (!brandFilled) allFilled = false;
             if (touched.brandId && brandRequired && !brandFilled) hasGroupError = true;
           }
           return;
         }
         if (attr.key === 'modelId') {
           if (brands.length > 0 && brandFilled) {
-            totalCount++;
-            if (modelFilled) filledCount++;
+            groupTotal++;
+            if (modelFilled) groupFilled++;
             if (modelRequired && !modelFilled) requiredFilled = false;
+            if (!modelFilled) allFilled = false;
             if (touched.modelId && modelRequired && !modelFilled) hasGroupError = true;
           }
           return;
         }
 
-        // Regular attributes
-        totalCount++;
+        groupTotal++;
         const value = formData.specs[attr.key];
-        if (value !== undefined && value !== null && value !== '') {
-          filledCount++;
-        }
-        if (attr.validation === 'REQUIRED') {
-          if (!value) requiredFilled = false;
-        }
-        if (touched[`spec_${attr.key}`] && attr.validation === 'REQUIRED' && !value) {
-          hasGroupError = true;
-        }
+        const isFilled = value !== undefined && value !== null && value !== '';
+        if (isFilled) groupFilled++;
+        if (!isFilled) allFilled = false;
+        if (attr.validation === 'REQUIRED' && !isFilled) requiredFilled = false;
+        if (touched[`spec_${attr.key}`] && attr.validation === 'REQUIRED' && !isFilled) hasGroupError = true;
       });
-
-      // Skip empty groups (e.g., brand/model group when no brands available)
-      if (totalCount === 0) return;
-
-      const allFilled = filledCount === totalCount;
 
       attributeGroupsInfo[group.name] = {
         status: getStatus(requiredFilled, allFilled),
-        filledCount,
-        totalCount,
         hasError: hasGroupError,
+        filledCount: groupFilled,
+        totalCount: groupTotal,
       };
     });
 
-    // Location
-    const provinceRequired = !!formData.location.province;
-    const cityFilled = !!formData.location.city;
-    const areaFilled = !!formData.location.area;
-    const locationAll = provinceRequired && cityFilled && areaFilled;
-    const locationFilled = [provinceRequired, cityFilled, areaFilled].filter(Boolean).length;
-    const locationError = touched.province && !provinceRequired;
+    // Calculate "all filled" for each section
+    const basicInfoAllFilled = basicInfoFilled === basicInfoTotal;
+    const mediaAllFilled = mediaFilled === mediaTotal;
+    const locationAllFilled = locationFilled === locationTotal;
 
     return {
-      basicInfo: { status: getStatus(basicInfoRequired, basicInfoAll), filledCount: basicInfoFilled, totalCount: 3, hasError: basicInfoError },
-      media: { status: getStatus(imagesRequired, mediaAll), filledCount: mediaFilled, totalCount: mediaTotal, hasError: mediaError },
-      location: { status: getStatus(provinceRequired, locationAll), filledCount: locationFilled, totalCount: 3, hasError: locationError },
+      basicInfo: { status: getStatus(basicInfoRequiredOk, basicInfoAllFilled), hasError: basicInfoError, filledCount: basicInfoFilled, totalCount: basicInfoTotal },
+      media: { status: getStatus(imagesOk, mediaAllFilled), hasError: mediaError, filledCount: mediaFilled, totalCount: mediaTotal },
+      location: { status: getStatus(provinceFilled, locationAllFilled), hasError: locationError, filledCount: locationFilled, totalCount: locationTotal },
       ...attributeGroupsInfo,
     };
-  }, [formData, attributes, attributeGroups, brands.length, brandAttribute, modelAttribute, videoAllowed, touched]);
+  }, [formData, attributes, attributeGroups, brands.length, brandAttribute, modelAttribute, listingTypeAttribute, conditionAttribute, touched, videoAllowed]);
 
 
   // Auth guard
@@ -289,6 +317,83 @@ export default function CreateListingDetailsPage() {
       setModels([]);
     }
   }, [formData.specs.brandId]);
+
+  // Fetch model suggestions when brand + model + year are selected
+  // This populates suggestionSpecs which is used to filter dropdown options
+  useEffect(() => {
+    const brandId = formData.specs.brandId;
+    const modelId = formData.specs.modelId;
+    const year = formData.specs.year;
+
+    // Clear suggestions when brand/model changes
+    if (!brandId || !modelId || brandId.startsWith('temp_') || modelId.startsWith('temp_')) {
+      setSuggestionSpecs(null);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      setIsAutoFilling(true);
+      try {
+        const data = await cachedGraphQLRequest(GET_MODEL_SUGGESTION_QUERY, {
+          brandId,
+          modelId,
+          year: year ? parseInt(String(year)) : null,
+        }, { ttl: 0 }); // No cache for fresh data
+
+        const suggestion = (data as any).getModelSuggestion;
+        if (suggestion?.specs) {
+          const specs = suggestion.specs;
+
+          // Store suggestion specs for filtering dropdowns
+          setSuggestionSpecs(specs);
+
+          // Auto-fill fields where there's only ONE option (auto-select)
+          const autoFillFields = [
+            'fuel_type',
+            'transmission',
+            'body_type',
+            'engine_size',
+            'cylinders',
+            'seats',
+            'doors',
+            'drive_type',
+          ] as const;
+
+          let filledCount = 0;
+          autoFillFields.forEach((field) => {
+            const options = specs[field];
+            // Only auto-fill if:
+            // 1. There's exactly 1 option available
+            // 2. The field is currently empty (don't overwrite user changes)
+            if (Array.isArray(options) && options.length === 1 && !formData.specs[field]) {
+              setSpecField(field, options[0]);
+              filledCount++;
+            }
+          });
+
+          if (filledCount > 0) {
+            addNotification({
+              type: 'success',
+              title: 'تعبئة تلقائية',
+              message: `تم ملء ${filledCount} حقول تلقائياً بناءً على الماركة والموديل`,
+              duration: 3000,
+            });
+          }
+        } else {
+          // No suggestions found
+          setSuggestionSpecs(null);
+        }
+      } catch (error) {
+        console.error('Error fetching model suggestions:', error);
+        setSuggestionSpecs(null);
+        // Silent fail - auto-fill is optional
+      } finally {
+        setIsAutoFilling(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [formData.specs.brandId, formData.specs.modelId, formData.specs.year, setSpecField, addNotification]);
 
   if (isAuthLoading || !user || isLoadingDraft) {
     return (
@@ -512,6 +617,154 @@ export default function CreateListingDetailsPage() {
 
   let sectionNumber = 0;
 
+  // Separate first group (اختر السيارة - groupOrder 1) from other dynamic groups
+  // First group renders BEFORE basic info, other groups render AFTER media
+  const firstGroup = attributeGroups.find(g => g.groupOrder === 1);
+  const otherGroups = attributeGroups.filter(g => g.groupOrder !== 1);
+
+  // Helper function to render a dynamic attribute group
+  const renderDynamicGroup = (group: typeof attributeGroups[0], isFirstSection: boolean = false) => {
+    const groupAttributes = group.attributes;
+    if (groupAttributes.length === 0) return null;
+
+    // Check if this group has brand/model attributes
+    const hasBrandModel = groupAttributes.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
+    // Skip brand/model group entirely if no brands available for this category
+    if (hasBrandModel && brands.length === 0) {
+      // Filter out brand/model and check if there are other attributes
+      const otherAttrs = groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
+      if (otherAttrs.length === 0) return null;
+    }
+
+    const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, hasError: false };
+
+    // Check if group has any required attributes
+    const hasRequiredFields = groupAttributes.some(attr => attr.validation === 'REQUIRED');
+
+    // Helper function to render brand/model fields as separate grid items
+    const renderBrandModelFields = () => {
+      if (!hasBrandModel || brands.length === 0) return null;
+
+      return (
+        <>
+          <Input
+            type="select"
+            label={brandAttribute?.name || "العلامة التجارية"}
+            value={formData.specs.brandId || ''}
+            onChange={(e) => {
+              setSpecField('brandId', e.target.value);
+              setSpecField('modelId', '');
+              saveDraft();
+            }}
+            onBlur={() => handleBlur('brandId')}
+            options={[
+              { value: '', label: `-- اختر ${brandAttribute?.name || 'العلامة التجارية'} --` },
+              ...brands
+                .filter(b => b.isActive)
+                .map(brand => ({
+                  value: brand.id,
+                  label: brand.name,
+                })),
+            ]}
+            disabled={isLoadingBrands}
+            searchable
+            creatable
+            isLoading={isLoadingBrands}
+            onCreateOption={handleCreateBrand}
+            required={brandAttribute?.validation === 'REQUIRED'}
+            error={getError('brandId',
+              brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId
+                ? `${brandAttribute?.name || 'العلامة التجارية'} مطلوب`
+                : undefined
+            )}
+            success={!!formData.specs.brandId && !getError('brandId', brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId ? 'error' : undefined)}
+          />
+
+          <Input
+            type="select"
+            label={modelAttribute?.name || "الموديل"}
+            value={formData.specs.modelId || ''}
+            onChange={(e) => {
+              setSpecField('modelId', e.target.value);
+              saveDraft();
+            }}
+            onBlur={() => handleBlur('modelId')}
+            options={[
+              { value: '', label: formData.specs.brandId ? `-- اختر ${modelAttribute?.name || 'الموديل'} --` : '-- اختر العلامة التجارية أولاً --' },
+              ...models
+                .filter(m => m.isActive)
+                .map(model => ({
+                  value: model.id,
+                  label: model.name,
+                })),
+            ]}
+            disabled={!formData.specs.brandId || isLoadingModels}
+            searchable={!!formData.specs.brandId}
+            creatable={!!formData.specs.brandId}
+            isLoading={isLoadingModels}
+            onCreateOption={handleCreateModel}
+            required={modelAttribute?.validation === 'REQUIRED'}
+            error={getError('modelId',
+              modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
+                ? `${modelAttribute?.name || 'الموديل'} مطلوب`
+                : undefined
+            )}
+            success={!!formData.specs.modelId && !getError('modelId', modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId ? 'error' : undefined)}
+          />
+        </>
+      );
+    };
+
+    // Filter out brand/model for regular rendering (they're rendered specially)
+    const regularAttributes = hasBrandModel
+      ? groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId')
+      : groupAttributes;
+
+    return (
+      <FormSection
+        key={group.name}
+        number={++sectionNumber}
+        title={group.name}
+        status={groupInfo.status}
+        hasError={groupInfo.hasError}
+        hasRequiredFields={hasRequiredFields}
+        defaultExpanded={isFirstSection}
+        filledCount={groupInfo.filledCount}
+        totalCount={groupInfo.totalCount}
+      >
+        <div className={styles.specsGrid}>
+          {/* Render brand/model first if present */}
+          {renderBrandModelFields()}
+
+          {/* Render other attributes */}
+          {regularAttributes.map((attribute) => {
+            // Get suggested values from model_suggestions specs for this attribute
+            // These are shown as hints below the dropdown (all options remain visible)
+            const suggestedValues = suggestionSpecs?.[attribute.key as keyof typeof suggestionSpecs];
+
+            return (
+              <div key={attribute.key}>
+                {renderAttributeField({
+                  attribute,
+                  value: formData.specs[attribute.key],
+                  onChange: (value) => {
+                    setSpecField(attribute.key, value);
+                    saveDraft();
+                  },
+                  onBlur: () => handleBlur(`spec_${attribute.key}`),
+                  error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
+                    ? `${attribute.name} مطلوب`
+                    : undefined,
+                  suggestedValues: suggestedValues as (string | number)[] | undefined,
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </FormSection>
+    );
+  };
+
   return (
     <>
       <MobileBackButton
@@ -529,7 +782,7 @@ export default function CreateListingDetailsPage() {
         </Button>
       </div>
 
-      <Container className={styles.container}>
+      <Container innerPadding='none' paddingX='none'>
         <div className={styles.detailsPage}>
           <div className={styles.header}>
             <Text variant="h1">أكمل تفاصيل إعلانك</Text>
@@ -549,16 +802,19 @@ export default function CreateListingDetailsPage() {
 
           <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
             <div className={styles.sectionsContainer}>
-              {/* Section 1: Basic Info */}
+              {/* Section 1: First Dynamic Group (اختر السيارة - groupOrder 1) */}
+              {firstGroup && renderDynamicGroup(firstGroup, true)}
+
+              {/* Section 2: Basic Info */}
               <FormSection
                 number={++sectionNumber}
                 title="معلومات الإعلان"
                 status={sectionInfo.basicInfo.status}
-                filledCount={sectionInfo.basicInfo.filledCount}
-                totalCount={sectionInfo.basicInfo.totalCount}
                 hasError={sectionInfo.basicInfo.hasError}
                 hasRequiredFields
-                defaultExpanded={true}
+                defaultExpanded={!firstGroup}
+                filledCount={sectionInfo.basicInfo.filledCount}
+                totalCount={sectionInfo.basicInfo.totalCount}
               >
                 <div className={styles.formFields}>
                   <Input
@@ -644,6 +900,7 @@ export default function CreateListingDetailsPage() {
                           ? `${listingTypeAttribute.name} مطلوب`
                           : undefined
                       )}
+                      success={!!formData.listingType && !getError('listingType', undefined)}
                     />
                   )}
 
@@ -673,6 +930,7 @@ export default function CreateListingDetailsPage() {
                           ? `${conditionAttribute.name} مطلوب`
                           : undefined
                       )}
+                      success={!!formData.condition && !getError('condition', undefined)}
                     />
                   )}
                 </div>
@@ -683,11 +941,11 @@ export default function CreateListingDetailsPage() {
                 number={++sectionNumber}
                 title={videoAllowed ? 'الصور والفيديو' : 'الصور'}
                 status={sectionInfo.media.status}
-                filledCount={sectionInfo.media.filledCount}
-                totalCount={sectionInfo.media.totalCount}
                 hasError={sectionInfo.media.hasError}
                 hasRequiredFields
                 defaultExpanded={false}
+                filledCount={sectionInfo.media.filledCount}
+                totalCount={sectionInfo.media.totalCount}
               >
                 <div className={styles.formFields}>
                   <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
@@ -746,152 +1004,19 @@ export default function CreateListingDetailsPage() {
                 </div>
               </FormSection>
 
-              {/* Dynamic Attribute Groups */}
-              {attributeGroups.length > 0 && attributeGroups.map((group) => {
-                const groupAttributes = group.attributes;
-                if (groupAttributes.length === 0) return null;
-
-                // Check if this group has brand/model attributes
-                const hasBrandModel = groupAttributes.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
-                // Skip brand/model group entirely if no brands available for this category
-                if (hasBrandModel && brands.length === 0) {
-                  // Filter out brand/model and check if there are other attributes
-                  const otherAttrs = groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
-                  if (otherAttrs.length === 0) return null;
-                }
-
-                const groupInfo = sectionInfo[group.name] ?? { status: 'complete' as FormSectionStatus, filledCount: 0, totalCount: 0, hasError: false };
-
-                // Check if group has any required attributes
-                const hasRequiredFields = groupAttributes.some(attr => attr.validation === 'REQUIRED');
-
-                // Helper function to render brand/model fields
-                const renderBrandModelFields = () => {
-                  if (!hasBrandModel || brands.length === 0) return null;
-
-                  return (
-                    <div className={styles.formRow}>
-                      <Input
-                        type="select"
-                        label={brandAttribute?.name || "العلامة التجارية"}
-                        value={formData.specs.brandId || ''}
-                        onChange={(e) => {
-                          setSpecField('brandId', e.target.value);
-                          setSpecField('modelId', '');
-                          saveDraft();
-                        }}
-                        onBlur={() => handleBlur('brandId')}
-                        options={[
-                          { value: '', label: `-- اختر ${brandAttribute?.name || 'العلامة التجارية'} --` },
-                          ...brands
-                            .filter(b => b.isActive)
-                            .map(brand => ({
-                              value: brand.id,
-                              label: brand.name,
-                            })),
-                        ]}
-                        disabled={isLoadingBrands}
-                        searchable
-                        creatable
-                        isLoading={isLoadingBrands}
-                        onCreateOption={handleCreateBrand}
-                        required={brandAttribute?.validation === 'REQUIRED'}
-                        error={getError('brandId',
-                          brandAttribute?.validation === 'REQUIRED' && !formData.specs.brandId
-                            ? `${brandAttribute?.name || 'العلامة التجارية'} مطلوب`
-                            : undefined
-                        )}
-                      />
-
-                      {formData.specs.brandId && (
-                        <Input
-                          type="select"
-                          label={modelAttribute?.name || "الموديل"}
-                          value={formData.specs.modelId || ''}
-                          onChange={(e) => {
-                            setSpecField('modelId', e.target.value);
-                            saveDraft();
-                          }}
-                          onBlur={() => handleBlur('modelId')}
-                          options={[
-                            { value: '', label: `-- اختر ${modelAttribute?.name || 'الموديل'} --` },
-                            ...models
-                              .filter(m => m.isActive)
-                              .map(model => ({
-                                value: model.id,
-                                label: model.name,
-                              })),
-                          ]}
-                          disabled={isLoadingModels}
-                          searchable
-                          creatable
-                          isLoading={isLoadingModels}
-                          onCreateOption={handleCreateModel}
-                          required={modelAttribute?.validation === 'REQUIRED'}
-                          error={getError('modelId',
-                            modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
-                              ? `${modelAttribute?.name || 'الموديل'} مطلوب`
-                              : undefined
-                          )}
-                        />
-                      )}
-                    </div>
-                  );
-                };
-
-                // Filter out brand/model for regular rendering (they're rendered specially)
-                const regularAttributes = hasBrandModel
-                  ? groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId')
-                  : groupAttributes;
-
-                return (
-                  <FormSection
-                    key={group.name}
-                    number={++sectionNumber}
-                    title={group.name}
-                    status={groupInfo.status}
-                    filledCount={groupInfo.filledCount}
-                    totalCount={groupInfo.totalCount}
-                    hasError={groupInfo.hasError}
-                    hasRequiredFields={hasRequiredFields}
-                    defaultExpanded={false}
-                  >
-                    <div className={styles.specsGrid}>
-                      {/* Render brand/model first if present */}
-                      {renderBrandModelFields()}
-
-                      {/* Render other attributes */}
-                      {regularAttributes.map((attribute) => (
-                        <div key={attribute.key}>
-                          {renderAttributeField({
-                            attribute,
-                            value: formData.specs[attribute.key],
-                            onChange: (value) => {
-                              setSpecField(attribute.key, value);
-                              saveDraft();
-                            },
-                            onBlur: () => handleBlur(`spec_${attribute.key}`),
-                            error: touched[`spec_${attribute.key}`] && attribute.validation === 'REQUIRED' && !formData.specs[attribute.key]
-                              ? `${attribute.name} مطلوب`
-                              : undefined,
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  </FormSection>
-                );
-              })}
+              {/* Remaining Dynamic Attribute Groups (groupOrder 2+) */}
+              {otherGroups.map((group) => renderDynamicGroup(group, false))}
 
               {/* Location Section */}
               <FormSection
                 number={++sectionNumber}
                 title="الموقع"
                 status={sectionInfo.location.status}
-                filledCount={sectionInfo.location.filledCount}
-                totalCount={sectionInfo.location.totalCount}
                 hasError={sectionInfo.location.hasError}
                 hasRequiredFields
                 defaultExpanded={false}
+                filledCount={sectionInfo.location.filledCount}
+                totalCount={sectionInfo.location.totalCount}
               >
                 <div className={styles.formFields}>
                   <div className={styles.formRow}>

@@ -632,10 +632,16 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     const { attributes, steps: currentSteps } = get();
 
     // Group attributes by group name
+    // Filter out attributes that are handled manually in specific sections
+    const manuallyHandledKeys = [
+      // Basic info section
+      "search", "title", "description", "price", "listingType", "condition",
+      // Location section (has dedicated UI)
+      "location",
+    ];
     const groupsMap = new Map<string, Attribute[]>();
     attributes.forEach((attr) => {
-      if (["search", "title", "description", "price"].includes(attr.key))
-        return;
+      if (manuallyHandledKeys.includes(attr.key)) return;
       const groupName = attr.group || "other";
       if (!groupsMap.has(groupName)) groupsMap.set(groupName, []);
       groupsMap.get(groupName)!.push(attr);

@@ -69,7 +69,29 @@
 }
 
 .contentInner {
+  // Default padding (md)
   padding: $space-md;
+
+  // Padding sizes
+  &.padding-sm {
+    padding: $space-sm $space-sm;
+  }
+
+  &.padding-md {
+    padding: $space-md;
+
+    @media (max-width: $breakpoint-md) {
+      padding: $space-md $space-sm;
+    }
+  }
+
+  &.padding-lg {
+    padding: $space-lg;
+
+    @media (max-width: $breakpoint-md) {
+      padding: $space-lg $space-md;
+    }
+  }
 }
 
 // Variants

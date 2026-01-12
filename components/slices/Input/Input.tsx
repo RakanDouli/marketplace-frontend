@@ -28,12 +28,15 @@ export interface InputProps
   | "textarea"
   | "boolean"
   | "select"
+  | "multiselect"
   | "switch"
   | "date"
   | "file"
   | "price";
-  /** Input label */
-  label?: string;
+  /** Input label - can be string or ReactNode for custom labels with chips/badges */
+  label?: React.ReactNode;
+  /** Optional badge to show inline with label (e.g., "✓ تلقائي") - only works when label is string */
+  labelBadge?: string;
   /** Error message */
   error?: string;
   /** Help text */
@@ -50,6 +53,8 @@ export interface InputProps
   rows?: number;
   /** Show error state */
   hasError?: boolean;
+  /** Show success state (green border when field is valid and filled) */
+  success?: boolean;
   /** Validation function for real-time validation */
   validate?: (value: string) => string | undefined;
   /** Value to compare against (for password confirmation) */
@@ -94,6 +99,7 @@ export const Input = forwardRef<
       className = "",
       rows = 4,
       hasError = false,
+      success = false,
       validate,
       compareWith,
       searchable = false,
@@ -104,6 +110,7 @@ export const Input = forwardRef<
       showCounter,
       icon,
       bordered = false,
+      labelBadge,
       ...props
     },
     ref
@@ -129,6 +136,7 @@ export const Input = forwardRef<
       styles[`input--${variant}`],
       styles[`input--${size}`],
       hasAnyError ? styles["input--error"] : "",
+      success && !hasAnyError ? styles["input--success"] : "",
       isFocused ? styles["input--focused"] : "",
       icon ? styles["input--withIcon"] : "",
     ]
@@ -142,8 +150,9 @@ export const Input = forwardRef<
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       let value = e.target.value;
 
-      // Convert Arabic numerals to English for number inputs
-      if (type === 'number') {
+      // Convert Arabic numerals (٠١٢٣٤٥٦٧٨٩) to English (0123456789) for all text-based inputs
+      // This ensures users can type with Arabic keyboard but values are stored as English
+      if (type === 'number' || type === 'text' || type === 'textarea' || type === 'tel' || type === 'date') {
         value = convertArabicToEnglish(value);
         // Create a new synthetic event with converted value
         const syntheticEvent = {
@@ -413,8 +422,13 @@ export const Input = forwardRef<
           }
         };
 
+        const selectWrapperClasses = [
+          styles.selectWrapperBordered,
+          success && !hasAnyError ? styles.selectSuccess : "",
+        ].filter(Boolean).join(" ");
+
         return (
-          <div className={styles.selectWrapperBordered}>
+          <div className={selectWrapperClasses}>
             <SelectComponent
               instanceId={selectProps.id || generatedId}
               inputId={selectProps.id || generatedId}
@@ -435,6 +449,65 @@ export const Input = forwardRef<
               classNamePrefix="react-select"
               menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
               menuPosition="fixed"
+              styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+              }}
+            />
+          </div>
+        );
+      }
+
+      // Multi-select dropdown (allows selecting multiple options)
+      if (type === "multiselect") {
+        const selectProps = props as React.SelectHTMLAttributes<HTMLSelectElement>;
+
+        // Value should be an array of selected option keys
+        const selectedValues: string[] = Array.isArray(selectProps.value)
+          ? selectProps.value
+          : (selectProps.value ? [String(selectProps.value)] : []);
+
+        // Find all selected options
+        const selectedOptions = options.filter(opt => selectedValues.includes(opt.value));
+
+        const handleMultiSelectChange = (newValue: any) => {
+          // newValue is an array of selected options
+          const selectedKeys = newValue ? newValue.map((opt: any) => opt.value) : [];
+          const syntheticEvent = {
+            target: {
+              value: selectedKeys,
+              name: selectProps.name || selectProps.id || generatedId
+            }
+          } as any;
+          handleChange(syntheticEvent);
+        };
+
+        const multiSelectWrapperClasses = [
+          styles.selectWrapperBordered,
+          success && !hasAnyError ? styles.selectSuccess : "",
+        ].filter(Boolean).join(" ");
+
+        return (
+          <div className={multiSelectWrapperClasses}>
+            <Select
+              instanceId={selectProps.id || generatedId}
+              inputId={selectProps.id || generatedId}
+              name={selectProps.name || selectProps.id || generatedId}
+              options={options}
+              value={selectedOptions}
+              onChange={handleMultiSelectChange}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              isDisabled={selectProps.disabled}
+              isLoading={isLoading}
+              isSearchable={true}
+              isMulti={true}
+              placeholder='اختر الخيارات...'
+              noOptionsMessage={() => "لا توجد نتائج"}
+              loadingMessage={() => "جاري التحميل..."}
+              classNamePrefix="react-select"
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              menuPosition="fixed"
+              closeMenuOnSelect={false}
               styles={{
                 menuPortal: (base) => ({ ...base, zIndex: 9999 }),
               }}
@@ -505,6 +578,9 @@ export const Input = forwardRef<
       return inputElement;
     };
 
+    // Check if label is a simple string (for adding required asterisk and badge)
+    const isStringLabel = typeof label === 'string';
+
     return (
       <div className={`${styles.inputWrapper} ${className}`}>
         {label && type !== "switch" && (
@@ -512,8 +588,18 @@ export const Input = forwardRef<
             htmlFor={props.id || props.name || generatedId}
             className={styles.label}
           >
-            {label}
-            {props.required && <span className={styles.required}>*</span>}
+            {isStringLabel ? (
+              <>
+                <span>
+                  {label}
+                  {props.required && <span className={styles.required}>*</span>}
+                </span>
+                {labelBadge && <span className={styles.labelBadge}>{labelBadge}</span>}
+              </>
+            ) : (
+              // ReactNode label - render as-is (caller handles required asterisk, badges, chips)
+              label
+            )}
           </label>
         )}
 

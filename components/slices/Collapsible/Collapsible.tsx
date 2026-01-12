@@ -13,6 +13,8 @@ interface CollapsibleProps {
   /** Custom toggle icon - when provided, replaces Plus/Minus icons */
   toggleIcon?: React.ReactNode;
   variant?: 'default' | 'bordered' | 'card' | 'compact';
+  /** Content padding size - default 'md' */
+  contentPadding?: 'sm' | 'md' | 'lg';
   className?: string;
   onToggle?: (isOpen: boolean) => void;
 }
@@ -24,6 +26,7 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
   icon,
   toggleIcon,
   variant = 'default',
+  contentPadding = 'md',
   className,
   onToggle
 }) => {
@@ -58,7 +61,7 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
         id="collapsible-content"
       >
         <div className={styles.contentWrapper}>
-          <div className={styles.contentInner}>
+          <div className={`${styles.contentInner} ${styles[`padding-${contentPadding}`]}`}>
             {children}
           </div>
         </div>

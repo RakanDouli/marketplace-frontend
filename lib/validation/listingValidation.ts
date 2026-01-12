@@ -207,7 +207,7 @@ export const hasValidationErrors = (errors: ValidationErrors): boolean => {
   return Object.values(errors).some(error => error !== undefined && error !== '');
 };
 
-// Validate dynamic attribute based on attribute config
+// Validate dynamic attribute based on attribute type and validation rules
 export const validateAttribute = (
   value: any,
   attribute: {
