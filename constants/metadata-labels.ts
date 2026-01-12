@@ -1,11 +1,16 @@
 /**
  * Metadata Label Mappings - Arabic Translations Only
  *
- * This file contains ONLY Arabic translations for backend enum values.
- * Backend provides enum values via GraphQL metadata queries (metadataStore).
+ * This file contains ONLY Arabic translations for backend enum KEYS.
+ * Backend provides enum KEYS (UPPERCASE) via GraphQL metadata queries (metadataStore).
+ *
+ * IMPORTANT: All keys are UPPERCASE to match:
+ * - Backend metadata resolver (returns Object.keys())
+ * - GraphQL enum serialization (returns UPPERCASE keys)
+ * - GraphQL mutation inputs (expect UPPERCASE keys)
  *
  * Single source of truth:
- * - Backend: Enum values (via metadata.resolver.ts)
+ * - Backend: Enum keys (via metadata.resolver.ts)
  * - Frontend: Arabic labels (this file)
  *
  * Usage:
@@ -21,106 +26,106 @@
 // ===== USER METADATA LABELS =====
 
 export const USER_STATUS_LABELS: Record<string, string> = {
-  active: "نشط",
-  pending: "معلق",
-  inactive: "غير نشط",
-  suspended: "موقوف", // 7-day suspension (strike 2)
-  banned: "محظور",    // permanent ban (strike 3)
+  ACTIVE: "نشط",
+  PENDING: "معلق",
+  INACTIVE: "غير نشط",
+  SUSPENDED: "موقوف", // 7-day suspension (strike 2)
+  BANNED: "محظور",    // permanent ban (strike 3)
 };
 
 export const USER_ROLE_LABELS: Record<string, string> = {
-  user: "مستخدم",
-  editor: "محرر",
-  admin: "مدير",
-  super_admin: "مدير عام",
-  ads_manager: "مدير إعلانات",
+  USER: "مستخدم",
+  EDITOR: "محرر",
+  ADMIN: "مدير",
+  SUPER_ADMIN: "مدير عام",
+  ADS_MANAGER: "مدير إعلانات",
 };
 
 export const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  individual: "فردي",
-  dealer: "تاجر",
-  business: "شركة",
+  INDIVIDUAL: "فردي",
+  DEALER: "تاجر",
+  BUSINESS: "شركة",
 };
 
 // ===== USER/SELLER BADGE LABELS =====
 
 export const ACCOUNT_BADGE_LABELS: Record<string, string> = {
-  none: "بدون شارة",
-  verified: "موثق",
-  premium: "مميز",
+  NONE: "بدون شارة",
+  VERIFIED: "موثق",
+  PREMIUM: "مميز",
 };
 
 // ===== LISTING TYPE LABELS =====
 
 export const LISTING_TYPE_LABELS: Record<string, string> = {
-  sale: "للبيع",
-  rent: "للإيجار",
+  SALE: "للبيع",
+  RENT: "للإيجار",
 };
 
 // ===== CONDITION LABELS =====
 
 export const CONDITION_LABELS: Record<string, string> = {
-  new: "جديد",
-  used_like_new: "مستعمل كالجديد",
-  used: "مستعمل",
+  NEW: "جديد",
+  USED_LIKE_NEW: "مستعمل كالجديد",
+  USED: "مستعمل",
 };
 
 // ===== LISTING METADATA LABELS =====
 
 export const LISTING_STATUS_LABELS: Record<string, string> = {
-  draft: "مسودة",
-  pending_approval: "في الانتظار",
-  rejected: "مرفوض", // AI auto-rejected (user can edit & resubmit)
-  active: "نشط",
-  sold: "تم البيع",
-  sold_via_platform: "تم البيع عبر المنصة",
-  hidden: "مخفي",
+  DRAFT: "مسودة",
+  PENDING_APPROVAL: "في الانتظار",
+  REJECTED: "مرفوض", // AI auto-rejected (user can edit & resubmit)
+  ACTIVE: "نشط",
+  SOLD: "تم البيع",
+  SOLD_VIA_PLATFORM: "تم البيع عبر المنصة",
+  HIDDEN: "مخفي",
+  ARCHIVED: "مؤرشف",
 };
 
 export const REJECTION_REASON_LABELS: Record<string, string> = {
-  unclear_images: "صور غير واضحة",
-  missing_info: "معلومات ناقصة",
-  prohibited_content: "محتوى مخالف",
-  unrealistic_price: "سعر غير واقعي",
-  inappropriate_images: "صور مخالفة",
-  profanity: "ألفاظ نابية",
-  contact_info: "معلومات اتصال في الوصف",
-  scam_suspected: "اشتباه في احتيال",
-  duplicate: "إعلان مكرر",
-  other: "سبب آخر",
+  UNCLEAR_IMAGES: "صور غير واضحة",
+  MISSING_INFO: "معلومات ناقصة",
+  PROHIBITED_CONTENT: "محتوى مخالف",
+  UNREALISTIC_PRICE: "سعر غير واقعي",
+  INAPPROPRIATE_IMAGES: "صور مخالفة",
+  PROFANITY: "ألفاظ نابية",
+  CONTACT_INFO: "معلومات اتصال في الوصف",
+  SCAM_SUSPECTED: "اشتباه في احتيال",
+  DUPLICATE: "إعلان مكرر",
+  OTHER: "سبب آخر",
 };
 
 export const MODERATION_FLAG_LABELS: Record<string, string> = {
-  harassment: "تحرش",
-  "harassment/threatening": "تحرش مع تهديد",
-  hate: "خطاب كراهية",
-  "hate/threatening": "خطاب كراهية مع تهديد",
-  "self-harm": "إيذاء النفس",
-  "self-harm/intent": "نية إيذاء النفس",
-  "self-harm/instructions": "تعليمات إيذاء النفس",
-  sexual: "محتوى جنسي",
-  "sexual/minors": "محتوى جنسي - قاصرين",
-  violence: "عنف",
-  "violence/graphic": "عنف صريح",
-  nsfw: "محتوى غير لائق",
-  gore: "محتوى دموي",
-  spam: "رسائل مزعجة",
-  profanity: "ألفاظ نابية",
+  HARASSMENT: "تحرش",
+  "HARASSMENT/THREATENING": "تحرش مع تهديد",
+  HATE: "خطاب كراهية",
+  "HATE/THREATENING": "خطاب كراهية مع تهديد",
+  "SELF-HARM": "إيذاء النفس",
+  "SELF-HARM/INTENT": "نية إيذاء النفس",
+  "SELF-HARM/INSTRUCTIONS": "تعليمات إيذاء النفس",
+  SEXUAL: "محتوى جنسي",
+  "SEXUAL/MINORS": "محتوى جنسي - قاصرين",
+  VIOLENCE: "عنف",
+  "VIOLENCE/GRAPHIC": "عنف صريح",
+  NSFW: "محتوى غير لائق",
+  GORE: "محتوى دموي",
+  SPAM: "رسائل مزعجة",
 };
 
 // ===== SUBSCRIPTION METADATA LABELS =====
 
 export const BILLING_CYCLE_LABELS: Record<string, string> = {
-  free: "مجاني",
-  monthly: "شهري",
-  yearly: "سنوي",
+  FREE: "مجاني",
+  MONTHLY: "شهري",
+  YEARLY: "سنوي",
 };
 
 export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
-  active: "نشطة",
-  expired: "منتهية",   // Backend: expired (not 'inactive')
-  cancelled: "ملغاة",  // Backend: cancelled (not 'deprecated')
-  pending: "معلقة",    // Backend: pending
+  ACTIVE: "نشطة",
+  EXPIRED: "منتهية",
+  CANCELLED: "ملغاة",
+  PENDING: "معلقة",
 };
 
 // Note: SUBSCRIPTION_ACCOUNT_TYPE_LABELS removed - use ACCOUNT_TYPE_LABELS instead
@@ -129,108 +134,109 @@ export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
 // ===== ATTRIBUTE METADATA LABELS =====
 
 export const ATTRIBUTE_TYPE_LABELS: Record<string, string> = {
-  selector: "قائمة منسدلة (اختيار واحد)",
-  multi_selector: "قائمة منسدلة (اختيارات متعددة)",
-  range: "نطاق (من - إلى)",
-  currency: "عملة",
-  text: "نص قصير",
-  textarea: "نص طويل",
-  number: "رقم",
-  date_range: "نطاق تاريخ",
-  boolean: "نعم/لا",
+  SELECTOR: "قائمة منسدلة (اختيار واحد)",
+  MULTI_SELECTOR: "قائمة منسدلة (اختيارات متعددة)",
+  RANGE: "نطاق (من - إلى)",
+  RANGE_SELECTOR: "نطاق بخيارات محددة",
+  CURRENCY: "عملة",
+  TEXT: "نص قصير",
+  TEXTAREA: "نص طويل",
+  NUMBER: "رقم",
+  DATE_RANGE: "نطاق تاريخ",
+  BOOLEAN: "نعم/لا",
 };
 
 export const ATTRIBUTE_VALIDATION_LABELS: Record<string, string> = {
-  required: "إلزامي",
-  optional: "اختياري",
+  REQUIRED: "إلزامي",
+  OPTIONAL: "اختياري",
 };
 
 export const ATTRIBUTE_STORAGE_TYPE_LABELS: Record<string, string> = {
-  column: "عمود مستقل",
-  specs: "مواصفات (JSONB)",
-  location: "موقع (JSONB)",
+  COLUMN: "عمود مستقل",
+  SPECS: "مواصفات (JSONB)",
+  LOCATION: "موقع (JSONB)",
 };
 
 // ===== AD SYSTEM METADATA LABELS =====
 
 export const AD_MEDIA_TYPE_LABELS: Record<string, string> = {
-  image: "صورة",
-  video: "فيديو",
+  IMAGE: "صورة",
+  VIDEO: "فيديو",
 };
 
 export const AD_CAMPAIGN_STATUS_LABELS: Record<string, string> = {
-  draft: "مسودة",
-  payment_sent: "تم إرسال رابط الدفع",
-  paid: "مدفوعة",
-  active: "نشطة",
-  completed: "مكتملة",
-  cancelled: "ملغاة",
-  paused: "موقفة مؤقتاً",
+  DRAFT: "مسودة",
+  PAYMENT_SENT: "تم إرسال رابط الدفع",
+  PAID: "مدفوعة",
+  ACTIVE: "نشطة",
+  COMPLETED: "مكتملة",
+  CANCELLED: "ملغاة",
+  PAUSED: "موقفة مؤقتاً",
 };
 
 export const AD_CLIENT_STATUS_LABELS: Record<string, string> = {
-  active: "نشط",
-  inactive: "غير نشط",
-  suspended: "محظور", // Backend uses 'suspended' not 'blacklisted'
+  ACTIVE: "نشط",
+  INACTIVE: "غير نشط",
+  SUSPENDED: "محظور",
 };
 
 export const CAMPAIGN_START_PREFERENCE_LABELS: Record<string, string> = {
-  asap: "فوري بعد الدفع",       // Backend: asap (not 'immediate')
-  specific_date: "تاريخ محدد",  // Backend: specific_date (not 'scheduled')
+  ASAP: "فوري بعد الدفع",
+  SPECIFIC_DATE: "تاريخ محدد",
 };
 
 export const AD_PLACEMENT_LABELS: Record<string, string> = {
-  homepage_top: "الصفحة الرئيسية - أعلى",
-  homepage_mid: "الصفحة الرئيسية - وسط",
-  between_listings: "بين القوائم",
-  detail_top: "صفحة التفاصيل - أعلى",
-  detail_before_description: "صفحة التفاصيل - قبل الوصف",
+  HOMEPAGE_TOP: "الصفحة الرئيسية - أعلى",
+  HOMEPAGE_MID: "الصفحة الرئيسية - وسط",
+  BETWEEN_LISTINGS: "بين القوائم",
+  DETAIL_TOP: "صفحة التفاصيل - أعلى",
+  DETAIL_BEFORE_DESCRIPTION: "صفحة التفاصيل - قبل الوصف",
 };
 
 export const AD_FORMAT_LABELS: Record<string, string> = {
-  billboard: "بيلبورد (970x250)",
-  super_leaderboard: "سوبر ليدربورد (970x90)",
-  leaderboard: "ليدربورد (728x90)",
-  mobile_banner: "بانر موبايل (320x50)",
-  large_mobile_banner: "بانر موبايل كبير (320x100)",
-  billboard_video: "فيديو بيلبورد (970x250)",
-  leaderboard_video: "فيديو ليدربورد (970x350)",
+  BILLBOARD: "بيلبورد (970x250)",
+  SUPER_LEADERBOARD: "سوبر ليدربورد (970x90)",
+  LEADERBOARD: "ليدربورد (728x90)",
+  MOBILE_BANNER: "بانر موبايل (320x50)",
+  LARGE_MOBILE_BANNER: "بانر موبايل كبير (320x100)",
+  BILLBOARD_VIDEO: "فيديو بيلبورد (970x250)",
+  LEADERBOARD_VIDEO: "فيديو ليدربورد (970x350)",
 };
 
 // ===== REPORTS METADATA LABELS =====
 
 export const REPORT_REASON_LABELS: Record<string, string> = {
-  fake_listing: "إعلان وهمي",
-  scam: "احتيال أو نصب",
-  inappropriate: "محتوى غير لائق",
-  spam: "رسائل مزعجة",
-  harassment: "تحرش أو إزعاج",
-  fake_account: "حساب وهمي",
-  impersonation: "انتحال شخصية",
-  repeat_offender: "مخالف متكرر",
-  other: "سبب آخر",
+  FAKE_LISTING: "إعلان وهمي",
+  SCAM: "احتيال أو نصب",
+  INAPPROPRIATE: "محتوى غير لائق",
+  SPAM: "رسائل مزعجة",
+  HARASSMENT: "تحرش أو إزعاج",
+  FAKE_ACCOUNT: "حساب وهمي",
+  IMPERSONATION: "انتحال شخصية",
+  REPEAT_OFFENDER: "مخالف متكرر",
+  OTHER: "سبب آخر",
 };
 
 // Report Status - Backend: report-reason.enum.ts (ReportStatus)
 export const REPORT_STATUS_LABELS: Record<string, string> = {
-  pending: "قيد المراجعة",
-  requires_human_review: "يتطلب مراجعة بشرية",
-  reviewed: "تمت المراجعة",
-  resolved: "تم الحل",
-  dismissed: "مرفوض",
+  PENDING: "قيد المراجعة",
+  REQUIRES_HUMAN_REVIEW: "يتطلب مراجعة بشرية",
+  REVIEWED: "تمت المراجعة",
+  RESOLVED: "تم الحل",
+  DISMISSED: "مرفوض",
 };
 
 // Report Entity Type - Backend: report-reason.enum.ts (ReportEntityType)
 export const REPORT_ENTITY_TYPE_LABELS: Record<string, string> = {
-  thread: "محادثة",
-  user: "مستخدم",
-  listing: "إعلان",
+  THREAD: "محادثة",
+  USER: "مستخدم",
+  LISTING: "إعلان",
 };
 
 // ===== HELPER FUNCTIONS =====
 
 /**
- * Convert backend enum values to dropdown options with Arabic labels
+ * Convert backend enum keys to dropdown options with Arabic labels
  */
 export function mapToOptions(
   values: string[],
@@ -244,17 +250,18 @@ export function mapToOptions(
 
 /**
  * Get Arabic label for a single enum value
+ * Handles both UPPERCASE keys (from metadata/entities) and provides fallback
  */
 export function getLabel(
   value: string,
   labelMap: Record<string, string>
 ): string {
-  // Try exact match first
+  // Try exact match first (UPPERCASE)
   if (labelMap[value]) return labelMap[value];
 
-  // Try lowercase match (backend returns uppercase enum keys like MISSING_INFO)
-  const lowercaseValue = value.toLowerCase();
-  if (labelMap[lowercaseValue]) return labelMap[lowercaseValue];
+  // Try uppercase match (in case value comes as lowercase)
+  const uppercaseValue = value.toUpperCase();
+  if (labelMap[uppercaseValue]) return labelMap[uppercaseValue];
 
   // Fallback to original value
   return value;

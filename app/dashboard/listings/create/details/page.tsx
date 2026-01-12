@@ -498,7 +498,8 @@ export default function CreateListingDetailsPage() {
     });
 
     attributes.forEach(attr => {
-      if (attr.storageType === 'column') return;
+      // Skip column and location types - they're handled separately
+      if (attr.storageType === 'column' || attr.storageType === 'location') return;
 
       const value = formData.specs[attr.key];
       const attrError = validateAttribute(value, {
@@ -613,10 +614,11 @@ export default function CreateListingDetailsPage() {
 
   let sectionNumber = 0;
 
-  // Separate first group (اختر السيارة - groupOrder 1) from other dynamic groups
-  // First group renders BEFORE basic info, other groups render AFTER media
-  const firstGroup = attributeGroups.find(g => g.groupOrder === 1);
-  const otherGroups = attributeGroups.filter(g => g.groupOrder !== 1);
+  // Separate "اختر السيارة" group from other dynamic groups
+  // This group renders BEFORE basic info, other groups render AFTER media
+  // Find by group name to be explicit (groupOrder may vary)
+  const firstGroup = attributeGroups.find(g => g.name === 'اختر السيارة');
+  const otherGroups = attributeGroups.filter(g => g.name !== 'اختر السيارة');
 
   // Helper function to render a dynamic attribute group
   const renderDynamicGroup = (group: typeof attributeGroups[0], isFirstSection: boolean = false) => {

@@ -7,10 +7,11 @@ import { Slider } from "../Slider";
 import { Button } from "../Button/Button";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
-import { useFiltersStore } from "@/stores/filtersStore";
 import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
 import { LISTINGS_GRID_QUERY } from "@/stores/listingsStore/listingsStore.gql";
+import { GET_CATEGORY_ATTRIBUTES_QUERY } from "@/stores/filtersStore/filtersStore.gql";
+import type { Attribute } from "@/types/listing";
 
 export interface FeaturedListingsProps {
   categoryId?: string;    // Pass category ID - component fetches nameAr and listings
@@ -50,20 +51,21 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   className = "",
 }) => {
   const { categories, getCategoryById, getCategoryBySlug, initializeCategories } = useCategoriesStore();
-  const { attributes } = useFiltersStore();
   const [listings, setListings] = useState<Listing[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter specs based on showInGrid attribute flags
   const filterSpecsForGrid = (allSpecs: Record<string, any>): Record<string, any> => {
     if (!attributes || attributes.length === 0) {
-      return allSpecs;
+      // If no attributes loaded, return empty to avoid showing all specs
+      return {};
     }
 
     const filteredSpecs: Record<string, any> = {};
     Object.entries(allSpecs).forEach(([specKey, specValue]) => {
       const attribute = attributes.find(
-        (attr) => attr.key === specKey || attr.name === specKey
+        (attr: Attribute) => attr.key === specKey || attr.name === specKey
       );
 
       if (attribute && attribute.showInGrid === true) {
@@ -94,10 +96,11 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
     }
   }, [categories.length, initializeCategories]);
 
-  // Fetch listings for this category
+  // Fetch listings and attributes for this category
   useEffect(() => {
-    const fetchListings = async () => {
+    const fetchData = async () => {
       const catId = categoryId || category?.id;
+      const catSlug = categorySlug || category?.slug;
       if (!catId) {
         setIsLoading(false);
         return;
@@ -105,26 +108,37 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
 
       setIsLoading(true);
       try {
-        const data = await cachedGraphQLRequest(
-          LISTINGS_GRID_QUERY,
-          {
-            filter: { categoryId: catId },
-            limit,
-            offset: 0
-          },
-          { ttl: 3 * 60 * 1000 }
-        );
-        setListings(data.listingsSearch || []);
+        // Fetch listings and attributes in parallel
+        const [listingsData, attributesData] = await Promise.all([
+          cachedGraphQLRequest(
+            LISTINGS_GRID_QUERY,
+            {
+              filter: { categoryId: catId },
+              limit,
+              offset: 0
+            },
+            { ttl: 3 * 60 * 1000 }
+          ),
+          catSlug ? cachedGraphQLRequest(
+            GET_CATEGORY_ATTRIBUTES_QUERY,
+            { categorySlug: catSlug },
+            { ttl: 30 * 60 * 1000 } // Cache attributes for 30 minutes
+          ) : Promise.resolve({ categoryAttributes: [] })
+        ]);
+
+        setListings(listingsData.listingsSearch || []);
+        setAttributes(attributesData.categoryAttributes || []);
       } catch (error) {
-        console.error("Failed to fetch category listings:", error);
+        console.error("Failed to fetch category data:", error);
         setListings([]);
+        setAttributes([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchListings();
-  }, [categoryId, category?.id, limit]);
+    fetchData();
+  }, [categoryId, category?.id, category?.slug, categorySlug, limit]);
 
   // Don't render if loading or no listings
   if (isLoading || listings.length === 0) {
