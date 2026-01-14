@@ -25,6 +25,7 @@ import {
 } from '@/lib/validation/listingValidation';
 import { MapPin, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
+import { CarInspection, toBackendFormat, fromBackendFormat, type DamageReport } from '@/components/slices/CarInspection';
 import styles from '../CreateListing.module.scss';
 
 interface Brand {
@@ -89,6 +90,7 @@ export default function CreateListingDetailsPage() {
   const [pendingImages, setPendingImages] = useState<any[]>([]); // Images being uploaded (for display)
   const [pendingVideo, setPendingVideo] = useState<any | null>(null); // Video being uploaded (for display)
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [showCarDamage, setShowCarDamage] = useState(false); // Toggle for car body damage report
 
   // Model suggestion specs - used to filter dropdown options
   // Each field contains an array of valid options for the selected brand+model+year
@@ -118,6 +120,9 @@ export default function CreateListingDetailsPage() {
   // Find column-stored global attributes
   const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
   const conditionAttribute = attributes.find(attr => attr.key === 'condition');
+
+  // Find car_damage attribute (for car categories)
+  const carDamageAttribute = attributes.find(attr => attr.key === 'car_damage');
 
   // Section status info with counts
   interface SectionInfo {
@@ -281,6 +286,14 @@ export default function CreateListingDetailsPage() {
       metadataStore.fetchLocationMetadata();
     }
   }, [provinces.length]);
+
+  // Auto-show car damage component if there's existing data in draft
+  useEffect(() => {
+    const carDamageData = formData.specs.car_damage;
+    if (Array.isArray(carDamageData) && carDamageData.length > 0) {
+      setShowCarDamage(true);
+    }
+  }, [formData.specs.car_damage]);
 
   // Fetch brands when category is loaded
   useEffect(() => {
@@ -641,11 +654,12 @@ export default function CreateListingDetailsPage() {
 
   let sectionNumber = 0;
 
-  // Separate "اختر السيارة" group from other dynamic groups
-  // This group renders BEFORE basic info, other groups render AFTER media
-  // Find by group name to be explicit (groupOrder may vary)
-  const firstGroup = attributeGroups.find(g => g.name === 'اختر السيارة');
-  const otherGroups = attributeGroups.filter(g => g.name !== 'اختر السيارة');
+  // Separate first group (lowest groupOrder) from other dynamic groups
+  // First group renders BEFORE basic info, other groups render AFTER media
+  // Sort by groupOrder to find the first one
+  const sortedGroups = [...attributeGroups].sort((a, b) => a.groupOrder - b.groupOrder);
+  const firstGroup = sortedGroups[0];
+  const otherGroups = sortedGroups.slice(1);
 
   // Helper function to render a dynamic attribute group
   const renderDynamicGroup = (group: typeof attributeGroups[0], isFirstSection: boolean = false) => {
@@ -834,7 +848,7 @@ export default function CreateListingDetailsPage() {
 
           <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
             <div className={styles.sectionsContainer}>
-              {/* Section 1: First Dynamic Group (اختر السيارة - groupOrder 1) */}
+              {/* Section 1: First Dynamic Group (المعلومات الأساسية - groupOrder 1) */}
               {firstGroup && renderDynamicGroup(firstGroup, true)}
 
               {/* Section 2: Basic Info */}
@@ -1032,6 +1046,36 @@ export default function CreateListingDetailsPage() {
                           });
                         }}
                       />
+                    </div>
+                  )}
+
+                  {/* Car Body Damage Report - only for car categories */}
+                  {carDamageAttribute && (
+                    <div className={styles.carDamageSection}>
+                      <Input
+                        type="switch"
+                        label="الإبلاغ عن حالة الهيكل"
+                        helpText="حدد أجزاء السيارة المدهونة أو المُستبدلة"
+                        checked={showCarDamage}
+                        onChange={(e) => {
+                          const checked = (e.target as HTMLInputElement).checked;
+                          setShowCarDamage(checked);
+                          // Clear car_damage data when hiding
+                          if (!checked && formData.specs.car_damage) {
+                            setSpecField('car_damage', []);
+                            saveDraft();
+                          }
+                        }}
+                      />
+                      {showCarDamage && (
+                        <CarInspection
+                          value={fromBackendFormat(formData.specs.car_damage as string[] | undefined)}
+                          onChange={(damages: DamageReport[]) => {
+                            setSpecField('car_damage', toBackendFormat(damages));
+                            saveDraft();
+                          }}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

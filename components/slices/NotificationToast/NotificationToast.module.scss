@@ -13,32 +13,35 @@
   justify-content: space-between;
   align-items: center;
 
-  // background-color: $surface;
   border-radius: $radius-md;
   width: 100%;
-  // border: 1px solid $border;
   padding: $space-sm $space-md;
   gap: $space-md;
   animation: slideIn 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
   &.success {
     border-right: 10px solid $success;
-    background-color: $success-bg;
+    background-color: #d4edda; // Solid success background
+    border: 1px solid #c3e6cb;
   }
 
   &.error {
     border-right: 10px solid $error;
-    background-color: $error-bg;
+    background-color: #f8d7da; // Solid error background
+    border: 1px solid #f5c6cb;
   }
 
   &.warning {
     border-right: 10px solid $warning;
-    background-color: $warning-bg;
+    background-color: #fff3cd; // Solid warning background
+    border: 1px solid #ffeeba;
   }
 
   &.info {
     border-right: 10px solid $info;
-    background-color: $info-bg;
+    background-color: #d1ecf1; // Solid info background
+    border: 1px solid #bee5eb;
   }
 }
 

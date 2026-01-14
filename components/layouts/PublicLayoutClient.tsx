@@ -36,8 +36,9 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
   // Don't show public header for public campaign reports
   const isPublicReport = pathname?.startsWith('/public/campaign-report');
 
-  // Don't show footer on messages page
+  // Don't show footer on messages page or create listing wizard
   const isMessagesPage = pathname?.startsWith('/messages');
+  const isCreateListingWizard = pathname?.startsWith('/dashboard/listings/create');
 
   if (isPublicReport) {
     return <>{children}</>;
@@ -50,7 +51,7 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
       <AuthModal />
       <ForceModal />
       <main className={styles.main}>{children}</main>
-      {!isMessagesPage && <Footer />}
+      {!isMessagesPage && !isCreateListingWizard && <Footer />}
       <BottomNav />
     </div>
   );

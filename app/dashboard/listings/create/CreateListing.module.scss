@@ -63,9 +63,9 @@
     }
   }
 
-  .sectionHeader {
-    margin-bottom: $space-md;
-  }
+  // .sectionHeader {
+  //   margin-bottom: $space-md;
+  // }
 
   .formFields {
     display: flex;
@@ -179,6 +179,16 @@
   }
 }
 
+// ===== CAR DAMAGE SECTION =====
+.carDamageSection {
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
 // ===== COLLAPSIBLE SECTIONS CONTAINER =====
 .sectionsContainer {
   display: flex;
@@ -278,4 +288,70 @@
   display: flex;
   align-items: center;
   gap: $space-xs;
+}
+
+// ===== CATEGORY SELECTION PAGE =====
+.categorySelectionPage {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+// ===== MODE SELECTOR (Wizard vs Collapsible) =====
+.modeSelector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modeOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-lg;
+  background: $surface;
+  border: 2px solid $border;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+
+  &:hover {
+    border-color: $primary;
+    background: rgba($primary, 0.05);
+  }
+
+  &.selected {
+    border-color: $primary;
+    background: rgba($primary, 0.1);
+
+    svg {
+      color: $primary;
+    }
+  }
+
+  svg {
+    color: $text-secondary;
+    transition: color 0.2s ease;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+// ===== CONTINUE BUTTON =====
+.continueButton {
+  display: flex;
+  justify-content: center;
+  margin-top: $space-md;
+
+  button {
+    min-width: 200px;
+  }
 }

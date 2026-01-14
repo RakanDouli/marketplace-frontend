@@ -8,6 +8,7 @@ import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
 import type { Attribute, Listing } from '@/types/listing';
 import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice, ClientPrice } from '@/components/slices';
+import { CarInspection, DamageSummary, fromBackendFormat } from '@/components/slices/CarInspection';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { LocationMap } from '@/components/LocationMap';
@@ -348,6 +349,20 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                 </>
               )}
 
+              {/* Car Body Damage Report - Visual Diagram */}
+              {listing.specs?.car_damage && Array.isArray(listing.specs.car_damage) && listing.specs.car_damage.length > 0 && (
+                <Collapsible
+                  title="حالة الهيكل"
+                  defaultOpen={true}
+                  className={styles.specGroup}
+                >
+                  <CarInspection
+                    value={fromBackendFormat(listing.specs.car_damage as string[])}
+                    disabled
+                  />
+                </Collapsible>
+              )}
+
               {/* Ad before description */}
               <AdContainer placement="detail_before_description" />
 
@@ -365,6 +380,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                   <Loading type="svg" />
                 </div>
               )}
+
 
               {/* Location with Map */}
               {hasLocation && listing.location && (

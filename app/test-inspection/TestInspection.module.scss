@@ -1,0 +1,30 @@
+@import "@/styles/variables";
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: $space-xl $space-md;
+}
+
+.title {
+  font-size: $font-2xl;
+  font-weight: $weight-bold;
+  margin-bottom: $space-lg;
+  text-align: center;
+}
+
+.dataBox {
+  margin-top: $space-lg;
+  padding: $space-md;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+
+  pre {
+    margin-top: $space-sm;
+    font-size: $font-xs;
+    direction: ltr;
+    text-align: left;
+    overflow-x: auto;
+  }
+}

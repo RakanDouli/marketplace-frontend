@@ -1,0 +1,355 @@
+@import "@/styles/variables";
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-md;
+  width: 100%;
+  padding: $space-lg 0;
+}
+
+// Top row: Left, Top, Right side by side
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
+// Side views - vertical images (left and right)
+.sideView {
+  .viewImage {
+    height: 250px;
+    width: auto;
+
+    img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+  }
+}
+
+// Top view - vertical image in center
+.topView {
+  .viewImage {
+    height: 250px;
+    width: auto;
+
+    img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+  }
+}
+
+// Bottom row - front and back
+.bottomRow {
+  display: flex;
+  justify-content: center;
+  gap: $space-lg;
+}
+
+.frontBack {
+  .viewImage {
+    width: 160px;
+    height: 80px;
+    padding: $space-sm;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+}
+
+// View card base
+.viewCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-xs;
+}
+
+.viewLabel {
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+  color: $text-secondary;
+}
+
+.viewImage {
+  position: relative;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-sm;
+
+  img {
+    border-radius: $radius-sm;
+  }
+}
+
+// Hotspot wrapper for positioning
+.hotspotWrapper {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+
+  &.isOpen {
+    z-index: 1000;
+  }
+}
+
+// Dropdown container
+.dropdownContainer {
+  position: relative;
+}
+
+// Clickable hotspots
+.hotspot {
+  width: 24px;
+  height: 24px;
+  border-radius: $radius-full;
+  background: $bg-light;
+  border: 2px solid $text-dark;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: $text-secondary;
+
+  &:hover:not(:disabled) {
+    transform: scale(1.15);
+    border-color: $primary;
+    color: $primary;
+    box-shadow: 0 2px 8px rgba($primary, 0.3);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  &.selected {
+    border-color: $primary;
+    background: $primary;
+    svg {
+      color: $text-light;
+    }
+    transform: scale(1.2);
+  }
+
+  &.hasDamage {
+    color: $text-inverse;
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+  }
+
+  &.warning {
+    background: $warning;
+    border-color: $warning;
+  }
+
+  &.info {
+    background: $info;
+    border-color: $info;
+  }
+}
+
+.dropdownMenu {
+  min-width: 140px;
+}
+
+.popupHeader {
+  display: flex;
+  gap: $space-md;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-xs $space-sm;
+  background: $bg;
+  border-bottom: 1px solid $border;
+  border-radius: $radius-md $radius-md 0 0;
+}
+
+.popupTitle {
+  color: $text;
+}
+
+.popupClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $text-secondary;
+  cursor: pointer;
+
+  &:hover {
+    background: $error-bg;
+    color: $error;
+  }
+}
+
+.popupContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  padding: $space-sm;
+}
+
+.damageOptions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.damageOption {
+  flex: 1;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-md;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: $text;
+  font-family: $font-base;
+  font-weight: $weight-bold;
+  &.warning {
+    border: 2px solid $warning;
+    color: $warning;
+
+    &:hover,
+    &.selected {
+      background: $warning;
+      color: $text-light;
+    }
+  }
+
+  &.info {
+    border: 2px solid $info;
+    color: $info;
+
+    &:hover,
+    &.selected {
+      background: $info;
+      color: $text-light;
+    }
+  }
+}
+
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-xs;
+  border: 1px dashed $error;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $error;
+  cursor: pointer;
+
+  &:hover {
+    background: $error-bg;
+  }
+}
+
+// Summary - grouped by view
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  align-self: stretch;
+}
+
+.summaryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.summaryGroupTitle {
+  font-weight: $weight-bold;
+  color: $text;
+}
+
+.summaryGroupItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+}
+
+.summaryItem {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
+  background: transparent;
+  border-radius: $radius-full;
+  font-size: $font-xs;
+
+  &.warning {
+    border: 1px solid $warning;
+    color: $warning;
+  }
+
+  &.info {
+    border: 1px solid $info;
+    color: $info;
+  }
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
+
+// No issues state
+.noIssues {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+  padding: $space-sm;
+  background: $success-bg;
+  border: 1px solid $success-border;
+  border-radius: $radius-md;
+  color: $success;
+  align-self: stretch;
+}
+
+// Mobile responsive
+@media (max-width: $breakpoint-sm) {
+  .container {
+    max-width: 320px;
+  }
+
+  .frontBack {
+    .viewImage {
+      width: 80px;
+    }
+  }
+
+  .hotspot {
+    width: 20px;
+    height: 20px;
+  }
+}

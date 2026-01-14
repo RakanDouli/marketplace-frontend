@@ -1,0 +1,533 @@
+@import "@/styles/variables";
+
+// Desktop back button - hidden on mobile
+.backButton {
+  width: max-content;
+  margin: 0 auto 0 0;
+  padding-bottom: $space-md;
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+.container {
+  background-color: $bg !important;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  min-height: 100%;
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+.wizardPage {
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: $space-xs;
+    margin-bottom: $space-lg;
+  }
+
+  .savingIndicator {
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+  }
+}
+
+// Progress Bar - Desktop (full steps)
+.progressContainer {
+  // margin-bottom: $space-xl;
+  padding: $space-lg;
+  background: linear-gradient(135deg, rgba($primary, 0.03) 0%, rgba($primary, 0.08) 100%);
+  border-radius: $radius-lg;
+  border: 1px solid rgba($primary, 0.1);
+
+  @media (max-width: $breakpoint-sm) {
+    display: none;
+  }
+}
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.progressStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  z-index: 2;
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover .stepCircle {
+      transform: scale(1.1);
+      box-shadow: 0 4px 20px rgba($primary, 0.3);
+    }
+
+    &:hover .stepLabel {
+      color: $primary;
+    }
+  }
+}
+
+.stepCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-full;
+  background: $bg;
+  border: 3px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-md;
+  font-weight: $weight-bold;
+  color: $text-secondary;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: $breakpoint-md) {
+    width: 40px;
+    height: 40px;
+    font-size: $font-sm;
+  }
+
+  // Completed state - green with checkmark
+  .completed & {
+    background: $success;
+    border-color: $success;
+    color: white;
+    box-shadow: 0 4px 12px rgba($success, 0.35);
+
+    svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 3;
+    }
+  }
+
+  // Current state - primary color pulse
+  .current & {
+    border-color: $primary;
+    color: $primary;
+    background: white;
+    box-shadow:
+      0 0 0 4px rgba($primary, 0.15),
+      0 4px 12px rgba($primary, 0.25);
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px rgba($primary, 0.15),
+      0 4px 12px rgba($primary, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0 8px rgba($primary, 0.08),
+      0 4px 16px rgba($primary, 0.3);
+  }
+}
+
+.stepLabel {
+  margin-top: $space-sm;
+  font-size: $font-sm;
+  color: $text-secondary;
+  text-align: center;
+  max-width: 120px;
+  line-height: 1.4;
+  font-weight: $weight-medium;
+  transition: all 0.2s ease;
+
+  @media (max-width: $breakpoint-md) {
+    font-size: $font-xs;
+    max-width: 80px;
+  }
+
+  .current & {
+    color: $primary;
+    font-weight: $weight-bold;
+  }
+
+  .completed & {
+    color: $success;
+    font-weight: $weight-semibold;
+  }
+}
+
+// Connector line between steps
+.connector {
+  position: absolute;
+  top: 24px;
+  left: calc(50% + 28px);
+  right: calc(-50% + 28px);
+  height: 4px;
+  background: $border;
+  border-radius: 2px;
+  z-index: 1;
+  transition: background 0.3s ease;
+
+  @media (max-width: $breakpoint-md) {
+    top: 20px;
+    left: calc(50% + 24px);
+    right: calc(-50% + 24px);
+    height: 3px;
+  }
+
+  // Filled connector for completed steps
+  .completed & {
+    background: linear-gradient(90deg, $success 0%, $success 100%);
+  }
+}
+
+// Mobile Progress Navigation - Clean dots with step title
+.mobileProgressNav {
+  display: none;
+  margin-bottom: $space-lg;
+
+  @media (max-width: $breakpoint-sm) {
+    display: flex;
+    flex-direction: column;
+    gap: $space-sm;
+    padding: $space-md;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: $radius-lg;
+  }
+}
+
+// Step title and progress text
+.mobileStepHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobileStepTitle {
+  font-size: $font-md;
+  font-weight: $weight-bold;
+  color: $text;
+}
+
+.mobileStepProgress {
+  font-size: $font-xs;
+  color: $text-secondary;
+  font-weight: $weight-medium;
+}
+
+// Dots container
+.mobileDotsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+}
+
+.mobileDot {
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-full;
+  background: $border;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  // Completed dot - green with checkmark effect
+  &.completed {
+    background: $success;
+    width: 12px;
+    height: 12px;
+  }
+
+  // Current dot - primary with ring
+  &.current {
+    background: $primary;
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 0 0 3px rgba($primary, 0.2);
+  }
+
+  // Clickable dots hover
+  &.clickable:hover:not(.current) {
+    transform: scale(1.2);
+    background: rgba($primary, 0.5);
+  }
+}
+
+// Steps Container
+.stepsContainer {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: $space-md;
+  overflow: hidden;
+}
+
+// Form Fields
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Specs Grid
+.specsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Location Link Row
+.locationLinkRow {
+  display: flex;
+  gap: $space-sm;
+  align-items: flex-end;
+
+  > div:first-child {
+    flex: 1;
+  }
+
+  .locationButton {
+    white-space: nowrap;
+    height: 44px;
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: stretch;
+
+    .locationButton {
+      width: 100%;
+    }
+  }
+}
+
+// Video Section
+.videoSection {
+  margin-top: $space-md;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+
+  .videoLabel {
+    margin-bottom: $space-xs;
+  }
+
+  .videoHint {
+    margin-bottom: $space-sm;
+  }
+}
+
+// Preview Section
+.previewSection {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.previewTitle {
+  text-align: center;
+  margin-bottom: $space-md;
+}
+
+.previewCard {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+.previewImages {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.mainImage {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: $radius-md;
+
+  @media (max-width: $breakpoint-sm) {
+    max-height: 200px;
+  }
+}
+
+.thumbnailRow {
+  display: flex;
+  gap: $space-xs;
+  flex-wrap: wrap;
+}
+
+.thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+}
+
+.moreImages {
+  width: 60px;
+  height: 60px;
+  border-radius: $radius-sm;
+  background: $surface;
+  border: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-sm;
+  color: $text-secondary;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-md;
+  flex-wrap: wrap;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+  }
+}
+
+.previewPrice {
+  color: $primary !important;
+  white-space: nowrap;
+}
+
+.previewDescription {
+  padding: $space-md;
+  background: $bg;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.previewSpecs {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.specsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $space-xs $space-md;
+}
+
+.specItem {
+  display: flex;
+  gap: $space-xs;
+}
+
+.previewLocation {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  padding-top: $space-md;
+  border-top: 1px solid $border;
+}
+
+.previewNote {
+  text-align: center;
+  padding: $space-md;
+  background: rgba($primary, 0.05);
+  border-radius: $radius-md;
+}
+
+// Wizard Actions
+.wizardActions {
+  background-color: $surface;
+  padding: $space-md $space-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-md;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  margin-top: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-sm $space-md;
+    // Keep row layout on mobile with space-between
+  }
+}
+
+.leftActions,
+.rightActions {
+  display: flex;
+  gap: $space-sm;
+  align-items: center;
+
+  @media (max-width: $breakpoint-sm) {
+    // Keep buttons in row on mobile
+    gap: $space-xs;
+  }
+}
+
+// Loading Indicator
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: $space-sm;
+  margin-top: $space-lg;
+  padding: $space-sm $space-md;
+  border-radius: $radius-sm;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

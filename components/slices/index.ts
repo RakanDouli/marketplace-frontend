@@ -76,4 +76,8 @@ export { CollapsibleSection } from "./CollapsibleSection";
 export type { default as CollapsibleSectionDefault } from "./CollapsibleSection";
 export { FormSection } from "./FormSection";
 export type { FormSectionStatus } from "./FormSection";
+export { WizardStep } from "./WizardStep";
+export type { WizardStepStatus } from "./WizardStep";
 export { ClientPrice } from "./ClientPrice";
+export { CarInspection } from "./CarInspection";
+export type { DamageReport } from "./CarInspection";

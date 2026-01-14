@@ -1,0 +1,175 @@
+@import "@/styles/variables";
+
+.step {
+  background: $bg;
+  border: 2px solid $border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+  // Status: Required fields filled - success border
+  &.required {
+    border-color: $success;
+  }
+
+  // Status: All fields complete - success border + subtle glow
+  &.complete {
+    border-color: $success;
+    box-shadow: 0 0 0 1px $success;
+  }
+
+  // Status: Has validation errors - red border
+  &.error {
+    border-color: $error;
+  }
+}
+
+// Horizontal slide animations
+.slideInFromRight {
+  animation: slideInFromRight 0.4s ease-out forwards;
+}
+
+.slideInFromLeft {
+  animation: slideInFromLeft 0.4s ease-out forwards;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid $border;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-sm $space-md;
+  }
+}
+
+.indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-full;
+  border: 2px solid $border;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-md;
+  font-weight: $weight-semibold;
+  color: $text-secondary;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+
+  // Status: Required fields filled - success border + success check
+  &.required {
+    border-color: $success;
+    color: $success;
+    background: transparent;
+  }
+
+  // Status: All fields complete - success background + white check
+  &.complete {
+    background: $success;
+    border-color: $success;
+    color: white;
+  }
+
+  // Status: Has validation errors - red border + red text
+  &.error {
+    border-color: $error;
+    color: $error;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: baseline;
+  gap: $space-sm;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-weight: $weight-semibold;
+}
+
+.asterisk {
+  color: $error;
+  margin-inline-start: $space-xs;
+  font-weight: $weight-bold;
+}
+
+.fieldCount {
+  color: $text-secondary;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepContent {
+  padding: $space-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-lg $space-md;
+  }
+}
+
+// Step Footer with navigation buttons
+.stepFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-md $space-lg;
+  border-top: 1px solid $border;
+  background: $surface;
+
+  @media (max-width: $breakpoint-sm) {
+    padding: $space-md;
+  }
+}
+
+.footerLeft,
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
