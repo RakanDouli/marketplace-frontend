@@ -65,6 +65,7 @@ export default function CategoryPageClient({
   const {
     appliedFilters,
     setFilter,
+    setSpecFilter,
     getStoreFilters,
     getBackendFilters,
   } = useSearchStore();
@@ -72,13 +73,43 @@ export default function CategoryPageClient({
   const { fetchListingsByCategory, setPagination, hydrateFromSSR: hydrateListingsFromSSR } = useListingsStore();
   const { updateFiltersWithCascading } = useFiltersStore();
 
-  // Local search state for controlled input
-  const [localSearch, setLocalSearch] = useState(appliedFilters.search || '');
+  // Local search state for controlled input - initialize from URL params if available
+  const [localSearch, setLocalSearch] = useState(searchParams.search || appliedFilters.search || '');
 
-  // Sync local search with store on mount and when store changes
+  // SYNCHRONOUS hydration (runs during render, not in useEffect)
+  // This ensures data is set BEFORE ListingArea's useEffect runs
+  const ssrHydratedRef = useRef(false);
+  if (!ssrHydratedRef.current) {
+    ssrHydratedRef.current = true;
+
+    // 1. Hydrate searchStore from URL params so filters show as applied
+    if (searchParams.search) {
+      setFilter('search', searchParams.search);
+    }
+    if (searchParams.province) {
+      setSpecFilter('location', searchParams.province);
+    }
+    if (searchParams.minPrice) {
+      setFilter('priceMinMinor', parseInt(searchParams.minPrice, 10));
+    }
+    if (searchParams.maxPrice) {
+      setFilter('priceMaxMinor', parseInt(searchParams.maxPrice, 10));
+    }
+
+    // 2. Hydrate listings store with SSR data (including 0 results)
+    // This prevents ListingArea from fetching again
+    if (initialListings !== undefined) {
+      hydrateListingsFromSSR(categorySlug, initialListings || [], initialTotalResults || 0);
+    }
+  }
+
+  // Sync local search with store when store changes (for in-page searches)
   useEffect(() => {
-    setLocalSearch(appliedFilters.search || '');
-  }, [appliedFilters.search]);
+    // Only sync if no URL search param (avoid overwriting URL-based search)
+    if (!searchParams.search && appliedFilters.search) {
+      setLocalSearch(appliedFilters.search);
+    }
+  }, [appliedFilters.search, searchParams.search]);
 
   // Handle search submit
   const handleSearchSubmit = useCallback(async () => {
@@ -144,12 +175,8 @@ export default function CategoryPageClient({
         fetchFilterData(categorySlug);
       }
 
-      // HYBRID SSR: Hydrate listings store with SSR data if available
-      if (initialListings && initialListings.length > 0) {
-        // Hydrate listings store with SSR data - no API call needed!
-        hydrateListingsFromSSR(categorySlug, initialListings, initialTotalResults || 0);
-      }
-      // Note: If no SSR listings, ListingArea will fetch client-side via useEffect
+      // NOTE: Listings hydration is now done SYNCHRONOUSLY above (before useEffect)
+      // This prevents race condition where ListingArea refetches without filters
 
       setIsCategoryLoading(false);
       initializedRef.current = true;

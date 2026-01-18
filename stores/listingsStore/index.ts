@@ -322,6 +322,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             accountType: item.accountType as "individual" | "dealer" | "business",
             createdAt: item.createdAt,
             updatedAt: item.createdAt,
+            location: item.location, // Preserve full location object for ListingArea
             user: item.user ? {
               id: item.user.id,
               name: '',

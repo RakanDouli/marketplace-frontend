@@ -149,11 +149,44 @@ async function fetchCategoryMetadata(categorySlug: string): Promise<{
 }
 
 // Fetch listings server-side using existing query from store
-async function fetchListingsSSR(categorySlug: string): Promise<{
+async function fetchListingsSSR(
+  categorySlug: string,
+  searchParams?: {
+    search?: string;
+    province?: string;
+    minPrice?: string;
+    maxPrice?: string;
+  }
+): Promise<{
   listings: Listing[];
   totalResults: number;
 }> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+  // Build filter object with search params
+  const filter: Record<string, unknown> = {
+    categoryId: categorySlug,
+    status: "ACTIVE",
+    viewType: "grid",
+  };
+
+  // Add search term if provided
+  if (searchParams?.search) {
+    filter.search = searchParams.search;
+  }
+
+  // Add location/province filter (top-level like client-side listingsStore)
+  if (searchParams?.province) {
+    filter.province = searchParams.province;
+  }
+
+  // Add price range if provided
+  if (searchParams?.minPrice) {
+    filter.priceMinMinor = parseInt(searchParams.minPrice, 10);
+  }
+  if (searchParams?.maxPrice) {
+    filter.priceMaxMinor = parseInt(searchParams.maxPrice, 10);
+  }
 
   try {
     const response = await fetch(`${apiUrl}/graphql`, {
@@ -162,16 +195,15 @@ async function fetchListingsSSR(categorySlug: string): Promise<{
       body: JSON.stringify({
         query: LISTINGS_GRID_QUERY,
         variables: {
-          filter: {
-            categoryId: categorySlug,
-            status: "ACTIVE",
-            viewType: "grid",
-          },
+          filter,
           limit: 20,
           offset: 0,
         },
       }),
-      next: { revalidate: 120 }, // Cache for 2 minutes (same as client-side)
+      // Don't cache when search params are present (dynamic content)
+      next: searchParams?.search || searchParams?.province
+        ? { revalidate: 0 }
+        : { revalidate: 120 },
     });
 
     const data = await response.json();
@@ -199,6 +231,7 @@ async function fetchListingsSSR(categorySlug: string): Promise<{
         title: item.title,
         priceMinor: item.priceMinor,
         prices: [{ currency: "USD", value: item.priceMinor?.toString() || "0" }],
+        location: item.location, // Pass the entire location object for ListingArea
         city: (specs as any).location || item.location?.city || "",
         status: "active" as const,
         allowBidding: false,
@@ -274,15 +307,20 @@ export default async function CategoryPage({
   // Fetch filter attributes AND listings server-side (SSR) in parallel
   const [filterData, listingsData] = await Promise.all([
     fetchFilterAttributes(category),
-    fetchListingsSSR(category),
+    fetchListingsSSR(category, resolvedSearchParams),
   ]);
+
+  // Use listingsData.totalResults when search params are present (filtered count)
+  // Otherwise use filterData.totalResults (unfiltered count for aggregations)
+  const hasSearchFilters = resolvedSearchParams?.search || resolvedSearchParams?.province;
+  const totalResults = hasSearchFilters ? listingsData.totalResults : filterData.totalResults;
 
   return (
     <CategoryPageClient
       categorySlug={category}
       searchParams={resolvedSearchParams}
       initialAttributes={filterData.attributes}
-      initialTotalResults={filterData.totalResults}
+      initialTotalResults={totalResults}
       initialListings={listingsData.listings}
     />
   );

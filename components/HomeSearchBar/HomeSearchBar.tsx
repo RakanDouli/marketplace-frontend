@@ -48,17 +48,23 @@ export const HomeSearchBar: React.FC = () => {
     // Clear previous filters
     clearAllFilters();
 
-    // Set new filters
+    // Build URL with query params for SSR
+    const params = new URLSearchParams();
+
     if (searchTerm.trim()) {
+      params.set('search', searchTerm.trim());
       setFilter('search', searchTerm.trim());
     }
 
     if (selectedLocation) {
+      params.set('province', selectedLocation);
       setSpecFilter('location', selectedLocation);
     }
 
-    // Navigate to category page
-    router.push(`/${selectedCategory}`);
+    // Navigate to category page with query params
+    const queryString = params.toString();
+    const url = queryString ? `/${selectedCategory}?${queryString}` : `/${selectedCategory}`;
+    router.push(url);
   };
 
   // Handle Enter key press

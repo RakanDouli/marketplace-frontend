@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { formatPrice } from "../../utils/formatPrice";
-import { Grid3X3, List } from "lucide-react";
+import { Grid3X3, List, Search } from "lucide-react";
 import { ListingCard, Text, Pagination } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -15,6 +15,7 @@ import {
   useCategoriesStore,
 } from "../../stores";
 import { useCurrencyStore } from "../../stores/currencyStore";
+import { useMetadataStore } from "../../stores/metadataStore";
 import { AdContainer } from "../ads";
 import styles from "./ListingArea.module.scss";
 
@@ -56,6 +57,20 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
   const { preferredCurrency } = useCurrencyStore(); // Subscribe to currency changes
   const { attributes, isLoading: countLoading } = useFiltersStore();
   const { getCategoryBySlug } = useCategoriesStore();
+  const { provinces, fetchLocationMetadata } = useMetadataStore();
+
+  // Fetch provinces if not loaded (needed for Arabic location names)
+  useEffect(() => {
+    if (provinces.length === 0) {
+      fetchLocationMetadata();
+    }
+  }, [provinces.length, fetchLocationMetadata]);
+
+  // Helper to get Arabic province name from key
+  const getProvinceArabicName = (provinceKey: string): string => {
+    const province = provinces.find((p) => p.key === provinceKey);
+    return province?.nameAr || provinceKey;
+  };
 
   // Store-based handlers (previously passed as props)
   const handleCardClick = (listingId: string) => {
@@ -202,11 +217,21 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     // formatPrice() handles currency conversion based on user's preferred currency
     const displayPrice = formatPrice(listing.priceMinor || 0);
 
+    // Extract location from listing.location object
+    const provinceKey = (listing as any).location?.province;
+    const city = (listing as any).location?.city;
+    const province = provinceKey ? getProvinceArabicName(provinceKey) : "";
+
+    // Format: "city, province" or just "province"
+    const locationDisplay = city && province
+      ? `${city}، ${province}`
+      : province || "";
+
     return {
       id: listing.id,
       title: listing.title,
       price: displayPrice, // Already includes currency symbol from formatPrice()
-      location: (allSpecs as any).location || (listing as any).province || (listing as any).city || "",
+      location: locationDisplay,
       accountType: listing.accountType as "individual" | "dealer" | "business",
       specs: viewFilteredSpecs, // Now using frontend view-filtered specs based on attribute flags
       images: listing.imageKeys || [],
@@ -327,7 +352,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
       {/* Empty state */}
       {!loading && listingData.length === 0 && (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>🚗</div>
+          <div className={styles.emptyIcon}><Search size={48} /></div>
           <Text variant="h3" className={styles.emptyTitle}>
             {t("search.noResults")}
           </Text>
