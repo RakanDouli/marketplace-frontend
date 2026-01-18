@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Container, Text, TextSection } from "@/components/slices";
 import styles from "./About.module.scss";
 
@@ -49,7 +50,9 @@ export default function AboutPage() {
           <section className={styles.section}>
             <Text variant="h3">تواصل معنا</Text>
             <Text variant="paragraph" color="secondary">
-              نحن دائماً سعداء بسماع آرائكم واقتراحاتكم. يمكنكم التواصل معنا عبر صفحة الاتصال أو من خلال حساباتنا على وسائل التواصل الاجتماعي.
+              نحن دائماً سعداء بسماع آرائكم واقتراحاتكم. يمكنكم التواصل معنا عبر{' '}
+              <Link href="/contact" className={styles.link}>صفحة الاتصال</Link>
+              {' '}أو من خلال حساباتنا على وسائل التواصل الاجتماعي.
             </Text>
           </section>
         </div>

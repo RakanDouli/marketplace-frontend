@@ -23,3 +23,13 @@
   margin: $space-sm 0;
   color: var(--text-secondary);
 }
+
+.link {
+  color: $primary;
+  text-decoration: underline;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
