@@ -119,25 +119,25 @@ export const Header: React.FC = () => {
           <div className={styles.container}>
             {/* Logo */}
             <Link href="/" className={styles.logo}>
-              <div className={styles.logoIcon}>🚗</div>
+              <div className={styles.logoIcon}>🛒</div>
               <div className={styles.logoText}>
-                <span className={styles.logoSub}>Syrian Marketplace</span>
+                <span className={styles.logoSub}>Shambay</span>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className={styles.nav}>
               <Link
+                href="/about"
+                className={`${styles.navLink} ${pathname === '/about' ? styles.active : ''}`}
+              >
+                من نحن
+              </Link>
+              <Link
                 href="/user-subscriptions"
                 className={`${styles.navLink} ${pathname === '/user-subscriptions' ? styles.active : ''}`}
               >
                 باقات الاشتراك
-              </Link>
-              <Link
-                href="/advertise"
-                className={`${styles.navLink} ${pathname === '/advertise' ? styles.active : ''}`}
-              >
-                أعلن معنا
               </Link>
               <Link
                 href="/contact"

@@ -7,7 +7,7 @@ import { PaymentPreview, PaymentMethodSelector } from '@/components/payment';
 import type { PaymentType, PaymentMethod, PaymentMethodOption, PaymentData, PaymentFeeInfo } from '@/components/payment';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { ArrowLeft, CreditCard } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import styles from '../../payment.module.scss';
 
 // GraphQL helper
@@ -377,7 +377,7 @@ export default function PaymentPage() {
           <Button
             variant="outline"
             onClick={() => router.push('/')}
-            icon={<ArrowLeft size={20} />}
+            arrow
           >
             العودة إلى الصفحة الرئيسية
           </Button>

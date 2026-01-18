@@ -243,11 +243,11 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'شمباي',
+    name: 'شام باي',
     alternateName: 'Shambay',
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
-    description: 'أكبر سوق إلكتروني في سوريا لبيع وشراء السيارات والعقارات',
+    description: 'أكبر سوق إلكتروني في سوريا للبيع والشراء',
     areaServed: {
       '@type': 'Country',
       name: 'سوريا',
@@ -267,14 +267,14 @@ export function generateWebsiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'شمباي',
+    name: 'شام باي',
     alternateName: 'Shambay',
     url: baseUrl,
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${baseUrl}/cars?search={search_term_string}`,
+        urlTemplate: `${baseUrl}/search?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },

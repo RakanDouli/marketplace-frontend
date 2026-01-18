@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Text, Loading, Button, MobileBackButton, Grid, StatCard, Container } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useListingAnalyticsStore } from '@/stores/listingAnalyticsStore';
-import { BarChart3, Eye, Heart, TrendingUp, Calendar, ArrowRight, ArrowLeft } from 'lucide-react';
+import { BarChart3, Eye, Heart, TrendingUp, Calendar, ArrowRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import sharedStyles from '@/components/dashboard/SharedDashboardPanel.module.scss';
 import styles from './ListingAnalytics.module.scss';
@@ -163,7 +163,7 @@ export default function ListingAnalyticsPage() {
         <Button
           variant="outline"
           href="/dashboard/analytics"
-          icon={<ArrowLeft size={18} />}
+          arrow
         >
           عودة إلى الإحصائيات
         </Button>

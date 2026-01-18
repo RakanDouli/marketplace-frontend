@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { IconGridSelector } from "../IconGridSelector";
 import { Aside, Text, Button, Collapsible } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
@@ -103,6 +103,7 @@ export const Filter: React.FC<FilterProps> = ({
     setDraftSpecFilter,
     applyDrafts,
     hasRangeDraftChanges,
+    clearAllFilters,
   } = useSearchStore();
 
   // Store hooks
@@ -446,7 +447,28 @@ export const Filter: React.FC<FilterProps> = ({
         </Button>
       )}
 
-      <Aside isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Aside
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        header={
+          <>
+            <Text variant="small" className={styles.resultCount}>
+              {totalResults} {t("search.results")}
+            </Text>
+            <button
+              type="button"
+              className={styles.resetButton}
+              onClick={async () => {
+                clearAllFilters();
+                await fetchListingsByCategory(categorySlug, { categoryId: categorySlug }, "grid");
+              }}
+            >
+              {t("search.clearAllFilters")}
+              <Trash2 size={14} />
+            </button>
+          </>
+        }
+      >
         {filtersLoading && (
           <div className={styles.loading}>
             <Loading type="svg" />

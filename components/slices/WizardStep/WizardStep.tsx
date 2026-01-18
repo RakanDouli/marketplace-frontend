@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { Text } from '../Text/Text';
 import { Button } from '../Button/Button';
 import styles from './WizardStep.module.scss';
@@ -139,7 +139,7 @@ export const WizardStep: React.FC<WizardStepProps> = ({
                   type="button"
                   variant="primary"
                   onClick={onNext}
-                  icon={<ArrowLeft size={18} />}
+                  arrow
                 >
                   التالي
                 </Button>

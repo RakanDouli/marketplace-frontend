@@ -22,7 +22,7 @@ import {
   validatePriceMinor,
   ListingValidationConfig,
 } from '@/lib/validation/listingValidation';
-import { MapPin, ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { MapPin, Check, Loader2 } from 'lucide-react';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
 import styles from './CreateListingWizard.module.scss';
 
@@ -883,7 +883,7 @@ export default function CreateListingWizardPage() {
         <Button
           variant="outline"
           href="/dashboard/listings/create"
-          icon={<ArrowLeft size={18} />}
+          arrow
         >
           عودة لاختيار الفئة
         </Button>

@@ -53,9 +53,12 @@ export const BottomNav: React.FC = () => {
     }
   }, [isMenuOpen, shouldRenderMenu]);
 
-  // Handle scroll behavior
+  // Handle scroll behavior - Optimized for Chrome mobile
+  // Uses larger thresholds and debouncing to avoid glitches with Chrome's toolbar
   useEffect(() => {
     let ticking = false;
+    let scrollAccumulator = 0;
+    const SCROLL_THRESHOLD = 50; // Larger threshold for stability
 
     const handleScroll = () => {
       if (ticking) return;
@@ -65,12 +68,23 @@ export const BottomNav: React.FC = () => {
         const currentScrollY = window.scrollY;
         const scrollDelta = currentScrollY - lastScrollY.current;
 
-        if (currentScrollY < 100) {
+        // Accumulate scroll distance for more stable detection
+        scrollAccumulator += scrollDelta;
+
+        // Always show when near top
+        if (currentScrollY < 50) {
           setIsVisible(true);
-        } else if (scrollDelta < -15) {
+          scrollAccumulator = 0;
+        }
+        // Show when scrolling up significantly
+        else if (scrollAccumulator < -SCROLL_THRESHOLD) {
           setIsVisible(true);
-        } else if (scrollDelta > 15) {
+          scrollAccumulator = 0;
+        }
+        // Hide when scrolling down significantly
+        else if (scrollAccumulator > SCROLL_THRESHOLD) {
           setIsVisible(false);
+          scrollAccumulator = 0;
         }
 
         lastScrollY.current = currentScrollY;

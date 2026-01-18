@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { FiArrowLeftCircle } from 'react-icons/fi';
 import styles from './MobileBackButton.module.scss';
 import Text from '../Text/Text';
 import Input from '../Input/Input';
@@ -40,21 +41,43 @@ export const MobileBackButton: React.FC<MobileBackButtonProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const lastScrollY = useRef(0);
 
+  // Handle scroll behavior - Optimized for Chrome mobile
+  // Uses scroll accumulator for stable detection, synced with BottomNav
   useEffect(() => {
+    let ticking = false;
+    let scrollAccumulator = 0;
+    const SCROLL_THRESHOLD = 50; // Same threshold as BottomNav for sync
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY.current;
+      if (ticking) return;
 
-      // Show when near top or scrolling up
-      if (currentScrollY < 50 || scrollDelta < -5) {
-        setIsVisible(true);
-      }
-      // Hide when scrolling down
-      else if (scrollDelta > 5) {
-        setIsVisible(false);
-      }
+      ticking = true;
+      requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const scrollDelta = currentScrollY - lastScrollY.current;
 
-      lastScrollY.current = currentScrollY;
+        // Accumulate scroll distance for more stable detection
+        scrollAccumulator += scrollDelta;
+
+        // Always show when near top
+        if (currentScrollY < 50) {
+          setIsVisible(true);
+          scrollAccumulator = 0;
+        }
+        // Show when scrolling up significantly
+        else if (scrollAccumulator < -SCROLL_THRESHOLD) {
+          setIsVisible(true);
+          scrollAccumulator = 0;
+        }
+        // Hide when scrolling down significantly
+        else if (scrollAccumulator > SCROLL_THRESHOLD) {
+          setIsVisible(false);
+          scrollAccumulator = 0;
+        }
+
+        lastScrollY.current = currentScrollY;
+        ticking = false;
+      });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -106,7 +129,7 @@ export const MobileBackButton: React.FC<MobileBackButtonProps> = ({
             onClick={onClick}
             aria-label="الرجوع"
           >
-            <ArrowLeft size={24} />
+            <FiArrowLeftCircle size={24} />
           </button>
         </div>
       </div>

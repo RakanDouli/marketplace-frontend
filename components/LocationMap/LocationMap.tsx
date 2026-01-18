@@ -110,8 +110,8 @@ export const LocationMap: React.FC<LocationMapProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           variant='outline'
+          icon={<ExternalLink size={16} />}
         >
-          <ExternalLink size={16} />
           فتح في خرائط جوجل
         </Button>
       )}

@@ -82,9 +82,8 @@ export const ListingActionBar: React.FC<ListingActionBarProps> = ({
             onClick={handleWhatsAppClick}
             className={styles.actionButton}
             aria-label="واتساب"
-          >
-            <FaWhatsapp size={22} />
-          </Button>
+            icon={<FaWhatsapp size={22} />}
+          />
         )}
 
         {/* Phone Button */}
@@ -94,9 +93,8 @@ export const ListingActionBar: React.FC<ListingActionBarProps> = ({
             onClick={handlePhoneClick}
             className={styles.actionButton}
             aria-label="اتصال"
-          >
-            <Phone size={22} />
-          </Button>
+            icon={<Phone size={22} />}
+          />
         )}
 
         {/* Message Button - Icon only */}
@@ -105,9 +103,8 @@ export const ListingActionBar: React.FC<ListingActionBarProps> = ({
           onClick={handleMessageClick}
           className={styles.actionButton}
           aria-label="أرسل رسالة"
-        >
-          <MessageCircle size={22} />
-        </Button>
+          icon={<MessageCircle size={22} />}
+        />
       </div>
     </div>
   );

@@ -98,7 +98,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
       title={headerContent}
       defaultOpen={defaultExpanded}
       onToggle={onToggle}
-      variant="default"
+      variant="accent"
       contentPadding={contentPadding}
       className={`${styles.section} ${statusClass} ${className}`}
     >

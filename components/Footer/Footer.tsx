@@ -29,11 +29,11 @@ export const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className={styles.brand}>
             <Link href="/" className={styles.logo}>
-              <span className={styles.logoIcon}>🚗</span>
-              <span className={styles.logoText}>Syrian Marketplace</span>
+              <span className={styles.logoIcon}>🛒</span>
+              <span className={styles.logoText}>Shambay</span>
             </Link>
             <Text variant="small" color="secondary">
-              سوق السيارات السوري - منصتك الأولى لبيع وشراء السيارات
+              شام باي - منصتك الأولى للبيع والشراء في سوريا
             </Text>
           </div>
 
@@ -57,9 +57,9 @@ export const Footer: React.FC = () => {
                 <Phone size={16} />
                 <span>+963 123 456 789</span>
               </a>
-              <a href="mailto:info@syrianmarketplace.com" className={styles.contactItem}>
+              <a href="mailto:info@shambay.com" className={styles.contactItem}>
                 <Mail size={16} />
-                <span>info@syrianmarketplace.com</span>
+                <span>info@shambay.com</span>
               </a>
               <div className={styles.contactItem}>
                 <MapPin size={16} />
@@ -72,7 +72,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className={styles.bottom}>
           <Text variant="small" color="secondary">
-            © {currentYear} Syrian Marketplace. جميع الحقوق محفوظة.
+            © {currentYear} Shambay. جميع الحقوق محفوظة.
           </Text>
           <nav className={styles.legalLinks}>
             {legalLinks.map((link) => (

@@ -205,8 +205,8 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({
               variant="primary"
               disabled={isSubmitting || !bidAmount}
               className={styles.bidButton}
+              icon={<Gavel size={18} />}
             >
-              <Gavel size={18} />
               تقديم عرض
             </Button>
           </div>

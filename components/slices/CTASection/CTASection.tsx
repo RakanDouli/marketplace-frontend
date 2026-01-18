@@ -12,6 +12,7 @@ export interface CTAButton {
   href: string;
   variant?: "primary" | "secondary" | "outline";
   icon?: React.ReactNode;
+  arrow?: boolean;
 }
 
 export interface CTASectionProps {
@@ -72,6 +73,7 @@ export const CTASection: React.FC<CTASectionProps> = ({
                   variant={button.variant || (index === 0 ? "primary" : "outline")}
                   size="lg"
                   icon={button.icon}
+                  arrow={button.arrow}
                 >
                   {button.label}
                 </Button>

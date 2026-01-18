@@ -23,7 +23,7 @@ import {
   ListingValidationConfig,
   type ValidationErrors,
 } from '@/lib/validation/listingValidation';
-import { MapPin, ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { MapPin, Save, Loader2 } from 'lucide-react';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
 import { CarInspection, toBackendFormat, fromBackendFormat, type DamageReport } from '@/components/slices/CarInspection';
 import styles from '../CreateListing.module.scss';
@@ -822,7 +822,7 @@ export default function CreateListingDetailsPage() {
         <Button
           variant="outline"
           href="/dashboard/listings/create"
-          icon={<ArrowLeft size={18} />}
+          arrow
         >
           عودة لاختيار الفئة
         </Button>

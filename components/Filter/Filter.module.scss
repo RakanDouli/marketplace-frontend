@@ -322,14 +322,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $space-xs;
+  gap: $space-xs;
+  padding: $space-xs $space-sm;
   background: transparent;
   border: none;
   color: $primary;
+  font-size: $font-sm;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  white-space: nowrap;
 
   &:hover {
     opacity: 0.7;
   }
+}
+
+// Result count in sticky header
+.resultCount {
+  font-weight: 600;
+  color: $text;
+  margin: 0;
 }

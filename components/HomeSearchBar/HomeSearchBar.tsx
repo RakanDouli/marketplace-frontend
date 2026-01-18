@@ -79,7 +79,7 @@ export const HomeSearchBar: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="ابحث عن سيارات، عقارات، وغيرها..."
+            placeholder="ابحث عن ما تريد..."
             aria-label="بحث"
             icon={<Search size={18} />}
           />

@@ -93,10 +93,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-md;
+  gap: $space-sm;
 
-  @media (max-width: $breakpoint-lg) {
-    display: none;
+  // Reduce gap on smaller screens
+  @media (min-width: $breakpoint-lg) {
+    gap: $space-md;
   }
 }
 

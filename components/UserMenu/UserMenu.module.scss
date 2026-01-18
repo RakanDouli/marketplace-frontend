@@ -70,7 +70,9 @@
   font-size: $font-sm;
   color: $text;
 
-  @media (max-width: $breakpoint-sm) {
+  // Hide username at medium screens to save header space
+  // Profile button shows only avatar icon
+  @media (max-width: $breakpoint-lg) {
     display: none;
   }
 }

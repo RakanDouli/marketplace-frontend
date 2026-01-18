@@ -24,8 +24,8 @@ export interface VehicleSEOData {
   id: string;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.sy';
-const SITE_NAME = 'Syrian Car Marketplace | السوق السوري للسيارات';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shambay.com';
+const SITE_NAME = 'Shambay | شام باي';
 
 // Generate meta tags for vehicle listings
 export function generateVehicleMetadata(
@@ -143,16 +143,16 @@ export function generateDefaultMetadata(locale: Language = 'en'): Metadata {
     },
     description: t.seo.defaultDescription,
     keywords: [
-      locale === 'ar' ? 'سيارات سوريا' : 'Syrian cars',
-      locale === 'ar' ? 'بيع سيارات' : 'sell cars',
-      locale === 'ar' ? 'شراء سيارات' : 'buy cars',
-      locale === 'ar' ? 'مزادات سيارات' : 'car auctions',
-      locale === 'ar' ? 'سوق السيارات' : 'car marketplace',
-      'Damascus cars', 'Aleppo cars', 'Syrian marketplace',
+      locale === 'ar' ? 'إعلانات سوريا' : 'Syria classifieds',
+      locale === 'ar' ? 'بيع وشراء' : 'buy and sell',
+      locale === 'ar' ? 'سوق سوريا' : 'Syria marketplace',
+      locale === 'ar' ? 'شام باي' : 'shambay',
+      locale === 'ar' ? 'إعلانات مبوبة' : 'classified ads',
+      'Damascus', 'Aleppo', 'Syrian marketplace',
     ],
-    authors: [{ name: 'Syrian Car Marketplace' }],
-    creator: 'Syrian Car Marketplace',
-    publisher: 'Syrian Car Marketplace',
+    authors: [{ name: 'Shambay' }],
+    creator: 'Shambay',
+    publisher: 'Shambay',
     formatDetection: {
       email: false,
       address: false,
@@ -216,7 +216,7 @@ export function generateVehicleJsonLd(vehicle: VehicleSEOData, locale: Language 
       url: url,
       seller: {
         '@type': 'Organization',
-        name: 'Syrian Car Marketplace',
+        name: 'Shambay',
       },
     },
     image: vehicle.images.map(img => `${SITE_URL}${img}`),

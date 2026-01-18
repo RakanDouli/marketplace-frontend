@@ -30,7 +30,7 @@ const features = [
   {
     icon: <Search size={28} />,
     title: 'بحث سهل',
-    description: 'ابحث بسهولة عن سيارتك المثالية باستخدام فلاتر متقدمة',
+    description: 'ابحث بسهولة عن ما تريد باستخدام فلاتر متقدمة',
   },
   {
     icon: <Shield size={28} />,
@@ -138,29 +138,16 @@ export default function HomeClient() {
       {/* Mid-Page Banner Ad */}
       <AdContainer placement="homepage_mid" />
 
-      {/* CTA Section - Sell Your Car */}
+      {/* CTA Section - Start Selling */}
       <CTASection
-        title="هل تريد بيع سيارتك؟"
+        title="هل لديك شيء للبيع؟"
         subtitle="ابدأ الآن"
         description="انشر إعلانك مجاناً واوصل لآلاف المشترين المحتملين في سوريا"
         buttons={[
-          { label: 'أضف إعلانك الآن', href: '/dashboard/listings/create', variant: 'secondary' },
-          { label: 'تعرف على الباقات', href: '/user-subscriptions', variant: 'outline' },
+          { label: 'أضف إعلانك الآن', href: '/dashboard/listings/create', variant: 'secondary', arrow: true },
+          { label: 'تعرف على الباقات', href: '/user-subscriptions', variant: 'outline', arrow: true },
         ]}
         variant="gradient"
-        align="center"
-      />
-
-      {/* Advertise CTA Section */}
-      <CTASection
-        title="هل لديك عمل تجاري؟"
-        subtitle="أعلن معنا"
-        description="اوصل لجمهورك المستهدف من خلال إعلاناتنا المتميزة"
-        buttons={[
-          { label: 'تصفح باقات الإعلانات', href: '/advertise', variant: 'primary' },
-          { label: 'تواصل معنا', href: '/contact', variant: 'outline' },
-        ]}
-        variant="secondary"
         align="center"
       />
     </main>

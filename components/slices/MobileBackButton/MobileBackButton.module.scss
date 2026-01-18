@@ -13,8 +13,14 @@
   left: 0;
   right: 0;
   z-index: $z-nav;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0 0 $radius-md $radius-md;
+
+  // Use transform with GPU acceleration for smooth animation
+  // Prevents glitches on Chrome mobile when toolbar hides/shows
+  will-change: transform;
+  transform: translateY(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
   // Scroll visibility states
   &.visible {
     transform: translateY(0);

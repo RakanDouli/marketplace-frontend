@@ -18,10 +18,10 @@ export default function TermsPage() {
           <section className={styles.section}>
             <Text variant="h3">1. مقدمة</Text>
             <Text variant="paragraph" color="secondary">
-              مرحباً بك في شمباي. باستخدامك لموقعنا وخدماتنا، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية قبل استخدام الموقع.
+              مرحباً بك في شام باي. باستخدامك لموقعنا وخدماتنا، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى قراءتها بعناية قبل استخدام الموقع.
             </Text>
             <Text variant="paragraph" color="secondary">
-              شمباي هو منصة إلكترونية تتيح للمستخدمين نشر إعلانات لبيع وشراء السيارات والعقارات والمنتجات الأخرى. نحن نوفر فقط المنصة للتواصل بين البائعين والمشترين.
+              شام باي هي منصة إلكترونية تتيح للمستخدمين نشر إعلانات لبيع وشراء المنتجات والخدمات المختلفة. نحن نوفر فقط المنصة للتواصل بين البائعين والمشترين.
             </Text>
           </section>
 
@@ -29,7 +29,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <Text variant="h3">2. دور المنصة</Text>
             <Text variant="paragraph" color="secondary">
-              شمباي هي منصة وسيطة فقط وليست طرفاً في أي معاملة تتم بين المستخدمين. نحن:
+              شام باي هي منصة وسيطة فقط وليست طرفاً في أي معاملة تتم بين المستخدمين. نحن:
             </Text>
             <ul className={styles.list}>
               <li>لا نملك أو نبيع أي من المنتجات المعروضة</li>
@@ -112,7 +112,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <Text variant="h3">7. إخلاء المسؤولية</Text>
             <Text variant="paragraph" color="secondary">
-              شمباي غير مسؤولة عن:
+              شام باي غير مسؤولة عن:
             </Text>
             <ul className={styles.list}>
               <li>أي خسائر مالية ناتجة عن التعامل مع مستخدمين آخرين</li>
@@ -128,7 +128,7 @@ export default function TermsPage() {
           <section className={styles.section}>
             <Text variant="h3">8. حقوق الملكية الفكرية</Text>
             <Text variant="paragraph" color="secondary">
-              جميع المحتويات الموجودة على الموقع، بما في ذلك التصميم والشعارات والنصوص والصور، هي ملكية خاصة لشمباي ومحمية بموجب قوانين حقوق الملكية الفكرية.
+              جميع المحتويات الموجودة على الموقع، بما في ذلك التصميم والشعارات والنصوص والصور، هي ملكية خاصة لشام باي ومحمية بموجب قوانين حقوق الملكية الفكرية.
             </Text>
             <Text variant="paragraph" color="secondary">
               يُمنع نسخ أو إعادة إنتاج أو توزيع أي محتوى من الموقع دون إذن كتابي مسبق منا.

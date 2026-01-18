@@ -2,7 +2,7 @@
 
 import React, { forwardRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Target } from "lucide-react";
+import { FiArrowLeftCircle } from "react-icons/fi";
 import Loading from "../Loading/Loading";
 import styles from "./Button.module.scss";
 
@@ -10,9 +10,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "success" | "danger" | "outline" | "link";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
+  /** Icon to display after text. If provided, arrow prop is ignored. */
   icon?: React.ReactNode;
   children?: React.ReactNode;
-  arrow?: boolean | string;
+  /** Show arrow icon after text. Ignored if icon prop is provided. */
+  arrow?: boolean;
   href?: string;
   margin?: boolean;
   target?: string;
@@ -48,19 +50,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       onMouseEnter?.(e);
     };
 
+    // Determine which icon to show (icon prop takes priority over arrow)
+    const showIcon = icon || (arrow && !icon ? <FiArrowLeftCircle size={18} /> : null);
+
     const buttonContent = (
       <>
-        {/* Ripple effect */}
-        {!href ||
-          (variant !== "link" && (
-            <span
-              className={`${styles.round} ${styles.ripple}`}
-              style={{
-                left: `${rippleCoords.x}px`,
-                top: `${rippleCoords.y}px`,
-              }}
-            />
-          ))}
+        {/* Ripple effect - show for all variants except link */}
+        {variant !== "link" && (
+          <span
+            className={`${styles.round} ${styles.ripple}`}
+            style={{
+              left: `${rippleCoords.x}px`,
+              top: `${rippleCoords.y}px`,
+            }}
+          />
+        )}
 
         {/* Loading state */}
         {loading ? (
@@ -69,24 +73,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </div>
         ) : (
           <>
-            {/* Content */}
-            {children && (
-              <span className={styles.title}>
-                {children}
-                {icon && <span className={styles.icon}>{icon}</span>}
-              </span>
-            )}
+            {/* Text content */}
+            {children && <span className={styles.title}>{children}</span>}
 
-            {/* No content - just icon button */}
-            {!children && icon && <span className={styles.icon}>{icon}</span>}
-
-            {/* Arrow */}
-            {arrow !== undefined && arrow !== false && (
-              <div className={styles.arrow}>
-                <ArrowRight className={styles.arrowRight} size={20} />
-                <ArrowLeft className={styles.arrowLeft} size={20} />
-              </div>
-            )}
+            {/* Icon (always after text, in same position) */}
+            {showIcon && <span className={styles.icon}>{showIcon}</span>}
           </>
         )}
       </>
@@ -100,6 +91,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           href={href}
           className={`${styles.btn} ${children ? styles.btnPadding : ""} ${styles[`btn--${variant}`]
             } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
+          onMouseEnter={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setRippleCoords({
+              x: e.clientX - rect.left,
+              y: e.clientY - rect.top,
+            });
+          }}
         >
           {buttonContent}
         </Link>

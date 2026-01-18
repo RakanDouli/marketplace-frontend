@@ -72,8 +72,6 @@ export { FAQ } from "./FAQ";
 export type { FAQProps, FAQItem } from "./FAQ";
 export { ContactForm } from "./ContactForm";
 export type { ContactFormProps, ContactFormData, ContactFormSubject } from "./ContactForm";
-export { CollapsibleSection } from "./CollapsibleSection";
-export type { default as CollapsibleSectionDefault } from "./CollapsibleSection";
 export { FormSection } from "./FormSection";
 export type { FormSectionStatus } from "./FormSection";
 export { WizardStep } from "./WizardStep";

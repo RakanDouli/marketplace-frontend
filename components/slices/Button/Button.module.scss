@@ -30,9 +30,11 @@
   &--primary {
     background-color: $primary;
     color: $text-light;
-    border: none;
+    border: 1px solid transparent;
 
     &:hover {
+      border-color: inherit;
+
       .round {
         background: $secondary;
         animation: rippleEffect 1.5s ease forwards;
@@ -43,9 +45,11 @@
   &--secondary {
     background-color: $secondary;
     color: $text-inverse;
-    border: none;
+    border: 1px solid transparent;
 
     &:hover {
+      border-color: inherit;
+
       .round {
         background: $primary;
         animation: rippleEffect 1.5s ease forwards;
@@ -59,38 +63,42 @@
     color: $text;
 
     &:hover {
-      background-color: $primary;
-      color: $text-light !important;
+      color: $text-inverse;
 
       .round {
-        background: $secondary;
+        background: $primary;
         animation: rippleEffect 1.5s ease forwards;
       }
-    }
-    &:active {
-      color: $text-light !important;
     }
   }
 
   &--success {
     background-color: $success;
     color: $text-inverse;
-    border: none;
+    border: 1px solid transparent;
 
-    &:hover .round {
-      background: $primary;
-      animation: rippleEffect 1.5s ease forwards;
+    &:hover {
+      border-color: inherit;
+
+      .round {
+        background: $text;
+        animation: rippleEffect 1.5s ease forwards;
+      }
     }
   }
 
   &--danger {
     background-color: $error;
     color: $text-inverse;
-    border: none;
+    border: 1px solid transparent;
 
-    &:hover .round {
-      background: $primary;
-      animation: rippleEffect 1.5s ease forwards;
+    &:hover {
+      border-color: inherit;
+
+      .round {
+        background: $text;
+        animation: rippleEffect 1.5s ease forwards;
+      }
     }
   }
 
@@ -99,21 +107,13 @@
     border: none;
     color: $text;
     text-decoration: underline;
-    // padding: $space-xs $space-sm;
     margin: 0;
     min-width: auto;
     height: auto;
-
     font-weight: $font-base;
 
     &:hover {
-      background-color: $primary;
-      color: $text-inverse;
-      text-decoration: none;
-
-      .round {
-        display: none; // No ripple effect for link variant
-      }
+      color: $primary;
     }
 
     &:focus {
@@ -129,15 +129,6 @@
     }
   }
 
-  .arrow {
-    font-size: 1.125rem;
-    z-index: 1;
-    transform: rotate(-45deg);
-    transition: all 0.3s ease-out;
-    display: flex;
-    align-items: center;
-  }
-
   .title {
     margin: 0;
     transition: all 0.3s ease-out;
@@ -148,7 +139,6 @@
     z-index: 1;
     display: flex;
     align-items: center;
-    gap: $space-xs;
   }
 
   .round {
@@ -181,13 +171,6 @@
   }
 }
 
-.arrowLeft {
-  display: none;
-}
-
-.arrowRight {
-  display: block;
-}
 
 .loading {
   pointer-events: none;
@@ -237,6 +220,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
+  flex-shrink: 0;
 }
 
 .themeToggle {

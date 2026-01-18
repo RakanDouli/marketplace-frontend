@@ -28,14 +28,14 @@ export async function generateMetadata({
     .replace(/\b\w/g, (l) => l.toUpperCase());
 
   return {
-    title: `${categoryNameAr} للبيع في سوريا | السوق السوري`,
-    description: `تصفح ${categoryNameAr} للبيع في السوق السوري. أفضل العروض والأسعار في سوريا. Browse quality ${categoryNameEn.toLowerCase()} listings in Syria.`,
+    title: `${categoryNameAr} للبيع في سوريا | شام باي`,
+    description: `تصفح ${categoryNameAr} للبيع على شام باي. أفضل العروض والأسعار في سوريا. Browse quality ${categoryNameEn.toLowerCase()} listings in Syria.`,
     openGraph: {
       title: `${categoryNameAr} للبيع في سوريا`,
-      description: `تصفح ${categoryNameAr} للبيع في السوق السوري`,
+      description: `تصفح ${categoryNameAr} للبيع على شام باي`,
       type: "website",
       locale: "ar_SY",
-      siteName: "السوق السوري",
+      siteName: "شام باي",
     },
     robots: {
       index: true,

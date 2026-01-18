@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { Container, Button } from '@/components/slices';
 import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { WarningBanner } from '@/components/WarningBanner';
@@ -69,7 +68,7 @@ export default function DashboardLayout({
           <Button
             variant="outline"
             onClick={() => router.push('/dashboard')}
-            icon={<ArrowLeft size={20} />}
+            arrow
           >عودة إلى لوحة التحكم
           </Button>
         </div>

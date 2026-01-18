@@ -207,9 +207,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
               variant="link"
               onClick={handleBack}
               className={styles.backButton}
+              arrow
             >
               العودة
-              <ChevronLeft />
             </Button>
           </div>
 

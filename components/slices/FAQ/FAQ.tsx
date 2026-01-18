@@ -48,7 +48,7 @@ export const FAQ: React.FC<FAQProps> = ({
 
       <div className={styles.list}>
         {items.map((item, index) => (
-          <Collapsible key={index} title={item.question} variant="bordered">
+          <Collapsible key={index} title={item.question} variant="accent">
             <Text variant="paragraph" color="secondary">
               {item.answer}
             </Text>

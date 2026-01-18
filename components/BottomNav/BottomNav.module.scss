@@ -15,8 +15,12 @@
   z-index: $z-nav;
   border-radius: $radius-lg $radius-lg 0 0;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  will-change: bottom;
-  transition: bottom 0.25s ease-out;
+
+  // Use transform instead of bottom for GPU acceleration
+  // This prevents glitches on Chrome mobile when toolbar hides/shows
+  will-change: transform;
+  transform: translateY(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   // Hide on desktop
   @media (min-width: $breakpoint-md) {
@@ -24,11 +28,11 @@
   }
 
   &.visible {
-    bottom: 0;
+    transform: translateY(0);
   }
 
   &.hidden {
-    bottom: calc(-70px - env(safe-area-inset-bottom, 0) - 10px);
+    transform: translateY(calc(100% + 10px));
   }
 }
 

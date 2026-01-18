@@ -53,12 +53,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${baseUrl}/cars`,
-      lastModified: new Date(),
-      changeFrequency: 'hourly',
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -115,7 +109,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Listing pages
   const listingPages: MetadataRoute.Sitemap = (listingsData?.listingsSearch || []).map(
     (listing: { id: string; updatedAt: string; category?: { slug: string } }) => ({
-      url: `${baseUrl}/${listing.category?.slug || 'cars'}/${listing.id}`,
+      url: `${baseUrl}/${listing.category?.slug || 'listings'}/${listing.id}`,
       lastModified: new Date(listing.updatedAt),
       changeFrequency: 'weekly' as const,
       priority: 0.7,

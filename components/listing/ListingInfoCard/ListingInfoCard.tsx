@@ -126,26 +126,24 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           {(user?.phone || user?.contactPhone) && (
             <Button
               variant="outline"
+              icon={<FaWhatsapp size={24} />}
               onClick={() => {
                 const phone = (user?.phone || user?.contactPhone)?.replace(/\s+/g, '');
                 window.open(`https://wa.me/${phone}`, '_blank');
               }}
-            >
-              <FaWhatsapp size={24} />
-            </Button>
+            />
           )}
 
           {/* Phone Call Button */}
           {(user?.phone || user?.contactPhone) && (
             <Button
               variant="outline"
+              icon={<Phone size={24} />}
               onClick={() => {
                 const phone = user?.phone || user?.contactPhone;
                 window.location.href = `tel:${phone}`;
               }}
-            >
-              <Phone size={24} />
-            </Button>
+            />
           )}
         </div>
         {/* Message Button */}
@@ -164,8 +162,9 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
             variant="outline"
             href={user.website}
             target="_blank"
+            icon={<Globe size={24} />}
           >
-            <Globe size={24} />الموقع الإلكتروني
+            الموقع الإلكتروني
           </Button>
         )}
 

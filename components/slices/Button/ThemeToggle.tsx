@@ -13,21 +13,18 @@ export const ThemeToggle: React.FC = () => {
 
   if (!mounted) {
     return (
-      <Button variant="secondary" size="sm" disabled>
-        <Moon size={18} />
-      </Button>
+      <Button variant="secondary" size="sm" disabled icon={<Moon size={18} />} />
     );
   }
 
   return (
     <Button
-      variant="primary"// size="sm"
+      variant="primary"
       onClick={toggleTheme}
       className={styles.themeToggle}
       aria-label={t("theme.toggle")}
-    >
-      {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-    </Button>
+      icon={theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+    />
   );
 };
 
