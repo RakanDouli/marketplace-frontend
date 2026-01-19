@@ -213,9 +213,8 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
               <Image
                 src={image.url}
                 alt={label}
-                width={200}
-                height={150}
-                className={styles.image}
+                aspectRatio="1/1"
+                containerClassName={styles.image}
                 showSkeleton={false}
                 variant="public"
               />
