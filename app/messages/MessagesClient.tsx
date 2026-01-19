@@ -95,27 +95,6 @@ export const MessagesClient: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Track keyboard visibility to hide bottom nav padding
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-
-  // Detect keyboard open/close using visualViewport API
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.visualViewport) return;
-
-    const viewport = window.visualViewport;
-    const initialHeight = window.innerHeight;
-
-    const handleResize = () => {
-      // If viewport height is significantly smaller than window height, keyboard is open
-      // Threshold of 150px accounts for keyboard typically being 200-400px tall
-      const heightDiff = initialHeight - viewport.height;
-      setIsKeyboardOpen(heightDiff > 150);
-    };
-
-    viewport.addEventListener('resize', handleResize);
-    return () => viewport.removeEventListener('resize', handleResize);
-  }, []);
-
   // Auth guard
   useEffect(() => {
     if (!authLoading && !user) {
@@ -811,7 +790,7 @@ export const MessagesClient: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className={`${styles.chatInputWrapper} ${isKeyboardOpen ? styles.keyboardOpen : ''}`}>
+            <div className={styles.chatInputWrapper}>
               {/* Multiple Image Previews */}
               {imagePreviewUrls.length > 0 && (
                 <div className={styles.imagePreviewsGrid}>

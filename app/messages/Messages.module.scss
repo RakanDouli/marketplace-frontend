@@ -355,16 +355,7 @@
   // Allow dropdown to overflow and show above
   overflow: visible;
   z-index: $z-nav;
-
-  // On mobile, add padding for bottom nav
-  @media (max-width: $breakpoint-md) {
-    padding-bottom: $bottom-nav-height;
-
-    // When keyboard is open, remove bottom nav padding for more space
-    &.keyboardOpen {
-      padding-bottom: 0;
-    }
-  }
+  // No padding needed - bottom nav overlays on top (position: fixed)
 }
 
 // Multiple Image Previews Grid
