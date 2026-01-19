@@ -3,14 +3,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ArrowBigDown, ChevronDown, ChevronRight, Paperclip, X, Check, CheckCheck, Star, Container, ChevronLeft, ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ChevronDown, Paperclip, X, Check, CheckCheck, Star, ArrowLeft } from 'lucide-react';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
 import { Text, Button, Image, Dropdown, DropdownMenuItem, ImagePreview } from '@/components/slices';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDateShort, formatDayName, formatDateTime } from '@/utils/formatDate';
-import { createThumbnail, optimizeListingImage } from '@/utils/cloudflare-images';
+import { createChatThumbnail, optimizeListingImage } from '@/utils/cloudflare-images';
 import { validateImageFile } from '@/utils/cloudflare-upload';
 import { BlockUserModal, DeleteThreadModal, DeleteMessageModal } from './ChatModals';
 import { ReportModal } from '@/components/ReportButton';
@@ -19,7 +19,6 @@ import { MessageStatus } from '@/common/enums';
 import type { Listing } from '@/stores/types';
 import type { ChatMessage } from '@/stores/chatStore/types';
 import styles from './Messages.module.scss';
-import { AdContainer } from '@/components/ads';
 
 interface ThreadWithListing {
   id: string;
@@ -99,6 +98,27 @@ export const MessagesClient: React.FC = () => {
   // Bottom nav visibility sync (for input wrapper animation)
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+
+  // Track keyboard visibility to hide bottom nav padding
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  // Detect keyboard open/close using visualViewport API
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const viewport = window.visualViewport;
+    const initialHeight = window.innerHeight;
+
+    const handleResize = () => {
+      // If viewport height is significantly smaller than window height, keyboard is open
+      // Threshold of 150px accounts for keyboard typically being 200-400px tall
+      const heightDiff = initialHeight - viewport.height;
+      setIsKeyboardOpen(heightDiff > 150);
+    };
+
+    viewport.addEventListener('resize', handleResize);
+    return () => viewport.removeEventListener('resize', handleResize);
+  }, []);
 
   // Sync with BottomNav scroll behavior
   useEffect(() => {
@@ -445,7 +465,7 @@ export const MessagesClient: React.FC = () => {
             threadsWithListings.map((thread) => {
               const listing = thread.listing;
               const firstImageKey = listing?.imageKeys?.[0];
-              const thumbnailUrl = firstImageKey ? createThumbnail(firstImageKey) : null;
+              const thumbnailUrl = firstImageKey ? createChatThumbnail(firstImageKey) : null;
 
               // Determine the other party's name based on whether current user is buyer or seller
               const isCurrentUserBuyer = user?.id === thread.buyerId;
@@ -518,7 +538,7 @@ export const MessagesClient: React.FC = () => {
               const activeThread = threadsWithListings.find(t => t.id === activeThreadId);
               const listing = activeThread?.listing;
               const firstImageKey = listing?.imageKeys?.[0];
-              const thumbnailUrl = firstImageKey ? createThumbnail(firstImageKey) : null;
+              const thumbnailUrl = firstImageKey ? createChatThumbnail(firstImageKey) : null;
               const typingUserName = activeThreadId ? typingUsers[activeThreadId] : null;
 
               return (
@@ -817,7 +837,7 @@ export const MessagesClient: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className={`${styles.chatInputWrapper} ${isNavVisible ? styles.visible : styles.hidden}`}>
+            <div className={`${styles.chatInputWrapper} ${isNavVisible ? styles.visible : styles.hidden} ${isKeyboardOpen ? styles.keyboardOpen : ''}`}>
               {/* Multiple Image Previews */}
               {imagePreviewUrls.length > 0 && (
                 <div className={styles.imagePreviewsGrid}>

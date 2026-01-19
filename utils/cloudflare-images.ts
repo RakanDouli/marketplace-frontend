@@ -226,6 +226,21 @@ export function createThumbnail(originalUrl: string): string {
 }
 
 /**
+ * Creates a chat thumbnail optimized for retina displays (2x resolution)
+ * Use for small UI elements like chat thread images (60x60) and header images (50x50)
+ * Returns 200x200 for crisp display on high-DPI screens
+ */
+export function createChatThumbnail(originalUrl: string): string {
+  return optimizeImageUrl(originalUrl, {
+    width: 200,
+    height: 200,
+    quality: 90, // Higher quality for chat thumbnails
+    format: "auto",
+    fit: "cover",
+  });
+}
+
+/**
  * Optimizes ad images using IAB standard variants
  * Maps to the ad-specific variants you have configured in Cloudflare Images
  */

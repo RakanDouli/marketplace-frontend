@@ -153,6 +153,13 @@
   border-bottom: 1px solid $border;
   background: $surface;
   position: relative;
+
+  // Make header sticky on mobile so it's always visible
+  @media (max-width: $breakpoint-md) {
+    position: sticky;
+    top: 0;
+    z-index: $z-nav;
+  }
 }
 
 .listingInfo {
@@ -344,6 +351,17 @@
   border-top: 1px solid $border;
   // Allow dropdown to overflow and show above on mobile
   overflow: visible;
+
+  // On mobile, add padding for bottom nav
+  @media (max-width: $breakpoint-md) {
+    padding-bottom: $bottom-nav-height;
+    transition: padding-bottom 0.3s ease;
+
+    // When keyboard is open, remove bottom nav padding for more space
+    &.keyboardOpen {
+      padding-bottom: 0;
+    }
+  }
 }
 
 // Multiple Image Previews Grid
