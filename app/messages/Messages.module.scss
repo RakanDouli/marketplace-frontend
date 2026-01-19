@@ -137,11 +137,12 @@
 // Chat Main (Right side) - Single scrollable container
 .chatMain {
   flex: 1;
+  min-height: 0; // Critical for flex + overflow to work together
   display: flex;
   flex-direction: column;
   background: $bg;
   overflow-y: auto; // Entire chat area scrolls
-  position: relative;
+  overflow-x: hidden;
 
   @media (max-width: $breakpoint-lg) {
     &.hidden {
@@ -250,7 +251,7 @@
 }
 
 .chatContent {
-  flex: 1;
+  flex: 1 0 auto; // Grow but don't shrink, allow natural height
   padding: $space-lg;
   display: flex;
   flex-direction: column;
