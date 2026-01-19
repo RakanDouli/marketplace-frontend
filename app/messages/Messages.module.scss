@@ -4,8 +4,12 @@
   display: flex;
   height: calc(100vh - ($header-height + $pre-header-height));
   background: $bg;
+
   @media (max-width: $breakpoint-md) {
-    height: calc(100vh - ($bottom-nav-height));
+    // On mobile, container takes full viewport height
+    // Bottom nav overlays on top, so we don't subtract it
+    height: 100vh;
+    height: 100dvh; // Dynamic viewport height (accounts for mobile browser UI)
   }
 }
 
@@ -130,12 +134,14 @@
   text-align: center;
 }
 
-// Chat Main (Right side)
+// Chat Main (Right side) - Single scrollable container
 .chatMain {
   flex: 1;
   display: flex;
   flex-direction: column;
   background: $bg;
+  overflow-y: auto; // Entire chat area scrolls
+  position: relative;
 
   @media (max-width: $breakpoint-lg) {
     &.hidden {
@@ -152,14 +158,9 @@
   padding: $space-md;
   border-bottom: 1px solid $border;
   background: $surface;
-  position: relative;
-
-  // Make header sticky on mobile so it's always visible
-  @media (max-width: $breakpoint-md) {
-    position: sticky;
-    top: 0;
-    z-index: $z-nav;
-  }
+  position: sticky;
+  top: 0;
+  z-index: $z-nav;
 }
 
 .listingInfo {
@@ -251,10 +252,10 @@
 .chatContent {
   flex: 1;
   padding: $space-lg;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: $space-md;
+  // No overflow here - parent .chatMain handles scrolling
   @media (max-width: $breakpoint-md) {
     padding: $space-md;
   }
@@ -344,18 +345,19 @@
   }
 }
 
-// Chat input wrapper
+// Chat input wrapper - sticky at bottom
 .chatInputWrapper {
-  position: relative;
+  position: sticky;
+  bottom: 0;
   background: $surface;
   border-top: 1px solid $border;
-  // Allow dropdown to overflow and show above on mobile
+  // Allow dropdown to overflow and show above
   overflow: visible;
+  z-index: $z-nav;
 
   // On mobile, add padding for bottom nav
   @media (max-width: $breakpoint-md) {
     padding-bottom: $bottom-nav-height;
-    transition: padding-bottom 0.3s ease;
 
     // When keyboard is open, remove bottom nav padding for more space
     &.keyboardOpen {
