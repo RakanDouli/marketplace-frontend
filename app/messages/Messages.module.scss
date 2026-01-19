@@ -143,11 +143,7 @@
   background: $bg;
   overflow-y: auto; // Entire chat area scrolls
   overflow-x: hidden;
-
-  // On mobile, add padding for bottom nav (it overlays on top)
-  @media (max-width: $breakpoint-md) {
-    padding-bottom: $bottom-nav-height;
-  }
+  // Bottom nav padding is handled in PublicLayoutClient.module.scss on <main>
 
   @media (max-width: $breakpoint-lg) {
     &.hidden {
