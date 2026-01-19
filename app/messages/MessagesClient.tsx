@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ChevronDown, Paperclip, X, Check, CheckCheck, Star, ArrowLeft } from 'lucide-react';
+import { Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, ChevronDown, Paperclip, X, Check, CheckCheck, Star } from 'lucide-react';
+import { FiArrowLeftCircle } from 'react-icons/fi';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
@@ -566,7 +567,7 @@ export const MessagesClient: React.FC = () => {
                   )}
                   {isMobile && (
                     <button className={styles.backButton} onClick={() => setActiveThread(null)}>
-                      <ArrowLeft size={30} />
+                      <FiArrowLeftCircle size={24} />
                     </button>
                   )}
 
