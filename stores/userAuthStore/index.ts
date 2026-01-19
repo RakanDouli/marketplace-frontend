@@ -477,14 +477,8 @@ export const useUserAuthStore = create<UserAuthStore>()(
         });
       },
 
-      // Refresh user data from API
+      // Refresh user data from API (used by OAuth callback and session refresh)
       refreshUserData: async () => {
-        const state = get();
-
-        if (!state.user?.token) {
-          return;
-        }
-
         try {
           const { data } = await supabase.auth.getSession();
 
@@ -494,6 +488,9 @@ export const useUserAuthStore = create<UserAuthStore>()(
             const userPackage = meData?.myPackage;
 
             if (user && user.role === 'USER') {
+              // Validate user status (banned/suspended check)
+              await validateUserStatus(user);
+
               set({
                 user: {
                   ...user,
@@ -502,15 +499,25 @@ export const useUserAuthStore = create<UserAuthStore>()(
                 },
                 userPackage: userPackage || null,
                 isAuthenticated: true,
+                isLoading: false,
               });
+
+              // Hydrate user-specific stores (wishlist, chat)
+              await hydrateUserStores();
+
+              // Check subscription expiry
+              if (userPackage) {
+                await checkSubscriptionExpiry(userPackage);
+              }
             } else {
-              set({ isAuthenticated: false, user: null, userPackage: null });
+              set({ isAuthenticated: false, user: null, userPackage: null, isLoading: false });
             }
           } else {
-            set({ isAuthenticated: false, user: null, userPackage: null });
+            set({ isAuthenticated: false, user: null, userPackage: null, isLoading: false });
           }
         } catch (error) {
           console.error('Refresh user data error:', error);
+          set({ isLoading: false, error: error instanceof Error ? error.message : 'Authentication error' });
         }
       },
 
