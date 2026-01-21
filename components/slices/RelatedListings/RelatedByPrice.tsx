@@ -25,7 +25,7 @@ export const RelatedByPrice: React.FC<RelatedByPriceProps> = ({
       type="SIMILAR_PRICE"
       title="قد يعجبك أيضاً"
       displayMode={displayMode}
-      limit={8}
+      limit={10}
       className={className}
     />
   );

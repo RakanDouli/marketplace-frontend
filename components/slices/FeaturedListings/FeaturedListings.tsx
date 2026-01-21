@@ -11,7 +11,6 @@ import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
 import { LISTINGS_GRID_QUERY } from "@/stores/listingsStore/listingsStore.gql";
 import { GET_CATEGORY_ATTRIBUTES_QUERY } from "@/stores/filtersStore/filtersStore.gql";
-import type { Attribute } from "@/types/listing";
 
 export interface FeaturedListingsProps {
   categoryId?: string;    // Pass category ID - component fetches nameAr and listings
@@ -39,12 +38,21 @@ interface Listing {
   user?: { id: string };
 }
 
+interface Attribute {
+  id: string;
+  key: string;
+  name: string;
+  showInGrid?: boolean;
+  showInList?: boolean;
+  showInDetail?: boolean;
+}
+
 export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   categoryId,
   categorySlug,
   title,
   viewAllText = "عرض الكل",
-  limit = 8,
+  limit = 10,
   paddingY = "xl",
   background = "transparent",
   outerBackground = "bg",
@@ -55,21 +63,29 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filter specs based on showInGrid attribute flags
+  // Filter specs based on showInGrid flag from attributes (same as ListingArea)
   const filterSpecsForGrid = (allSpecs: Record<string, any>): Record<string, any> => {
+    // If no attributes loaded yet, return all specs
     if (!attributes || attributes.length === 0) {
-      // If no attributes loaded, return empty to avoid showing all specs
-      return {};
+      return allSpecs;
     }
 
     const filteredSpecs: Record<string, any> = {};
+
+    // Check each spec against attribute display flags
     Object.entries(allSpecs).forEach(([specKey, specValue]) => {
+      // Find the corresponding attribute definition
       const attribute = attributes.find(
-        (attr: Attribute) => attr.key === specKey || attr.name === specKey
+        (attr) =>
+          attr.key === specKey ||
+          attr.name === specKey
       );
 
-      if (attribute && attribute.showInGrid === true) {
-        filteredSpecs[specKey] = specValue;
+      if (attribute) {
+        // Only show if showInGrid is true
+        if (attribute.showInGrid === true) {
+          filteredSpecs[specKey] = specValue;
+        }
       }
     });
 
@@ -123,11 +139,11 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
             GET_CATEGORY_ATTRIBUTES_QUERY,
             { categorySlug: catSlug },
             { ttl: 30 * 60 * 1000 } // Cache attributes for 30 minutes
-          ) : Promise.resolve({ categoryAttributes: [] })
+          ) : Promise.resolve({ getAttributesByCategorySlug: [] })
         ]);
 
         setListings(listingsData.listingsSearch || []);
-        setAttributes(attributesData.categoryAttributes || []);
+        setAttributes(attributesData.getAttributesByCategorySlug || []);
       } catch (error) {
         console.error("Failed to fetch category data:", error);
         setListings([]);
@@ -153,7 +169,7 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
           <Button variant="link">{viewAllText}</Button>
         </Link>
       }
-      slidesToShow={4}
+      slidesToShow={5}
       slidesToShowTablet={2}
       slidesToShowMobile={1}
       showArrows={true}

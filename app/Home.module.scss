@@ -59,16 +59,9 @@
   align-items: center;
   gap: $space-md;
   padding: $space-lg;
-  background: $surface;
+  background: $bg;
   border-radius: $radius-lg;
   border: 1px solid $border;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: $primary;
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
-  }
 
   @media (max-width: $breakpoint-sm) {
     flex-direction: column;

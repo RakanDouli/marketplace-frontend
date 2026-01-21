@@ -120,7 +120,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
     return (
       <Slider
         title={title}
-        slidesToShow={4}
+        slidesToShow={5}
         slidesToShowTablet={2}
         slidesToShowMobile={1}
         showArrows={true}
@@ -138,7 +138,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
   return (
     <Grid
       title={title}
-      columns={4}
+      columns={5}
       mobileColumns={2}
       gap="sm"
       paddingY='lg'

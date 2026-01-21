@@ -8,10 +8,12 @@ export interface ContainerProps {
   children: React.ReactNode;
   /** Max-width of inner container */
   size?: "sm" | "md" | "lg" | "xl" | "full";
-  /** Vertical padding (top/bottom) - default: "md" */
+  /** Vertical padding (top/bottom) on inner container - default: "md" */
   paddingY?: PaddingSize;
-  /** Horizontal padding (left/right) - default: "md" */
+  /** Horizontal padding (left/right) on outer container - default: "md" */
   paddingX?: PaddingSize;
+  /** Vertical padding (top/bottom) on outer container - default: "none" */
+  outerPaddingY?: PaddingSize;
   /** Inner container background variant (uses theme colors) */
   background?: BackgroundVariant;
   /** Outer (full-width) background variant (uses theme colors) */
@@ -39,6 +41,7 @@ export const Container: React.FC<ContainerProps> = ({
   size = "lg",
   paddingY = "md",
   paddingX = "md",
+  outerPaddingY = "none",
   background = "transparent",
   outerBackground = "transparent",
   backgroundColor,
@@ -55,6 +58,7 @@ export const Container: React.FC<ContainerProps> = ({
     styles.outerContainer,
     styles[`outerBg_${outerBackground}`],
     styles[`px_${paddingX}`],
+    styles[`outerPy_${outerPaddingY}`],
     className,
   ].filter(Boolean).join(" ");
 
@@ -78,10 +82,15 @@ export const Container: React.FC<ContainerProps> = ({
     ...(backgroundImage && { backgroundImage: `url(${backgroundImage})` }),
   };
 
+  // Determine if overlay should show on outer or inner
+  const hasOuterOverlay = outerBackgroundImage && overlay;
+  const hasInnerOverlay = backgroundImage && overlay;
+
   return (
     <section className={outerClasses} style={outerStyles}>
+      {hasOuterOverlay && <div className={styles.overlay} />}
       <div className={innerClasses} style={innerStyles}>
-        {backgroundImage && overlay && <div className={styles.overlay} />}
+        {hasInnerOverlay && <div className={styles.overlay} />}
         <div className={styles.content}>{children}</div>
       </div>
     </section>

@@ -40,12 +40,12 @@
   padding: $space-lg;
   background: $bg;
   border: 1px solid $border;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
 
   .icon {
     width: 64px;
     height: 64px;
-    background: $surface;
+    background: rgba($primary, 0.1);
     border-radius: $radius-full;
   }
 }

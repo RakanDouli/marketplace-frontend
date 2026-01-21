@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { Container, Button, Input } from '@/components/slices';
+import { Button, Input, Container, Text } from '@/components/slices';
 import styles from './HomeSearchBar.module.scss';
 
 export const HomeSearchBar: React.FC = () => {
@@ -75,9 +75,23 @@ export const HomeSearchBar: React.FC = () => {
   };
 
   return (
-    <Container paddingY="lg" background="transparent">
-      <div className={styles.searchBar}>
+    <Container
+      size="full"
+      paddingY="xl"
+      outerBackgroundImage="/images/cars1.jpg"
+      overlay={true}
+      className={styles.heroSection}
+    >
+      {/* Hero Text */}
+      <div className={styles.heroText}>
+        <Text variant='h2' className={styles.title}> مرحباً بكم في شام باي</Text>
+        <Text variant='h3' className={styles.subtitle}>
+          منصتك الأولى للبيع والشراء في سوريا</Text>
+      </div>
 
+
+      {/* Search Bar */}
+      <div className={styles.searchBar}>
         {/* Search Input */}
         <div className={styles.inputWrapper}>
           <Input
@@ -124,8 +138,6 @@ export const HomeSearchBar: React.FC = () => {
             aria-label="اختر المحافظة"
           />
         </div>
-
-
 
         {/* Search Button */}
         <Button

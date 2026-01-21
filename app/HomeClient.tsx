@@ -78,22 +78,8 @@ export default function HomeClient() {
 
   return (
     <main className={styles.homePage}>
-      {/* Hero Section with Search */}
-      <section className={styles.heroSection}>
-        <Container size="lg">
-          <div className={styles.heroContent}>
-            <Text variant="h1" className={styles.heroTitle}>
-              {t('homepage.hero.title')}
-            </Text>
-            <Text variant="paragraph" color="secondary" className={styles.heroSubtitle}>
-              {t('homepage.hero.subtitle')}
-            </Text>
-          </div>
-        </Container>
-
-        {/* Search Bar */}
-        <HomeSearchBar />
-      </section>
+      {/* Search Bar */}
+      <HomeSearchBar />
 
       {/* Category Section */}
       <CategorySection />
@@ -101,14 +87,14 @@ export default function HomeClient() {
       {/* Featured Listings */}
       <FeaturedListings
         categorySlug="cars"
-        limit={8}
+        outerBackground="transparent"
       />
 
       {/* Top Banner Ad */}
       <AdContainer placement="homepage_top" />
 
       {/* Stats Section - Compact */}
-      <Container size="lg" paddingY="xl" outerBackground="bg">
+      <Container size="lg" paddingY="xl" outerBackground="transparent">
         <div className={styles.statsGrid}>
           {stats.map((stat, index) => (
             <div key={index} className={styles.statItem}>
@@ -123,14 +109,14 @@ export default function HomeClient() {
       </Container>
 
       {/* Features Section */}
-      <Grid title="لماذا تختارنا؟" columns={4} paddingY="lg">
+      <Grid title="لماذا تختارنا؟" columns={4} paddingY="xl" outerBackground="transparent">
         {features.map((feature, index) => (
           <FeatureCard
             key={index}
             icon={feature.icon}
             title={feature.title}
             description={feature.description}
-            variant="minimal"
+            variant="card"
           />
         ))}
       </Grid>
@@ -149,6 +135,8 @@ export default function HomeClient() {
         ]}
         variant="gradient"
         align="center"
+        paddingY="xl"
+        outerPaddingY="xl"
       />
     </main>
   );

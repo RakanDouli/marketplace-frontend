@@ -23,11 +23,12 @@ export interface CTASectionProps {
   variant?: "primary" | "secondary" | "gradient";
   align?: "left" | "center" | "right";
   paddingY?: ContainerProps["paddingY"];
+  outerPaddingY?: ContainerProps["outerPaddingY"];
   className?: string;
 }
 
-// Map variant to Container outerBackground
-const variantToBackground: Record<string, ContainerProps["outerBackground"]> = {
+// Map variant to Container background (inner)
+const variantToBackground: Record<string, ContainerProps["background"]> = {
   primary: "surface",
   secondary: "surface",
   gradient: "primary",
@@ -41,6 +42,7 @@ export const CTASection: React.FC<CTASectionProps> = ({
   variant = "primary",
   align = "center",
   paddingY = "xxl",
+  outerPaddingY = "none",
   className = "",
 }) => {
   const alignClass = styles[`align${align.charAt(0).toUpperCase() + align.slice(1)}`];
@@ -48,7 +50,11 @@ export const CTASection: React.FC<CTASectionProps> = ({
   return (
     <Container
       paddingY={paddingY}
-      outerBackground={variantToBackground[variant]}
+      outerPaddingY={outerPaddingY}
+      outerBackground="transparent"
+      background={variantToBackground[variant]}
+      innerPadding="lg"
+      innerBorder={variant !== "gradient"}
       className={`${styles.cta} ${styles[variant]} ${alignClass} ${className}`}
     >
       <div className={styles.content}>

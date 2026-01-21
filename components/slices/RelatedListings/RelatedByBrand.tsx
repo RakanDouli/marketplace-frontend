@@ -51,7 +51,7 @@ export const RelatedByBrand: React.FC<RelatedByBrandProps> = ({
       type="SAME_BRAND"
       title={`المزيد من ${brandName}`}
       displayMode={displayMode}
-      limit={8}
+      limit={10}
       className={className}
     />
   );

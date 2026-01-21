@@ -1,6 +1,7 @@
 @import "@/styles/variables";
 
 .outerContainer {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -114,20 +115,57 @@
 
 .bg_bg {
   background-color: $bg;
+  border-radius: $radius-lg;
 }
 
 .bg_surface {
   background-color: $surface;
+  border-radius: $radius-lg;
 }
 
 .bg_primary {
   background-color: $primary;
   color: $text-light;
+  border-radius: $radius-lg;
 }
 
 .bg_secondary {
   background-color: $secondary;
   color: $text-light;
+  border-radius: $radius-lg;
+}
+
+// ============================================
+// Outer Vertical Padding (outerPaddingY)
+// ============================================
+.outerPy_none {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.outerPy_sm {
+  padding-top: $space-sm;
+  padding-bottom: $space-sm;
+}
+
+.outerPy_md {
+  padding-top: $space-md;
+  padding-bottom: $space-md;
+}
+
+.outerPy_lg {
+  padding-top: $space-lg;
+  padding-bottom: $space-lg;
+}
+
+.outerPy_xl {
+  padding-top: $space-xl;
+  padding-bottom: $space-xl;
+}
+
+.outerPy_xxl {
+  padding-top: $space-xxl;
+  padding-bottom: $space-xxl;
 }
 
 // ============================================
@@ -162,8 +200,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(22, 5, 2, 0.6);
   z-index: 1;
+  backdrop-filter: blur(1px);
 }
 
 .content {

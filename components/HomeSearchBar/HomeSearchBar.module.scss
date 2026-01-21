@@ -1,5 +1,25 @@
 @import "../../styles/variables.scss";
 
+// Hero Section - uses Container with outerBackgroundImage
+.heroSection {
+  text-align: center;
+}
+
+// Hero Text
+.heroText {
+  text-align: center;
+  margin-bottom: $space-xl;
+}
+
+.title {
+  color: $text-light;
+}
+
+.subtitle {
+  color: $text-light;
+}
+
+// Search Bar
 .searchBar {
   display: flex;
   align-items: center;
@@ -8,7 +28,10 @@
   border: 1px solid $border;
   border-radius: $radius-full;
   padding: $space-md;
-  box-shadow: $shadow-md;
+  box-shadow: $shadow-lg;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
 
   @media (max-width: $breakpoint-md) {
     flex-direction: column;
@@ -18,24 +41,33 @@
   }
 }
 
-// Dropdown wrapper - uses Input component internally
+// Dropdown wrapper
 .selectWrapper {
   flex-shrink: 0;
   min-width: 140px;
+
   @media (max-width: $breakpoint-md) {
     width: 100%;
   }
 }
 
-// Search input wrapper - uses Input component internally
+// Search input wrapper
 .inputWrapper {
   flex: 1;
   min-width: 200px;
 
-  // Override Input component border-radius to full
   input {
     border-radius: $radius-full !important;
   }
+
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+  }
+}
+
+// Search Button
+.searchButton {
+  flex-shrink: 0;
 
   @media (max-width: $breakpoint-md) {
     width: 100%;
