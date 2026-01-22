@@ -39,8 +39,41 @@
 
 .shareIcon {
   display: inline-block;
+  vertical-align: middle;
   margin: 0 $space-xs;
-  font-size: 1.2em;
+  color: $primary;
+}
+
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  text-align: right;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  background: $primary;
+  color: $text-light;
+  border-radius: $radius-full;
+  font-weight: $weight-bold;
+  font-size: $font-sm;
+}
+
+.dismissButton {
+  margin-top: $space-md;
+  width: 100%;
 }
 
 .actions {

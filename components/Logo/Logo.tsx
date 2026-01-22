@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { LogoIcon } from './LogoIcon';
 import styles from './Logo.module.scss';
 
 export interface LogoProps {
@@ -10,8 +10,8 @@ export interface LogoProps {
   showText?: boolean;
   /** Text color variant */
   textColor?: 'primary' | 'secondary' | 'text' | 'text-inverse' | 'text-light';
-  /** Icon background color */
-  iconBg?: 'primary' | 'secondary' | 'text-light' | 'transparent';
+  /** Icon background color (icon is always white/text-light) */
+  iconBg?: 'primary' | 'secondary' | 'text';
   /** Size variant */
   size?: 'sm' | 'md' | 'lg';
   /** Custom class name */
@@ -39,14 +39,7 @@ export const Logo: React.FC<LogoProps> = ({
   const content = (
     <>
       <div className={`${styles.iconWrapper} ${styles[`iconBg_${iconBg}`]} ${styles[`size_${size}`]}`}>
-        <Image
-          src="/images/logo-icon.svg"
-          alt="Shambay"
-          width={27}
-          height={65}
-          className={styles.icon}
-          priority
-        />
+        <LogoIcon className={styles.icon} />
       </div>
       {showText && (
         <span className={textClasses}>

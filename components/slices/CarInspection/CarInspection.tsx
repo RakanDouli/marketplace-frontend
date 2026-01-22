@@ -8,11 +8,12 @@ import styles from './CarInspection.module.scss';
 
 type ViewType = 'front' | 'back' | 'left' | 'right' | 'top';
 
-// Damage types - only 2 options: painted or replaced
+// Damage types - 3 options: spot paint (minor), full paint, replaced
 // Colors are defined in SCSS using CSS variables
 export const DAMAGE_TYPES: { value: string; label: string; colorClass: string }[] = [
-  { value: 'paint', label: 'دهان', colorClass: 'warning' },      // Orange/amber
-  { value: 'replaced', label: 'مُستبدل', colorClass: 'info' },   // Blue
+  { value: 'spot_paint', label: 'دهان موضعي', colorClass: 'primary' },  // Primary (minor)
+  { value: 'paint', label: 'دهان كامل', colorClass: 'warning' },        // Orange/amber
+  { value: 'replaced', label: 'مُستبدل', colorClass: 'info' },          // Blue (severe)
 ];
 
 type DamageType = string;

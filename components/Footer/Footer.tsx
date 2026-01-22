@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
         <div className={styles.content}>
           {/* Brand Section */}
           <div className={styles.brand}>
-            <Logo iconBg="transparent" textColor="text" hideTextOnMobile={false} />
+            <Logo iconBg="primary" textColor="primary" hideTextOnMobile={false} />
             <Text variant="small" color="secondary">
               شام باي - منصتك الأولى للبيع والشراء في سوريا
             </Text>

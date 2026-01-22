@@ -3,7 +3,6 @@
 .logo {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: $space-sm;
   text-decoration: none;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -17,22 +16,20 @@
   border-radius: $radius-md;
 }
 
-
-// Icon wrapper background variants
+// Icon wrapper background variants (includes icon color via color property)
 .iconBg_primary {
   background-color: $primary;
+  color: $text-light; // White icon on primary bg
 }
 
 .iconBg_secondary {
   background-color: $secondary;
+  color: $text-light; // White icon on secondary bg
 }
 
-.iconBg_text-light {
-  background-color: $text-light;
-}
-
-.iconBg_transparent {
-  background-color: transparent;
+.iconBg_text {
+  background-color: $text;
+  color: $text-light; // White icon on dark bg
 }
 
 // Icon base styles

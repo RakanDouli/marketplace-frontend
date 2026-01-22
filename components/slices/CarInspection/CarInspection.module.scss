@@ -154,6 +154,11 @@
     }
   }
 
+  &.primary {
+    background: $primary;
+    border-color: $primary;
+  }
+
   &.warning {
     background: $warning;
     border-color: $warning;
@@ -225,6 +230,18 @@
   color: $text;
   font-family: $font-base;
   font-weight: $weight-bold;
+
+  &.primary {
+    border: 2px solid $primary;
+    color: $primary;
+
+    &:hover,
+    &.selected {
+      background: $primary;
+      color: $text-light;
+    }
+  }
+
   &.warning {
     border: 2px solid $warning;
     color: $warning;
@@ -297,6 +314,11 @@
   background: transparent;
   border-radius: $radius-full;
   font-size: $font-xs;
+
+  &.primary {
+    border: 1px solid $primary;
+    color: $primary;
+  }
 
   &.warning {
     border: 1px solid $warning;

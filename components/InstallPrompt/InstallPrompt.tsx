@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Share } from 'lucide-react';
 import { Modal, Button, Text } from '@/components/slices';
 import styles from './InstallPrompt.module.scss';
 
@@ -110,9 +111,29 @@ export const InstallPrompt: React.FC = () => {
 
         {isIOS ? (
           <div className={styles.iosInstructions}>
-            <Text variant="paragraph">
-              اضغط على زر المشاركة <span className={styles.shareIcon}>⬆</span> ثم اختر "إضافة للشاشة الرئيسية"
-            </Text>
+            <div className={styles.stepsList}>
+              <div className={styles.step}>
+                <span className={styles.stepNumber}>1</span>
+                <Text variant="paragraph">
+                  اضغط على زر المشاركة <Share size={18} className={styles.shareIcon} /> في أسفل الشاشة
+                </Text>
+              </div>
+              <div className={styles.step}>
+                <span className={styles.stepNumber}>2</span>
+                <Text variant="paragraph">
+                  اختر "إضافة إلى الشاشة الرئيسية"
+                </Text>
+              </div>
+              <div className={styles.step}>
+                <span className={styles.stepNumber}>3</span>
+                <Text variant="paragraph">
+                  اضغط "إضافة" في أعلى الشاشة
+                </Text>
+              </div>
+            </div>
+            <Button variant="outline" onClick={handleDismiss} className={styles.dismissButton}>
+              لاحقاً
+            </Button>
           </div>
         ) : (
           <div className={styles.actions}>

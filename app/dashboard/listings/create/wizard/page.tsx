@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Container, Button, ImageUploadGrid, Form, SubmitButton, MobileBackButton } from '@/components/slices';
+import { Container, Button, ImageUploadGrid, Form, SubmitButton, MobileBackButton, CarInspection, toBackendFormat, fromBackendFormat } from '@/components/slices';
+import type { DamageReport } from '@/components/slices';
 import type { WizardStepStatus } from '@/components/slices';
 import { WizardStep } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
@@ -66,8 +67,6 @@ export default function CreateListingWizardPage() {
     attributeGroups,
     isLoadingAttributes,
     isSubmitting,
-    isDraftSaving,
-    lastSavedAt,
     error,
     setFormField,
     setSpecField,
@@ -98,6 +97,7 @@ export default function CreateListingWizardPage() {
   const [pendingVideo, setPendingVideo] = useState<any | null>(null);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCarDamage, setShowCarDamage] = useState(false);
 
   // Wizard state
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -568,6 +568,18 @@ export default function CreateListingWizardPage() {
     ? [pendingVideo]
     : formData.video.map(v => ({ ...v, isUploading: false }));
 
+  // Car damage handler
+  const handleCarDamageChange = (damages: DamageReport[]) => {
+    const backendFormat = toBackendFormat(damages);
+    setSpecField('car_damage', backendFormat.length > 0 ? backendFormat : undefined);
+    saveDraft();
+  };
+
+  // Get current car damage value
+  const currentCarDamage = formData.specs.car_damage
+    ? fromBackendFormat(formData.specs.car_damage as string[])
+    : [];
+
   // Navigation handlers
   const goToNextStep = () => {
     if (!isCurrentStepValid()) {
@@ -900,17 +912,6 @@ export default function CreateListingWizardPage() {
         <div className={styles.wizardPage}>
           <div className={styles.header}>
             <Text variant="h2">أكمل تفاصيل إعلانك</Text>
-            {isDraftSaving && (
-              <div className={styles.savingIndicator}>
-                <Loader2 className={styles.spinner} size={14} />
-                <Text variant="small" color="secondary">جاري الحفظ...</Text>
-              </div>
-            )}
-            {lastSavedAt && !isDraftSaving && (
-              <Text variant="small" color="secondary">
-                آخر حفظ: {lastSavedAt.toLocaleTimeString('ar-EG')}
-              </Text>
-            )}
           </div>
 
           <Form onSubmit={handleSubmit} error={validationError || error || undefined} success={success || undefined}>
@@ -1202,6 +1203,34 @@ export default function CreateListingWizardPage() {
                         />
                       </div>
                     )}
+
+                    {/* Car Damage Section */}
+                    <div className={styles.carDamageSection}>
+                      <Input
+                        type="switch"
+                        label="هل يوجد ملاحظات على الهيكل؟"
+                        checked={showCarDamage || currentCarDamage.length > 0}
+                        onChange={(e) => {
+                          const checked = (e.target as HTMLInputElement).checked;
+                          setShowCarDamage(checked);
+                          if (!checked) {
+                            // Clear car damage when toggle is off
+                            setSpecField('car_damage', undefined);
+                            saveDraft();
+                          }
+                        }}
+                      />
+                      <Text variant="small" color="secondary">
+                        حدد الأجزاء المدهونة أو المُستبدلة في السيارة
+                      </Text>
+
+                      {(showCarDamage || currentCarDamage.length > 0) && (
+                        <CarInspection
+                          value={currentCarDamage}
+                          onChange={handleCarDamageChange}
+                        />
+                      )}
+                    </div>
                   </div>
                 </WizardStep>
               )}
