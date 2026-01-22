@@ -25,13 +25,13 @@ export const InstallPrompt: React.FC = () => {
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(iOS);
 
-    // Check if dismissed recently (don't show for 7 days)
+    // Check if dismissed recently (don't show for 1 day)
     const dismissed = localStorage.getItem('pwa-prompt-dismissed');
     if (dismissed) {
       const dismissedDate = new Date(dismissed);
       const now = new Date();
       const daysDiff = (now.getTime() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
-      if (daysDiff < 7) return;
+      if (daysDiff < 1) return;
     }
 
     // Listen for beforeinstallprompt (Android/Chrome)
@@ -43,11 +43,12 @@ export const InstallPrompt: React.FC = () => {
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // For iOS, show manual instructions after 3 seconds
-    if (iOS && !standalone) {
+    // For mobile (iOS or Android), show after 2 seconds
+    // This ensures it shows even if beforeinstallprompt doesn't fire
+    if (!standalone) {
       const timer = setTimeout(() => {
         setShowPrompt(true);
-      }, 3000);
+      }, 2000);
       return () => {
         clearTimeout(timer);
         window.removeEventListener('beforeinstallprompt', handler);
