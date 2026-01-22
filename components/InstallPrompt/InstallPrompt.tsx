@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Download } from 'lucide-react';
+import { X } from 'lucide-react';
+import Image from 'next/image';
 import styles from './InstallPrompt.module.scss';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -79,24 +80,25 @@ export const InstallPrompt: React.FC = () => {
   return (
     <div className={styles.prompt}>
       <button className={styles.closeBtn} onClick={handleDismiss} aria-label="إغلاق">
-        <X size={18} />
+        <X size={16} />
       </button>
 
+      <div className={styles.appIcon}>
+        <Image src="/icons/icon-96x96.png" alt="شام باي" width={48} height={48} />
+      </div>
+
       <div className={styles.content}>
-        <Download size={24} className={styles.icon} />
-        <div className={styles.text}>
-          <p className={styles.title}>أضف شام باي للشاشة الرئيسية</p>
-          <p className={styles.subtitle}>للوصول السريع كتطبيق</p>
-        </div>
+        <p className={styles.title}>تطبيق شام باي</p>
+        <p className={styles.subtitle}>أضف التطبيق للشاشة الرئيسية</p>
       </div>
 
       {isIOS ? (
-        <div className={styles.iosInstructions}>
-          <p>اضغط على <span className={styles.shareIcon}>⬆</span> ثم "إضافة للشاشة الرئيسية"</p>
-        </div>
+        <button className={styles.installBtn} onClick={handleDismiss}>
+          كيف؟
+        </button>
       ) : (
         <button className={styles.installBtn} onClick={handleInstall}>
-          تثبيت
+          تحميل
         </button>
       )}
     </div>
