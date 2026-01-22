@@ -1,0 +1,137 @@
+@import "../../styles/variables";
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  text-decoration: none;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Icon wrapper base styles
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-full;
+}
+
+
+// Icon wrapper background variants
+.iconBg_primary {
+  background-color: $primary;
+}
+
+.iconBg_secondary {
+  background-color: $secondary;
+}
+
+.iconBg_text-light {
+  background-color: $text-light;
+}
+
+.iconBg_transparent {
+  background-color: transparent;
+}
+
+// Icon base styles
+.icon {
+  flex-shrink: 0;
+  height: 25px;
+  width: auto;
+}
+
+// Text base styles
+.text {
+  font-weight: $weight-bold;
+  position: relative;
+  overflow: hidden;
+  display: inline-grid;
+  white-space: nowrap;
+  height: 1.5em;
+  line-height: 1.5;
+}
+
+// Hide text on mobile (optional via prop)
+.hideOnMobile {
+  @media (max-width: $breakpoint-lg) {
+    display: none;
+  }
+}
+
+.textArabic,
+.textEnglish {
+  grid-area: 1 / 1;
+  transition: transform 0.3s ease;
+  height: 1.5em;
+  line-height: 1.5;
+}
+
+.textArabic {
+  transform: translateY(0);
+}
+
+.textEnglish {
+  transform: translateY(100%);
+  letter-spacing: 1px;
+}
+
+.logo:hover .textArabic {
+  transform: translateY(-100%);
+}
+
+.logo:hover .textEnglish {
+  transform: translateY(0);
+}
+
+// Text color variants
+.textColor_primary {
+  color: $primary;
+}
+
+.textColor_secondary {
+  color: $secondary;
+}
+
+.textColor_text {
+  color: $text;
+}
+
+.textColor_text-inverse {
+  color: $text-inverse;
+}
+
+.textColor_text-light {
+  color: $text-light;
+}
+
+// Size variants - Small
+.iconWrapper.size_sm {
+  width: 28px;
+  height: 28px;
+}
+
+.text.size_sm {
+  font-size: $font-base;
+}
+
+// Size variants - Medium (default)
+.iconWrapper.size_md {
+  width: 36px;
+  height: 36px;
+}
+
+.text.size_md {
+  font-size: $font-xl;
+}
+
+// Size variants - Large
+.iconWrapper.size_lg {
+  width: 48px;
+  height: 48px;
+}
+
+.text.size_lg {
+  font-size: $font-xl;
+}

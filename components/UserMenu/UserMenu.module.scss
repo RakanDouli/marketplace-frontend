@@ -3,25 +3,17 @@
 .userMenu {
   position: relative;
 }
-
-// .loginButton {
-//   display: flex;
-//   align-items: center;
-//   gap: $space-xs;
-//   padding: $space-sm $space-md;
-//   background: $primary;
-//   color: $text-inverse;
-//   border: none;
-//   border-radius: $radius-md;
-//   cursor: pointer;
-//   transition: all 0.2s ease;
-//   font-size: $font-base;
-
-//   &:hover {
-//     opacity: 0.9;
-//   }
-// }
-
+.loginButton {
+  @media (max-width: $breakpoint-lg) {
+    gap: 0;
+    padding: $space-sm !important;
+  }
+  .title {
+    @media (max-width: $breakpoint-lg) {
+      display: none;
+    }
+  }
+}
 .userButton {
   display: flex;
   align-items: center;

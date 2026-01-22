@@ -7,7 +7,6 @@
   z-index: $z-nav;
   background-color: $bg;
   opacity: 0.9;
-  border-bottom: 1px solid $border;
   backdrop-filter: blur(8px);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   // Prevent layout recalculations from affecting other elements (CLS optimization)
@@ -52,42 +51,6 @@
   }
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-md;
-  text-decoration: none;
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.logoIcon {
-  font-size: $font-xl;
-}
-
-.logoText {
-  display: flex;
-  flex-direction: column;
-  gap: $space-xs;
-
-  @media (max-width: $breakpoint-md) {
-    display: none;
-  }
-}
-
-.logoMain {
-  font-size: $font-lg;
-  font-weight: $weight-bold;
-  color: $primary;
-  line-height: $line-tight;
-}
-
-.logoSub {
-  font-size: $font-sm;
-  font-weight: $weight-normal;
-  color: $text-muted;
-  line-height: $line-tight;
-}
 
 .nav {
   display: flex;

@@ -10,8 +10,8 @@
   // #5343c3;
   // 3 Base Colors (for general UI)
 
-  --primary: #5343c3; // Syrian blue
-  --secondary: #ea4c89;
+  --primary: rgb(61, 92, 182); // Syrian blue
+  --secondary: #e9896f;
   --accent: rgb(234, 76, 137);
   --accent-bg: rgba(234, 76, 137, 0.2);
   // Notification Colors (original values)
@@ -31,7 +31,7 @@
   // --bg-dark: #121212; // Very dark gray (dark theme main)
 
   --bg-light: hsla(0, 0%, 100%, 1); // Pure white (light theme main)
-  --bg-body-light: hsla(0, 0%, 98%, 1); // Medium gray (universal surface)
+  --bg-body-light: #f8f8f8; // Medium gray (universal surface)
   --bg-body-dark: #1e293b; // Medium gray (universal surface)
   --bg-dark: #0f172a; // Very dark gray (dark theme main)
 

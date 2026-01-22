@@ -8,6 +8,7 @@ import {
   FeaturedListings,
   Container,
   Text,
+  TextSection,
 } from '@/components/slices';
 import { AdContainer } from '@/components/ads';
 import { HomeSearchBar } from '@/components/HomeSearchBar';
@@ -78,7 +79,17 @@ export default function HomeClient() {
 
   return (
     <main className={styles.homePage}>
-      {/* Search Bar */}
+      {/* Hero Text Section */}
+      <TextSection
+        title="مرحباً بكم في شام باي"
+        subtitle="منصتك الأولى للبيع والشراء في سوريا"
+        align="center"
+        paddingY="sm"
+        outerBackground="transparent"
+        nostyle
+      />
+
+      {/* Search Bar with Background Image */}
       <HomeSearchBar />
 
       {/* Category Section */}

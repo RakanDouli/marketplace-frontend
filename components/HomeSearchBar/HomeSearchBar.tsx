@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { Button, Input, Container, Text } from '@/components/slices';
+import { Button, Input } from '@/components/slices';
 import styles from './HomeSearchBar.module.scss';
 
 export const HomeSearchBar: React.FC = () => {
@@ -75,22 +75,17 @@ export const HomeSearchBar: React.FC = () => {
   };
 
   return (
-    <Container
-      size="full"
-      paddingY="xl"
-      outerBackgroundImage="/images/cars1.jpg"
-      overlay={true}
-      className={styles.heroSection}
-    >
-      {/* Hero Text */}
-      <div className={styles.heroText}>
-        <Text variant='h2' className={styles.title}> مرحباً بكم في شام باي</Text>
-        <Text variant='h3' className={styles.subtitle}>
-          منصتك الأولى للبيع والشراء في سوريا</Text>
+    <section className={styles.heroSection}>
+      {/* Hero Image with full rounded corners */}
+      <div className={styles.heroImageWrapper}>
+        <img
+          src="/images/cars1.jpg"
+          alt="Hero"
+          className={styles.heroImage}
+        />
       </div>
 
-
-      {/* Search Bar */}
+      {/* Search Bar - positioned below image */}
       <div className={styles.searchBar}>
         {/* Search Input */}
         <div className={styles.inputWrapper}>
@@ -150,7 +145,7 @@ export const HomeSearchBar: React.FC = () => {
           بحث
         </Button>
       </div>
-    </Container>
+    </section>
   );
 };
 

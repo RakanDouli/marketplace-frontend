@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Container, Text } from "@/components/slices";
+import { Logo } from "@/components/Logo";
 import { Phone, Mail, MapPin } from "lucide-react";
 import styles from "./Footer.module.scss";
 
@@ -28,10 +29,7 @@ export const Footer: React.FC = () => {
         <div className={styles.content}>
           {/* Brand Section */}
           <div className={styles.brand}>
-            <Link href="/" className={styles.logo}>
-              <span className={styles.logoIcon}>🛒</span>
-              <span className={styles.logoText}>Shambay</span>
-            </Link>
+            <Logo iconBg="transparent" textColor="text" hideTextOnMobile={false} />
             <Text variant="small" color="secondary">
               شام باي - منصتك الأولى للبيع والشراء في سوريا
             </Text>

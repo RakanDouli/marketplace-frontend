@@ -55,9 +55,9 @@ export const UserMenu: React.FC = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <Button onClick={() => openAuthModal('login')} className={styles.loginButton}>
-        <User size={20} />
-        <span>تسجيل الدخول</span>
+      <Button icon={<User size={20} />} onClick={() => openAuthModal('login')} className={styles.loginButton}>
+
+        <span className={styles.title}>تسجيل الدخول</span>
       </Button>
     );
   }

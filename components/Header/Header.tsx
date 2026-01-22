@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { MessageCircle, Heart, Plus } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { ThemeToggle, Spacer, Button } from "@/components/slices";
+import { Logo } from "@/components/Logo";
 import { UserMenu } from "@/components/UserMenu";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
@@ -118,12 +118,7 @@ export const Header: React.FC = () => {
         <Container paddingY="none">
           <div className={styles.container}>
             {/* Logo */}
-            <Link href="/" className={styles.logo}>
-              <div className={styles.logoIcon}>🛒</div>
-              <div className={styles.logoText}>
-                <span className={styles.logoSub}>Shambay</span>
-              </div>
-            </Link>
+            <Logo />
 
             {/* Desktop Navigation */}
             <nav className={styles.nav}>
