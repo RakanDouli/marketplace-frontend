@@ -1,0 +1,112 @@
+@import "../../styles/variables";
+
+.prompt {
+  position: fixed;
+  bottom: $space-md;
+  left: $space-md;
+  right: $space-md;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  padding: $space-md;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  @media (min-width: $breakpoint-md) {
+    // Only show on mobile
+    display: none;
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: $space-sm;
+  left: $space-sm;
+  background: none;
+  border: none;
+  padding: $space-xs;
+  cursor: pointer;
+  color: $text-muted;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $surface;
+  }
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+}
+
+.icon {
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.text {
+  flex: 1;
+}
+
+.title {
+  font-size: $font-base;
+  font-weight: 600;
+  color: $text;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: $font-sm;
+  color: $text-muted;
+  margin: 0;
+}
+
+.installBtn {
+  width: 100%;
+  padding: $space-sm $space-md;
+  background: $primary;
+  color: white;
+  border: none;
+  border-radius: $radius-md;
+  font-size: $font-base;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.iosInstructions {
+  text-align: center;
+  font-size: $font-sm;
+  color: $text-muted;
+  padding: $space-sm;
+  background: $surface;
+  border-radius: $radius-md;
+
+  p {
+    margin: 0;
+  }
+}
+
+.shareIcon {
+  display: inline-block;
+  background: $primary;
+  color: white;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: $radius-sm;
+  font-size: 12px;
+  vertical-align: middle;
+}

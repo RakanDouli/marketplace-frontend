@@ -13,6 +13,7 @@ import { useForceModalStore } from '@/stores/forceModalStore';
 import React from 'react';
 import { ReactivateContent } from '../ForceModal/contents';
 import { UserStatus } from '@/common/enums';
+import { InstallPrompt } from '../InstallPrompt';
 import styles from './PublicLayoutClient.module.scss';
 
 interface PublicLayoutClientProps {
@@ -53,6 +54,7 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
       <main className={styles.main}>{children}</main>
       {!isMessagesPage && !isCreateListingWizard && <Footer />}
       <BottomNav />
+      <InstallPrompt />
     </div>
   );
 }
