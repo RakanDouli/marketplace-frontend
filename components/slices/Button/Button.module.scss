@@ -29,7 +29,7 @@
   // Variant styles
   &--primary {
     background-color: $primary;
-    color: $text-light;
+    color: #ffffff !important; // Always white text on primary
     border: 1px solid transparent;
 
     &:hover {
@@ -44,7 +44,7 @@
 
   &--secondary {
     background-color: $secondary;
-    color: $text-inverse;
+    color: #ffffff !important; // Always white text on secondary
     border: 1px solid transparent;
 
     &:hover {
@@ -63,7 +63,7 @@
     color: $text;
 
     &:hover {
-      color: $text-inverse;
+      color: #ffffff !important; // White text on hover (ripple fills with primary)
 
       .round {
         background: $primary;
@@ -74,7 +74,7 @@
 
   &--success {
     background-color: $success;
-    color: $text-inverse;
+    color: #ffffff !important; // Always white text on success
     border: 1px solid transparent;
 
     &:hover {
@@ -89,7 +89,7 @@
 
   &--danger {
     background-color: $error;
-    color: $text-inverse;
+    color: #ffffff !important; // Always white text on danger
     border: 1px solid transparent;
 
     &:hover {
