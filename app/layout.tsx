@@ -18,6 +18,10 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" data-theme="light">
       <head>
+        {/* PWA manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#3D5CB6" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         {/* Preconnect to Google Fonts for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
