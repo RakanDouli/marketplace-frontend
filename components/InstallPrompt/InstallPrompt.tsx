@@ -15,8 +15,16 @@ export const InstallPrompt: React.FC = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check if mobile screen (matches BottomNav breakpoint)
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     // Check if already installed (standalone mode)
     const standalone = window.matchMedia('(display-mode: standalone)').matches;
     setIsStandalone(standalone);
@@ -31,31 +39,41 @@ export const InstallPrompt: React.FC = () => {
       const dismissedDate = new Date(dismissed);
       const now = new Date();
       const daysDiff = (now.getTime() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
-      if (daysDiff < 1) return;
+      if (daysDiff < 1) {
+        window.removeEventListener('resize', checkMobile);
+        return;
+      }
     }
 
     // Listen for beforeinstallprompt (Android/Chrome)
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      // Only show if mobile
+      if (window.innerWidth < 768) {
+        setShowPrompt(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
     // For mobile (iOS or Android), show after 2 seconds
     // This ensures it shows even if beforeinstallprompt doesn't fire
-    if (!standalone) {
+    if (!standalone && window.innerWidth < 768) {
       const timer = setTimeout(() => {
         setShowPrompt(true);
       }, 2000);
       return () => {
         clearTimeout(timer);
         window.removeEventListener('beforeinstallprompt', handler);
+        window.removeEventListener('resize', checkMobile);
       };
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -75,8 +93,8 @@ export const InstallPrompt: React.FC = () => {
     localStorage.setItem('pwa-prompt-dismissed', new Date().toISOString());
   };
 
-  // Don't show if already installed
-  if (isStandalone) return null;
+  // Don't show if already installed or on desktop
+  if (isStandalone || !isMobile) return null;
 
   return (
     <Modal isVisible={showPrompt} onClose={handleDismiss} maxWidth="md">
