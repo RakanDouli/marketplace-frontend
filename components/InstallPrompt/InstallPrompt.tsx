@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import Image from 'next/image';
+import { Modal, Button, Text } from '@/components/slices';
 import styles from './InstallPrompt.module.scss';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -64,7 +64,7 @@ export const InstallPrompt: React.FC = () => {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        setShowPrompt(false);
+        handleDismiss();
       }
       setDeferredPrompt(null);
     }
@@ -75,33 +75,34 @@ export const InstallPrompt: React.FC = () => {
     localStorage.setItem('pwa-prompt-dismissed', new Date().toISOString());
   };
 
-  // Don't show if already installed or prompt not ready
-  if (isStandalone || !showPrompt) return null;
+  // Don't show if already installed
+  if (isStandalone) return null;
 
   return (
-    <div className={styles.prompt}>
-      <button className={styles.closeBtn} onClick={handleDismiss} aria-label="إغلاق">
-        <X size={16} />
-      </button>
-
-      <div className={styles.appIcon}>
-        <Image src="/icons/icon-96x96.png" alt="شام باي" width={48} height={48} />
-      </div>
-
+    <Modal isVisible={showPrompt} onClose={handleDismiss} maxWidth="md">
       <div className={styles.content}>
-        <p className={styles.title}>تطبيق شام باي</p>
-        <p className={styles.subtitle}>أضف التطبيق للشاشة الرئيسية</p>
-      </div>
+        <div className={styles.appIcon}>
+          <Image src="/icons/icon-96x96.png" alt="شام باي" width={64} height={64} />
+        </div>
 
-      {isIOS ? (
-        <button className={styles.installBtn} onClick={handleDismiss}>
-          كيف؟
-        </button>
-      ) : (
-        <button className={styles.installBtn} onClick={handleInstall}>
-          تحميل
-        </button>
-      )}
-    </div>
+        <Text variant="h3" className={styles.title}>تطبيق شام باي</Text>
+        <Text variant="paragraph" color="secondary" className={styles.subtitle}>
+          أضف التطبيق للشاشة الرئيسية للوصول السريع
+        </Text>
+
+        {isIOS ? (
+          <div className={styles.iosInstructions}>
+            <Text variant="paragraph">
+              اضغط على زر المشاركة <span className={styles.shareIcon}>⬆</span> ثم اختر "إضافة للشاشة الرئيسية"
+            </Text>
+          </div>
+        ) : (
+          <div className={styles.actions}>
+            <Button onClick={handleInstall}>تحميل التطبيق</Button>
+            <Button variant="outline" onClick={handleDismiss}>لاحقاً</Button>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 };

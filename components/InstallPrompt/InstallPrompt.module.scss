@@ -1,50 +1,19 @@
 @import "../../styles/variables";
 
-.prompt {
-  position: fixed;
-  bottom: 80px;
-  left: $space-md;
-  right: $space-md;
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-lg;
-  padding: $space-sm $space-md;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
+.content {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: $space-md;
-
-  @media (min-width: $breakpoint-md) {
-    display: none;
-  }
-}
-
-.closeBtn {
-  position: absolute;
-  top: $space-xs;
-  left: $space-xs;
-  background: none;
-  border: none;
-  padding: $space-xs;
-  cursor: pointer;
-  color: $text-muted;
-  border-radius: $radius-full;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: $surface;
-  }
+  text-align: center;
+  padding: $space-md;
 }
 
 .appIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: $radius-md;
+  width: 64px;
+  height: 64px;
+  border-radius: $radius-lg;
   overflow: hidden;
-  flex-shrink: 0;
+  margin-bottom: $space-md;
 
   img {
     width: 100%;
@@ -53,41 +22,30 @@
   }
 }
 
-.content {
-  flex: 1;
-  min-width: 0;
-}
-
 .title {
-  font-size: $font-base;
-  font-weight: 600;
-  color: $text;
-  margin: 0;
+  margin: 0 0 $space-xs 0;
 }
 
 .subtitle {
-  font-size: $font-sm;
-  color: $text-muted;
-  margin: 0;
+  margin: 0 0 $space-lg 0;
 }
 
-.installBtn {
-  padding: $space-sm $space-md;
-  background: $primary;
-  color: white;
-  border: none;
+.iosInstructions {
+  background: $surface;
+  padding: $space-md;
   border-radius: $radius-md;
-  font-size: $font-sm;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  white-space: nowrap;
+  margin-top: $space-sm;
+}
 
-  &:hover {
-    opacity: 0.9;
-  }
+.shareIcon {
+  display: inline-block;
+  margin: 0 $space-xs;
+  font-size: 1.2em;
+}
 
-  &:active {
-    transform: scale(0.98);
-  }
+.actions {
+  display: flex;
+  gap: $space-sm;
+  width: 100%;
+  justify-content: center;
 }
