@@ -27,24 +27,22 @@ export function interpolate(template: string, values: Record<string, string | nu
   });
 }
 
-// Format numbers for Arabic locale
+// Format numbers - always use Western Arabic numerals (0-9)
+// Most Arabic websites use Western numerals, not Arabic-Indic (٠-٩)
 export function formatNumber(num: number, locale: Language): string {
-  if (locale === 'ar') {
-    // Arabic-Indic digits
-    return num.toLocaleString('ar-EG');
-  }
+  // Always use en-US for number formatting to keep Western Arabic numerals
   return num.toLocaleString('en-US');
 }
 
-// Format currency
+// Format currency - always use Western Arabic numerals (0-9)
 export function formatCurrency(amount: number, currency: string = 'USD', locale: Language): string {
-  const formatter = new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US', {
+  const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
-  
+
   return formatter.format(amount);
 }
 

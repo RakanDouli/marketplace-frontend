@@ -166,7 +166,7 @@ export const CampaignPreview: React.FC<CampaignPreviewProps> = ({ campaign }) =>
 
                     <div className={styles.detailRow}>
                       <Text variant="small" color="secondary">مرات الظهور المضمونة</Text>
-                      <Text variant="paragraph">{pkg.packageData.impressionLimit.toLocaleString('ar-EG')}</Text>
+                      <Text variant="paragraph">{pkg.packageData.impressionLimit.toLocaleString('en-US')}</Text>
                     </div>
 
                     <div className={styles.detailRow}>

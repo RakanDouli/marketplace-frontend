@@ -155,21 +155,18 @@
 
 // Step Footer with navigation buttons
 .stepFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-md $space-lg;
-  border-top: 1px solid $border;
-  background: $surface;
-
-  @media (max-width: $breakpoint-sm) {
-    padding: $space-md;
-  }
+  display: none; // Hidden - buttons rendered outside step on all screen sizes
 }
 
-.footerLeft,
-.footerRight {
+
+// Previous button - icon on the right side (RTL: visually on the left)
+.prevButton {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.prevIcon {
   display: flex;
   align-items: center;
-  gap: $space-sm;
+  padding-left: $space-sm;
 }

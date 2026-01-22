@@ -25,6 +25,12 @@
 }
 
 .wizardPage {
+  padding-bottom: $space-xl;
+
+  @media (max-width: $breakpoint-sm) {
+    padding-bottom: $space-lg;
+  }
+
   .header {
     display: flex;
     flex-direction: column;
@@ -107,7 +113,7 @@
   .completed & {
     background: $success;
     border-color: $success;
-    color: white;
+    color: $text-light;
     box-shadow: 0 4px 12px rgba($success, 0.35);
 
     svg {
@@ -121,7 +127,7 @@
   .current & {
     border-color: $primary;
     color: $primary;
-    background: white;
+    background: $text-light;
     box-shadow:
       0 0 0 4px rgba($primary, 0.15),
       0 4px 12px rgba($primary, 0.25);
@@ -194,7 +200,7 @@
   }
 }
 
-// Mobile Progress Navigation - Clean dots with step title
+// Mobile Progress Navigation - Title + Numbered Progress Bar with Connectors
 .mobileProgressNav {
   display: none;
   margin-bottom: $space-lg;
@@ -202,74 +208,90 @@
   @media (max-width: $breakpoint-sm) {
     display: flex;
     flex-direction: column;
-    gap: $space-sm;
-    padding: $space-md;
-    background: $surface;
-    border: 1px solid $border;
-    border-radius: $radius-lg;
+    align-items: center;
+    gap: $space-md;
   }
-}
-
-// Step title and progress text
-.mobileStepHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .mobileStepTitle {
   font-size: $font-md;
   font-weight: $weight-bold;
   color: $text;
+  text-align: center;
 }
 
-.mobileStepProgress {
-  font-size: $font-xs;
-  color: $text-secondary;
-  font-weight: $weight-medium;
-}
-
-// Dots container
-.mobileDotsContainer {
+// Progress bar with numbered steps and connectors
+.mobileProgressBar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-xs;
+  width: 100%;
 }
 
-.mobileDot {
-  width: 10px;
-  height: 10px;
+// Wrapper for each step + connector
+.mobileStepWrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+
+  &:last-child {
+    flex: 0;
+  }
+}
+
+.mobileProgressStep {
+  width: 32px;
+  height: 32px;
   border-radius: $radius-full;
-  background: $border;
-  border: none;
-  padding: 0;
+  background: $bg;
+  border: 2px solid $border;
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $text-secondary;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 
   &:disabled {
     cursor: default;
   }
 
-  // Completed dot - green with checkmark effect
+  // Completed step - green background
   &.completed {
     background: $success;
-    width: 12px;
-    height: 12px;
+    border-color: $success;
+    color: white;
   }
 
-  // Current dot - primary with ring
+  // Current step - primary ring
   &.current {
     background: $primary;
-    width: 14px;
-    height: 14px;
+    border-color: $primary;
+    color: white;
     box-shadow: 0 0 0 3px rgba($primary, 0.2);
   }
 
-  // Clickable dots hover
+  // Clickable steps hover
   &.clickable:hover:not(.current) {
-    transform: scale(1.2);
-    background: rgba($primary, 0.5);
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+// Connector line between steps
+.mobileConnector {
+  flex: 1;
+  height: 3px;
+  background: $border;
+  margin: 0 $space-xs;
+  border-radius: 2px;
+  transition: background 0.3s ease;
+
+  &.completed {
+    background: $success;
   }
 }
 
@@ -277,7 +299,6 @@
 .stepsContainer {
   display: flex;
   flex-direction: column;
-  margin-bottom: $space-md;
   overflow: hidden;
 }
 
@@ -479,7 +500,7 @@
 
 // Wizard Actions
 .wizardActions {
-  background-color: $surface;
+  background-color: $bg;
   padding: $space-md $space-lg;
   display: flex;
   justify-content: space-between;
@@ -529,5 +550,48 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+// Action Bar - outside steps (natural button sizes with space-between)
+.mobileActionBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: $space-md;
+}
+
+// Previous button - icon on the right side (RTL: visually on the left)
+.mobilePrevButton {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.mobilePrevIcon {
+  display: flex;
+  align-items: center;
+  padding-left: $space-sm;
+}
+
+// Cancel Modal
+.cancelModal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-md;
+  padding-top: $space-md;
+}
+
+.cancelModalActions {
+  display: flex;
+  gap: $space-sm;
+  justify-content: flex-end;
+  margin-top: $space-md;
+
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
   }
 }

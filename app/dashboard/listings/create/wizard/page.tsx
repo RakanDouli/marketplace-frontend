@@ -12,6 +12,7 @@ import { useCreateListingStore } from '@/stores/createListingStore';
 import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useCurrencyStore, CURRENCY_SYMBOLS } from '@/stores/currencyStore';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import {
@@ -22,8 +23,10 @@ import {
   validatePriceMinor,
   ListingValidationConfig,
 } from '@/lib/validation/listingValidation';
-import { MapPin, Check, Loader2 } from 'lucide-react';
+import { MapPin, Check, Loader2, Trash2 } from 'lucide-react';
+import { FiArrowLeftCircle, FiArrowRightCircle } from 'react-icons/fi';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
+import { Modal } from '@/components/slices';
 import styles from './CreateListingWizard.module.scss';
 
 interface Brand {
@@ -55,6 +58,7 @@ export default function CreateListingWizardPage() {
   const { user, userPackage, isLoading: isAuthLoading } = useUserAuthStore();
   const { provinces } = useMetadataStore();
   const { addNotification } = useNotificationStore();
+  const { preferredCurrency, getRate } = useCurrencyStore();
   const {
     draftId,
     formData,
@@ -93,6 +97,7 @@ export default function CreateListingWizardPage() {
   const [pendingImages, setPendingImages] = useState<any[]>([]);
   const [pendingVideo, setPendingVideo] = useState<any | null>(null);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Wizard state
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -703,12 +708,14 @@ export default function CreateListingWizardPage() {
     }
   };
 
-  const handleCancel = async () => {
-    const confirm = window.confirm('هل أنت متأكد من إلغاء الإعلان؟ سيتم حذف المسودة وجميع الصور المرفوعة.');
-    if (confirm) {
-      await deleteDraft();
-      router.push('/dashboard/listings');
-    }
+  const handleCancelClick = () => {
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    setShowCancelModal(false);
+    await deleteDraft();
+    router.push('/dashboard/listings');
   };
 
   // Brand/model handlers
@@ -938,15 +945,10 @@ export default function CreateListingWizardPage() {
                 </div>
               </div>
 
-              {/* Progress Bar - Mobile (dots + title) */}
+              {/* Progress Bar - Mobile (title + numbered progress with connectors) */}
               <div className={styles.mobileProgressNav}>
-                <div className={styles.mobileStepHeader}>
-                  <span className={styles.mobileStepTitle}>{currentStep?.title}</span>
-                  <span className={styles.mobileStepProgress}>
-                    {currentStepIndex + 1} / {steps.length}
-                  </span>
-                </div>
-                <div className={styles.mobileDotsContainer}>
+                <span className={styles.mobileStepTitle}>{currentStep?.title}</span>
+                <div className={styles.mobileProgressBar}>
                   {steps.map((step, index) => {
                     const stepInfo = getStepInfo(step);
                     const isCompleted = index < currentStepIndex || stepInfo?.status === 'complete' || stepInfo?.status === 'required';
@@ -954,14 +956,20 @@ export default function CreateListingWizardPage() {
                     const isClickable = index <= currentStepIndex;
 
                     return (
-                      <button
-                        key={step.id}
-                        type="button"
-                        className={`${styles.mobileDot} ${isCompleted && !isCurrent ? styles.completed : ''} ${isCurrent ? styles.current : ''} ${isClickable ? styles.clickable : ''}`}
-                        onClick={() => isClickable && goToStep(index)}
-                        disabled={!isClickable}
-                        aria-label={`${step.title} - خطوة ${index + 1}`}
-                      />
+                      <div key={step.id} className={styles.mobileStepWrapper}>
+                        <button
+                          type="button"
+                          className={`${styles.mobileProgressStep} ${isCompleted && !isCurrent ? styles.completed : ''} ${isCurrent ? styles.current : ''} ${isClickable ? styles.clickable : ''}`}
+                          onClick={() => isClickable && goToStep(index)}
+                          disabled={!isClickable}
+                          aria-label={`${step.title} - خطوة ${index + 1}`}
+                        >
+                          {index + 1}
+                        </button>
+                        {index < steps.length - 1 && (
+                          <div className={`${styles.mobileConnector} ${isCompleted ? styles.completed : ''}`} />
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -978,7 +986,8 @@ export default function CreateListingWizardPage() {
                   totalCount={sectionInfo[firstGroup.name]?.totalCount}
                   isActive={true}
                   animationDirection={animationDirection}
-                  onPrevious={currentStepIndex > 0 ? goToPrevStep : handleCancel}
+                  onPrevious={currentStepIndex > 0 ? goToPrevStep : undefined}
+                  onCancel={handleCancelClick}
                   onNext={goToNextStep}
                   isFirstStep={currentStepIndex === 0}
                   isLastStep={false}
@@ -999,7 +1008,8 @@ export default function CreateListingWizardPage() {
                   totalCount={sectionInfo.basicInfo.totalCount}
                   isActive={true}
                   animationDirection={animationDirection}
-                  onPrevious={currentStepIndex > 0 ? goToPrevStep : handleCancel}
+                  onPrevious={currentStepIndex > 0 ? goToPrevStep : undefined}
+                  onCancel={handleCancelClick}
                   onNext={goToNextStep}
                   isFirstStep={currentStepIndex === 0}
                   isLastStep={false}
@@ -1133,6 +1143,7 @@ export default function CreateListingWizardPage() {
                   isActive={true}
                   animationDirection={animationDirection}
                   onPrevious={goToPrevStep}
+                  onCancel={handleCancelClick}
                   onNext={goToNextStep}
                   isFirstStep={false}
                   isLastStep={false}
@@ -1213,6 +1224,7 @@ export default function CreateListingWizardPage() {
                     isActive={true}
                     animationDirection={animationDirection}
                     onPrevious={goToPrevStep}
+                    onCancel={handleCancelClick}
                     onNext={goToNextStep}
                     isFirstStep={false}
                     isLastStep={false}
@@ -1235,6 +1247,7 @@ export default function CreateListingWizardPage() {
                   isActive={true}
                   animationDirection={animationDirection}
                   onPrevious={goToPrevStep}
+                  onCancel={handleCancelClick}
                   onNext={goToNextStep}
                   isFirstStep={false}
                   isLastStep={false}
@@ -1353,6 +1366,7 @@ export default function CreateListingWizardPage() {
                   isActive={true}
                   animationDirection={animationDirection}
                   onPrevious={goToPrevStep}
+                  onCancel={handleCancelClick}
                   isFirstStep={false}
                   isLastStep={true}
                   rightAction={
@@ -1402,7 +1416,9 @@ export default function CreateListingWizardPage() {
                       <div className={styles.previewHeader}>
                         <Text variant="h3">{formData.title || 'بدون عنوان'}</Text>
                         <Text variant="h3" color="primary" className={styles.previewPrice}>
-                          {formData.priceMinor > 0 ? `${(formData.priceMinor / 100).toLocaleString('ar-EG')} $` : 'السعر غير محدد'}
+                          {formData.priceMinor > 0
+                            ? `${CURRENCY_SYMBOLS[preferredCurrency]} ${Math.round(formData.priceMinor * getRate('USD', preferredCurrency)).toLocaleString('en-US')}`
+                            : 'السعر غير محدد'}
                         </Text>
                       </div>
 
@@ -1459,10 +1475,85 @@ export default function CreateListingWizardPage() {
               )}
             </div>
 
+            {/* Mobile Action Bar - outside steps (all buttons in one row) */}
+            <div className={styles.mobileActionBar}>
+              {currentStepIndex > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goToPrevStep}
+                  className={styles.mobilePrevButton}
+                >
+                  <span className={styles.mobilePrevIcon}>
+                    <FiArrowRightCircle size={18} />
+                  </span>
+                  السابق
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="danger"
+                onClick={handleCancelClick}
+                icon={<Trash2 size={16} />}
+              >
+                إلغاء
+              </Button>
+              {currentStep?.id === 'preview' ? (
+                <SubmitButton
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isSuccess={!!success}
+                  isError={!!error}
+                >
+                  نشر الإعلان
+                </SubmitButton>
+              ) : (
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={goToNextStep}
+                  arrow
+                >
+                  التالي
+                </Button>
+              )}
+            </div>
+
             <ListingSubmitLoader isVisible={isSubmitting} />
           </Form>
         </div>
       </Container>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        isVisible={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        title="إلغاء الإعلان"
+        maxWidth="md"
+      >
+        <div className={styles.cancelModal}>
+          <Text variant="paragraph">
+            هل أنت متأكد من إلغاء الإعلان؟
+          </Text>
+          <Text variant="small" color="secondary">
+            سيتم حذف المسودة وجميع الصور والفيديوهات المرفوعة نهائياً.
+          </Text>
+          <div className={styles.cancelModalActions}>
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelModal(false)}
+            >
+              متابعة التعديل
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleConfirmCancel}
+            >
+              إلغاء وحذف المسودة
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

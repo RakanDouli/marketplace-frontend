@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
+import { FiArrowRightCircle } from 'react-icons/fi';
 import { Text } from '../Text/Text';
 import { Button } from '../Button/Button';
 import styles from './WizardStep.module.scss';
@@ -39,6 +40,8 @@ interface WizardStepProps {
   onPrevious?: () => void;
   /** Navigation: callback for next step */
   onNext?: () => void;
+  /** Navigation: callback for cancel/delete draft */
+  onCancel?: () => void;
   /** Navigation: is this the first step? */
   isFirstStep?: boolean;
   /** Navigation: is this the last step? */
@@ -61,6 +64,7 @@ export const WizardStep: React.FC<WizardStepProps> = ({
   className = '',
   onPrevious,
   onNext,
+  onCancel,
   isFirstStep = false,
   isLastStep = false,
   rightAction,
@@ -85,7 +89,7 @@ export const WizardStep: React.FC<WizardStepProps> = ({
   const showFieldCount = filledCount !== undefined && totalCount !== undefined;
 
   // Show navigation footer
-  const showNavigation = onPrevious || onNext || rightAction;
+  const showNavigation = onPrevious || onNext || rightAction || onCancel;
 
   if (!isActive) {
     return null;
@@ -119,14 +123,27 @@ export const WizardStep: React.FC<WizardStepProps> = ({
       {showNavigation && (
         <div className={styles.stepFooter}>
           <div className={styles.footerLeft}>
-            {!isFirstStep && onPrevious && (
+            {onPrevious && !isFirstStep && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onPrevious}
-                icon={<ArrowRight size={18} />}
+                className={styles.prevButton}
               >
+                <span className={styles.prevIcon}>
+                  <FiArrowRightCircle size={18} />
+                </span>
                 السابق
+              </Button>
+            )}
+            {onCancel && (
+              <Button
+                type="button"
+                variant="danger"
+                onClick={onCancel}
+                icon={<Trash2 size={16} />}
+              >
+                إلغاء
               </Button>
             )}
           </div>
