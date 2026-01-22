@@ -18,10 +18,14 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" data-theme="light">
       <head>
+        {/* Favicon for browser tabs */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+        <link rel="shortcut icon" href="/favicon.png" />
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3D5CB6" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
         {/* Preconnect to Google Fonts for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
