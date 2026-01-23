@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { SUBMIT_CONTACT_FORM_MUTATION } from './contactStore.gql';
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
 
@@ -33,12 +34,6 @@ const makeGraphQLCall = async (query: string, variables: Record<string, unknown>
 
   return result.data;
 };
-
-const SUBMIT_CONTACT_FORM_MUTATION = `
-  mutation SubmitContactForm($input: ContactFormInput!) {
-    submitContactForm(input: $input)
-  }
-`;
 
 export const useContactStore = create<ContactStore>((set) => ({
   isSubmitting: false,
