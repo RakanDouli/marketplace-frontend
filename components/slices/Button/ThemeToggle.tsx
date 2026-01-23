@@ -19,7 +19,7 @@ export const ThemeToggle: React.FC = () => {
 
   return (
     <Button
-      variant="primary"
+      variant="outline"
       onClick={toggleTheme}
       className={styles.themeToggle}
       aria-label={t("theme.toggle")}

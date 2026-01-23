@@ -141,6 +141,26 @@
     align-items: center;
   }
 
+  // Size modifiers
+  &--sm {
+    padding: $space-xs $space-sm;
+    gap: $space-xs;
+
+    .title {
+      font-size: $font-sm;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  &--lg {
+    padding: $space-md $space-lg;
+    gap: $space-md;
+
+    .title {
+      font-size: $font-lg;
+    }
+  }
+
   .round {
     width: 20px;
     height: 20px;
@@ -227,7 +247,7 @@
 .themeToggle {
   padding: $space-sm !important;
   transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  color: $text-light !important;
+
   &:hover {
     transform: scale(1.1);
   }

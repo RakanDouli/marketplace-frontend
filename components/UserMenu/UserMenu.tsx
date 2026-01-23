@@ -55,8 +55,7 @@ export const UserMenu: React.FC = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <Button icon={<User size={20} />} onClick={() => openAuthModal('login')} className={styles.loginButton}>
-
+      <Button variant="outline" size="sm" icon={<User size={16} />} onClick={() => openAuthModal('login')} className={styles.loginButton}>
         <span className={styles.title}>تسجيل الدخول</span>
       </Button>
     );
@@ -76,8 +75,8 @@ export const UserMenu: React.FC = () => {
             <img
               src={avatarUrl}
               alt={user.name || 'Avatar'}
-              width={36}
-              height={36}
+              width={28}
+              height={28}
               className={styles.avatar}
             />
           </div>

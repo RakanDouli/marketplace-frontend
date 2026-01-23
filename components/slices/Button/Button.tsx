@@ -90,7 +90,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           target={target}
           href={href}
           className={`${styles.btn} ${children ? styles.btnPadding : ""} ${styles[`btn--${variant}`]
-            } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
+            } ${size !== "md" ? styles[`btn--${size}`] : ""} ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
           onMouseEnter={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             setRippleCoords({
@@ -110,7 +110,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={isDisabled}
         className={`${styles.btn} ${children ? styles.btnPadding : ""} ${styles[`btn--${variant}`]
-          } ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
+          } ${size !== "md" ? styles[`btn--${size}`] : ""} ${margin ? styles.withMargin : ""} ${className} ${loading ? styles.loading : ""}`}
         onMouseEnter={handleMouseEnter}
         aria-label={
           loading ? "Loading..." : children ? String(children) : "Button"

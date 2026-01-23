@@ -79,6 +79,9 @@ export default function HomeClient() {
 
   return (
     <main className={styles.homePage}>
+      {/* Search Bar - Top under header */}
+      <HomeSearchBar />
+
       {/* Hero Text Section */}
       <TextSection
         title="مرحباً بكم في شام باي"
@@ -88,9 +91,6 @@ export default function HomeClient() {
         outerBackground="transparent"
         nostyle
       />
-
-      {/* Search Bar with Background Image */}
-      <HomeSearchBar />
 
       {/* Category Section */}
       <CategorySection />

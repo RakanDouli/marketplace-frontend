@@ -12,6 +12,7 @@
   // Prevent layout recalculations from affecting other elements (CLS optimization)
   contain: layout style;
   will-change: transform;
+  border-bottom: 1px solid $border;
 
   // Hide on mobile - replaced by BottomNav
   @media (max-width: $breakpoint-md) {
@@ -95,7 +96,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: $space-sm;
+  gap: $space-xs;
   height: 100%;
 
   @media (max-width: $breakpoint-md) {
@@ -108,9 +109,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: $radius-md;
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
   color: $text;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -147,17 +148,17 @@
 
 .badge {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
   background-color: $secondary;
   color: white;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: $weight-bold;
   border-radius: $radius-full;
   border: 2px solid $bg;

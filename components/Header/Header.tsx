@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { MessageCircle, Heart, Plus } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
-import { ThemeToggle, Spacer, Button } from "@/components/slices";
+import { Spacer, Button } from "@/components/slices";
 import { Logo } from "@/components/Logo";
 import { UserMenu } from "@/components/UserMenu";
 import { useChatStore } from "@/stores/chatStore";
@@ -129,12 +129,6 @@ export const Header: React.FC = () => {
                 من نحن
               </Link>
               <Link
-                href="/user-subscriptions"
-                className={`${styles.navLink} ${pathname === '/user-subscriptions' ? styles.active : ''}`}
-              >
-                باقات الاشتراك
-              </Link>
-              <Link
                 href="/contact"
                 className={`${styles.navLink} ${pathname === '/contact' ? styles.active : ''}`}
               >
@@ -144,23 +138,13 @@ export const Header: React.FC = () => {
 
             {/* Desktop Actions */}
             <div className={styles.actions}>
-              {/* Create Listing Button - shows for all users, auth check on click */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCreateListingClick}
-                icon={<Plus size={18} />}
-              >
-                أضف إعلانك
-              </Button>
-
               {/* Wishlist Icon - shows for all users, auth check on click */}
               <button
                 onClick={handleWishlistClick}
                 className={styles.messagesIcon}
                 aria-label="المفضلة"
               >
-                <Heart size={24} />
+                <Heart size={20} />
               </button>
 
               {/* Messages Icon - shows for all users, auth check on click */}
@@ -169,13 +153,23 @@ export const Header: React.FC = () => {
                 className={styles.messagesIcon}
                 aria-label="الرسائل"
               >
-                <MessageCircle size={24} />
+                <MessageCircle size={20} />
                 {user && unreadCount > 0 && (
                   <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
               </button>
+
+              {/* Create Listing Button - shows for all users, auth check on click */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCreateListingClick}
+                icon={<Plus size={16} />}
+              >
+                أضف إعلانك
+              </Button>
+
               <UserMenu />
-              <ThemeToggle />
             </div>
           </div>
         </Container>
