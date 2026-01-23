@@ -152,15 +152,9 @@ export const ContactForm: React.FC<ContactFormProps> = ({
             type="select"
             value={formData.subject}
             onChange={handleChange}
+            options={subjects}
             required
-          >
-            <option value="">اختر الموضوع</option>
-            {subjects.map((subject) => (
-              <option key={subject.value} value={subject.value}>
-                {subject.label}
-              </option>
-            ))}
-          </Input>
+          />
         </div>
 
         <Input
