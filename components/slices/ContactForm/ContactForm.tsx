@@ -6,6 +6,7 @@ import { Text } from "../Text/Text";
 import { Input } from "../Input/Input";
 import { Button } from "../Button/Button";
 import { useNotificationStore } from "@/stores/notificationStore";
+import { useContactStore } from "@/stores/contactStore";
 import styles from "./ContactForm.module.scss";
 
 export interface ContactFormSubject {
@@ -52,6 +53,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   className = "",
 }) => {
   const { addNotification } = useNotificationStore();
+  const { submitContactForm, isSubmitting: storeSubmitting } = useContactStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
@@ -69,8 +71,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       if (onSubmit) {
         await onSubmit(formData);
       } else {
-        // Default: simulate form submission
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Use the contact store to submit to backend
+        await submitContactForm(formData);
       }
 
       addNotification({
@@ -176,7 +178,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           type="submit"
           variant="primary"
           size="lg"
-          loading={isSubmitting}
+          loading={isSubmitting || storeSubmitting}
           icon={<Send size={18} />}
           className={styles.submitButton}
         >
