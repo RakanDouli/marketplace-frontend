@@ -27,8 +27,8 @@ const contactInfo = [
   {
     icon: <Mail size={24} />,
     title: "البريد الإلكتروني",
-    value: "info@syrianmarketplace.com",
-    href: "mailto:info@syrianmarketplace.com",
+    value: "info@shambay.com",
+    href: "mailto:info@shambay.com",
   },
   {
     icon: <MapPin size={24} />,
