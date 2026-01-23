@@ -5,7 +5,7 @@ import { Send, MessageCircle } from "lucide-react";
 import { Text } from "../Text/Text";
 import { Input } from "../Input/Input";
 import { Button } from "../Button/Button";
-import { useNotificationStore } from "@/stores/notificationStore";
+import { Form } from "../Form/Form";
 import { useContactStore } from "@/stores/contactStore";
 import styles from "./ContactForm.module.scss";
 
@@ -18,10 +18,7 @@ export interface ContactFormProps {
   title?: string;
   subjects?: ContactFormSubject[];
   onSubmit?: (data: ContactFormData) => Promise<void>;
-  successMessage?: {
-    title: string;
-    message: string;
-  };
+  successMessage?: string;
   className?: string;
 }
 
@@ -46,15 +43,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   title = "أرسل لنا رسالة",
   subjects = defaultSubjects,
   onSubmit,
-  successMessage = {
-    title: "تم إرسال رسالتك",
-    message: "شكراً لتواصلك معنا، سنرد عليك في أقرب وقت ممكن",
-  },
+  successMessage = "شكراً لتواصلك معنا، سنرد عليك في أقرب وقت ممكن",
   className = "",
 }) => {
-  const { addNotification } = useNotificationStore();
   const { submitContactForm, isSubmitting: storeSubmitting } = useContactStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | undefined>();
+  const [formSuccess, setFormSuccess] = useState<string | undefined>();
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -66,20 +61,17 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormError(undefined);
+    setFormSuccess(undefined);
 
     try {
       if (onSubmit) {
         await onSubmit(formData);
       } else {
-        // Use the contact store to submit to backend
         await submitContactForm(formData);
       }
 
-      addNotification({
-        type: "success",
-        title: successMessage.title,
-        message: successMessage.message,
-      });
+      setFormSuccess(successMessage);
 
       // Reset form
       setFormData({
@@ -90,11 +82,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         message: "",
       });
     } catch (error) {
-      addNotification({
-        type: "error",
-        title: "خطأ",
-        message: "حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.",
-      });
+      setFormError("حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +104,12 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <Text variant="h2">{title}</Text>
       </div>
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <Form
+        onSubmit={handleSubmit}
+        error={formError}
+        success={formSuccess}
+        className={styles.form}
+      >
         <div className={styles.formGrid}>
           <Input
             label="الاسم الكامل"
@@ -178,7 +171,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         >
           إرسال الرسالة
         </Button>
-      </form>
+      </Form>
     </div>
   );
 };
