@@ -149,21 +149,23 @@ export const Input = forwardRef<
     // Handle validation on change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       let value = e.target.value;
+      const name = e.target.name;
 
       // Convert Arabic numerals (٠١٢٣٤٥٦٧٨٩) to English (0123456789) for all text-based inputs
       // This ensures users can type with Arabic keyboard but values are stored as English
       if (type === 'number' || type === 'text' || type === 'textarea' || type === 'tel' || type === 'date') {
         value = convertArabicToEnglish(value);
-        // Create a new synthetic event with converted value
-        const syntheticEvent = {
-          ...e,
-          target: {
-            ...e.target,
-            value,
-          },
-        } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
-        e = syntheticEvent;
       }
+
+      // Create a synthetic event with the (possibly converted) value and name
+      const syntheticEvent = {
+        ...e,
+        target: {
+          ...e.target,
+          value,
+          name,
+        },
+      } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 
       // Run validation if provided
       if (validate) {
@@ -173,7 +175,7 @@ export const Input = forwardRef<
 
       // Call original onChange
       if (props.onChange) {
-        props.onChange(e as any);
+        props.onChange(syntheticEvent);
       }
     };
 
