@@ -12,6 +12,7 @@ import { AdContainer } from '@/components/ads';
 import { HomeSearchBar } from '@/components/HomeSearchBar';
 import { CategorySection } from '@/components/CategorySection';
 import { useTranslation } from '@/hooks/useTranslation';
+import { CMS_ASSETS } from '@/constants/cms-assets';
 import {
   Search,
   Shield,
@@ -28,7 +29,7 @@ const promoCategories = [
     subtitle: 'أضف إعلانك الآن واوصل لآلاف المشترين',
     buttonText: 'أضف إعلانك',
     buttonHref: '/dashboard/listings/create?category=real-estate',
-    imageSrc: '/images/building.png',
+    imageSrc: CMS_ASSETS.home.promoCards.realEstate,
     imageAlt: 'بيع عقارك',
     badge: 'جديد',
   },
@@ -38,7 +39,7 @@ const promoCategories = [
     subtitle: 'أضف إعلانك الآن واوصل لآلاف المشترين',
     buttonText: 'أضف إعلانك',
     buttonHref: '/dashboard/listings/create?category=electronics',
-    imageSrc: '/images/phone.png',
+    imageSrc: CMS_ASSETS.home.promoCards.electronics,
     imageAlt: 'بيع جهازك',
   },
 ];
@@ -84,7 +85,7 @@ export default function HomeClient() {
         subtitle="أضف إعلانك الآن واوصل لآلاف المشترين"
         buttonText="أضف إعلانك"
         buttonHref="/dashboard/listings/create"
-        imageSrc="/images/car.png"
+        imageSrc={CMS_ASSETS.home.promoBanner.car}
         imageAlt="بيع سيارتك"
       />
 
