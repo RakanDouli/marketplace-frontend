@@ -21,27 +21,27 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
   &.success {
-    border-right: 10px solid $success;
-    background-color: #d4edda; // Solid success background
-    border: 1px solid #c3e6cb;
+    background-color: var(--success-bg);
+    border: 1px solid $success;
+    border-right: 4px solid $success;
   }
 
   &.error {
-    border-right: 10px solid $error;
-    background-color: #f8d7da; // Solid error background
-    border: 1px solid #f5c6cb;
+    background-color: var(--error-bg);
+    border: 1px solid $error;
+    border-right: 4px solid $error;
   }
 
   &.warning {
-    border-right: 10px solid $warning;
-    background-color: #fff3cd; // Solid warning background
-    border: 1px solid #ffeeba;
+    background-color: var(--warning-bg);
+    border: 1px solid $warning;
+    border-right: 4px solid $warning;
   }
 
   &.info {
-    border-right: 10px solid $info;
-    background-color: #d1ecf1; // Solid info background
-    border: 1px solid #bee5eb;
+    background-color: var(--info-bg);
+    border: 1px solid $info;
+    border-right: 4px solid $info;
   }
 }
 
@@ -56,7 +56,7 @@
 .title {
   font-size: $font-sm;
   font-weight: $weight-semibold;
-  color: $text-dark;
+  color: var(--text);
   margin-bottom: $space-xs;
 }
 
@@ -66,7 +66,7 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  color: $text-dark;
+  color: var(--text);
 }
 
 .icon {

@@ -1,14 +1,12 @@
 'use client';
 
 import {
-  Button,
   Grid,
   FeatureCard,
-  CTASection,
   FeaturedListings,
+  PromoBanner,
+  PromoCard,
   Container,
-  Text,
-  TextSection,
 } from '@/components/slices';
 import { AdContainer } from '@/components/ads';
 import { HomeSearchBar } from '@/components/HomeSearchBar';
@@ -19,12 +17,31 @@ import {
   Shield,
   Tag,
   Zap,
-  Car,
-  Users,
-  TrendingUp,
-  Clock,
 } from 'lucide-react';
 import styles from './Home.module.scss';
+
+// Promo cards config - "Add listing" CTAs for categories
+const promoCategories = [
+  {
+    slug: 'real-estate',
+    title: 'هل لديك عقار للبيع؟',
+    subtitle: 'أضف إعلانك الآن واوصل لآلاف المشترين',
+    buttonText: 'أضف إعلانك',
+    buttonHref: '/dashboard/listings/create?category=real-estate',
+    imageSrc: '/images/building.png',
+    imageAlt: 'بيع عقارك',
+    badge: 'جديد',
+  },
+  {
+    slug: 'electronics',
+    title: 'هل لديك جهاز للبيع؟',
+    subtitle: 'أضف إعلانك الآن واوصل لآلاف المشترين',
+    buttonText: 'أضف إعلانك',
+    buttonHref: '/dashboard/listings/create?category=electronics',
+    imageSrc: '/images/phone.png',
+    imageAlt: 'بيع جهازك',
+  },
+];
 
 // Static feature items
 const features = [
@@ -50,76 +67,58 @@ const features = [
   },
 ];
 
-// Static stats
-const stats = [
-  {
-    icon: <Car size={36} />,
-    value: '+10,000',
-    label: 'إعلان نشط',
-  },
-  {
-    icon: <Users size={36} />,
-    value: '+50,000',
-    label: 'مستخدم مسجل',
-  },
-  {
-    icon: <TrendingUp size={36} />,
-    value: '+100,000',
-    label: 'زيارة شهرية',
-  },
-  {
-    icon: <Clock size={36} />,
-    value: '24/7',
-    label: 'دعم فني',
-  },
-];
-
 export default function HomeClient() {
   const { t } = useTranslation();
 
   return (
     <main className={styles.homePage}>
-      {/* Search Bar - Top under header */}
+      {/* 1. Hero + Search */}
       <HomeSearchBar />
 
-      {/* Hero Text Section */}
-      <TextSection
-        title="مرحباً بكم في شام باي"
-        subtitle="منصتك الأولى للبيع والشراء في سوريا"
-        align="center"
-        paddingY="sm"
-        outerBackground="transparent"
-        nostyle
-      />
-
-      {/* Category Section */}
+      {/* 2. Category Tabs */}
       <CategorySection />
 
-      {/* Featured Listings */}
+      {/* 3. Main CTA - Sell Your Car (Dubizzle style: CTA first) */}
+      <PromoBanner
+        title="هل لديك سيارة للبيع؟"
+        subtitle="أضف إعلانك الآن واوصل لآلاف المشترين"
+        buttonText="أضف إعلانك"
+        buttonHref="/dashboard/listings/create"
+        imageSrc="/images/car.png"
+        imageAlt="بيع سيارتك"
+      />
+
+      {/* 4. Featured Listings */}
       <FeaturedListings
         categorySlug="cars"
+        variant="grid"
+        columns={5}
+        mobileColumns={2}
         outerBackground="transparent"
       />
 
-      {/* Top Banner Ad */}
-      <AdContainer placement="homepage_top" />
+      {/* 5. Secondary CTAs - Other Categories */}
+      {promoCategories.length > 0 && (
+        <Container paddingY="sm" outerBackground="transparent">
+          <div className={styles.promoCardsGrid}>
+            {promoCategories.map((category, index) => (
+              <PromoCard
+                key={category.slug}
+                title={category.title}
+                subtitle={category.subtitle}
+                buttonText={category.buttonText}
+                buttonHref={category.buttonHref}
+                imageSrc={category.imageSrc}
+                imageAlt={category.imageAlt}
+                imagePosition={index % 2 === 0 ? 'right' : 'left'}
+                badge={category.badge}
+              />
+            ))}
+          </div>
+        </Container>
+      )}
 
-      {/* Stats Section - Compact */}
-      <Container size="lg" paddingY="xl" outerBackground="transparent">
-        <div className={styles.statsGrid}>
-          {stats.map((stat, index) => (
-            <div key={index} className={styles.statItem}>
-              <div className={styles.statIcon}>{stat.icon}</div>
-              <div className={styles.statContent}>
-                <Text variant="h2" className={styles.statValue}>{stat.value}</Text>
-                <Text variant="small" color="secondary">{stat.label}</Text>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Container>
-
-      {/* Features Section */}
+      {/* 6. Trust Signals - Why Choose Us (closing argument before footer) */}
       <Grid title="لماذا تختارنا؟" columns={4} paddingY="xl" outerBackground="transparent">
         {features.map((feature, index) => (
           <FeatureCard
@@ -132,23 +131,9 @@ export default function HomeClient() {
         ))}
       </Grid>
 
-      {/* Mid-Page Banner Ad */}
-      <AdContainer placement="homepage_mid" />
-
-      {/* CTA Section - Start Selling */}
-      <CTASection
-        title="هل لديك شيء للبيع؟"
-        subtitle="ابدأ الآن"
-        description="انشر إعلانك مجاناً واوصل لآلاف المشترين المحتملين في سوريا"
-        buttons={[
-          { label: 'أضف إعلانك الآن', href: '/dashboard/listings/create', variant: 'secondary', arrow: true },
-          { label: 'تعرف على الباقات', href: '/user-subscriptions', variant: 'outline', arrow: true },
-        ]}
-        variant="gradient"
-        align="center"
-        paddingY="xl"
-        outerPaddingY="xl"
-      />
+      {/* Ads - commented out for now */}
+      {/* <AdContainer placement="homepage_top" /> */}
+      {/* <AdContainer placement="homepage_mid" /> */}
     </main>
   );
 }

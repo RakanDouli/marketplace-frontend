@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ContainerProps } from "../Container/Container";
 import { Slider } from "../Slider";
+import { Grid } from "../Grid";
 import { Button } from "../Button/Button";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
@@ -18,7 +19,11 @@ export interface FeaturedListingsProps {
   title?: string;         // Optional override for title (defaults to category nameAr)
   viewAllText?: string;
   limit?: number;
-  // Container props (passed to Slider)
+  // Display variant
+  variant?: "slider" | "grid";  // Default: "slider"
+  columns?: 1 | 2 | 3 | 4 | 5 | 6;  // Grid columns on desktop (default: 5)
+  mobileColumns?: 1 | 2 | 3 | 4;   // Grid columns on mobile (default: 2)
+  // Container props (passed to Slider/Grid)
   paddingY?: ContainerProps["paddingY"];
   background?: ContainerProps["background"];
   outerBackground?: ContainerProps["outerBackground"];
@@ -53,7 +58,10 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   title,
   viewAllText = "عرض الكل",
   limit = 10,
-  paddingY = "xl",
+  variant = "slider",
+  columns = 5,
+  mobileColumns = 2,
+  paddingY = "lg",
   background = "transparent",
   outerBackground = "bg",
   className = "",
@@ -161,14 +169,74 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
     return null;
   }
 
+  // Render listing cards (shared between grid and slider)
+  const renderListingCards = () =>
+    listings.slice(0, limit).map((listing) => {
+      const listingCategory = listing.categoryId ? getCategoryById(listing.categoryId) : null;
+
+      // Parse specs from JSON string if needed
+      let parsedSpecs: Record<string, any> = {};
+      try {
+        const specsSource = listing.specsDisplay || listing.specs;
+        if (typeof specsSource === 'string') {
+          parsedSpecs = JSON.parse(specsSource);
+        } else if (specsSource && typeof specsSource === 'object') {
+          parsedSpecs = specsSource;
+        }
+      } catch {
+        parsedSpecs = {};
+      }
+
+      const filteredSpecs = filterSpecsForGrid(parsedSpecs);
+
+      return (
+        <ListingCard
+          key={listing.id}
+          id={listing.id}
+          title={listing.title}
+          price={formatPrice(listing.priceMinor)}
+          location={listing.location?.city || listing.location?.province || ""}
+          accountType={(listing.accountType as "individual" | "dealer" | "business") || "individual"}
+          specs={filteredSpecs}
+          images={listing.imageKeys}
+          viewMode="grid"
+          userId={listing.user?.id}
+          categorySlug={listingCategory?.slug}
+        />
+      );
+    });
+
+  // Action button (shared)
+  const actionButton = (
+    <Link href={viewAllLink}>
+      <Button variant="link">{viewAllText}</Button>
+    </Link>
+  );
+
+  // Grid variant
+  if (variant === "grid") {
+    return (
+      <Grid
+        title={displayTitle}
+        action={actionButton}
+        columns={columns}
+        mobileColumns={mobileColumns}
+        gap="lg"
+        paddingY={paddingY}
+        background={background}
+        outerBackground={outerBackground}
+        className={className}
+      >
+        {renderListingCards()}
+      </Grid>
+    );
+  }
+
+  // Slider variant (default)
   return (
     <Slider
       title={displayTitle}
-      action={
-        <Link href={viewAllLink}>
-          <Button variant="link">{viewAllText}</Button>
-        </Link>
-      }
+      action={actionButton}
       slidesToShow={5}
       slidesToShowTablet={2}
       slidesToShowMobile={1}
@@ -179,40 +247,7 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
       outerBackground={outerBackground}
       className={className}
     >
-      {listings.slice(0, limit).map((listing) => {
-        const listingCategory = listing.categoryId ? getCategoryById(listing.categoryId) : null;
-
-        // Parse specs from JSON string if needed
-        let parsedSpecs: Record<string, any> = {};
-        try {
-          const specsSource = listing.specsDisplay || listing.specs;
-          if (typeof specsSource === 'string') {
-            parsedSpecs = JSON.parse(specsSource);
-          } else if (specsSource && typeof specsSource === 'object') {
-            parsedSpecs = specsSource;
-          }
-        } catch {
-          parsedSpecs = {};
-        }
-
-        const filteredSpecs = filterSpecsForGrid(parsedSpecs);
-
-        return (
-          <ListingCard
-            key={listing.id}
-            id={listing.id}
-            title={listing.title}
-            price={formatPrice(listing.priceMinor)}
-            location={listing.location?.city || listing.location?.province || ""}
-            accountType={(listing.accountType as "individual" | "dealer" | "business") || "individual"}
-            specs={filteredSpecs}
-            images={listing.imageKeys}
-            viewMode="grid"
-            userId={listing.user?.id}
-            categorySlug={listingCategory?.slug}
-          />
-        );
-      })}
+      {renderListingCards()}
     </Slider>
   );
 };

@@ -79,3 +79,7 @@ export type { WizardStepStatus } from "./WizardStep";
 export { ClientPrice } from "./ClientPrice";
 export { CarInspection, toBackendFormat, fromBackendFormat } from "./CarInspection";
 export type { DamageReport } from "./CarInspection";
+export { PromoBanner } from "./PromoBanner";
+export type { PromoBannerProps } from "./PromoBanner";
+export { PromoCard } from "./PromoCard";
+export type { PromoCardProps } from "./PromoCard";

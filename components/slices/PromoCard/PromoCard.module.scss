@@ -1,0 +1,127 @@
+@import "../../../styles/variables";
+
+.card {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-radius: $radius-lg;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
+  overflow: hidden;
+  min-height: 120px;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  @media (max-width: 480px) {
+    min-height: 100px;
+  }
+}
+
+// Color variants - using design system variables
+.primary {
+  background: $info-bg;
+}
+
+.secondary {
+  background: $warning-bg;
+}
+
+.accent {
+  background: $accent-bg;
+}
+
+.neutral {
+  background: $surface;
+}
+
+// Image positioning - text on opposite side of image
+.imageLeft {
+  flex-direction: row;
+
+  .content {
+    align-items: flex-end;
+    text-align: end;
+  }
+}
+
+.imageRight {
+  flex-direction: row-reverse;
+
+  .content {
+    align-items: flex-start;
+    text-align: start;
+  }
+}
+
+.imageWrapper {
+  position: relative;
+  width: 120px;
+  align-self: stretch;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    width: 80px;
+  }
+}
+
+.image {
+  object-fit: contain;
+  object-position: center;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: $space-md;
+
+  @media (max-width: 480px) {
+    padding: $space-sm;
+  }
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    justify-content: center;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: $font-md;
+  font-weight: 600;
+  color: $text;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: $font-xs;
+  font-weight: 600;
+  background: $error;
+  color: #fff;
+  border-radius: $radius-full;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0;
+  color: $text-secondary;
+  font-size: $font-sm;
+  line-height: 1.4;
+}
+
+.button {
+  margin-top: $space-xs;
+}

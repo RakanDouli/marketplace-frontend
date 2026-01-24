@@ -104,3 +104,15 @@
     font-size: $font-xl;
   }
 }
+
+// Promo Cards Grid
+.promoCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-lg;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+    gap: $space-md;
+  }
+}
