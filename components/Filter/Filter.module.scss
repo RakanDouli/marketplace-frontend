@@ -250,23 +250,32 @@
   }
 }
 
-// Show more/less button
+// Show more/less button for mobile filters
 .showMoreButton {
   width: 100%;
-  padding: $space-xs $space-sm;
-  margin-top: $space-xs;
-  background: transparent;
-  border: none;
-  color: $primary;
-  font-size: $font-base;
-  font-weight: $border;
-  cursor: pointer;
-  text-align: center;
-  transition: color 0.2s ease;
+  margin-top: $space-sm;
+}
 
-  &:hover {
-    text-decoration: underline;
+// Sticky footer with apply button (mobile only)
+.stickyFooter {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $space-md;
+  background: $bg;
+  border-top: 1px solid $border;
+  margin-top: $space-lg;
+  margin-inline: -$space-md; // Extend to edges of aside padding
+
+  // Only show on mobile
+  @media (min-width: $breakpoint-md) {
+    display: none;
   }
+}
+
+.applyFooterButton {
+  width: 100%;
 }
 
 // Selection counter for limited multi-selectors

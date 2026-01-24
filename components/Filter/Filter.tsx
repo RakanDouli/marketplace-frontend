@@ -82,6 +82,18 @@ export const Filter: React.FC<FilterProps> = ({
   // Support both controlled and uncontrolled modes
   const [internalIsOpen, setInternalIsOpen] = useState(false);
 
+  // Mobile "show more" state - only show first 7 filters on mobile by default
+  const [showAllFilters, setShowAllFilters] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const setIsOpen = (open: boolean) => {
@@ -182,12 +194,23 @@ export const Filter: React.FC<FilterProps> = ({
     //   groupOrder 2 = Basic info (listingType, condition, price)
     //   groupOrder 3 = Specs (fuel, transmission, body_type, etc.)
     //   groupOrder 4 = Location & seller (location, accountType)
-    return attributes.sort((a, b) => {
+    const sorted = attributes.sort((a, b) => {
       if (a.groupOrder !== b.groupOrder) {
         return a.groupOrder - b.groupOrder;
       }
       return a.sortOrder - b.sortOrder;
     });
+
+    // Move location to appear right after price
+    const locationIndex = sorted.findIndex(attr => attr.key === 'location');
+    const priceIndex = sorted.findIndex(attr => attr.type === AttributeType.CURRENCY);
+
+    if (locationIndex !== -1 && priceIndex !== -1 && locationIndex > priceIndex) {
+      const [locationAttr] = sorted.splice(locationIndex, 1);
+      sorted.splice(priceIndex + 1, 0, locationAttr);
+    }
+
+    return sorted;
   };
 
   // Apply handler - triggers both draft apply and backend fetch
@@ -467,22 +490,17 @@ export const Filter: React.FC<FilterProps> = ({
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         header={
-          <>
-            <Text variant="small" className={styles.resultCount}>
-              {totalResults} {t("search.results")}
-            </Text>
-            <button
-              type="button"
-              className={styles.resetButton}
-              onClick={async () => {
-                clearAllFilters();
-                await fetchListingsByCategory(categorySlug, { categoryId: categorySlug }, "grid");
-              }}
-            >
-              {t("search.clearAllFilters")}
-              <Trash2 size={14} />
-            </button>
-          </>
+          <button
+            type="button"
+            className={styles.resetButton}
+            onClick={async () => {
+              clearAllFilters();
+              await fetchListingsByCategory(categorySlug, { categoryId: categorySlug }, "grid");
+            }}
+          >
+            {t("search.clearAllFilters")}
+            <Trash2 size={14} />
+          </button>
         }
       >
         {filtersLoading && (
@@ -493,22 +511,50 @@ export const Filter: React.FC<FilterProps> = ({
         )}
         {!filtersLoading && (
           <>
-            {getSortedAttributes().map((attribute) => {
-              // Skip search attribute - it's in the header
-              if (attribute.key === 'search') return null;
+            {(() => {
+              const allAttributes = getSortedAttributes().filter(attr => attr.key !== 'search');
+              const visibleAttributes = isMobile && !showAllFilters
+                ? allAttributes.slice(0, 7)
+                : allAttributes;
+              const hiddenCount = allAttributes.length - 7;
 
-              // Each attribute gets its own Collapsible section
               return (
-                <Collapsible
-                  key={attribute.id}
-                  title={attribute.name}
-                  defaultOpen={true}
-                  variant="compact"
-                >
-                  {renderAttribute(attribute)}
-                </Collapsible>
+                <>
+                  {visibleAttributes.map((attribute, index) => (
+                    <Collapsible
+                      key={attribute.id}
+                      title={attribute.name}
+                      defaultOpen={index < 7}
+                      variant="compact"
+                    >
+                      {renderAttribute(attribute)}
+                    </Collapsible>
+                  ))}
+
+                  {/* Show more/less button - only on mobile when there are hidden filters */}
+                  {isMobile && hiddenCount > 0 && (
+                    <Button
+                      variant="link"
+                      onClick={() => setShowAllFilters(!showAllFilters)}
+                      className={styles.showMoreButton}
+                    >
+                      {showAllFilters ? 'عرض أقل' : `عرض المزيد من الفلاتر (${hiddenCount})`}
+                    </Button>
+                  )}
+                </>
               );
-            })}
+            })()}
+
+            {/* Sticky footer with apply button - mobile only */}
+            <div className={styles.stickyFooter}>
+              <Button
+                variant="primary"
+                onClick={() => setIsOpen(false)}
+                className={styles.applyFooterButton}
+              >
+                {totalResults} نتيجة - تطبيق
+              </Button>
+            </div>
           </>
         )}
       </Aside>
