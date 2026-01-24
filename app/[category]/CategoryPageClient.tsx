@@ -207,9 +207,9 @@ export default function CategoryPageClient({
     return null;
   }
 
-  // Handle back navigation
+  // Handle back navigation - goes to categories page
   const handleBack = () => {
-    router.push('/');
+    router.push('/categories');
   };
 
   return (

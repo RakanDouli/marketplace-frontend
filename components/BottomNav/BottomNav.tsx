@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageCircle, Plus, User, Menu, X, Megaphone, Crown, Phone } from 'lucide-react';
+import { Home, MessageCircle, Plus, User, Menu, X, Megaphone, Crown, Phone, Search } from 'lucide-react';
 import { useChatStore } from '@/stores/chatStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCategoriesStore } from '@/stores/categoriesStore';
@@ -20,7 +20,6 @@ interface NavItem {
 }
 
 const ANIMATION_DURATION = 300; // ms - match CSS animation duration
-const NAV_ITEMS_COUNT = 5; // 4 nav items + 1 menu button
 
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -31,6 +30,7 @@ export const BottomNav: React.FC = () => {
 
   // Get category slugs dynamically from store
   const categorySlugs = categories.map(cat => cat.slug);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRenderMenu, setShouldRenderMenu] = useState(false);
@@ -54,11 +54,10 @@ export const BottomNav: React.FC = () => {
   }, [isMenuOpen, shouldRenderMenu]);
 
   // Handle scroll behavior - Optimized for Chrome mobile
-  // Uses larger thresholds and debouncing to avoid glitches with Chrome's toolbar
   useEffect(() => {
     let ticking = false;
     let scrollAccumulator = 0;
-    const SCROLL_THRESHOLD = 50; // Larger threshold for stability
+    const SCROLL_THRESHOLD = 50;
 
     const handleScroll = () => {
       if (ticking) return;
@@ -68,21 +67,15 @@ export const BottomNav: React.FC = () => {
         const currentScrollY = window.scrollY;
         const scrollDelta = currentScrollY - lastScrollY.current;
 
-        // Accumulate scroll distance for more stable detection
         scrollAccumulator += scrollDelta;
 
-        // Always show when near top
         if (currentScrollY < 50) {
           setIsVisible(true);
           scrollAccumulator = 0;
-        }
-        // Show when scrolling up significantly
-        else if (scrollAccumulator < -SCROLL_THRESHOLD) {
+        } else if (scrollAccumulator < -SCROLL_THRESHOLD) {
           setIsVisible(true);
           scrollAccumulator = 0;
-        }
-        // Hide when scrolling down significantly
-        else if (scrollAccumulator > SCROLL_THRESHOLD) {
+        } else if (scrollAccumulator > SCROLL_THRESHOLD) {
           setIsVisible(false);
           scrollAccumulator = 0;
         }
@@ -96,9 +89,8 @@ export const BottomNav: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Track browse-related paths (only category/listing pages)
+  // Track browse-related paths (category/listing pages) for memory feature
   useEffect(() => {
-    // Only save paths for category pages (from store)
     const firstSegment = pathname.split('/')[1];
     const isBrowsePath = categorySlugs.includes(firstSegment);
 
@@ -107,13 +99,19 @@ export const BottomNav: React.FC = () => {
     }
   }, [pathname, categorySlugs]);
 
-  const homeHref = lastBrowsePathRef.current || '/';
+  // Search button uses memory - goes to last browse path or /categories
+  const searchHref = lastBrowsePathRef.current || '/categories';
 
   const navItems: NavItem[] = [
     {
       id: 'home',
       icon: <Home size={24} />,
-      href: homeHref,
+      href: '/',
+    },
+    {
+      id: 'search',
+      icon: <Search size={24} />,
+      href: searchHref,
     },
     {
       id: 'sell',
@@ -128,15 +126,10 @@ export const BottomNav: React.FC = () => {
       badge: unreadCount > 0 ? unreadCount : undefined,
       requiresAuth: true,
     },
-    {
-      id: 'profile',
-      icon: <User size={24} />,
-      href: '/dashboard',
-      requiresAuth: true,
-    },
   ];
 
   const menuItems = [
+    { icon: <User size={20} />, label: 'حسابي', href: '/dashboard', requiresAuth: true },
     { icon: <Megaphone size={20} />, label: 'أعلن معنا', href: '/advertise' },
     { icon: <Crown size={20} />, label: 'باقات الاشتراك', href: '/user-subscriptions' },
     { icon: <Phone size={20} />, label: 'تواصل معنا', href: '/contact' },
@@ -148,13 +141,13 @@ export const BottomNav: React.FC = () => {
 
   const isActive = (id: string, href: string) => {
     if (id === 'home') {
-      // Home is active on homepage OR any category/listing page
+      return pathname === '/';
+    }
+    if (id === 'search') {
+      // Search is active on /categories OR any category/listing page
       const firstSegment = pathname.split('/')[1];
       const isBrowsePath = categorySlugs.includes(firstSegment);
-      return pathname === '/' || isBrowsePath;
-    }
-    if (id === 'profile') {
-      return pathname === '/dashboard' || pathname === '/dashboard/';
+      return pathname === '/categories' || isBrowsePath;
     }
     return pathname.startsWith(href);
   };
@@ -258,17 +251,38 @@ export const BottomNav: React.FC = () => {
             </div>
 
             <div className={styles.menuItems}>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={styles.menuItem}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const needsAuth = item.requiresAuth && !user;
+
+                if (needsAuth) {
+                  return (
+                    <button
+                      key={item.href}
+                      type="button"
+                      className={styles.menuItem}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        openAuthModal('login');
+                      }}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={styles.menuItem}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
             </div>
 
             <div className={styles.divider} />
