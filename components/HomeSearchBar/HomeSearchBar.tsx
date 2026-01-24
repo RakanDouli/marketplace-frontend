@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, LayoutGrid } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { useMetadataStore } from '@/stores/metadataStore';
@@ -20,8 +20,10 @@ export const HomeSearchBar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [categoryError, setCategoryError] = useState<boolean>(false);
   const [shakeKey, setShakeKey] = useState<number>(0);
+  const [showMobileDropdown, setShowMobileDropdown] = useState<boolean>(false);
 
   const activeCategories = categories.filter(cat => cat.isActive);
+  const selectedCategoryObj = activeCategories.find(cat => cat.slug === selectedCategory);
 
   useEffect(() => {
     if (activeCategories.length === 1 && !selectedCategory) {
@@ -29,16 +31,19 @@ export const HomeSearchBar: React.FC = () => {
     }
   }, [activeCategories, selectedCategory]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (provinces.length === 0) {
       fetchLocationMetadata();
     }
-  }, [provinces.length, fetchLocationMetadata]);
+  }, [provinces.length]);
 
   const handleSearch = () => {
     if (!selectedCategory) {
       setCategoryError(true);
-      setShakeKey(prev => prev + 1); // Increment to re-trigger animation
+      setShakeKey(prev => prev + 1);
+      // On mobile, show the dropdown when search is clicked without category
+      setShowMobileDropdown(true);
       return;
     }
 
@@ -62,22 +67,18 @@ export const HomeSearchBar: React.FC = () => {
     router.push(url);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
 
   return (
     <div className={styles.searchBarWrapper}>
       <Container paddingY="none">
-        <div className={styles.searchBar}>
+        {/* Desktop Search Bar */}
+        <div className={styles.desktopSearchBar}>
           <div className={styles.inputWrapper}>
             <Input
               type="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="ابحث عن ما تريد..."
               icon={<Search size={18} />}
             />
@@ -128,6 +129,76 @@ export const HomeSearchBar: React.FC = () => {
             aria-label="بحث"
           />
         </div>
+
+        {/* Mobile Search Bar - Simple layout like listing page */}
+        <div className={styles.mobileSearchBar}>
+          <div className={styles.mobileInputWrapper}>
+            <Input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="ابحث..."
+              icon={<Search size={18} />}
+            />
+          </div>
+
+          <button
+            className={`${styles.selectedCategoryIcon} ${!selectedCategoryObj ? styles.empty : ''}`}
+            onClick={() => setShowMobileDropdown(true)}
+            aria-label={selectedCategoryObj ? "تغيير الفئة" : "اختر الفئة"}
+          >
+            {selectedCategoryObj?.icon ? (
+              <span dangerouslySetInnerHTML={{ __html: selectedCategoryObj.icon }} />
+            ) : (
+              <LayoutGrid size={18} />
+            )}
+          </button>
+
+          <Button
+            variant="primary"
+            onClick={handleSearch}
+            icon={<Search size={18} />}
+            className={styles.mobileSearchButton}
+            aria-label="بحث"
+          />
+        </div>
+
+        {/* Mobile Category Dropdown - Shows when clicking search without category */}
+        {showMobileDropdown && (
+          <div className={styles.mobileDropdown}>
+            <div className={styles.dropdownHeader}>
+              <span>اختر الفئة</span>
+              <button
+                className={styles.closeButton}
+                onClick={() => setShowMobileDropdown(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.dropdownOptions}>
+              {activeCategories.map((category) => (
+                <button
+                  key={category.slug}
+                  className={`${styles.dropdownOption} ${selectedCategory === category.slug ? styles.selected : ''}`}
+                  onClick={() => {
+                    setSelectedCategory(category.slug);
+                    setCategoryError(false);
+                    setShowMobileDropdown(false);
+                  }}
+                >
+                  {category.icon && (
+                    <span
+                      className={styles.categoryIcon}
+                      dangerouslySetInnerHTML={{ __html: category.icon }}
+                    />
+                  )}
+                  <span>{category.nameAr || category.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
     </div>
   );

@@ -271,8 +271,28 @@ export const Filter: React.FC<FilterProps> = ({
       return null;
     }
 
-    // SELECTOR (single dropdown)
+    // SELECTOR (single dropdown) - with special icon grid for body_type
     if (attribute.type === AttributeType.SELECTOR && attribute.processedOptions) {
+      // Special icon-based selector for body_type (multi-select with icons)
+      if (attribute.key === "body_type") {
+        return (
+          <IconGridSelector
+            key={attribute.id}
+            selected={getSelectedOptions(attribute.key)}
+            onChange={(newSelected) => handleSpecChange(
+              attribute.key,
+              newSelected.length > 0 ? newSelected : undefined
+            )}
+            iconBasePath="/images/car-types"
+            options={attribute.processedOptions.map((opt: any) => ({
+              key: opt.key,
+              label: opt.value,
+              count: opt.count,
+            }))}
+          />
+        );
+      }
+
       return (
         <SelectFilter
           key={attribute.id}
@@ -291,24 +311,20 @@ export const Filter: React.FC<FilterProps> = ({
       // Special icon-based selector for body_type
       if (attribute.key === "body_type") {
         return (
-          <div key={attribute.id} className={styles.filterSection}>
-            <Text variant="small" className={styles.sectionTitle}>
-              {attribute.name}
-            </Text>
-            <IconGridSelector
-              selected={getSelectedOptions(attribute.key)}
-              onChange={(newSelected) => handleSpecChange(
-                attribute.key,
-                newSelected.length > 0 ? newSelected : undefined
-              )}
-              iconBasePath="/images/car-types"
-              options={attribute.processedOptions.map((opt: any) => ({
-                key: opt.key,
-                label: opt.value,
-                count: opt.count,
-              }))}
-            />
-          </div>
+          <IconGridSelector
+            key={attribute.id}
+            selected={getSelectedOptions(attribute.key)}
+            onChange={(newSelected) => handleSpecChange(
+              attribute.key,
+              newSelected.length > 0 ? newSelected : undefined
+            )}
+            iconBasePath="/images/car-types"
+            options={attribute.processedOptions.map((opt: any) => ({
+              key: opt.key,
+              label: opt.value,
+              count: opt.count,
+            }))}
+          />
         );
       }
 

@@ -1,14 +1,18 @@
 @import "../../styles/variables.scss";
 
 .searchBarWrapper {
+  position: relative;
+  z-index: $z-dropdown;
   background: $bg;
   height: $header-height;
   display: flex;
   align-items: center;
   border-bottom: 1px solid $border;
+  overflow: visible;
 }
 
-.searchBar {
+// Desktop Search Bar - hidden on mobile
+.desktopSearchBar {
   display: flex;
   align-items: center;
   gap: $space-xs;
@@ -21,13 +25,10 @@
   height: 44px;
 
   @media (max-width: $breakpoint-md) {
-    flex-direction: column;
-    gap: $space-md;
-    border-radius: $radius-lg;
-    padding: $space-sm;
+    display: none;
   }
 
-  // Remove all borders from inputs, add border-radius
+  // Remove all borders from inputs
   :global(.inputWrapper) {
     input,
     select {
@@ -36,13 +37,10 @@
       background: transparent;
       border-radius: $radius-full;
 
-      &:focus {
-        border: none !important;
-        box-shadow: none !important;
-      }
-
+      &:focus,
       &:hover {
         border: none !important;
+        box-shadow: none !important;
       }
     }
   }
@@ -50,7 +48,6 @@
   // Remove borders from react-select
   :global(.react-select__control) {
     border: none !important;
-    border-bottom: none !important;
     box-shadow: none !important;
     background: transparent !important;
     border-radius: $radius-full !important;
@@ -58,9 +55,202 @@
     &:hover,
     &.react-select__control--is-focused {
       border: none !important;
-      border-bottom: none !important;
       box-shadow: none !important;
     }
+  }
+}
+
+// Mobile Search Bar - visible only on mobile
+.mobileSearchBar {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: flex;
+    align-items: center;
+    gap: $space-xs;
+    width: calc(100% - #{$space-sm} * 2);
+    width: 100%;
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-full;
+    padding: 0 $space-xs;
+    height: 44px;
+  }
+}
+
+.selectedCategoryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-full;
+  color: $primary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $primary;
+    color: $bg;
+    border-color: $primary;
+  }
+
+  &.empty {
+    background: transparent;
+    border-style: solid;
+    color: $text-muted;
+
+    &:hover {
+      background: $surface;
+      color: $primary;
+      border-style: solid;
+    }
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+}
+
+.mobileCategorySelect {
+  flex-shrink: 0;
+  width: 90px;
+
+  :global(.react-select__control) {
+    min-height: 40px;
+    border-radius: $radius-md !important;
+  }
+
+  :global(.react-select__value-container) {
+    padding: 0 $space-xs;
+  }
+
+  &.error {
+    :global(.react-select__control) {
+      border-color: $primary !important;
+    }
+  }
+
+  &.shake {
+    animation: shake 0.4s ease-in-out;
+  }
+}
+
+.mobileInputWrapper {
+  flex: 1;
+  min-width: 0;
+
+  div {
+    border: none !important;
+    background: transparent !important;
+  }
+
+  input {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    outline: none !important;
+  }
+}
+
+.mobileSearchButton {
+  flex-shrink: 0;
+  border-radius: $radius-full !important;
+}
+
+// Mobile Category Dropdown
+.mobileDropdown {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: block;
+    position: fixed;
+    top: $header-height;
+    left: 0;
+    right: 0;
+    background: $bg;
+    border: 1px solid $border;
+    border-top: none;
+    box-shadow: $shadow-lg;
+    z-index: 9999;
+  }
+}
+
+.dropdownHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-sm $space-md;
+  border-bottom: 1px solid $border;
+  font-weight: 600;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: $font-lg;
+  cursor: pointer;
+  color: $text-muted;
+  padding: $space-xs;
+
+  &:hover {
+    color: $text;
+  }
+}
+
+.dropdownOptions {
+  max-height: 300px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 10000;
+}
+
+.dropdownOption {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  width: 100%;
+  padding: $space-md;
+  background: none;
+  border: none;
+  border-bottom: 1px solid $border;
+  text-align: right;
+  cursor: pointer;
+  font-size: $font-base;
+  color: $text;
+  pointer-events: auto;
+  position: relative;
+
+  &:hover {
+    background: $surface;
+  }
+
+  &.selected {
+    background: rgba($primary, 0.1);
+    color: $primary;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.categoryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
   }
 }
 
@@ -69,22 +259,13 @@
   height: 24px;
   background-color: $text;
   flex-shrink: 0;
-
-  @media (max-width: $breakpoint-md) {
-    display: none;
-  }
 }
 
 .selectWrapper {
   flex-shrink: 0;
   min-width: 140px;
 
-  @media (max-width: $breakpoint-md) {
-    width: 100%;
-  }
-
   &.error {
-    // Target react-select control
     :global(.react-select__single-value),
     :global(.react-select__placeholder) {
       color: $primary !important;
@@ -95,16 +276,24 @@
     }
   }
 
-  // Separate class for shake animation
   &.shake {
     animation: shake 0.4s ease-in-out;
   }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .inputWrapper {
@@ -115,17 +304,9 @@
     border: none !important;
     border-radius: $radius-full !important;
   }
-
-  @media (max-width: $breakpoint-md) {
-    width: 100%;
-  }
 }
 
 .searchButton {
   flex-shrink: 0;
   border-radius: $radius-full !important;
-
-  @media (max-width: $breakpoint-md) {
-    width: 100%;
-  }
 }

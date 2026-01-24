@@ -1,76 +1,253 @@
 @import "../../styles/variables.scss";
 
+.heroSection {
+  position: relative;
+}
+
+// Hero Content
+.heroContent {
+  text-align: center;
+  padding: $space-xl 0;
+  color: $text-light;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $space-lg 0;
+  }
+}
+
+.heroTitle {
+  color: $text-light;
+  margin-bottom: $space-sm;
+}
+
+.heroSubtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: $font-lg;
+
+  @media (max-width: $breakpoint-md) {
+    font-size: $font-base;
+  }
+}
+
+// Cards Wrapper - Pulls up into the hero
+.cardsWrapper {
+  position: relative;
+  margin-top: -$space-xl;
+  padding-bottom: $space-lg;
+  z-index: 10;
+
+  @media (max-width: $breakpoint-md) {
+    margin-top: -$space-lg;
+    padding-bottom: $space-md;
+  }
+}
+
+// Cards Grid - Base
+.cardsGrid {
+  display: grid;
+  gap: $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    gap: $space-sm;
+  }
+}
+
+// Mobile grid variations (based on visible cards - excludes coming soon)
+.mobileGrid1 {
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+}
+
+.mobileGrid2 {
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mobileGrid3 {
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// Grid variations based on category count (desktop only)
+.grid2 {
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+.grid3 {
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.grid4 {
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Category Card
 .categoryCard {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: $space-md;
-  padding: $space-lg $space-md $space-xl;
+  justify-content: space-between;
+  padding: $space-lg;
   background: $bg;
   border: 1px solid $border;
   border-radius: $radius-lg;
   text-decoration: none;
   transition: all 0.2s ease;
   cursor: pointer;
-  min-height: 140px;
+  min-height: 120px;
+  box-shadow: $shadow-sm;
+
+  // Mobile: vertical layout
+  @media (max-width: $breakpoint-md) {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: $space-md;
+    min-height: auto;
+    gap: $space-sm;
+  }
 
   &:hover {
     border-color: $primary;
-    box-shadow: $shadow-md;
-    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+    transform: translateY(-4px);
+
+    .cardCta {
+      color: $primary;
+    }
+
+    .cardIcon {
+      background: $primary;
+      color: $text-light;
+    }
   }
 
   &:active {
-    transform: translateY(0);
-  }
-
-  @media (max-width: $breakpoint-md) {
-    padding: $space-md $space-sm $space-lg;
-    min-height: 120px;
-    gap: $space-sm;
+    transform: translateY(-2px);
   }
 }
 
-.iconWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  background: $surface;
-  border-radius: $radius-full;
-  color: $primary;
-  transition: all 0.2s ease;
+// Coming Soon Card
+.comingSoon {
+  cursor: default;
+  // opacity: 0.7;
 
-  .categoryCard:hover & {
-    background: $primary;
-    color: $text-light;
+  // Mobile: hide coming soon cards completely
+  @media (max-width: $breakpoint-md) {
+    display: none;
   }
 
-  @media (max-width: $breakpoint-md) {
-    width: 48px;
-    height: 48px;
+  &:hover {
+    border-color: $border;
+    box-shadow: $shadow-sm;
+    transform: none;
+
+    .cardCta {
+      color: $text-muted;
+    }
+
+    .cardIcon {
+      background: $surface;
+      color: $text-muted;
+    }
+  }
+
+  .cardIcon {
+    color: $text-muted;
+  }
+
+  .cardCta {
+    color: $text-muted;
 
     svg {
-      width: 24px;
-      height: 24px;
+      color: $text-muted;
     }
+  }
+}
+
+// Card Content (text section)
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  @media (max-width: $breakpoint-md) {
+    align-items: center;
+    order: 2;
   }
 }
 
 .categoryName {
   color: $text;
-  font-weight: $weight-medium;
-  text-align: center;
-  line-height: $line-tight;
+  font-weight: $weight-bold;
+  margin: 0;
 
   @media (max-width: $breakpoint-md) {
-    font-size: $font-xs;
+    font-size: $font-sm;
+    text-align: center;
   }
 }
 
-// SVG icon container for backend-provided icons
+// CTA - hidden on mobile
+.cardCta {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  color: $text-muted;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  transition: color 0.2s ease;
+
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+
+  svg {
+    transition: transform 0.2s ease;
+  }
+
+  .categoryCard:hover & svg {
+    transform: translateX(-4px);
+  }
+
+  .comingSoon:hover & svg {
+    transform: none;
+  }
+}
+
+// Card Icon
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: $surface;
+  border-radius: $radius-lg;
+  color: $primary;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  @media (max-width: $breakpoint-md) {
+    width: 48px;
+    height: 48px;
+    order: 1;
+  }
+}
+
+// SVG icon container
 .svgIcon {
   display: flex;
   align-items: center;
