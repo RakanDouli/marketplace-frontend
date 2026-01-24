@@ -117,8 +117,8 @@
     }
 
     &:focus {
-      outline: 2px solid $primary;
-      outline-offset: 2px;
+      // outline: 2px solid $primary;
+      // outline-offset: 2px;
     }
 
     .title {
@@ -190,7 +190,6 @@
     }
   }
 }
-
 
 .loading {
   pointer-events: none;

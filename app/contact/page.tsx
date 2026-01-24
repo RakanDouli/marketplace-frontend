@@ -18,12 +18,12 @@ export const metadata: Metadata = {
 
 // Static contact info
 const contactInfo = [
-  {
-    icon: <Phone size={24} />,
-    title: "الهاتف",
-    value: "+963 123 456 789",
-    href: "tel:+963123456789",
-  },
+  // {
+  //   icon: <Phone size={24} />,
+  //   title: "الهاتف",
+  //   value: "+963 123 456 789",
+  //   href: "tel:+963123456789",
+  // },
   {
     icon: <Mail size={24} />,
     title: "البريد الإلكتروني",
@@ -65,7 +65,7 @@ export default function ContactPage() {
       />
 
       {/* Contact Cards */}
-      <Grid title="تواصل معنا" columns={4} mobileColumns={1} paddingY="lg" className={styles.contactCards}>
+      <Grid title="تواصل معنا" columns={3} mobileColumns={1} paddingY="lg" className={styles.contactCards}>
         {contactInfo.map((info, index) => (
           <FeatureCard
             key={index}

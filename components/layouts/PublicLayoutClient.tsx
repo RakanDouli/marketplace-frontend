@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUserAuthStore } from '@/stores/userAuthStore';
+import { useCategoriesStore } from '@/stores/categoriesStore';
 import Header from "../Header/Header";
 import { Footer } from '../Footer';
 import { BottomNav } from '../BottomNav';
@@ -23,6 +24,7 @@ interface PublicLayoutClientProps {
 export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
   const pathname = usePathname();
   const { user, isAuthenticated } = useUserAuthStore();
+  const { categories } = useCategoriesStore();
 
   // Check if INACTIVE user on mount and show ForceModal (only check, don't refetch)
   useEffect(() => {
@@ -37,9 +39,19 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
   // Don't show public header for public campaign reports
   const isPublicReport = pathname?.startsWith('/public/campaign-report');
 
-  // Don't show footer on messages page or create listing wizard
+  // Don't show footer at all on these pages (both desktop and mobile)
   const isMessagesPage = pathname?.startsWith('/messages');
   const isCreateListingWizard = pathname?.startsWith('/dashboard/listings/create');
+  const hideFooterCompletely = isMessagesPage || isCreateListingWizard;
+
+  // Hide footer on mobile only for these pages (keep on desktop)
+  // Categories page: /categories
+  const isCategoriesPage = pathname === '/categories';
+  // Listings page: /cars, /electronics, etc. (matches category slugs from store)
+  const isListingsPage = categories.some(cat => pathname === `/${cat.slug}`);
+  // Detail page: /cars/123, /electronics/456, etc. (category slug + listing id)
+  const isDetailPage = categories.some(cat => pathname?.startsWith(`/${cat.slug}/`));
+  const hideFooterOnMobile = isCategoriesPage || isListingsPage || isDetailPage;
 
   if (isPublicReport) {
     return <>{children}</>;
@@ -52,7 +64,9 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
       <AuthModal />
       <ForceModal />
       <main className={styles.main}>{children}</main>
-      {!isMessagesPage && !isCreateListingWizard && <Footer />}
+      {!hideFooterCompletely && (
+        <Footer hideOnMobile={hideFooterOnMobile} />
+      )}
       <BottomNav />
       <InstallPrompt />
     </div>

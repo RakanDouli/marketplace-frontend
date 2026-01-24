@@ -14,6 +14,14 @@
     padding-bottom: calc($space-lg + 80px);
     min-height: 420px; // Taller on mobile due to stacked layout
   }
+
+  // Hide on mobile when hideOnMobile prop is true
+  // Uses same breakpoint as BottomNav
+  &.hideOnMobile {
+    @media (max-width: $breakpoint-md) {
+      display: none;
+    }
+  }
 }
 
 .content {

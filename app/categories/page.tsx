@@ -1,8 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { HomeSearchBar } from '@/components/HomeSearchBar';
-import { Container, Grid } from '@/components/slices';
+import { Container, Grid, Loading } from '@/components/slices';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { Car, Home, Smartphone, Sofa, Shirt, Briefcase, Package } from 'lucide-react';
 import styles from './Categories.module.scss';
@@ -18,7 +19,15 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function CategoriesPage() {
-  const { categories } = useCategoriesStore();
+  const { categories, isLoading, fetchCategories } = useCategoriesStore();
+
+  // Fetch categories on mount if not already loaded
+  useEffect(() => {
+    if (categories.length === 0) {
+      fetchCategories();
+    }
+  }, [categories.length, fetchCategories]);
+
   const activeCategories = categories.filter(cat => cat.isActive);
 
   const renderIcon = (category: typeof activeCategories[0]) => {
@@ -42,10 +51,28 @@ export default function CategoriesPage() {
     return <span className={styles.categoryIcon}><Package size={32} /></span>;
   };
 
+  // Show loading while fetching
+  if (isLoading && categories.length === 0) {
+    return (
+      <main className={styles.categoriesPage}>
+        <div className={styles.fixedSearchWrapper}>
+          <HomeSearchBar />
+        </div>
+        <Container paddingY="lg">
+          <div className={styles.loadingWrapper}>
+            <Loading type="svg" />
+          </div>
+        </Container>
+      </main>
+    );
+  }
+
   return (
     <main className={styles.categoriesPage}>
-      {/* Search Bar */}
-      <HomeSearchBar />
+      {/* Sticky Search Bar Wrapper */}
+      <div className={styles.fixedSearchWrapper}>
+        <HomeSearchBar />
+      </div>
 
       {/* Categories Grid */}
       <Container paddingY="lg">

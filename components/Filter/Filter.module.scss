@@ -256,17 +256,24 @@
   margin-top: $space-sm;
 }
 
+// Filter content wrapper - adds bottom padding for fixed footer on mobile
+.filterContent {
+  @media (max-width: $breakpoint-md) {
+    padding-bottom: $space-lg; // Space for fixed footer
+  }
+}
+
 // Sticky footer with apply button (mobile only)
 .stickyFooter {
-  position: sticky;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   padding: $space-md;
+  padding-bottom: calc($space-md + env(safe-area-inset-bottom, 0));
   background: $bg;
   border-top: 1px solid $border;
-  margin-top: $space-lg;
-  margin-inline: -$space-md; // Extend to edges of aside padding
+  z-index: $z-dropdown;
 
   // Only show on mobile
   @media (min-width: $breakpoint-md) {

@@ -5,6 +5,18 @@
   background: $surface;
 }
 
+// Search bar wrapper - normal on desktop, sticky on mobile
+.fixedSearchWrapper {
+  background: $bg;
+  border-bottom: 1px solid $border;
+
+  @media (max-width: $breakpoint-md) {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: $z-dropdown !important;
+  }
+}
+
 .title {
   font-size: $font-xl;
   font-weight: $weight-bold;
@@ -65,4 +77,11 @@
   color: $text;
   text-align: center;
   line-height: 1.3;
+}
+
+.loadingWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
 }

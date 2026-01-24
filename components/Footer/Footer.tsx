@@ -4,10 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { Container, Text } from "@/components/slices";
 import { Logo } from "@/components/Logo";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import styles from "./Footer.module.scss";
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  hideOnMobile?: boolean;
+}
+
+export const Footer: React.FC<FooterProps> = ({ hideOnMobile = false }) => {
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
@@ -24,7 +28,7 @@ export const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className={styles.footer}>
+    <footer className={`${styles.footer} ${hideOnMobile ? styles.hideOnMobile : ''}`}>
       <Container>
         <div className={styles.content}>
           {/* Brand Section */}
@@ -51,10 +55,10 @@ export const Footer: React.FC = () => {
           <div className={styles.contactSection}>
             <Text variant="h4" className={styles.sectionTitle}>تواصل معنا</Text>
             <div className={styles.contactInfo}>
-              <a href="tel:+963123456789" className={styles.contactItem}>
+              {/* <a href="tel:+963123456789" className={styles.contactItem}>
                 <Phone size={16} />
                 <span>+963 123 456 789</span>
-              </a>
+              </a> */}
               <a href="mailto:info@shambay.com" className={styles.contactItem}>
                 <Mail size={16} />
                 <span>info@shambay.com</span>

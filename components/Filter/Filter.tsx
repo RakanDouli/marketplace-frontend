@@ -511,41 +511,44 @@ export const Filter: React.FC<FilterProps> = ({
         )}
         {!filtersLoading && (
           <>
-            {(() => {
-              const allAttributes = getSortedAttributes().filter(attr => attr.key !== 'search');
-              const visibleAttributes = isMobile && !showAllFilters
-                ? allAttributes.slice(0, 7)
-                : allAttributes;
-              const hiddenCount = allAttributes.length - 7;
+            {/* Filter content with bottom padding for fixed footer */}
+            <div className={styles.filterContent}>
+              {(() => {
+                const allAttributes = getSortedAttributes().filter(attr => attr.key !== 'search');
+                const visibleAttributes = isMobile && !showAllFilters
+                  ? allAttributes.slice(0, 7)
+                  : allAttributes;
+                const hiddenCount = allAttributes.length - 7;
 
-              return (
-                <>
-                  {visibleAttributes.map((attribute, index) => (
-                    <Collapsible
-                      key={attribute.id}
-                      title={attribute.name}
-                      defaultOpen={index < 7}
-                      variant="compact"
-                    >
-                      {renderAttribute(attribute)}
-                    </Collapsible>
-                  ))}
+                return (
+                  <>
+                    {visibleAttributes.map((attribute, index) => (
+                      <Collapsible
+                        key={attribute.id}
+                        title={attribute.name}
+                        defaultOpen={index < 7}
+                        variant="compact"
+                      >
+                        {renderAttribute(attribute)}
+                      </Collapsible>
+                    ))}
 
-                  {/* Show more/less button - only on mobile when there are hidden filters */}
-                  {isMobile && hiddenCount > 0 && (
-                    <Button
-                      variant="link"
-                      onClick={() => setShowAllFilters(!showAllFilters)}
-                      className={styles.showMoreButton}
-                    >
-                      {showAllFilters ? 'عرض أقل' : `عرض المزيد من الفلاتر (${hiddenCount})`}
-                    </Button>
-                  )}
-                </>
-              );
-            })()}
+                    {/* Show more/less button - only on mobile when there are hidden filters */}
+                    {isMobile && hiddenCount > 0 && (
+                      <Button
+                        variant="link"
+                        onClick={() => setShowAllFilters(!showAllFilters)}
+                        className={styles.showMoreButton}
+                      >
+                        {showAllFilters ? 'عرض أقل' : `عرض المزيد من الفلاتر (${hiddenCount})`}
+                      </Button>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
 
-            {/* Sticky footer with apply button - mobile only */}
+            {/* Fixed footer with apply button - mobile only */}
             <div className={styles.stickyFooter}>
               <Button
                 variant="primary"
