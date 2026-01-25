@@ -68,10 +68,11 @@ export enum UserRole {
 /**
  * Listing Type Enum
  * Backend: marketplace-backend/src/common/enums/listing-type.enum.ts
+ * NOTE: Values are UPPERCASE because GraphQL accepts/returns enum keys (not values)
  */
 export enum ListingType {
-  SALE = "sale",
-  RENT = "rent",
+  SALE = "SALE",
+  RENT = "RENT",
 }
 
 // ===== CONDITION =====

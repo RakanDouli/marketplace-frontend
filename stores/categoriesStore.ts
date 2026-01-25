@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { CategoriesState, Category } from "./types";
 import { cachedGraphQLRequest } from "../utils/graphql-cache";
+import { ListingType } from "@/common/enums";
 
 // GraphQL queries
 const CATEGORIES_QUERY = `
@@ -12,6 +13,7 @@ const CATEGORIES_QUERY = `
       slug
       isActive
       icon
+      supportedListingTypes
     }
   }
 `;
@@ -116,6 +118,7 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
           slug: cat.slug,
           isActive: cat.isActive,
           icon: cat.icon, // SVG icon from backend
+          supportedListingTypes: (cat.supportedListingTypes || [ListingType.SALE]) as ListingType[],
         })
       );
 

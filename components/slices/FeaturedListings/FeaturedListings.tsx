@@ -202,6 +202,7 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
           viewMode="grid"
           userId={listing.user?.id}
           categorySlug={listingCategory?.slug}
+          listingTypeSlug="sell" // Default to sell for homepage featured listings
         />
       );
     });

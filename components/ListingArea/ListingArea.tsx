@@ -32,9 +32,15 @@ export interface ListingData {
 
 export interface ListingAreaProps {
   className?: string;
+  listingType?: string; // ListingType enum value (sale/rent)
+  listingTypeSlug?: string; // URL segment (sell/rent)
 }
 
-export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
+export const ListingArea: React.FC<ListingAreaProps> = ({
+  className = "",
+  listingType,
+  listingTypeSlug = "sell", // Default to sell for backwards compatibility
+}) => {
   const { t } = useTranslation();
   const params = useParams();
   const categorySlug = params?.category as string;
@@ -45,6 +51,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     isLoading: loading,
     pagination,
     currentCategoryId,
+    currentListingType,
     setSortFilter,
     setViewType,
     fetchListings,
@@ -93,16 +100,22 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
         return;
       }
 
-      // Skip fetch if we already fetched for this category (even if 0 results)
-      // currentCategoryId is set after each successful fetch
+      // Skip fetch if we already fetched for this category AND listing type (even if 0 results)
+      // currentCategoryId and currentListingType are set after each successful fetch/hydration
       // This prevents infinite loop when category has no listings
-      if (!loading && currentCategoryId === categorySlug) {
+      // Check both category AND listing type to ensure we refetch when navigating between /sell and /rent
+      if (!loading && currentCategoryId === categorySlug && currentListingType === listingType) {
         return;
       }
 
       try {
         // Get current filters from search store
-        const storeFilters = { categoryId: category.id, ...getStoreFilters() };
+        // Always include listingType to ensure proper filtering for sale/rent separation
+        const storeFilters = {
+          categoryId: category.id,
+          ...(listingType && { listingType }),
+          ...getStoreFilters()
+        };
 
         // Fetch listings for the current category (pass slug for URL, but use ID in filters)
         await fetchListingsByCategory(categorySlug, storeFilters, viewType);
@@ -112,7 +125,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     };
 
     fetchInitialListings();
-  }, [categorySlug, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, loading, currentCategoryId]);
+  }, [categorySlug, listingType, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, loading, currentCategoryId, currentListingType]);
 
   // Sync local viewMode with store viewType for backward compatibility
   const [viewMode, setViewMode] = useState<"grid" | "list">(
@@ -144,7 +157,11 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     setViewType(newViewMode);
 
     // Refetch listings with new view type for optimized payload
-    const currentFilters = getStoreFilters();
+    // Always include listingType to ensure proper filtering for sale/rent separation
+    const currentFilters = {
+      ...(listingType && { listingType }),
+      ...getStoreFilters()
+    };
     fetchListings(currentFilters, newViewMode);
   };
 
@@ -256,9 +273,11 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     setSortFilter(sort);
 
     // Refetch listings with new sort
+    // Always include listingType to ensure proper filtering for sale/rent separation
     try {
       const storeFilters = {
         categoryId: categorySlug,
+        ...(listingType && { listingType }),
         ...getStoreFilters(),
         sort,
       };
@@ -275,8 +294,13 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
     setPagination({ page });
 
     // Fetch listings for new page
+    // Always include listingType to ensure proper filtering for sale/rent separation
     try {
-      const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
+      const storeFilters = {
+        categoryId: categorySlug,
+        ...(listingType && { listingType }),
+        ...getStoreFilters()
+      };
       await fetchListingsByCategory(categorySlug, storeFilters, viewType);
     } catch (error) {
       // Silently fail - pagination error state handled by store
@@ -379,6 +403,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({ className = "" }) => {
                   onClick={handleCardClick}
                   priority={index < 4}
                   categorySlug={categorySlug}
+                  listingTypeSlug={listingTypeSlug}
                 />
                 {shouldShowAd && (
                   <div className={styles.adSlot} style={{ gridColumn: viewMode === 'grid' ? '1 / -1' : 'auto' }}>

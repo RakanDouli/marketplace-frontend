@@ -22,6 +22,7 @@ import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/components/seo';
+import { getListingTypeLabel } from '@/utils/categoryRouting';
 import { LISTING_TYPE_LABELS, CONDITION_LABELS, ACCOUNT_TYPE_LABELS, CAR_FEATURES_LABELS } from '@/constants/metadata-labels';
 import styles from './ListingDetail.module.scss';
 
@@ -29,12 +30,14 @@ interface ListingDetailClientProps {
   listing: Listing; // Pre-fetched from server (SSR)
   listingId: string;
   categorySlug: string;
+  listingTypeSlug: string; // "sell" or "rent"
 }
 
 export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
   listing: serverListing,
   listingId,
-  categorySlug
+  categorySlug,
+  listingTypeSlug
 }) => {
   const router = useRouter();
   // Use server-fetched listing, but also sync to store for other components
@@ -66,9 +69,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
     }
   }, [serverListing?.id]);
 
-  // Back button handler - navigates to parent category
+  // Back button handler - navigates to parent category listings
   const handleBack = () => {
-    router.push(`/${categorySlug}`);
+    router.push(`/${categorySlug}/${listingTypeSlug}`);
   };
 
   // Separate grouped and ungrouped specifications
@@ -91,8 +94,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
       }
     });
 
-    // Keys to exclude from specs (shown separately in core info section)
-    const excludedKeys = ['listingType', 'condition', 'accountType'];
+    // Keys to exclude from specs (shown separately or handled by special components)
+    const excludedKeys = ['listingType', 'condition', 'accountType', 'car_damage'];
 
     // Separate specs into grouped and ungrouped
     Object.entries(serverListing.specsDisplay).forEach(([key, value]: [string, any]) => {
@@ -102,7 +105,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
       const attribute = attributeMap.get(key);
 
       if (attribute) {
-        const label = typeof value === 'object' ? value.label : attribute.name;
+        // Always use attribute.name for label (up-to-date Arabic from database)
+        const label = attribute.name;
         let displayValue = typeof value === 'object' ? value.value : value;
 
         // Translate feature keys to Arabic if they're raw keys (not already translated)
@@ -197,7 +201,9 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
               <ChevronLeft size={16} />
               {listing.category && (
                 <>
-                  <Link href={`/${listing.category.slug}`}>{listing.category.name}</Link>
+                  <Link href={`/${listing.category.slug}/${listingTypeSlug}`}>
+                    {listing.category.name}
+                  </Link>
                   <ChevronLeft size={16} />
                 </>
               )}
@@ -438,10 +444,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
       {listing && (
         <>
           {/* More from [Brand] - Slider */}
-          <RelatedByBrand listingId={listing.id} />
+          <RelatedByBrand listingId={listing.id} listingTypeSlug={listingTypeSlug} />
 
           {/* You may also like - Grid */}
-          <RelatedByPrice listingId={listing.id} />
+          <RelatedByPrice listingId={listing.id} listingTypeSlug={listingTypeSlug} />
         </>
       )}
 

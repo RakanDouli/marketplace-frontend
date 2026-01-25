@@ -19,6 +19,7 @@ export interface RelatedListingsProps {
   displayMode?: DisplayMode;
   limit?: number;
   className?: string;
+  listingTypeSlug?: string; // URL segment (sell/rent) for listing links
 }
 
 export const RelatedListings: React.FC<RelatedListingsProps> = ({
@@ -28,6 +29,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
   displayMode = 'slider',
   limit = 8,
   className = "",
+  listingTypeSlug = "sell", // Default to sell
 }) => {
   const { getCategoryById } = useCategoriesStore();
   const { attributes } = useFiltersStore();
@@ -110,6 +112,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
           viewMode="grid"
           userId={listing.user?.id}
           categorySlug={listingCategory?.slug}
+          listingTypeSlug={listingTypeSlug}
         />
       );
     });

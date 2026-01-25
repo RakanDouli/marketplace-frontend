@@ -57,7 +57,7 @@ interface FiltersActions {
   setFilters: (filters: Partial<FiltersState>) => void;
 
   // Main data fetching
-  fetchFilterData: (categorySlug: string) => Promise<void>;
+  fetchFilterData: (categorySlug: string, listingType?: string) => Promise<void>;
   // fetchCities removed - cities handled through unified attributes
 
   // SSR Hydration - populate store with server-fetched data (no API call)
@@ -185,7 +185,7 @@ async function getListingAggregations(
 // Removed unused GraphQL queries - now using only aggregations for efficiency
 
 // Get all filter data for a category
-async function getAllFilterData(categorySlug: string) {
+async function getAllFilterData(categorySlug: string, listingType?: string) {
   const categoriesData = await cachedGraphQLRequest(
     CATEGORIES_QUERY,
     {},
@@ -210,7 +210,9 @@ async function getAllFilterData(categorySlug: string) {
   // All specs (including brandId, modelId) are handled through dynamic attributes with counts from aggregations
 
   // Get aggregations from backend (excludes zero counts)
-  const aggregations = await getListingAggregations(categorySlug);
+  // Include listingType filter if provided
+  const aggregationFilter = listingType ? { listingType } : undefined;
+  const aggregations = await getListingAggregations(categorySlug, aggregationFilter);
 
   // Process dynamic attributes and add counts from aggregations
   const attributesWithCounts: AttributeWithProcessedOptions[] =
@@ -273,7 +275,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
   setFilters: (filters: Partial<FiltersState>) => set(filters),
 
   // Main fetch function - gets attributes and their counts
-  fetchFilterData: async (categorySlug: string) => {
+  fetchFilterData: async (categorySlug: string, listingType?: string) => {
     const { categoryCache } = get();
 
     // Check if we have cached data for this category
@@ -284,7 +286,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
     if (cachedData && now - cachedData.cachedAt < CACHE_EXPIRATION_MS) {
 
       // Get fresh counts for the cached structure
-      const aggregations = await getListingAggregations(categorySlug);
+      // Include listingType filter if provided
+      const aggregationFilter = listingType ? { listingType } : undefined;
+      const aggregations = await getListingAggregations(categorySlug, aggregationFilter);
 
       // Process cached attributes with fresh counts
       const attributesWithCounts: AttributeWithProcessedOptions[] =
@@ -343,7 +347,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
 
     try {
       // Get all filter data with counts in one API call
-      const filterData = await getAllFilterData(categorySlug);
+      const filterData = await getAllFilterData(categorySlug, listingType);
 
       // Cache the base attributes structure (without counts)
       const baseAttributes: Attribute[] = filterData.attributes.map((attr) => ({

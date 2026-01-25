@@ -4,8 +4,10 @@ import { convertToUSD, parsePrice, type Currency } from "../utils/currency";
 /**
  * Custom hook for managing filter actions and applying filters to stores
  * Handles the coordination between different stores when filters change
+ * @param categorySlug - The category slug to filter by
+ * @param listingType - Optional listing type (SALE/RENT) to filter by
  */
-export const useFilterActions = (categorySlug: string | null) => {
+export const useFilterActions = (categorySlug: string | null, listingType?: string) => {
   const {
     setFilter,
     setSpecFilter,
@@ -18,16 +20,22 @@ export const useFilterActions = (categorySlug: string | null) => {
   const { fetchListingsByCategory, setPagination } = useListingsStore();
 
   // Common function to apply filters to stores after changes
+  // Always includes listingType to ensure proper filtering for sale/rent separation
   const applyFiltersToStores = async () => {
     if (!categorySlug) return;
 
     const backendFilters = {
       categoryId: categorySlug,
+      ...(listingType && { listingType }),
       ...getBackendFilters(),
     };
     await updateFiltersWithCascading(categorySlug, backendFilters);
 
-    const storeFilters = { categoryId: categorySlug, ...getStoreFilters() };
+    const storeFilters = {
+      categoryId: categorySlug,
+      ...(listingType && { listingType }),
+      ...getStoreFilters()
+    };
     setPagination({ page: 1 });
     await fetchListingsByCategory(categorySlug, storeFilters, "grid");
   };

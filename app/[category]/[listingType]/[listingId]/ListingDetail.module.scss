@@ -1,12 +1,7 @@
-@import "../../../styles/variables.scss";
+@import "../../../../styles/variables.scss";
 
 .listingDetail {
   margin: 0 auto;
-  // padding: $space-md $space-lg;
-
-  // @media (max-width: $breakpoint-md) {
-  //   padding: $space-sm 0;
-  // }
 }
 
 // Breadcrumbs Container (hidden on mobile - use MobileBackButton instead)
@@ -118,23 +113,6 @@
   }
 }
 
-// Key Specs Chips
-// .keySpecs {
-//   display: flex;
-//   flex-wrap: wrap;
-//   gap: $space-sm;
-// }
-
-// .chip {
-//   display: inline-block;
-//   padding: $space-xs $space-sm;
-//   background: $bg;
-//   border: 1px solid $border;
-//   border-radius: $radius-md;
-//   font-size: $font-sm;
-//   color: $text;
-// }
-
 // Sections
 .section {
   background: $bg;
@@ -151,15 +129,6 @@
   margin: 0 0 $space-sm 0;
 }
 
-// // Grouped Specifications
-// .specGroup {
-//   margin-bottom: $space-sm;
-
-//   &:last-child {
-//     margin-bottom: 0;
-//   }
-// }
-
 .specsList {
   display: grid;
   gap: $space-xs;
@@ -174,11 +143,6 @@
   &:last-child {
     border-bottom: none;
   }
-
-  // @media (max-width: $breakpoint-md) {
-  //   grid-template-columns: 1fr;
-  //   gap: $space-xs;
-  // }
 }
 
 .specLabel {
@@ -291,6 +255,3 @@
   padding: $space-sm 0;
   border-top: 1px solid $border;
 }
-
-// Seller Card
-// All seller card styles moved to ListingInfoCard component

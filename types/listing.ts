@@ -94,6 +94,7 @@ export interface Category {
   imageUrl?: string | null;
   icon?: string; // SVG icon code
   isActive: boolean;
+  supportedListingTypes: ListingType[]; // [ListingType.SALE], [ListingType.RENT], or both
   createdAt: string;
   updatedAt: string;
   // Relations

@@ -44,6 +44,7 @@ export const CATEGORIES_QUERY = `
       nameAr
       slug
       isActive
+      supportedListingTypes
     }
   }
 `;

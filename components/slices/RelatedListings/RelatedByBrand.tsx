@@ -8,6 +8,7 @@ export interface RelatedByBrandProps {
   listingId: string;
   displayMode?: 'slider' | 'grid';
   className?: string;
+  listingTypeSlug?: string; // URL segment (sell/rent) for listing links
 }
 
 /**
@@ -19,6 +20,7 @@ export const RelatedByBrand: React.FC<RelatedByBrandProps> = ({
   listingId,
   displayMode = 'slider',
   className = "",
+  listingTypeSlug = "sell",
 }) => {
   const { fetchBrandName } = useRelatedListingsStore();
   const [brandName, setBrandName] = useState<string | null>(null);
@@ -53,6 +55,7 @@ export const RelatedByBrand: React.FC<RelatedByBrandProps> = ({
       displayMode={displayMode}
       limit={10}
       className={className}
+      listingTypeSlug={listingTypeSlug}
     />
   );
 };

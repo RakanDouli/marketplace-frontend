@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ListingDetailClient } from './ListingDetailClient';
 import { LISTING_BY_ID_QUERY } from '@/stores/listingsStore/listingsStore.gql';
+import { urlSegmentToListingType } from '@/utils/categoryRouting';
 import type { Listing } from '@/types/listing';
 
 // Server-side fetch function (no browser APIs like localStorage)
@@ -82,9 +83,18 @@ function getImageUrl(imageKey: string | undefined): string {
 export async function generateMetadata({
   params
 }: {
-  params: Promise<{ listingId: string; category: string }>
+  params: Promise<{ listingId: string; category: string; listingType: string }>
 }): Promise<Metadata> {
-  const { listingId } = await params;
+  const { listingId, listingType } = await params;
+
+  // Validate listingType
+  const parsedListingType = urlSegmentToListingType(listingType);
+  if (!parsedListingType) {
+    return {
+      title: 'صفحة غير موجودة | السوق السوري',
+    };
+  }
+
   const listing = await fetchListingSSR(listingId);
 
   if (!listing) {
@@ -141,12 +151,18 @@ export async function generateMetadata({
 
 // Page params interface
 interface PageProps {
-  params: Promise<{ listingId: string; category: string }>;
+  params: Promise<{ listingId: string; category: string; listingType: string }>;
 }
 
 // Main page component (Server Component)
 export default async function ListingDetailPage({ params }: PageProps) {
-  const { listingId, category } = await params;
+  const { listingId, category, listingType } = await params;
+
+  // Validate listingType (must be "sell" or "rent")
+  const parsedListingType = urlSegmentToListingType(listingType);
+  if (!parsedListingType) {
+    notFound();
+  }
 
   // Fetch listing data on server
   const listing = await fetchListingSSR(listingId);
@@ -162,6 +178,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
       listing={listing}
       listingId={listingId}
       categorySlug={category}
+      listingTypeSlug={listingType}
     />
   );
 }

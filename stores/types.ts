@@ -45,8 +45,11 @@ export interface ListingsState {
   error: string | null;
   viewType: 'grid' | 'list' | 'detail';
   currentCategoryId: string | null; // Track current category for cache invalidation
+  currentListingType: string | null; // Track current listing type (SALE/RENT) for cache invalidation
   filters: {
     categoryId?: string;
+    // Listing type filter (sale/rent)
+    listingType?: string;
     // Price filters
     minPrice?: number;
     maxPrice?: number;

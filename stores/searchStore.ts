@@ -6,6 +6,9 @@ export interface SearchFilters {
   // Category
   categoryId?: string;
 
+  // Listing type (sale/rent)
+  listingType?: string;
+
   // Brand and Model (now part of dynamic system)
   brandId?: string;
   modelId?: string;
@@ -295,6 +298,11 @@ export const useSearchStore = create<SearchStore>()(
         backendFilters.categoryId = appliedFilters.categoryId;
       }
 
+      // Listing type filter (sale/rent) - enum value is already uppercase (SALE/RENT)
+      if (appliedFilters.listingType) {
+        backendFilters.listingType = appliedFilters.listingType;
+      }
+
       // Handle location filter: province and city as top-level filters (new location JSONB structure)
       // Extract from specs.location if present, otherwise use top-level province
       const provinceValue = appliedFilters.specs?.location || appliedFilters.province;
@@ -353,6 +361,11 @@ export const useSearchStore = create<SearchStore>()(
 
       if (appliedFilters.categoryId) {
         storeFilters.categoryId = appliedFilters.categoryId;
+      }
+
+      // Listing type filter (sale/rent) - enum value is already uppercase (SALE/RENT)
+      if (appliedFilters.listingType) {
+        storeFilters.listingType = appliedFilters.listingType;
       }
 
       // Search filter

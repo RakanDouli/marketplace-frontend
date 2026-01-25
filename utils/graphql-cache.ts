@@ -23,12 +23,12 @@ class GraphQLCache {
     const normalizedVariables = this.normalizeVariables(variables);
     const keyData = { query: normalizedQuery, variables: normalizedVariables };
 
-    // // Log cache key creation for debugging
-    // if (variables?.filter?.viewType) {
-    //   console.log(
-    //     `🔑 GraphQL Cache: Creating cache key with viewType: ${variables.filter.viewType}`
-    //   );
-    // }
+    // Debug: Log cache key for listings queries with listingType
+    if (variables?.filter?.listingType) {
+      console.log(
+        `🔑 GraphQL Cache: listingType=${variables.filter.listingType}, categoryId=${variables.filter.categoryId}`
+      );
+    }
 
     return JSON.stringify(keyData);
   }
@@ -70,6 +70,12 @@ class GraphQLCache {
     const key = this.createKey(query, variables);
     // ✅ FIX: If ttl is explicitly 0, bypass cache completely
     const ttl = options?.ttl !== undefined ? options.ttl : this.defaultTTL;
+
+    // Debug: Log cache hit/miss for listings queries
+    if (variables?.filter?.listingType) {
+      const cached = this.cache.get(key);
+      console.log(`📦 GraphQL Cache: ${cached && !this.isExpired(cached) ? 'HIT' : 'MISS'} for listingType=${variables.filter.listingType}`);
+    }
 
     // If TTL is 0, bypass cache entirely (for user-specific data)
     if (ttl === 0) {

@@ -76,8 +76,12 @@ export const Filter: React.FC<FilterProps> = ({
   const { t } = useTranslation();
   const params = useParams();
 
-  // Get categorySlug from URL params (self-sufficient)
+  // Get categorySlug and listingType from URL params (self-sufficient)
   const categorySlug = params?.category as string;
+  const listingTypeSlug = params?.listingType as string;
+
+  // Convert URL slug to enum value (sell -> SALE, rent -> RENT)
+  const listingType = listingTypeSlug === 'rent' ? 'RENT' : listingTypeSlug === 'sell' ? 'SALE' : undefined;
 
   // Support both controlled and uncontrolled modes
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -105,7 +109,8 @@ export const Filter: React.FC<FilterProps> = ({
   };
 
   // Custom hooks for filter management
-  const filterActions = useFilterActions(categorySlug);
+  // Pass listingType to ensure proper filtering for sale/rent separation
+  const filterActions = useFilterActions(categorySlug, listingType);
   const attributeFilters = useAttributeFilters();
 
   // Search store for draft functionality
@@ -132,11 +137,11 @@ export const Filter: React.FC<FilterProps> = ({
   // Get totalResults from listings pagination (updates after each filter)
   const totalResults = pagination?.total ?? 0;
 
-  // Load filter data when category changes
+  // Load filter data when category or listingType changes
   useEffect(() => {
     if (!categorySlug) return;
-    fetchFilterData(categorySlug);
-  }, [categorySlug, fetchFilterData]);
+    fetchFilterData(categorySlug, listingType);
+  }, [categorySlug, listingType, fetchFilterData]);
 
   // Helper functions for draft values - price is in dollars (USD)
   const getDraftPriceMin = () => draftFilters.priceMinMinor ? draftFilters.priceMinMinor.toString() : "";
@@ -291,6 +296,11 @@ export const Filter: React.FC<FilterProps> = ({
   const renderAttribute = (attribute: any) => {
     // Skip search attribute - it's now in the header (MobileBackButton on mobile, desktop search bar)
     if (attribute.key === 'search') {
+      return null;
+    }
+
+    // Skip listingType - it's managed by routing (/cars/sell vs /cars/rent)
+    if (attribute.key === 'listingType') {
       return null;
     }
 
@@ -514,7 +524,10 @@ export const Filter: React.FC<FilterProps> = ({
             {/* Filter content with bottom padding for fixed footer */}
             <div className={styles.filterContent}>
               {(() => {
-                const allAttributes = getSortedAttributes().filter(attr => attr.key !== 'search');
+                // Exclude search (in header) and listingType (managed by routing)
+                const allAttributes = getSortedAttributes().filter(attr =>
+                  attr.key !== 'search' && attr.key !== 'listingType'
+                );
                 const visibleAttributes = isMobile && !showAllFilters
                   ? allAttributes.slice(0, 7)
                   : allAttributes;

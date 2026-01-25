@@ -7,6 +7,7 @@ export interface RelatedByPriceProps {
   listingId: string;
   displayMode?: 'slider' | 'grid';
   className?: string;
+  listingTypeSlug?: string; // URL segment (sell/rent) for listing links
 }
 
 /**
@@ -18,6 +19,7 @@ export const RelatedByPrice: React.FC<RelatedByPriceProps> = ({
   listingId,
   displayMode = 'grid',
   className = "",
+  listingTypeSlug = "sell",
 }) => {
   return (
     <RelatedListings
@@ -27,6 +29,7 @@ export const RelatedByPrice: React.FC<RelatedByPriceProps> = ({
       displayMode={displayMode}
       limit={10}
       className={className}
+      listingTypeSlug={listingTypeSlug}
     />
   );
 };

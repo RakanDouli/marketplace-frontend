@@ -1,0 +1,142 @@
+@import "../../../styles/variables.scss";
+
+.categoryPage {
+  @media (max-width: $breakpoint-sm) {
+    padding: 0 $space-sm !important;
+  }
+}
+
+.header {
+  margin-bottom: $space-lg;
+  text-align: start;
+  .subtitle {
+    color: $text-muted;
+    margin-top: $space-xs;
+  }
+}
+
+// Search bar wrapper - matches SearchBarSection styling
+.searchBarWrapper {
+  background: $bg;
+  height: $header-height;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid $border;
+  padding: 0 $space-md;
+
+  @media (max-width: $breakpoint-md) {
+    display: none; // Hidden on mobile - MobileBackButton has search
+  }
+}
+
+// Desktop Search Bar - pill shape centered inside wrapper
+.desktopSearchBar {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 4px $space-sm;
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $radius-full;
+  max-width: 800px;
+  width: 100%;
+  height: 44px;
+  margin: 0 auto;
+
+  // Remove borders from input inside
+  :global(.inputWrapper) {
+    input {
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent;
+      border-radius: $radius-full;
+
+      &:focus,
+      &:hover {
+        border: none !important;
+        box-shadow: none !important;
+      }
+    }
+  }
+}
+
+// Search input wrapper
+.inputWrapper {
+  flex: 1;
+  min-width: 200px;
+
+  input {
+    border: none !important;
+    border-radius: $radius-full !important;
+  }
+}
+
+// Search button - pill shape
+.searchButton {
+  flex-shrink: 0;
+  border-radius: $radius-full !important;
+}
+
+// Type header with badge
+.typeHeader {
+  margin-bottom: $space-md;
+  padding-top: $space-sm;
+
+  @media (max-width: $breakpoint-md) {
+    display: none; // Mobile shows in MobileBackButton
+  }
+}
+
+.pageTitle {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-xs $space-sm;
+  font-size: $font-sm;
+  font-weight: 500;
+  background: rgba($primary, 0.1);
+  color: $primary;
+  border-radius: $radius-md;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: $space-md;
+  align-items: start;
+  min-height: 70vh;
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: 1fr;
+    gap: $space-xs;
+  }
+  @media (max-width: $breakpoint-sm) {
+    gap: 0;
+  }
+}
+
+.filtersSection {
+  @media (max-width: $breakpoint-lg) {
+    display: none; // Filters show in modal on mobile
+  }
+}
+
+.listingsSection {
+  min-width: 0; // Prevent grid overflow
+
+  @media (max-width: $breakpoint-lg) {
+    order: 1;
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}

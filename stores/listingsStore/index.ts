@@ -26,7 +26,8 @@ interface ListingsActions {
   hydrateFromSSR: (
     categorySlug: string,
     listings: Listing[],
-    totalResults: number
+    totalResults: number,
+    listingType?: string
   ) => void;
   // Data fetching methods
   fetchListings: (
@@ -60,7 +61,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   filters: {},
   pagination: initialPagination,
   currentCategoryId: null, // Track current category for cache invalidation
-  // Simple cache to prevent redundant requests
+  currentListingType: null, // Track current listing type (SALE/RENT) for cache invalidation
 
   // Actions
   setListings: (listings: Listing[]) => {
@@ -172,12 +173,14 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
   hydrateFromSSR: (
     categorySlug: string,
     listings: Listing[],
-    totalResults: number
+    totalResults: number,
+    listingType?: string
   ) => {
     // Set store state immediately with SSR data - no loading state needed!
     set({
       listings,
       currentCategoryId: categorySlug,
+      currentListingType: listingType || null,
       isLoading: false,
       error: null,
       pagination: {
@@ -254,6 +257,11 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
       // Search filter
       if (finalFilters.search) {
         graphqlFilter.search = finalFilters.search;
+      }
+
+      // Listing type filter (sale/rent) - enum value is already uppercase (SALE/RENT)
+      if (finalFilters.listingType) {
+        graphqlFilter.listingType = finalFilters.listingType;
       }
 
       // Sort parameter (add to filter for backend processing)
@@ -376,14 +384,19 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
     filterOverrides = {},
     viewType?: "grid" | "list" | "detail"
   ) => {
-    const { currentCategoryId } = get();
+    const { currentCategoryId, currentListingType } = get();
+    const newListingType = (filterOverrides as any).listingType || null;
 
-    // Clear listings and invalidate cache when category changes
-    if (currentCategoryId !== categorySlug) {
-      // Clear current listings immediately to prevent showing wrong category data
+    // Clear listings and invalidate cache when category OR listingType changes
+    const categoryChanged = currentCategoryId !== categorySlug;
+    const listingTypeChanged = currentListingType !== newListingType;
+
+    if (categoryChanged || listingTypeChanged) {
+      // Clear current listings immediately to prevent showing wrong category/type data
       set({
         listings: [],
         currentCategoryId: categorySlug,
+        currentListingType: newListingType,
         pagination: initialPagination
       });
 

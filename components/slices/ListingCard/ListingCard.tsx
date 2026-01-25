@@ -22,7 +22,8 @@ export interface ListingCardProps {
   priority?: boolean; // For LCP optimization
   isLoading?: boolean; // Skeleton loading state
   userId?: string; // ID of the user who owns the listing
-  categorySlug?: string; // Category slug for URL structure /{category}/{id}
+  categorySlug?: string; // Category slug for URL structure /{category}/{listingType}/{id}
+  listingTypeSlug?: string; // Listing type slug for URL structure (sell/rent)
   // Deprecated: isLiked and onLike - now using wishlist store directly
 }
 
@@ -43,9 +44,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   isLoading = false,
   userId,
   categorySlug,
+  listingTypeSlug = "sell", // Default to sell for backwards compatibility
 }) => {
-  // Build listing URL - use category-based URL (fallback to 'car' if no category)
-  const listingUrl = `/${categorySlug || 'car'}/${id}`;
+  // Build listing URL - use category-based URL with listing type
+  // URL structure: /{category}/{listingType}/{id} (e.g., /cars/sell/123)
+  const listingUrl = `/${categorySlug || 'cars'}/${listingTypeSlug}/${id}`;
   const handleCardClick = () => {
     onClick?.(id);
   };
