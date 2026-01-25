@@ -9,7 +9,7 @@ import {
   Container,
 } from '@/components/slices';
 import { AdContainer } from '@/components/ads';
-import { HomeSearchBar } from '@/components/HomeSearchBar';
+import { SearchBarSection } from '@/components/SearchBarSection';
 import { CategorySection } from '@/components/CategorySection';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CMS_ASSETS } from '@/constants/cms-assets';
@@ -74,7 +74,7 @@ export default function HomeClient() {
   return (
     <main className={styles.homePage}>
       {/* 1. Hero + Search */}
-      <HomeSearchBar />
+      <SearchBarSection />
 
       {/* 2. Category Tabs */}
       <CategorySection />

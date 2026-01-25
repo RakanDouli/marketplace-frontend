@@ -213,44 +213,48 @@ export default function CategoryPageClient({
   };
 
   return (
-    <Container className={styles.categoryPage}>
-      {/* Mobile Header with Search - only visible on mobile */}
-      <MobileBackButton
-        onClick={handleBack}
-        showSearch
-        searchValue={localSearch}
-        onSearchChange={setLocalSearch}
-        onSearchSubmit={handleSearchSubmit}
-        searchPlaceholder={`ابحث في ${currentCategory.nameAr}...`}
-      />
-
-      {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
-      <MobileFilterBar onFilterClick={() => setIsFilterOpen(true)} />
-
-      {/* Desktop Search Bar - only visible on desktop */}
-      <div className={styles.desktopSearchBar}>
-        <div className={styles.inputWrapper}>
-          <Input
-            type="search"
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
-            placeholder={`ابحث في ${currentCategory.nameAr}...`}
+    <>
+      {/* Desktop Search Bar - at top of page, outside container */}
+      <div className={styles.searchBarWrapper}>
+        <div className={styles.desktopSearchBar}>
+          <div className={styles.inputWrapper}>
+            <Input
+              type="search"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
+              placeholder={`ابحث في ${currentCategory.nameAr}...`}
+              aria-label="بحث"
+              icon={<Search size={18} />}
+            />
+          </div>
+          <Button
+            variant="primary"
+            onClick={handleSearchSubmit}
+            icon={<Search size={20} />}
+            className={styles.searchButton}
             aria-label="بحث"
-            icon={<Search size={18} />}
+            disabled={!localSearch.trim()}
           />
         </div>
-        <Button
-          variant="primary"
-          onClick={handleSearchSubmit}
-          icon={<Search size={20} />}
-        >
-          بحث
-        </Button>
       </div>
 
-      {/* Main Content */}
-      <div className={styles.content}>
+      <Container className={styles.categoryPage}>
+        {/* Mobile Header with Search - only visible on mobile */}
+        <MobileBackButton
+          onClick={handleBack}
+          showSearch
+          searchValue={localSearch}
+          onSearchChange={setLocalSearch}
+          onSearchSubmit={handleSearchSubmit}
+          searchPlaceholder={`ابحث في ${currentCategory.nameAr}...`}
+        />
+
+        {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
+        <MobileFilterBar onFilterClick={() => setIsFilterOpen(true)} />
+
+        {/* Main Content */}
+        <div className={styles.content}>
         {/* Filters Sidebar */}
         <div className={styles.filtersSection}>
           <Filter
@@ -264,6 +268,7 @@ export default function CategoryPageClient({
           <ListingArea />
         </div>
       </div>
-    </Container>
+      </Container>
+    </>
   );
 }

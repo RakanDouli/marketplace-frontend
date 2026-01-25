@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { HomeSearchBar } from '@/components/HomeSearchBar';
+import { SearchBarSection } from '@/components/SearchBarSection';
 import { Container, Grid, Loading } from '@/components/slices';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { Car, Home, Smartphone, Sofa, Shirt, Briefcase, Package } from 'lucide-react';
@@ -56,7 +56,7 @@ export default function CategoriesPage() {
     return (
       <main className={styles.categoriesPage}>
         <div className={styles.fixedSearchWrapper}>
-          <HomeSearchBar />
+          <SearchBarSection />
         </div>
         <Container paddingY="lg">
           <div className={styles.loadingWrapper}>
@@ -71,7 +71,7 @@ export default function CategoriesPage() {
     <main className={styles.categoriesPage}>
       {/* Sticky Search Bar Wrapper */}
       <div className={styles.fixedSearchWrapper}>
-        <HomeSearchBar />
+        <SearchBarSection />
       </div>
 
       {/* Categories Grid */}

@@ -17,18 +17,18 @@ export const CMS_ASSETS = {
   home: {
     // Main CTA - "Sell Your Car" banner
     promoBanner: {
-      car: '/images/car.png',
+      car: '/images/cms/car.avif',
     },
 
     // Secondary CTA cards
     promoCards: {
-      realEstate: '/images/building.png',
-      electronics: '/images/phone.png',
+      realEstate: '/images/cms/building.avif',
+      electronics: '/images/cms/phone.avif',
     },
 
-    // Hero/Search section background (placeholder for future use)
+    // Hero/Search section background
     searchBar: {
-      background: null as string | null, // Will be set when CMS provides it
+      background: '/images/cms/cars1.avif',
     },
   },
 
@@ -37,9 +37,9 @@ export const CMS_ASSETS = {
    * Map category slugs to their promo images
    */
   categories: {
-    cars: '/images/car.png',
-    'real-estate': '/images/building.png',
-    electronics: '/images/phone.png',
+    cars: '/images/cms/car.avif',
+    'real-estate': '/images/cms/building.avif',
+    electronics: '/images/cms/phone.avif',
   } as Record<string, string>,
 
   /**

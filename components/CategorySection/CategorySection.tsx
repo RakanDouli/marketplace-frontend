@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { Container, Text } from '@/components/slices';
+import { CMS_ASSETS } from '@/constants/cms-assets';
 import styles from './CategorySection.module.scss';
 
 // Coming soon categories (by slug) - can be moved to backend later
@@ -40,7 +41,7 @@ export const CategorySection: React.FC = () => {
     <div className={styles.heroSection}>
       {/* Hero Background with Overlay - Desktop only */}
       <Container
-        outerBackgroundImage="/images/cars1.jpg"
+        outerBackgroundImage={CMS_ASSETS.home.searchBar.background}
         overlay
         paddingY="xl"
         size="lg"

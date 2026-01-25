@@ -7,9 +7,9 @@ import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useSearchStore } from '@/stores/searchStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { Button, Input, Container } from '@/components/slices';
-import styles from './HomeSearchBar.module.scss';
+import styles from './SearchBarSection.module.scss';
 
-export const HomeSearchBar: React.FC = () => {
+export const SearchBarSection: React.FC = () => {
   const router = useRouter();
   const { categories } = useCategoriesStore();
   const { setFilter, setSpecFilter, clearAllFilters } = useSearchStore();
@@ -204,4 +204,4 @@ export const HomeSearchBar: React.FC = () => {
   );
 };
 
-export default HomeSearchBar;
+export default SearchBarSection;

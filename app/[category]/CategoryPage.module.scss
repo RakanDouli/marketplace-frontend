@@ -15,33 +15,66 @@
   }
 }
 
-// Desktop Search Bar - hidden on mobile (MobileBackButton handles mobile search)
-// Matches HomeSearchBar styling with pill shape
-.desktopSearchBar {
+// Search bar wrapper - matches SearchBarSection styling
+.searchBarWrapper {
+  background: $bg;
+  height: $header-height;
   display: flex;
   align-items: center;
-  gap: $space-sm;
-  margin-bottom: $space-lg;
-  padding: $space-md;
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-full;
-  box-shadow: $shadow-md;
+  border-bottom: 1px solid $border;
+  padding: 0 $space-md;
 
   @media (max-width: $breakpoint-md) {
     display: none; // Hidden on mobile - MobileBackButton has search
   }
 }
 
-// Search input wrapper - uses Input component internally
+// Desktop Search Bar - pill shape centered inside wrapper
+.desktopSearchBar {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 4px $space-sm;
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $radius-full;
+  max-width: 800px;
+  width: 100%;
+  height: 44px;
+  margin: 0 auto;
+
+  // Remove borders from input inside
+  :global(.inputWrapper) {
+    input {
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent;
+      border-radius: $radius-full;
+
+      &:focus,
+      &:hover {
+        border: none !important;
+        box-shadow: none !important;
+      }
+    }
+  }
+}
+
+// Search input wrapper
 .inputWrapper {
   flex: 1;
   min-width: 200px;
 
-  // Override Input component border-radius to full
   input {
+    border: none !important;
     border-radius: $radius-full !important;
   }
+}
+
+// Search button - pill shape
+.searchButton {
+  flex-shrink: 0;
+  border-radius: $radius-full !important;
 }
 
 .content {
