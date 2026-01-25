@@ -106,16 +106,17 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: $space-xs $space-sm;
   font-size: $font-xs;
   font-weight: 600;
   background: $error;
-  color: $text;
+  color: $text-light;
   border-radius: $radius-full;
   text-transform: uppercase;
 }
 
 .subtitle {
+  padding: $space-xs 0;
   margin: 0;
   color: $text;
   font-size: $font-sm;
