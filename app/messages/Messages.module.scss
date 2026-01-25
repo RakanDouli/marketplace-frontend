@@ -6,10 +6,10 @@
   background: $bg;
 
   @media (max-width: $breakpoint-md) {
-    // On mobile, container takes full viewport height
-    // Bottom nav overlays on top, so we don't subtract it
-    height: 100vh;
-    height: 100dvh; // Dynamic viewport height (accounts for mobile browser UI)
+    // On mobile, use dynamic viewport height minus bottom nav
+    // --bottom-nav-height is set by BottomNav component (70px when visible, 0 when hidden)
+    height: calc(100dvh - var(--bottom-nav-height, 70px));
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -170,6 +170,8 @@
   align-items: center;
   gap: $space-md;
   flex: 1;
+  min-width: 0; // Allow text truncation
+  overflow: hidden;
 }
 
 .listingImage {
@@ -204,9 +206,14 @@
 .listingTitle {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   font-weight: $weight-medium;
   transition: color 0.2s ease;
+  // Allow max 2 lines with ellipsis
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .typingIndicator {
@@ -245,6 +252,8 @@
   color: $text;
   cursor: pointer;
   font-size: $font-base;
+  flex-shrink: 0;
+  min-width: 32px;
 
   &:hover {
     opacity: 0.8;

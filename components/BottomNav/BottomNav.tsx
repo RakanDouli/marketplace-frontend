@@ -89,6 +89,14 @@ export const BottomNav: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Sync visibility state to CSS variable for other components to use
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--bottom-nav-height',
+      isVisible ? '70px' : '0px'
+    );
+  }, [isVisible]);
+
   // Track browse-related paths (category/listing pages) for memory feature
   useEffect(() => {
     const firstSegment = pathname.split('/')[1];

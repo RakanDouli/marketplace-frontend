@@ -1,5 +1,4 @@
-// Bottom nav height (64px + safe area)
-$bottom-nav-height: 64px;
+@import "@/styles/variables.scss";
 
 .layout {
   min-height: 100vh;
