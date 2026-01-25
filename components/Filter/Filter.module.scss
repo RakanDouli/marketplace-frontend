@@ -274,6 +274,12 @@
   background: $bg;
   border-top: 1px solid $border;
   z-index: $z-dropdown;
+  button {
+    span {
+      color: $text-light;
+      padding: 0 $space-md;
+    }
+  }
 
   // Only show on mobile
   @media (min-width: $breakpoint-md) {

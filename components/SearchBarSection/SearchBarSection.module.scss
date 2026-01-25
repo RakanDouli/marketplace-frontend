@@ -2,7 +2,7 @@
 
 .searchBarWrapper {
   position: relative;
-  z-index: $z-dropdown;
+  z-index: 99;
   background: $bg;
   height: $header-height;
   display: flex;

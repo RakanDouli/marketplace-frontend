@@ -38,4 +38,9 @@
   &.top {
     bottom: calc(100% + $space-xs);
   }
+
+  // Portal mode - rendered at document.body level
+  &.portal {
+    z-index: 9999;
+  }
 }

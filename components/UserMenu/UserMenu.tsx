@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { User, LayoutDashboard, LogOut } from 'lucide-react';
-import { Button, Text } from '@/components/slices';
+import { Button, Text, Dropdown, DropdownMenuItem } from '@/components/slices';
 import { getInitials, getAvatarColor } from '@/utils/avatar-utils';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
 import styles from './UserMenu.module.scss';
@@ -16,29 +15,21 @@ export const UserMenu: React.FC = () => {
   const { user, isAuthenticated, logout, openAuthModal } = useUserAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   // Wait for Zustand persist to hydrate from localStorage
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleLogout = () => {
     logout();
     setIsOpen(false);
     router.push('/');
+  };
+
+  const handleDashboardClick = () => {
+    setIsOpen(false);
+    router.push('/dashboard');
   };
 
   // Helper to get avatar URL
@@ -63,62 +54,63 @@ export const UserMenu: React.FC = () => {
 
   const avatarUrl = getAvatarUrl(user.avatar);
 
-  return (
-    <div className={styles.userMenu} ref={menuRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={styles.userButton}
-        aria-expanded={isOpen}
-      >
-        {avatarUrl ? (
-          <div className={styles.avatarImage}>
-            <img
-              src={avatarUrl}
-              alt={user.name || 'Avatar'}
-              width={28}
-              height={28}
-              className={styles.avatar}
-            />
-          </div>
-        ) : (
-          <div
-            className={styles.avatarInitials}
-            style={{
-              backgroundColor: getAvatarColor(user.name, user.email),
-            }}
-          >
-            {getInitials(user.name, user.email)}
-          </div>
-        )}
-        <span className={styles.userName}>{user.name || user.email}</span>
-      </button>
-
-      {isOpen && (
-        <div className={styles.dropdown}>
-          <div className={styles.dropdownHeader}>
-            <Text variant="small" className={styles.userEmail}>
-              {user.email}
-            </Text>
-          </div>
-
-          <div className={styles.dropdownMenu}>
-            <Link
-              href="/dashboard"
-              className={styles.menuItem}
-              onClick={() => setIsOpen(false)}
-            >
-              <LayoutDashboard size={18} />
-              <span>لوحة التحكم</span>
-            </Link>
-
-            <button onClick={handleLogout} className={styles.menuItem}>
-              <LogOut size={18} />
-              <span>تسجيل الخروج</span>
-            </button>
-          </div>
+  const triggerButton = (
+    <button
+      onClick={() => setIsOpen(!isOpen)}
+      className={styles.userButton}
+      aria-expanded={isOpen}
+    >
+      {avatarUrl ? (
+        <div className={styles.avatarImage}>
+          <img
+            src={avatarUrl}
+            alt={user.name || 'Avatar'}
+            width={28}
+            height={28}
+            className={styles.avatar}
+          />
+        </div>
+      ) : (
+        <div
+          className={styles.avatarInitials}
+          style={{
+            backgroundColor: getAvatarColor(user.name, user.email),
+          }}
+        >
+          {getInitials(user.name, user.email)}
         </div>
       )}
-    </div>
+      <span className={styles.userName}>{user.name || user.email}</span>
+    </button>
+  );
+
+  return (
+    <Dropdown
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      trigger={triggerButton}
+      align="right"
+      usePortal
+    >
+      <div className={styles.dropdownHeader}>
+        <Text variant="small" className={styles.userEmail}>
+          {user.email}
+        </Text>
+      </div>
+
+      <DropdownMenuItem
+        icon={<LayoutDashboard size={18} />}
+        label="لوحة التحكم"
+        onClick={handleDashboardClick}
+      />
+
+      <DropdownMenuItem
+        icon={<LogOut size={18} />}
+        label="تسجيل الخروج"
+        onClick={handleLogout}
+        variant="danger"
+      />
+    </Dropdown>
   );
 };
 

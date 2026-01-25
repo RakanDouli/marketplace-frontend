@@ -1,8 +1,5 @@
 @import "../../styles/variables";
 
-.userMenu {
-  position: relative;
-}
 .loginButton {
   @media (max-width: $breakpoint-lg) {
     gap: 0;
@@ -14,6 +11,7 @@
     }
   }
 }
+
 .userButton {
   display: flex;
   align-items: center;
@@ -55,31 +53,15 @@
   font-size: $font-sm;
   font-weight: 600;
   color: $text;
-  // Background color is set dynamically via inline style
 }
 
 .userName {
   font-size: $font-sm;
   color: $text;
 
-  // Hide username at medium screens to save header space
-  // Profile button shows only avatar icon
   @media (max-width: $breakpoint-lg) {
     display: none;
   }
-}
-
-.dropdown {
-  position: absolute;
-  top: calc(100% + $space-xs);
-  right: 0;
-  min-width: 220px;
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  overflow: hidden;
 }
 
 .dropdownHeader {
@@ -91,34 +73,4 @@
 .userEmail {
   color: $text-muted;
   word-break: break-all;
-}
-
-.dropdownMenu {
-  padding: $space-xs;
-}
-
-.menuItem {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  width: 100%;
-  padding: $space-sm $space-md;
-  background: none;
-  border: none;
-  border-radius: $radius-md;
-  text-align: right;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  color: $text;
-  font-size: $font-base;
-
-  &:hover {
-    background: $surface;
-  }
-
-  svg {
-    flex-shrink: 0;
-    color: $text-muted;
-  }
 }

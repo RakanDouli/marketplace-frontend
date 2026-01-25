@@ -2,7 +2,8 @@
 import { formatDateShort } from '@/utils/formatDate';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton, Loading, FormSection, Form } from '@/components/slices';
+import { Modal, Button, Input, ImageUploadGrid, Text, SubmitButton, Loading, FormSection, Form, CarInspection, toBackendFormat, fromBackendFormat } from '@/components/slices';
+import type { DamageReport } from '@/components/slices';
 import type { FormSectionStatus } from '@/components/slices';
 import type { Listing } from '@/types/listing';
 import type { ImageItem } from '@/components/slices/ImageUploadGrid/ImageUploadGrid';
@@ -15,7 +16,7 @@ import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel 
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { ListingStatus } from '@/common/enums';
 import { optimizeListingImage } from '@/utils/cloudflare-images';
-import { uploadToCloudflareWithProgress } from '@/utils/cloudflare-upload';
+import { uploadToCloudflareWithProgress, uploadVideoToR2 } from '@/utils/cloudflare-upload';
 import {
   validateListingForm,
   validateAttribute,
@@ -141,7 +142,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const { userPackage } = useUserAuthStore();
   const { listingStatuses, provinces } = useMetadataStore();
   const { addNotification } = useNotificationStore();
-  const { loadMyListingById } = useUserListingsStore();
+  const { updateListingImages, updateListingVideoUrl } = useUserListingsStore();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -160,6 +161,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const [models, setModels] = useState<Model[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [showCarDamage, setShowCarDamage] = useState(false);
 
   // Model suggestion specs - used to filter dropdown options (like create page)
   const [suggestionSpecs, setSuggestionSpecs] = useState<{
@@ -202,7 +204,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   // Group attributes by group field (like create page store does)
   const attributeGroups: AttributeGroup[] = useMemo(() => {
     // Filter out non-spec attributes
-    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location', 'listingType', 'condition'];
+    const excludedKeys = ['search', 'title', 'description', 'price', 'province', 'city', 'area', 'accountType', 'location', 'listingType', 'condition', 'car_damage'];
 
     const groupsMap = new Map<string, Attribute[]>();
 
@@ -622,14 +624,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
       const allImageKeys = [...images.map(img => img.id), ...uploadedImageKeys];
 
-      await cachedGraphQLRequest(
-        `mutation UpdateListingImages($id: ID!, $imageKeys: [String!]!) {
-          updateMyListing(id: $id, input: { imageKeys: $imageKeys }) {
-            id
-          }
-        }`,
-        { id: listing.id, imageKeys: allImageKeys }
-      );
+      // Update listing with new image keys via store
+      await updateListingImages(listing.id, allImageKeys);
 
       const newImagesWithBlobUrls: ImageItem[] = addedImages.map((img, index) => ({
         id: uploadedImageKeys[index],
@@ -683,14 +679,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     try {
       const remainingImageKeys = newImages.map(img => img.id);
 
-      await cachedGraphQLRequest(
-        `mutation UpdateListingImages($id: ID!, $imageKeys: [String!]!) {
-          updateMyListing(id: $id, input: { imageKeys: $imageKeys }) {
-            id
-          }
-        }`,
-        { id: listing.id, imageKeys: remainingImageKeys }
-      );
+      // Update listing with remaining image keys via store
+      await updateListingImages(listing.id, remainingImageKeys);
 
       setImages(newImages);
 
@@ -726,60 +716,17 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     setPendingVideo({ ...newVideoItem, isUploading: true, isVideo: true, uploadProgress: 0 });
     setIsUploadingVideo(true);
     try {
-      const authData = localStorage.getItem('user-auth-storage');
-      if (!authData) throw new Error('يرجى تسجيل الدخول أولاً');
-      const { state } = JSON.parse(authData);
-      const token = state?.user?.token;
-      if (!token) throw new Error('يرجى تسجيل الدخول أولاً');
-
-      const formDataObj = new FormData();
-      formDataObj.append('video', newVideoItem.file);
-
-      // Use XMLHttpRequest for progress tracking
-      const result = await new Promise<{ success: boolean; videoUrl?: string }>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setPendingVideo(prev => prev ? { ...prev, uploadProgress: percent } : null);
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const response = JSON.parse(xhr.responseText);
-              resolve(response);
-            } catch {
-              reject(new Error('فشل تحليل استجابة الخادم'));
-            }
-          } else {
-            try {
-              const errorData = JSON.parse(xhr.responseText);
-              reject(new Error(errorData.message || 'فشل رفع الفيديو'));
-            } catch {
-              reject(new Error('فشل رفع الفيديو'));
-            }
-          }
-        };
-
-        xhr.onerror = () => {
-          reject(new Error('فشل الاتصال بالخادم'));
-        };
-
-        xhr.open('POST', `${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.replace('/graphql', '')}/api/listings/upload-video`);
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-        xhr.send(formDataObj);
+      // Upload video using utility with progress tracking
+      const videoUrl = await uploadVideoToR2(newVideoItem.file, (progress: number) => {
+        setPendingVideo(prev => prev ? { ...prev, uploadProgress: progress } : null);
       });
 
-      if (!result.success || !result.videoUrl) {
-        throw new Error('فشل رفع الفيديو');
-      }
+      // Update listing with video URL via store
+      await updateListingVideoUrl(listing.id, videoUrl);
 
       setVideo([{
-        id: result.videoUrl,
-        url: result.videoUrl,
+        id: videoUrl,
+        url: videoUrl,
         isVideo: true,
       }]);
 
@@ -815,6 +762,22 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
     return video.map(v => ({ ...v, isUploading: false }));
   }, [video, pendingVideo]);
+
+  // Car damage handler
+  const handleCarDamageChange = (damages: DamageReport[]) => {
+    const backendFormat = toBackendFormat(damages);
+    setFormData(prev => ({
+      ...prev,
+      specs: { ...prev.specs, car_damage: backendFormat.length > 0 ? backendFormat : undefined },
+    }));
+  };
+
+  // Get current car damage value from specs
+  const currentCarDamage = useMemo(() => {
+    return formData.specs.car_damage
+      ? fromBackendFormat(formData.specs.car_damage as string[])
+      : [];
+  }, [formData.specs.car_damage]);
 
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
@@ -1029,8 +992,9 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     return (
       <Modal isVisible={true} onClose={onClose} title="تعديل الإعلان" maxWidth="xl">
         <div style={{ padding: '40px', textAlign: 'center' }}>
+
+          <Text variant="paragraph" style={{ marginTop: '16px' }}>جاري تحميل بيانات الإعلان </Text>
           <Loading />
-          <Text variant="paragraph" style={{ marginTop: '16px' }}>جاري تحميل بيانات الإعلان...</Text>
         </div>
       </Modal>
     );
@@ -1288,6 +1252,36 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 )}
               </div>
             )}
+
+            {/* Car Damage Section */}
+            <div className={styles.carDamageSection}>
+              <Input
+                type="switch"
+                label="هل يوجد ملاحظات على الهيكل؟"
+                checked={showCarDamage || currentCarDamage.length > 0}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const checked = e.target.checked;
+                  setShowCarDamage(checked);
+                  if (!checked) {
+                    // Clear car damage when toggle is off
+                    setFormData(prev => ({
+                      ...prev,
+                      specs: { ...prev.specs, car_damage: undefined },
+                    }));
+                  }
+                }}
+              />
+              <Text variant="small" >
+                حدد الأجزاء المدهونة أو المُستبدلة في السيارة
+              </Text>
+
+              {(showCarDamage || currentCarDamage.length > 0) && (
+                <CarInspection
+                  value={currentCarDamage}
+                  onChange={handleCarDamageChange}
+                />
+              )}
+            </div>
           </FormSection>
 
           {/* Remaining Dynamic Attribute Groups */}
@@ -1454,7 +1448,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           {/* Error message - displayed above buttons */}
           {errorMessage && (
             <div className={styles.formError}>
-              <Text variant="small" color="error">
+              <Text variant="small">
                 {errorMessage}
               </Text>
             </div>

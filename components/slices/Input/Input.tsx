@@ -444,7 +444,7 @@ export const Input = forwardRef<
               isDisabled={selectProps.disabled}
               isLoading={isLoading}
               isSearchable={searchable}
-              placeholder='اختر خيار...'
+              placeholder={props.placeholder || 'اختر خيار...'}
               noOptionsMessage={() => "لا توجد نتائج"}
               loadingMessage={() => "جاري التحميل..."}
               formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
@@ -503,7 +503,7 @@ export const Input = forwardRef<
               isLoading={isLoading}
               isSearchable={true}
               isMulti={true}
-              placeholder='اختر الخيارات...'
+              placeholder={props.placeholder || 'اختر الخيارات...'}
               noOptionsMessage={() => "لا توجد نتائج"}
               loadingMessage={() => "جاري التحميل..."}
               classNamePrefix="react-select"

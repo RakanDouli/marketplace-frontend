@@ -431,7 +431,7 @@ textarea.input {
   }
 
   :global(.react-select__option--is-focused:not(.react-select__option--is-selected)) {
-    background-color: $surface !important;
+    background-color: $surface;
     color: $text !important;
   }
 
@@ -463,8 +463,11 @@ textarea.input {
   width: 100%;
 
   :global(.react-select__control) {
+    width: 99%;
+    margin: 0 auto;
+
     min-height: 40px !important;
-    background-color: $surface !important;
+    background-color: $surface;
     border: 1px solid $border !important;
     border-radius: $radius-md !important;
     color: $text !important;
@@ -475,7 +478,7 @@ textarea.input {
 
     &.react-select__control--is-focused {
       border-color: $primary !important;
-      box-shadow: 0 0 0 3px rgba($primary, 0.1) !important;
+      box-shadow: 0 0 0 1px rgba($primary, 0.1) !important;
     }
   }
 

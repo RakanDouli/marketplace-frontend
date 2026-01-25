@@ -555,7 +555,8 @@ export const Filter: React.FC<FilterProps> = ({
                 onClick={() => setIsOpen(false)}
                 className={styles.applyFooterButton}
               >
-                {totalResults} نتيجة - تطبيق
+                تطبيق
+                <Text variant="small" > ( {totalResults} نتيجه )</Text>
               </Button>
             </div>
           </>

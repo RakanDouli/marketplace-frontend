@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { cachedGraphQLRequest, invalidateGraphQLCache } from '../../utils/graphql-cache';
+import { uploadToCloudflareWithProgress, uploadVideoToR2, type ProgressCallback } from '@/utils/cloudflare-upload';
 import {
   MY_LISTINGS_QUERY,
   MY_LISTINGS_COUNT_QUERY,
@@ -43,6 +44,16 @@ interface UserListingsActions {
 
   // Delete listing
   deleteMyListing: (id: string, archivalReason: 'sold_via_platform' | 'sold_externally' | 'no_longer_for_sale') => Promise<void>;
+
+  // Image operations
+  uploadListingImage: (listingId: string, file: File, currentImageKeys: string[], onProgress?: ProgressCallback) => Promise<string>;
+  updateListingImages: (listingId: string, imageKeys: string[]) => Promise<void>;
+  removeListingImage: (listingId: string, imageKeyToRemove: string, currentImageKeys: string[]) => Promise<void>;
+
+  // Video operations
+  uploadListingVideo: (listingId: string, file: File, onProgress?: ProgressCallback) => Promise<string>;
+  updateListingVideoUrl: (listingId: string, videoUrl: string | null) => Promise<void>;
+  removeListingVideo: (listingId: string) => Promise<void>;
 
   // Refresh listings
   refreshMyListings: () => Promise<void>;
@@ -220,6 +231,92 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
         isLoading: false,
       });
       throw error; // Re-throw for modal error handling
+    }
+  },
+
+  // ===== IMAGE OPERATIONS =====
+
+  // Upload single image and update listing (use for single image upload)
+  uploadListingImage: async (listingId: string, file: File, currentImageKeys: string[], onProgress?: ProgressCallback) => {
+    try {
+      const imageKey = await uploadToCloudflareWithProgress(file, 'image', onProgress);
+      const newImageKeys = [...currentImageKeys, imageKey];
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id: listingId, input: { imageKeys: newImageKeys } },
+        { ttl: 0 }
+      );
+      return imageKey;
+    } catch (error: any) {
+      throw new Error(error.message || 'فشل رفع الصورة');
+    }
+  },
+
+  // Update listing with new image keys (use after bulk upload)
+  updateListingImages: async (listingId: string, imageKeys: string[]) => {
+    try {
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id: listingId, input: { imageKeys } },
+        { ttl: 0 }
+      );
+    } catch (error: any) {
+      throw new Error(error.message || 'فشل تحديث الصور');
+    }
+  },
+
+  removeListingImage: async (listingId: string, imageKeyToRemove: string, currentImageKeys: string[]) => {
+    try {
+      const newImageKeys = currentImageKeys.filter(key => key !== imageKeyToRemove);
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id: listingId, input: { imageKeys: newImageKeys } },
+        { ttl: 0 }
+      );
+    } catch (error: any) {
+      throw new Error(error.message || 'فشل حذف الصورة');
+    }
+  },
+
+  // ===== VIDEO OPERATIONS =====
+
+  // Upload video and update listing
+  uploadListingVideo: async (listingId: string, file: File, onProgress?: ProgressCallback) => {
+    try {
+      const videoUrl = await uploadVideoToR2(file, onProgress);
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id: listingId, input: { videoUrl } },
+        { ttl: 0 }
+      );
+      return videoUrl;
+    } catch (error: any) {
+      throw new Error(error.message || 'فشل رفع الفيديو');
+    }
+  },
+
+  // Update listing with video URL (use after external upload)
+  updateListingVideoUrl: async (listingId: string, videoUrl: string | null) => {
+    try {
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id: listingId, input: { videoUrl } },
+        { ttl: 0 }
+      );
+    } catch (error: any) {
+      throw new Error(error.message || 'فشل تحديث الفيديو');
+    }
+  },
+
+  removeListingVideo: async (listingId: string) => {
+    try {
+      await cachedGraphQLRequest(
+        UPDATE_MY_LISTING_MUTATION,
+        { id: listingId, input: { videoUrl: null } },
+        { ttl: 0 }
+      );
+    } catch (error: any) {
+      throw new Error(error.message || 'فشل حذف الفيديو');
     }
   },
 

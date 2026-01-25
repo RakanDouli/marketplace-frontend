@@ -1,6 +1,8 @@
+@import "../../../styles/variables.scss";
+
 .sortControls {
   display: flex;
   align-items: center;
   gap: $space-sm;
-  width: 200px;
+  width: 230px;
 }

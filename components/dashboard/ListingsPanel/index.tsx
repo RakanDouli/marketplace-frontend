@@ -232,14 +232,17 @@ export const ListingsPanel: React.FC = () => {
   };
 
   // Fetch listing metadata on mount
-  const { listingStatuses } = useMetadataStore();
+  const { listingStatuses, provinces } = useMetadataStore();
 
   useEffect(() => {
     const metadataStore = useMetadataStore.getState();
     if (listingStatuses.length === 0) {
       metadataStore.fetchListingMetadata();
     }
-  }, [listingStatuses.length]);
+    if (provinces.length === 0) {
+      metadataStore.fetchLocationMetadata();
+    }
+  }, [listingStatuses.length, provinces.length]);
 
   // Format price - price is in USD dollars
   const formatPrice = (priceMinor: number) => {
@@ -252,6 +255,13 @@ export const ListingsPanel: React.FC = () => {
   // Calculate total pages
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
+  // Translate province key to Arabic name
+  const getProvinceNameAr = (provinceKey: string | undefined): string => {
+    if (!provinceKey) return 'غير محدد';
+    const province = provinces.find(p => p.key === provinceKey);
+    return province?.nameAr || provinceKey;
+  };
+
   // Convert listing to ListingCard props
   const getListingCardProps = (listing: Listing) => {
     const images = listing.imageKeys?.map(key => optimizeListingImage(key, 'card')) || [];
@@ -261,7 +271,7 @@ export const ListingsPanel: React.FC = () => {
       title: listing.title,
       price: formatPrice(listing.priceMinor),
       currency: 'USD',
-      location: listing.location?.province || 'غير محدد',
+      location: getProvinceNameAr(listing.location?.province),
       accountType: (listing.user?.accountType as "individual" | "dealer" | "business") || 'individual',
       specs: listing.specsDisplay || {},
       images,

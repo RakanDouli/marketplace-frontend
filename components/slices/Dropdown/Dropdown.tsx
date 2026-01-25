@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './Dropdown.module.scss';
 
 export interface DropdownProps {
@@ -18,6 +19,8 @@ export interface DropdownProps {
   className?: string;
   /** Custom className for the menu */
   menuClassName?: string;
+  /** Render menu in a portal (useful when parent has opacity < 1) */
+  usePortal?: boolean;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
@@ -28,6 +31,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   align = 'left',
   className = '',
   menuClassName = '',
+  usePortal = false,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -38,13 +42,22 @@ export const Dropdown: React.FC<DropdownProps> = ({
     horizontal: align,
     vertical: 'bottom',
   });
+  const [portalPosition, setPortalPosition] = useState<{
+    top: number;
+    left: number;
+    right: number;
+  }>({ top: 0, left: 0, right: 0 });
 
   // Close dropdown when clicking outside
   useEffect(() => {
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
+      const isOutsideMenu = menuRef.current && !menuRef.current.contains(target);
+
+      if (isOutsideDropdown && isOutsideMenu) {
         onClose();
       }
     };
@@ -69,44 +82,59 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   // Smart positioning: adjust dropdown position to stay in viewport
   useEffect(() => {
-    if (!isOpen || !dropdownRef.current || !menuRef.current) return;
+    if (!isOpen || !dropdownRef.current) return;
 
     const adjustPosition = () => {
       const dropdown = dropdownRef.current;
       const menu = menuRef.current;
-      if (!dropdown || !menu) return;
+      if (!dropdown) return;
 
       const dropdownRect = dropdown.getBoundingClientRect();
-      const menuRect = menu.getBoundingClientRect();
+      const menuRect = menu?.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
 
       let horizontal: 'left' | 'right' = align;
       let vertical: 'bottom' | 'top' = 'bottom';
 
+      // For portal mode, calculate absolute position
+      if (usePortal) {
+        setPortalPosition({
+          top: dropdownRect.bottom + 4, // 4px gap
+          left: dropdownRect.left,
+          right: viewportWidth - dropdownRect.right,
+        });
+      }
+
       // Set CSS variables for dynamic max-width calculation
-      menu.style.setProperty('--dropdown-left', `${dropdownRect.left}px`);
-      menu.style.setProperty('--dropdown-right', `${dropdownRect.right}px`);
+      if (menu) {
+        menu.style.setProperty('--dropdown-left', `${dropdownRect.left}px`);
+        menu.style.setProperty('--dropdown-right', `${dropdownRect.right}px`);
+      }
 
       // Check horizontal overflow
-      if (align === 'left' && dropdownRect.left + menuRect.width > viewportWidth) {
-        // If menu overflows right, align to right instead
+      const menuWidth = menuRect?.width || 200;
+      if (align === 'left' && dropdownRect.left + menuWidth > viewportWidth) {
         horizontal = 'right';
-      } else if (align === 'right' && dropdownRect.right - menuRect.width < 0) {
-        // If menu overflows left, align to left instead
+      } else if (align === 'right' && dropdownRect.right - menuWidth < 0) {
         horizontal = 'left';
       }
 
       // Check vertical overflow
-      // Account for bottom nav on mobile (64px) + some padding
       const isMobile = viewportWidth < 768;
-      const bottomOffset = isMobile ? 80 : 0; // 64px nav + 16px padding
+      const bottomOffset = isMobile ? 80 : 0;
       const spaceBelow = viewportHeight - dropdownRect.bottom - bottomOffset;
       const spaceAbove = dropdownRect.top;
+      const menuHeight = menuRect?.height || 150;
 
-      if (spaceBelow < menuRect.height && spaceAbove > spaceBelow) {
-        // If not enough space below but more space above, show above
+      if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
         vertical = 'top';
+        if (usePortal) {
+          setPortalPosition(prev => ({
+            ...prev,
+            top: dropdownRect.top - (menuRect?.height || 150) - 4,
+          }));
+        }
       }
 
       setPosition({ horizontal, vertical });
@@ -123,19 +151,32 @@ export const Dropdown: React.FC<DropdownProps> = ({
       window.removeEventListener('scroll', adjustPosition, true);
       window.removeEventListener('resize', adjustPosition);
     };
-  }, [isOpen, align]);
+  }, [isOpen, align, usePortal]);
+
+  const menuContent = isOpen && (
+    <div
+      ref={menuRef}
+      className={`${styles.menu} ${styles[position.horizontal]} ${styles[position.vertical]} ${usePortal ? styles.portal : ''} ${menuClassName}`}
+      style={usePortal ? {
+        position: 'fixed',
+        top: portalPosition.top,
+        ...(position.horizontal === 'right'
+          ? { right: portalPosition.right }
+          : { left: portalPosition.left }
+        ),
+      } : undefined}
+    >
+      {children}
+    </div>
+  );
 
   return (
     <div className={`${styles.dropdown} ${className}`} ref={dropdownRef}>
       {trigger}
-      {isOpen && (
-        <div
-          ref={menuRef}
-          className={`${styles.menu} ${styles[position.horizontal]} ${styles[position.vertical]} ${menuClassName}`}
-        >
-          {children}
-        </div>
-      )}
+      {usePortal && typeof document !== 'undefined'
+        ? createPortal(menuContent, document.body)
+        : menuContent
+      }
     </div>
   );
 };

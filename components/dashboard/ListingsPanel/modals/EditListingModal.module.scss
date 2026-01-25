@@ -278,6 +278,12 @@
   margin-top: $space-md;
 }
 
+.carDamageSection {
+  margin-top: $space-lg;
+  padding-top: $space-lg;
+  border-top: 1px solid $border;
+}
+
 .formError {
   padding: $space-md;
   background: rgba($error, 0.1);

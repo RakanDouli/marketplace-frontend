@@ -11,6 +11,9 @@ export const MY_LISTINGS_QUERY = `
       updatedAt
       rejectionReason
       rejectionMessage
+      location {
+        province
+      }
       category {
         id
         name
