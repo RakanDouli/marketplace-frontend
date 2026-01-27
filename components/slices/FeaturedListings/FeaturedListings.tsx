@@ -189,8 +189,9 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   }
 
   // Show skeleton while loading to prevent CLS
+  // Use `limit` for skeleton count so height matches loaded content
   if (isLoading) {
-    const skeletonCount = variant === "grid" ? columns : 5;
+    const skeletonCount = variant === "grid" ? limit : 5;
     const skeletonCards = Array.from({ length: skeletonCount }, (_, i) => (
       <ListingCard
         key={`skeleton-${i}`}
