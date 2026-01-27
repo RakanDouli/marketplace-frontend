@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, notFound } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useListingsStore } from '@/stores/listingsStore';
-import { useFiltersStore } from '@/stores/filtersStore';
 import { trackListingView } from '@/utils/trackListingView';
-import type { Attribute, Listing } from '@/types/listing';
-import { Text, Loading, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice, ClientPrice } from '@/components/slices';
-import { CarInspection, DamageSummary, fromBackendFormat } from '@/components/slices/CarInspection';
+import type { Listing } from '@/types/listing';
+import type { ProcessedSpecs } from '@/utils/listingDetailHelpers';
+import { Text, Button, ImageGallery, Container, Collapsible, MobileBackButton, ShareButton, FavoriteButton, RelatedByBrand, RelatedByPrice, ClientPrice } from '@/components/slices';
+import { CarInspection, fromBackendFormat } from '@/components/slices/CarInspection';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { formatDate } from '@/utils/formatDate';
 import { LocationMap } from '@/components/LocationMap';
@@ -21,9 +21,8 @@ import { ListingActionBar } from '@/components/listing/ListingActionBar';
 import { OwnerInfoSection } from '@/components/ListingOwnerInfo';
 import { ReportButton } from '@/components/ReportButton';
 import { useUserAuthStore } from '@/stores/userAuthStore';
-import { JsonLd, generateVehicleSchema, generateListingSchema } from '@/components/seo';
-import { getListingTypeLabel } from '@/utils/categoryRouting';
-import { LISTING_TYPE_LABELS, CONDITION_LABELS, ACCOUNT_TYPE_LABELS, CAR_FEATURES_LABELS } from '@/constants/metadata-labels';
+import { JsonLd } from '@/components/seo';
+import { LISTING_TYPE_LABELS, CONDITION_LABELS, ACCOUNT_TYPE_LABELS } from '@/constants/metadata-labels';
 import styles from './ListingDetail.module.scss';
 
 interface ListingDetailClientProps {
@@ -31,18 +30,21 @@ interface ListingDetailClientProps {
   listingId: string;
   categorySlug: string;
   listingTypeSlug: string; // "sell" or "rent"
+  processedSpecs: ProcessedSpecs; // Pre-processed on server
+  schemaData: Record<string, unknown> | null; // Pre-generated on server
 }
 
 export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
   listing: serverListing,
   listingId,
   categorySlug,
-  listingTypeSlug
+  listingTypeSlug,
+  processedSpecs,
+  schemaData,
 }) => {
   const router = useRouter();
   // Use server-fetched listing, but also sync to store for other components
   const { setCurrentListing } = useListingsStore();
-  const { attributes, isLoading: attributesLoading, fetchFilterData } = useFiltersStore();
   const { user: currentUser } = useUserAuthStore();
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -53,14 +55,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
       setCurrentListing(serverListing);
     }
   }, [serverListing, setCurrentListing]);
-
-  // Fetch attributes when listing is loaded (uses filtersStore cache)
-  useEffect(() => {
-    const catSlug = serverListing?.category?.slug || categorySlug;
-    if (catSlug) {
-      fetchFilterData(catSlug);
-    }
-  }, [serverListing?.category?.slug, categorySlug, fetchFilterData]);
 
   // Track listing view (client-side only, after hydration)
   useEffect(() => {
@@ -74,104 +68,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
     router.push(`/${categorySlug}/${listingTypeSlug}`);
   };
 
-  // Separate grouped and ungrouped specifications
-  const { groupedSpecs, ungroupedSpecs } = useMemo(() => {
-    if (!serverListing?.specsDisplay || attributes.length === 0) {
-      return { groupedSpecs: {}, ungroupedSpecs: [] };
-    }
-
-    const groups: Record<string, {
-      groupOrder: number;
-      specs: Array<{ key: string; label: string; value: string; sortOrder: number }>
-    }> = {};
-    const ungrouped: Array<{ key: string; label: string; value: string; sortOrder: number }> = [];
-
-    // Create a map of attribute keys to attributes
-    const attributeMap = new Map<string, Attribute>();
-    attributes.forEach(attr => {
-      if (attr.showInDetail) {
-        attributeMap.set(attr.key, attr);
-      }
-    });
-
-    // Keys to exclude from specs (shown separately or handled by special components)
-    const excludedKeys = ['listingType', 'condition', 'accountType', 'car_damage'];
-
-    // Separate specs into grouped and ungrouped
-    Object.entries(serverListing.specsDisplay).forEach(([key, value]: [string, any]) => {
-      // Skip keys that are shown in the core info section
-      if (excludedKeys.includes(key)) return;
-
-      const attribute = attributeMap.get(key);
-
-      if (attribute) {
-        // Always use attribute.name for label (up-to-date Arabic from database)
-        const label = attribute.name;
-        let displayValue = typeof value === 'object' ? value.value : value;
-
-        // Translate feature keys to Arabic if they're raw keys (not already translated)
-        if (key === 'features' && typeof displayValue === 'string') {
-          // Split by both English and Arabic commas, translate each key, and rejoin
-          displayValue = displayValue
-            .split(/[,،]/)
-            .map((v: string) => v.trim())
-            .filter((v: string) => v) // Remove empty strings
-            .map((v: string) => CAR_FEATURES_LABELS[v] || v)
-            .join('، ');
-        }
-
-        if (attribute.group) {
-          // Has a group - add to groups
-          const groupName = attribute.group;
-          if (!groups[groupName]) {
-            groups[groupName] = {
-              groupOrder: attribute.groupOrder,
-              specs: []
-            };
-          }
-          groups[groupName].specs.push({
-            key,
-            label,
-            value: displayValue,
-            sortOrder: attribute.sortOrder
-          });
-        } else {
-          // No group - add to ungrouped list
-          ungrouped.push({
-            key,
-            label,
-            value: displayValue,
-            sortOrder: attribute.sortOrder
-          });
-        }
-      }
-    });
-
-    // Sort specs within each group
-    Object.values(groups).forEach(group => {
-      group.specs.sort((a, b) => a.sortOrder - b.sortOrder);
-    });
-
-    // Sort ungrouped specs by sortOrder
-    ungrouped.sort((a, b) => a.sortOrder - b.sortOrder);
-
-    return { groupedSpecs: groups, ungroupedSpecs: ungrouped };
-  }, [serverListing?.specsDisplay, attributes]);
-
-  // Sort groups by groupOrder
-  const sortedGroups = useMemo(() => {
-    return Object.entries(groupedSpecs).sort((a, b) => {
-      return a[1].groupOrder - b[1].groupOrder;
-    });
-  }, [groupedSpecs]);
-
-  // Generate schema based on category (Vehicle for cars, Product for others)
-  // IMPORTANT: This hook must be called before any early returns to follow Rules of Hooks
-  const schemaData = useMemo(() => {
-    if (!serverListing) return null;
-    const isVehicle = categorySlug === 'cars' || serverListing.category?.slug === 'cars';
-    return isVehicle ? generateVehicleSchema(serverListing) : generateListingSchema(serverListing);
-  }, [serverListing, categorySlug]);
+  // Use pre-processed specs from server (no client-side processing needed)
+  const { ungroupedSpecs, sortedGroups } = processedSpecs;
 
   // Use server-fetched listing directly (no loading state needed - SSR!)
   const listing = serverListing;
@@ -318,8 +216,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                 </div>
               )}
 
-              {/* Ungrouped Specifications - Individual Fields */}
-              {!attributesLoading && ungroupedSpecs.length > 0 && (
+              {/* Ungrouped Specifications - Individual Fields (pre-processed on server) */}
+              {ungroupedSpecs.length > 0 && (
                 <div className={styles.section}>
                   <div className={styles.specsList}>
                     {ungroupedSpecs.map((spec) => (
@@ -332,8 +230,8 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                 </div>
               )}
 
-              {/* Dynamically Grouped Specifications */}
-              {!attributesLoading && sortedGroups.length > 0 && (
+              {/* Dynamically Grouped Specifications (pre-processed on server) */}
+              {sortedGroups.length > 0 && (
                 <>
                   {sortedGroups.map(([groupName, groupData]) => (
                     <Collapsible
@@ -379,14 +277,6 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                   <Text variant="paragraph">{listing.description}</Text>
                 </div>
               )}
-
-              {/* Loading attributes */}
-              {attributesLoading && (
-                <div className={styles.section}>
-                  <Loading type="svg" />
-                </div>
-              )}
-
 
               {/* Location with Map */}
               {hasLocation && listing.location && (

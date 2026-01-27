@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { ListingDetailClient } from './ListingDetailClient';
 import { LISTING_BY_ID_QUERY } from '@/stores/listingsStore/listingsStore.gql';
 import { urlSegmentToListingType } from '@/utils/categoryRouting';
+import { fetchAttributesSSR, processSpecs } from '@/utils/listingDetailHelpers';
+import { generateVehicleSchema, generateListingSchema } from '@/components/seo';
 import type { Listing } from '@/types/listing';
 
 // Server-side fetch function (no browser APIs like localStorage)
@@ -164,21 +166,35 @@ export default async function ListingDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch listing data on server
-  const listing = await fetchListingSSR(listingId);
+  // Fetch listing and attributes in parallel (server-side)
+  const [listing, attributes] = await Promise.all([
+    fetchListingSSR(listingId),
+    fetchAttributesSSR(category),
+  ]);
 
   // If listing not found, trigger Next.js 404 page
   if (!listing) {
     notFound();
   }
 
-  // Pass pre-fetched listing to client component
+  // Process specs server-side (removes client-side useMemo)
+  const processedSpecs = processSpecs(listing, attributes);
+
+  // Generate schema server-side
+  const isVehicle = category === 'cars' || listing.category?.slug === 'cars';
+  const schemaData = isVehicle
+    ? generateVehicleSchema(listing)
+    : generateListingSchema(listing);
+
+  // Pass pre-processed data to client component
   return (
     <ListingDetailClient
       listing={listing}
       listingId={listingId}
       categorySlug={category}
       listingTypeSlug={listingType}
+      processedSpecs={processedSpecs}
+      schemaData={schemaData}
     />
   );
 }
