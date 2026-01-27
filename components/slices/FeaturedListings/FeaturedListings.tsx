@@ -160,8 +160,62 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
     fetchData();
   }, [categoryId, category?.id, category?.slug, categorySlug, limit]);
 
-  // Don't render if loading or no listings
-  if (isLoading || listings.length === 0) {
+  // Don't render if no category found
+  if (!category) {
+    return null;
+  }
+
+  // Show skeleton while loading to prevent CLS
+  if (isLoading) {
+    const skeletonCount = variant === "grid" ? columns : 5;
+    const skeletonCards = Array.from({ length: skeletonCount }, (_, i) => (
+      <ListingCard
+        key={`skeleton-${i}`}
+        id=""
+        title=""
+        price=""
+        isLoading={true}
+        viewMode="grid"
+      />
+    ));
+
+    if (variant === "grid") {
+      return (
+        <Grid
+          title={displayTitle}
+          columns={columns}
+          mobileColumns={mobileColumns}
+          gap="lg"
+          paddingY={paddingY}
+          background={background}
+          outerBackground={outerBackground}
+          className={className}
+        >
+          {skeletonCards}
+        </Grid>
+      );
+    }
+
+    return (
+      <Slider
+        title={displayTitle}
+        slidesToShow={5}
+        slidesToShowTablet={2}
+        slidesToShowMobile={1}
+        showArrows={false}
+        showDots={false}
+        paddingY={paddingY}
+        background={background}
+        outerBackground={outerBackground}
+        className={className}
+      >
+        {skeletonCards}
+      </Slider>
+    );
+  }
+
+  // Don't render if no listings after loading
+  if (listings.length === 0) {
     return null;
   }
 

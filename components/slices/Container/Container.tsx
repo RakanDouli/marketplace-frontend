@@ -101,6 +101,7 @@ export const Container: React.FC<ContainerProps> = ({
           fill
           sizes="100vw"
           priority={priorityImage}
+          fetchPriority={priorityImage ? "high" : undefined}
           className={styles.backgroundImage}
         />
       )}
@@ -114,6 +115,7 @@ export const Container: React.FC<ContainerProps> = ({
             fill
             sizes="100vw"
             priority={priorityImage}
+            fetchPriority={priorityImage ? "high" : undefined}
             className={styles.backgroundImage}
           />
         )}

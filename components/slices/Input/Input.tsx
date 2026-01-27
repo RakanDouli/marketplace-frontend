@@ -1,12 +1,25 @@
 'use client';
-import React, { forwardRef, useState, useId, useRef, useEffect } from "react";
-import Select from "react-select";
-import CreatableSelect from "react-select/creatable";
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
+import React, { forwardRef, useState, useId, useEffect, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { formatNumberWithCommas, parseFormattedNumber } from "@/utils/formatNumber";
 import { useCurrencyStore, type Currency, CURRENCY_SYMBOLS } from "@/stores/currencyStore";
 import styles from "./Input.module.scss";
+
+// Lazy load heavy components to reduce initial bundle size
+const PhoneInputField = dynamic(() => import("./PhoneInputField"), {
+  loading: () => <div className={styles.inputSkeleton} />,
+  ssr: false,
+});
+
+const SelectInputField = dynamic(() => import("./SelectInputField"), {
+  loading: () => <div className={styles.inputSkeleton} />,
+  ssr: false,
+});
+
+const MultiSelectInputField = dynamic(() => import("./MultiSelectInputField"), {
+  loading: () => <div className={styles.inputSkeleton} />,
+  ssr: false,
+});
 
 
 export interface InputProps
@@ -403,9 +416,6 @@ export const Input = forwardRef<
 
       if (type === "select") {
         const selectProps = props as React.SelectHTMLAttributes<HTMLSelectElement>;
-
-        // ALWAYS use react-select for ALL selects
-        const SelectComponent = creatable ? CreatableSelect : Select;
         const selectedOption = options.find(opt => opt.value === String(selectProps.value || ''));
 
         const handleSelectChange = (newValue: any) => {
@@ -418,12 +428,6 @@ export const Input = forwardRef<
           handleChange(syntheticEvent);
         };
 
-        const handleCreate = (inputValue: string) => {
-          if (onCreateOption) {
-            onCreateOption(inputValue);
-          }
-        };
-
         const selectWrapperClasses = [
           styles.selectWrapperBordered,
           success && !hasAnyError ? styles.selectSuccess : "",
@@ -431,29 +435,20 @@ export const Input = forwardRef<
 
         return (
           <div className={selectWrapperClasses}>
-            <SelectComponent
-              instanceId={selectProps.id || generatedId}
-              inputId={selectProps.id || generatedId}
+            <SelectInputField
+              id={selectProps.id || generatedId}
               name={selectProps.name || selectProps.id || generatedId}
               options={options}
               value={selectedOption || null}
               onChange={handleSelectChange}
-              onCreateOption={creatable ? handleCreate : undefined}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              isDisabled={selectProps.disabled}
+              disabled={selectProps.disabled}
               isLoading={isLoading}
-              isSearchable={searchable}
-              placeholder={props.placeholder || 'اختر خيار...'}
-              noOptionsMessage={() => "لا توجد نتائج"}
-              loadingMessage={() => "جاري التحميل..."}
-              formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
-              classNamePrefix="react-select"
-              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-              menuPosition="fixed"
-              styles={{
-                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-              }}
+              searchable={searchable}
+              creatable={creatable}
+              onCreateOption={onCreateOption}
+              placeholder={props.placeholder}
             />
           </div>
         );
@@ -490,29 +485,17 @@ export const Input = forwardRef<
 
         return (
           <div className={multiSelectWrapperClasses}>
-            <Select
-              instanceId={selectProps.id || generatedId}
-              inputId={selectProps.id || generatedId}
+            <MultiSelectInputField
+              id={selectProps.id || generatedId}
               name={selectProps.name || selectProps.id || generatedId}
               options={options}
               value={selectedOptions}
               onChange={handleMultiSelectChange}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              isDisabled={selectProps.disabled}
+              disabled={selectProps.disabled}
               isLoading={isLoading}
-              isSearchable={true}
-              isMulti={true}
-              placeholder={props.placeholder || 'اختر الخيارات...'}
-              noOptionsMessage={() => "لا توجد نتائج"}
-              loadingMessage={() => "جاري التحميل..."}
-              classNamePrefix="react-select"
-              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-              menuPosition="fixed"
-              closeMenuOnSelect={false}
-              styles={{
-                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-              }}
+              placeholder={props.placeholder}
             />
           </div>
         );
@@ -533,15 +516,12 @@ export const Input = forwardRef<
         };
 
         return (
-          <PhoneInput
-            defaultCountry="SY"
-            international
+          <PhoneInputField
             value={phoneProps.value as string || ''}
             onChange={handlePhoneChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
             disabled={phoneProps.disabled}
-            // className={inputClasses}
             id={phoneProps.id || phoneProps.name || generatedId}
             name={phoneProps.name || phoneProps.id || generatedId}
           />

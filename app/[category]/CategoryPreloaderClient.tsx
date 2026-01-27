@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingBag, Key, ArrowRight } from "lucide-react";
 import Container from "../../components/slices/Container/Container";
 import { Text, MobileBackButton } from "../../components/slices";
@@ -21,9 +21,17 @@ export default function CategoryPreloaderClient({
   categoryIcon,
 }: CategoryPreloaderClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleBack = () => {
     router.push("/categories");
+  };
+
+  // Preserve search params when navigating to sell/rent pages
+  const getHrefWithParams = (listingType: string) => {
+    const params = searchParams.toString();
+    const basePath = `/${categorySlug}/${listingType}`;
+    return params ? `${basePath}?${params}` : basePath;
   };
 
   return (
@@ -51,7 +59,7 @@ export default function CategoryPreloaderClient({
         {/* Type Selection Cards */}
         <div className={styles.optionsGrid}>
           {/* For Sale Option */}
-          <Link href={`/${categorySlug}/sell`} className={styles.optionCard}>
+          <Link href={getHrefWithParams("sell")} className={styles.optionCard}>
             <div className={styles.optionIcon}>
               <ShoppingBag size={48} />
             </div>
@@ -67,7 +75,7 @@ export default function CategoryPreloaderClient({
           </Link>
 
           {/* For Rent Option */}
-          <Link href={`/${categorySlug}/rent`} className={styles.optionCard}>
+          <Link href={getHrefWithParams("rent")} className={styles.optionCard}>
             <div className={styles.optionIcon}>
               <Key size={48} />
             </div>
