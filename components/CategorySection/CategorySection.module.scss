@@ -104,7 +104,9 @@
   border: 1px solid $border;
   border-radius: $radius-lg;
   text-decoration: none;
-  transition: all 0.2s ease;
+  // GPU-accelerated transitions only (avoid 'all' for performance)
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  will-change: transform;
   cursor: pointer;
   min-height: 120px;
   box-shadow: $shadow-sm;
@@ -238,7 +240,8 @@
   border-radius: $radius-lg;
   color: $primary;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  // GPU-accelerated transitions only
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   @media (max-width: $breakpoint-md) {
     width: 48px;

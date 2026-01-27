@@ -32,6 +32,19 @@
   flex-shrink: 0;
   box-sizing: border-box;
   padding: $space-sm;
+  // Use CSS custom properties for responsive widths (prevents CLS)
+  // Desktop: width = 100% / var(--slides-desktop)
+  width: calc(100% / var(--slides-desktop, 3));
+
+  @media (max-width: 1023px) {
+    // Tablet: width = 100% / var(--slides-tablet)
+    width: calc(100% / var(--slides-tablet, 2));
+  }
+
+  @media (max-width: 767px) {
+    // Mobile: width = 100% / var(--slides-mobile)
+    width: calc(100% / var(--slides-mobile, 1));
+  }
 }
 
 .slideInner {
@@ -55,7 +68,8 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  // GPU-accelerated transitions
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   &:hover:not(:disabled) {
@@ -111,7 +125,8 @@
   background: var(--border);
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  // GPU-accelerated transitions - include width for active state animation
+  transition: transform 0.3s ease, background-color 0.3s ease, width 0.3s ease;
   padding: 0;
 
   &:hover {

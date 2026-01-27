@@ -113,7 +113,8 @@
   height: 32px;
   border-radius: $radius-full;
   color: $text;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  // GPU-accelerated transitions only
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     background-color: rgba($primary, 0.1);
@@ -134,7 +135,8 @@
   font-size: $font-sm;
   font-weight: $weight-medium;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  // GPU-accelerated transitions only
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     background-color: $primary;
@@ -282,7 +284,8 @@
     height: 2px;
     background-color: $text;
     border-radius: $radius-full;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    // GPU-accelerated transitions only
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &.hamburgerOpen {
@@ -310,7 +313,8 @@
   transform: translateY(-100%);
   opacity: 0;
   visibility: hidden;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  // GPU-accelerated transitions only
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: $z-nav;
 
   &.mobileMenuOpen {

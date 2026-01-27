@@ -43,12 +43,18 @@ export const Slider: React.FC<SliderProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [slidesPerView, setSlidesPerView] = useState(slidesToShow);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Convert children to array
   const slides = React.Children.toArray(children);
   const totalSlides = slides.length;
 
-  // Responsive slides per view
+  // Mark as mounted after hydration (for navigation controls only)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Responsive slides per view - only for navigation logic, not for CSS
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -77,6 +83,14 @@ export const Slider: React.FC<SliderProps> = ({
   const maxIndex = Math.max(0, totalSlides - slidesPerView);
   const totalPages = Math.ceil(totalSlides / slidesPerView);
   const currentPage = Math.floor(currentIndex / slidesPerView);
+
+  // CSS custom properties for responsive slide widths (prevents CLS)
+  // The SCSS uses these to set slide width via media queries
+  const cssVars = {
+    '--slides-desktop': slidesToShow,
+    '--slides-tablet': slidesToShowTablet,
+    '--slides-mobile': slidesToShowMobile,
+  } as React.CSSProperties;
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => {
@@ -120,9 +134,9 @@ export const Slider: React.FC<SliderProps> = ({
         </div>
       )}
 
-      <div className={styles.sliderWrapper}>
+      <div className={styles.sliderWrapper} style={cssVars}>
         {/* Previous Arrow - Left side (RTL: left arrow = go forward) */}
-        {showArrows && totalSlides > slidesPerView && (
+        {isMounted && showArrows && totalSlides > slidesPerView && (
           <button
             type="button"
             className={`${styles.arrow} ${styles.arrowPrev}`}
@@ -139,16 +153,14 @@ export const Slider: React.FC<SliderProps> = ({
           <div
             className={styles.sliderInner}
             style={{
-              transform: `translateX(${translatePercentage}%)`,
+              // Only apply transform after mount to prevent CLS
+              transform: isMounted ? `translateX(${translatePercentage}%)` : undefined,
             }}
           >
             {slides.map((slide, index) => (
               <div
                 key={index}
                 className={styles.slide}
-                style={{
-                  width: `${slideWidthPercent}%`,
-                }}
               >
                 <div className={styles.slideInner}>
                   {slide}
@@ -159,7 +171,7 @@ export const Slider: React.FC<SliderProps> = ({
         </div>
 
         {/* Next Arrow - Right side (RTL: right arrow = go back) */}
-        {showArrows && totalSlides > slidesPerView && (
+        {isMounted && showArrows && totalSlides > slidesPerView && (
           <button
             type="button"
             className={`${styles.arrow} ${styles.arrowNext}`}
@@ -173,7 +185,7 @@ export const Slider: React.FC<SliderProps> = ({
       </div>
 
       {/* Dots Navigation */}
-      {showDots && totalSlides > slidesPerView && totalPages > 1 && (
+      {isMounted && showDots && totalSlides > slidesPerView && totalPages > 1 && (
         <div className={styles.dots}>
           {Array.from({ length: totalPages }).map((_, pageIndex) => (
             <button

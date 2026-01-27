@@ -24,7 +24,8 @@
 
   width: fit-content;
   text-decoration: none;
-  transition: all 0.3s ease-out;
+  // GPU-accelerated transitions (avoid 'all' for performance)
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out, background-color 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
 
   // Variant styles
   &--primary {
@@ -131,7 +132,8 @@
 
   .title {
     margin: 0;
-    transition: all 0.3s ease-out;
+    // GPU-accelerated transitions
+    transition: color 0.3s ease-out, opacity 0.3s ease-out;
     text-transform: uppercase;
     font-size: 1rem;
     font-weight: $weight-bold;

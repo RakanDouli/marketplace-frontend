@@ -39,9 +39,11 @@ export const UserMenu: React.FC = () => {
     return optimizeListingImage(avatar, 'small'); // Cloudflare asset key - use 'small' for better quality (300x200)
   };
 
-  // Show nothing while waiting for hydration (prevents flash of login button)
+  // Show placeholder with same dimensions during hydration (prevents CLS)
   if (!hydrated) {
-    return null;
+    return (
+      <div className={styles.loginButton} style={{ minWidth: '120px', height: '36px', visibility: 'hidden' }} aria-hidden="true" />
+    );
   }
 
   if (!isAuthenticated || !user) {
