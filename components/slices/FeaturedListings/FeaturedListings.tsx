@@ -8,6 +8,7 @@ import { Grid } from "../Grid";
 import { Button } from "../Button/Button";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
+import { useMetadataStore } from "@/stores/metadataStore";
 import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
 import { LISTINGS_GRID_QUERY } from "@/stores/listingsStore/listingsStore.gql";
@@ -68,9 +69,23 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
 }) => {
   // Categories are hydrated from root layout - instant access, no waiting
   const { getCategoryById, getCategoryBySlug } = useCategoriesStore();
+  const { provinces, fetchLocationMetadata } = useMetadataStore();
   const [listings, setListings] = useState<Listing[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch provinces if not loaded (needed for Arabic location names)
+  useEffect(() => {
+    if (provinces.length === 0) {
+      fetchLocationMetadata();
+    }
+  }, [provinces.length, fetchLocationMetadata]);
+
+  // Helper to get Arabic province name from key
+  const getProvinceArabicName = (provinceKey: string): string => {
+    const province = provinces.find((p) => p.key === provinceKey);
+    return province?.nameAr || provinceKey;
+  };
 
   // Filter specs based on showInGrid flag from attributes (same as ListingArea)
   const filterSpecsForGrid = (allSpecs: Record<string, any>): Record<string, any> => {
@@ -239,13 +254,22 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
 
       const filteredSpecs = filterSpecsForGrid(parsedSpecs);
 
+      // Extract location and translate province to Arabic
+      const provinceKey = listing.location?.province;
+      const city = listing.location?.city;
+      const province = provinceKey ? getProvinceArabicName(provinceKey) : "";
+      // Format: "city، province" or just "province"
+      const locationDisplay = city && province
+        ? `${city}، ${province}`
+        : province || "";
+
       return (
         <ListingCard
           key={listing.id}
           id={listing.id}
           title={listing.title}
           price={formatPrice(listing.priceMinor)}
-          location={listing.location?.city || listing.location?.province || ""}
+          location={locationDisplay}
           accountType={(listing.accountType as "individual" | "dealer" | "business") || "individual"}
           specs={filteredSpecs}
           images={listing.imageKeys}
