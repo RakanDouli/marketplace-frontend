@@ -6,6 +6,7 @@
     "dev": "NEXT_PUBLIC_APP_ENV=development next dev",
     "dev:staging": "dotenv -e .env.staging -- next dev",
     "build": "next build",
+    "build:analyze": "ANALYZE_BUNDLE=true next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -32,6 +33,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

@@ -5,6 +5,10 @@ const withPWA = require('next-pwa')({
   skipWaiting: true,
 });
 
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE_BUNDLE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Use webpack for PWA compatibility (next-pwa doesn't support Turbopack yet)
@@ -91,4 +95,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = withBundleAnalyzer(withPWA(nextConfig));
