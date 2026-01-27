@@ -184,35 +184,35 @@ export default function PaymentsPage() {
 
         {/* Stats Grid - 3 columns desktop, 2 mobile */}
         <div className={styles.statsGrid}>
-            <div className={styles.statItem}>
-              <div className={styles.statIcon}>
-                <CreditCard size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">إجمالي المدفوعات</Text>
-                <Text variant="h3">{formatAdPrice(totalSpent, 'USD')}</Text>
-              </div>
+          <div className={styles.statItem}>
+            <div className={styles.statIcon}>
+              <CreditCard size={20} />
             </div>
+            <div className={styles.statContent}>
+              <Text variant="small" color="secondary">إجمالي المدفوعات</Text>
+              <Text variant="h3">{formatAdPrice(totalSpent, 'USD')}</Text>
+            </div>
+          </div>
 
-            <div className={styles.statItem}>
-              <div className={styles.statIcon}>
-                <RefreshCw size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">العمليات المكتملة</Text>
-                <Text variant="h3">{completedCount}</Text>
-              </div>
+          <div className={styles.statItem}>
+            <div className={styles.statIcon}>
+              <RefreshCw size={20} />
             </div>
+            <div className={styles.statContent}>
+              <Text variant="small" color="secondary">العمليات المكتملة</Text>
+              <Text variant="h3">{completedCount}</Text>
+            </div>
+          </div>
 
-            <div className={styles.statItem}>
-              <div className={styles.statIcon}>
-                <Receipt size={20} />
-              </div>
-              <div className={styles.statContent}>
-                <Text variant="small" color="secondary">العمليات المعلقة</Text>
-                <Text variant="h3">{pendingCount}</Text>
-              </div>
+          <div className={styles.statItem}>
+            <div className={styles.statIcon}>
+              <Receipt size={20} />
             </div>
+            <div className={styles.statContent}>
+              <Text variant="small" color="secondary">العمليات المعلقة</Text>
+              <Text variant="h3">{pendingCount}</Text>
+            </div>
+          </div>
         </div>
 
         {/* Transactions List */}

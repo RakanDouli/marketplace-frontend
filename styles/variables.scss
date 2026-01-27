@@ -71,15 +71,10 @@ $line-normal: 1.5;
 $line-relaxed: 1.625;
 $line-loose: 2;
 
-// Font Families - Direct SCSS variables
-$font-headers: "Beiruti", "Cairo", "Segoe UI", Tahoma, Geneva, sans-serif;
-$font-body:
-  "Rubik",
-  -apple-system,
-  BlinkMacSystemFont,
-  "Segoe UI",
-  Roboto,
-  sans-serif;
+// Font Families - Using CSS variables from next/font (self-hosted, zero CLS)
+// Fallback fonts are applied when CSS variables aren't available (SSR)
+$font-headers: var(--font-beiruti), "Cairo", "Segoe UI", Tahoma, Geneva, sans-serif;
+$font-body: var(--font-rubik), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 $font-mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
 
 // Breakpoints - Direct SCSS variables

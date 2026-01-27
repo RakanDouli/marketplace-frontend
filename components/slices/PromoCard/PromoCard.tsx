@@ -17,6 +17,8 @@ export interface PromoCardProps {
   badge?: string;
   variant?: "primary" | "secondary" | "accent" | "neutral";
   className?: string;
+  /** Load image with priority for above-the-fold content (improves LCP) */
+  priority?: boolean;
 }
 
 export const PromoCard: React.FC<PromoCardProps> = ({
@@ -30,6 +32,7 @@ export const PromoCard: React.FC<PromoCardProps> = ({
   badge,
   variant = "primary",
   className = "",
+  priority = false,
 }) => {
   // Check if image is from Cloudflare
   const isCloudflareImage = imageSrc?.includes("imagedelivery.net") || imageSrc?.includes("cloudflare");
@@ -46,6 +49,7 @@ export const PromoCard: React.FC<PromoCardProps> = ({
             sizes="(max-width: 768px) 100vw, 150px"
             className={styles.image}
             unoptimized={isCloudflareImage}
+            priority={priority}
           />
         </div>
       )}

@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import styles from "./Container.module.scss";
 
 type PaddingSize = "none" | "sm" | "md" | "lg" | "xl" | "xxl";
@@ -34,6 +35,8 @@ export interface ContainerProps {
   innerPadding?: PaddingSize;
   /** Inner container border (adds border + border-radius) */
   innerBorder?: boolean;
+  /** Load background image with priority (for above-the-fold LCP images) */
+  priorityImage?: boolean;
 }
 
 export const Container: React.FC<ContainerProps> = ({
@@ -52,6 +55,7 @@ export const Container: React.FC<ContainerProps> = ({
   className = "",
   innerPadding,
   innerBorder = false,
+  priorityImage = false,
 }) => {
   // Build class names
   const outerClasses = [
@@ -59,6 +63,7 @@ export const Container: React.FC<ContainerProps> = ({
     styles[`outerBg_${outerBackground}`],
     styles[`px_${paddingX}`],
     styles[`outerPy_${outerPaddingY}`],
+    outerBackgroundImage && styles.hasBackgroundImage,
     className,
   ].filter(Boolean).join(" ");
 
@@ -69,17 +74,17 @@ export const Container: React.FC<ContainerProps> = ({
     styles[`py_${paddingY}`],
     innerPadding && styles[`innerP_${innerPadding}`],
     innerBorder && styles.innerBorder,
+    backgroundImage && styles.hasBackgroundImage,
   ].filter(Boolean).join(" ");
 
   // Custom inline styles (override CSS classes if provided)
+  // Note: background images now use next/image component, not CSS
   const outerStyles: React.CSSProperties = {
     ...(outerBackgroundColor && { backgroundColor: outerBackgroundColor }),
-    ...(outerBackgroundImage && { backgroundImage: `url(${outerBackgroundImage})` }),
   };
 
   const innerStyles: React.CSSProperties = {
     ...(backgroundColor && { backgroundColor }),
-    ...(backgroundImage && { backgroundImage: `url(${backgroundImage})` }),
   };
 
   // Determine if overlay should show on outer or inner
@@ -88,8 +93,30 @@ export const Container: React.FC<ContainerProps> = ({
 
   return (
     <section className={outerClasses} style={outerStyles}>
+      {/* Outer background image using next/image for optimization */}
+      {outerBackgroundImage && (
+        <Image
+          src={outerBackgroundImage}
+          alt=""
+          fill
+          sizes="100vw"
+          priority={priorityImage}
+          className={styles.backgroundImage}
+        />
+      )}
       {hasOuterOverlay && <div className={styles.overlay} />}
       <div className={innerClasses} style={innerStyles}>
+        {/* Inner background image using next/image for optimization */}
+        {backgroundImage && (
+          <Image
+            src={backgroundImage}
+            alt=""
+            fill
+            sizes="100vw"
+            priority={priorityImage}
+            className={styles.backgroundImage}
+          />
+        )}
         {hasInnerOverlay && <div className={styles.overlay} />}
         <div className={styles.content}>{children}</div>
       </div>

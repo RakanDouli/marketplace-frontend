@@ -177,61 +177,61 @@ export const SortableItem: React.FC<SortableItemProps> = ({
               <div className={styles.moveDropdownMenu}>
                 {/* If item is in a group, show "Move to General" */}
                 {item.groupName &&
-                 item.groupName.trim() !== '' &&
-                 item.groupName !== 'بدون مجموعة' &&
-                 item.groupName !== 'عام' &&
-                 onExtractFromGroup && (
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={handleMoveToGeneral}
-                  >
-                    اخراج من المجموعه </button>
-                )}
+                  item.groupName.trim() !== '' &&
+                  item.groupName !== 'بدون مجموعة' &&
+                  item.groupName !== 'عام' &&
+                  onExtractFromGroup && (
+                    <button
+                      className={styles.dropdownItem}
+                      onClick={handleMoveToGeneral}
+                    >
+                      اخراج من المجموعه </button>
+                  )}
 
                 {/* If item is not in a group, show available groups */}
                 {(!item.groupName ||
                   item.groupName.trim() === '' ||
                   item.groupName === 'بدون مجموعة' ||
                   item.groupName === 'عام') &&
-                 onAddToGroup &&
-                 availableGroups.length > 0 && (
-                  <>
-                    <div className={styles.dropdownLabel}>نقل إلى:</div>
-                    {availableGroups.map((group) => (
-                      <button
-                        key={group.id}
-                        className={styles.dropdownItem}
-                        onClick={(e) => handleMoveToGroup(e, group.id)}
-                      >
-                        {group.name}
-                      </button>
-                    ))}
-                  </>
-                )}
-
-                {/* If item is in a group, show other available groups */}
-                {item.groupName &&
-                 item.groupName.trim() !== '' &&
-                 item.groupName !== 'بدون مجموعة' &&
-                 item.groupName !== 'عام' &&
-                 onAddToGroup &&
-                 availableGroups.length > 0 && (
-                  <>
-                    <div className={styles.dropdownSeparator}></div>
-                    {/* <div className={styles.dropdownLabel}>نقل إلى مجموعة أخرى:</div> */}
-                    {availableGroups
-                      .filter(group => group.name !== item.groupName)
-                      .map((group) => (
+                  onAddToGroup &&
+                  availableGroups.length > 0 && (
+                    <>
+                      <div className={styles.dropdownLabel}>نقل إلى:</div>
+                      {availableGroups.map((group) => (
                         <button
                           key={group.id}
                           className={styles.dropdownItem}
                           onClick={(e) => handleMoveToGroup(e, group.id)}
                         >
-                          نقل إلى {group.name}
+                          {group.name}
                         </button>
                       ))}
-                  </>
-                )}
+                    </>
+                  )}
+
+                {/* If item is in a group, show other available groups */}
+                {item.groupName &&
+                  item.groupName.trim() !== '' &&
+                  item.groupName !== 'بدون مجموعة' &&
+                  item.groupName !== 'عام' &&
+                  onAddToGroup &&
+                  availableGroups.length > 0 && (
+                    <>
+                      <div className={styles.dropdownSeparator}></div>
+                      {/* <div className={styles.dropdownLabel}>نقل إلى مجموعة أخرى:</div> */}
+                      {availableGroups
+                        .filter(group => group.name !== item.groupName)
+                        .map((group) => (
+                          <button
+                            key={group.id}
+                            className={styles.dropdownItem}
+                            onClick={(e) => handleMoveToGroup(e, group.id)}
+                          >
+                            نقل إلى {group.name}
+                          </button>
+                        ))}
+                    </>
+                  )}
               </div>
             )}
           </div>

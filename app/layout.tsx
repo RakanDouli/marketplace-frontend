@@ -10,6 +10,7 @@ import { JsonLd, generateOrganizationSchema, generateWebsiteSchema } from '../co
 import { CategoriesProvider } from '../providers/CategoriesProvider';
 import { Category } from '../stores/types';
 import { ListingType } from '../common/enums';
+import { rubik, beiruti } from './fonts';
 
 export const metadata: Metadata = generateDefaultMetadata('ar');
 
@@ -77,7 +78,7 @@ export default async function RootLayout({
   const categories = await fetchCategories();
 
   return (
-    <html lang="ar" dir="rtl" data-theme="light">
+    <html lang="ar" dir="rtl" data-theme="light" className={`${rubik.variable} ${beiruti.variable}`}>
       <head>
         {/* Favicon for browser tabs */}
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
@@ -87,19 +88,7 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3D5CB6" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-        {/* Preconnect to Google Fonts for faster loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Preload critical fonts to reduce CLS from font swapping */}
-        <link
-          rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Beiruti:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap"
-          as="style"
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Beiruti:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap"
-        />
+        {/* Fonts are now loaded via next/font (self-hosted, no external requests, zero CLS) */}
         {/* AdSense script is loaded dynamically by AdSenseScriptLoader with client ID from database */}
         {/* Schema.org structured data for SEO */}
         <JsonLd data={generateOrganizationSchema()} />

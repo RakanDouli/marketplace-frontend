@@ -237,56 +237,56 @@ export const MobileFilterBar: React.FC<MobileFilterBarProps> = ({
       <div className={`${styles.mobileFilterBar} ${isVisible ? styles.belowHeader : styles.atTop}`}>
         {/* Line 1: Total count + Clear all (clear button only shows when filters applied) */}
         <div className={styles.topRow}>
-        <Text variant="small" className={styles.totalCount}>
-          {totalResults} {t('search.results')}
-        </Text>
-        {true && (
-          <span
-            className={styles.clearButton}
-            onClick={handleClearAll}
-          >
+          <Text variant="small" className={styles.totalCount}>
+            {totalResults} {t('search.results')}
+          </Text>
+          {true && (
+            <span
+              className={styles.clearButton}
+              onClick={handleClearAll}
+            >
 
-            {t('search.clearAllFilters')}
-            <Trash2 size={14} />
-          </span>
-        )}
-      </div>
-
-      {/* Line 2: Filter button + Applied chips */}
-      <div className={styles.bottomRow}>
-        <button
-          type="button"
-          className={styles.filterButton}
-          onClick={onFilterClick}
-        >
-          <SlidersHorizontal size={18} />
-          {t('search.filters')}
-          {filterCount > 0 && (
-            <span className={styles.filterCount}>{filterCount}</span>
+              {t('search.clearAllFilters')}
+              <Trash2 size={14} />
+            </span>
           )}
-        </button>
+        </div>
 
-        {/* Applied Filters - Horizontal Scroll */}
-        {activeFilters.length > 0 && (
-          <div ref={chipsContainerRef} className={styles.filtersList}>
-            {activeFilters.map((filter) => (
-              <div key={filter.key} className={styles.filterTag}>
-                <Text variant="small" className={styles.filterValue}>
-                  {filter.value}
-                </Text>
-                <button
-                  type="button"
-                  className={styles.removeButton}
-                  onClick={() => handleRemoveFilter(filter.key)}
-                  aria-label={t('search.removeFilter')}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        {/* Line 2: Filter button + Applied chips */}
+        <div className={styles.bottomRow}>
+          <button
+            type="button"
+            className={styles.filterButton}
+            onClick={onFilterClick}
+          >
+            <SlidersHorizontal size={18} />
+            {t('search.filters')}
+            {filterCount > 0 && (
+              <span className={styles.filterCount}>{filterCount}</span>
+            )}
+          </button>
+
+          {/* Applied Filters - Horizontal Scroll */}
+          {activeFilters.length > 0 && (
+            <div ref={chipsContainerRef} className={styles.filtersList}>
+              {activeFilters.map((filter) => (
+                <div key={filter.key} className={styles.filterTag}>
+                  <Text variant="small" className={styles.filterValue}>
+                    {filter.value}
+                  </Text>
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => handleRemoveFilter(filter.key)}
+                    aria-label={t('search.removeFilter')}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       {/* Spacer to prevent content from going under the fixed filter bar on mobile */}
       <div className={styles.spacer} />

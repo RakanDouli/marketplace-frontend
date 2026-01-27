@@ -4,8 +4,8 @@
 
 @import 'variables';
 
-// Fonts are preloaded in app/layout.tsx to reduce CLS
-// Using <link rel="preload" as="style"> for Beiruti and Rubik fonts
+// Fonts are loaded via next/font in app/fonts.ts (self-hosted, zero CLS)
+// CSS variables --font-rubik and --font-beiruti are set on <html>
 
 // Body font family
 body {

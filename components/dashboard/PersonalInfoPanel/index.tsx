@@ -347,7 +347,7 @@ export const PersonalInfoPanel: React.FC = () => {
       {/* Modals */}
       {showEditModal && (
         <EditProfileModal
-          user={{...user, token: user.token}}
+          user={{ ...user, token: user.token }}
           onClose={() => setShowEditModal(false)}
           onSave={handleSaveProfile}
           onSendPasswordReset={handleSendPasswordReset}

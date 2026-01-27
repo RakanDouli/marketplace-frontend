@@ -18,6 +18,8 @@ export interface PromoBannerProps {
   variant?: "primary" | "secondary" | "accent";
   className?: string;
   paddingY?: ContainerProps["paddingY"];
+  /** Load image with priority for above-the-fold content (improves LCP) */
+  priority?: boolean;
 }
 
 export const PromoBanner: React.FC<PromoBannerProps> = ({
@@ -31,6 +33,7 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
   variant = "secondary",
   className = "",
   paddingY = "sm",
+  priority = false,
 }) => {
   // Check if image is from Cloudflare (contains cloudflare or our CDN domain)
   const isCloudflareImage = imageSrc?.includes("imagedelivery.net") || imageSrc?.includes("cloudflare");
@@ -48,6 +51,7 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
                 sizes="(max-width: 768px) 100vw, 300px"
                 className={styles.image}
                 unoptimized={isCloudflareImage}
+                priority={priority}
               />
             </div>
           )}

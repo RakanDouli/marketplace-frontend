@@ -54,6 +54,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ categories: se
         paddingY="xl"
         size="lg"
         className={styles.heroContainer}
+        priorityImage
       >
         <div className={styles.heroContent}>
           <Text variant="h1" className={styles.heroTitle}>
