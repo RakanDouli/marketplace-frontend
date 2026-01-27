@@ -117,7 +117,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                 metadata={{
                   title: title,
                   description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
-                  url: typeof window !== 'undefined' ? `${window.location.origin}${listingUrl}` : '',
+                  url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://shambay.com'}${listingUrl}`,
                   image: images?.[0],
                   siteName: 'السوق السوري للسيارات',
                   type: 'product',

@@ -11,6 +11,7 @@ import { useChatStore } from '@/stores/chatStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useListingsStore } from '@/stores/listingsStore';
 import { formatDate } from '@/utils/formatDate';
+import { listingTypeToUrlSegment } from '@/utils/categoryRouting';
 import { ListingStatus } from '@/common/enums';
 import styles from './ListingInfoCard.module.scss';
 import { OwnerCard } from '@/components/ListingOwnerInfo';
@@ -50,7 +51,15 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
     user,
     location,
     createdAt,
+    category,
+    listingType,
   } = currentListing;
+
+  // Construct share URL from listing data (avoids hydration mismatch)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://shambay.com';
+  const categorySlug = category?.slug || 'cars';
+  const typeSlug = listingTypeToUrlSegment(listingType || 'SALE');
+  const shareUrl = `${baseUrl}/${categorySlug}/${typeSlug}/${listingId}`;
 
   const handleContactClick = () => {
     // Check if user is logged in - open auth modal if not
@@ -84,7 +93,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
           metadata={{
             title,
             description: description || '',
-            url: typeof window !== 'undefined' ? window.location.href : '',
+            url: shareUrl,
             image: imageKeys?.[0],
             siteName: 'السوق السوري للسيارات',
             type: 'product',

@@ -80,6 +80,10 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
     listing.location.coordinates
   );
 
+  // Construct share URL from props (avoids hydration mismatch)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://shambay.com';
+  const shareUrl = `${baseUrl}/${categorySlug}/${listingTypeSlug}/${listingId}`;
+
   return (
     <>
       {/* Schema.org Structured Data for SEO */}
@@ -146,7 +150,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                       metadata={{
                         title: listing.title,
                         description: listing.description || '',
-                        url: typeof window !== 'undefined' ? window.location.href : '',
+                        url: shareUrl,
                         image: listing.imageKeys?.[0],
                         siteName: 'السوق السوري للسيارات',
                         type: 'product',
