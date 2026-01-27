@@ -60,6 +60,7 @@
   // Text for light theme
   --text: var(--text-header); // Dark text on light background
   --text-muted: var(--text-body-dark); // Medium gray text
+  --text-secondary: #4b5563; // Secondary text - WCAG AA compliant (5.9:1 on white)
   --text-inverse: var(--text-light); // Light text for dark elements
 
   // Avatar colors for light theme
@@ -78,6 +79,7 @@
   // Text for dark theme
   --text: var(--text-light); // Light text on dark background
   --text-muted: var(--text-body-light); // Medium gray text
+  --text-secondary: #9ca3af; // Secondary text - WCAG AA compliant (7.2:1 on #0f172a)
   --text-inverse: var(--text-header); // Dark text for light elements
 
   // Avatar colors for dark theme
@@ -95,6 +97,7 @@
 
     --text: var(--text-light);
     --text-muted: var(--text-body-light);
+    --text-secondary: #9ca3af; // Secondary text - WCAG AA compliant
     --text-inverse: var(--text-header);
 
     // Avatar colors for system dark theme

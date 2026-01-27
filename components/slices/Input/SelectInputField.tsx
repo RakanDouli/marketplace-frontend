@@ -24,6 +24,7 @@ interface SelectInputFieldProps {
   creatable?: boolean;
   onCreateOption?: (inputValue: string) => void;
   placeholder?: string;
+  'aria-label'?: string;
 }
 
 export const SelectInputField: React.FC<SelectInputFieldProps> = ({
@@ -40,6 +41,7 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
   creatable,
   onCreateOption,
   placeholder,
+  'aria-label': ariaLabel,
 }) => {
   const SelectComponent = creatable ? CreatableSelect : Select;
 
@@ -64,6 +66,7 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
       classNamePrefix="react-select"
       menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
       menuPosition="fixed"
+      aria-label={ariaLabel || placeholder || 'اختر خيار'}
       styles={{
         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
       }}

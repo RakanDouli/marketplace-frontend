@@ -20,6 +20,7 @@ interface MultiSelectInputFieldProps {
   disabled?: boolean;
   isLoading?: boolean;
   placeholder?: string;
+  'aria-label'?: string;
 }
 
 export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
@@ -33,6 +34,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
   disabled,
   isLoading,
   placeholder,
+  'aria-label': ariaLabel,
 }) => {
   return (
     <Select
@@ -55,6 +57,7 @@ export const MultiSelectInputField: React.FC<MultiSelectInputFieldProps> = ({
       menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
       menuPosition="fixed"
       closeMenuOnSelect={false}
+      aria-label={ariaLabel || placeholder || 'اختر الخيارات'}
       styles={{
         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
       }}

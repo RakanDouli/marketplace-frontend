@@ -449,6 +449,7 @@ export const Input = forwardRef<
               creatable={creatable}
               onCreateOption={onCreateOption}
               placeholder={props.placeholder}
+              aria-label={typeof label === 'string' ? label : undefined}
             />
           </div>
         );
@@ -496,6 +497,7 @@ export const Input = forwardRef<
               disabled={selectProps.disabled}
               isLoading={isLoading}
               placeholder={props.placeholder}
+              aria-label={typeof label === 'string' ? label : undefined}
             />
           </div>
         );
@@ -524,6 +526,7 @@ export const Input = forwardRef<
             disabled={phoneProps.disabled}
             id={phoneProps.id || phoneProps.name || generatedId}
             name={phoneProps.name || phoneProps.id || generatedId}
+            aria-label={typeof label === 'string' ? label : 'رقم الهاتف'}
           />
         );
       }

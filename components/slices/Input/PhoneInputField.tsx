@@ -12,6 +12,7 @@ interface PhoneInputFieldProps {
   disabled?: boolean;
   id: string;
   name: string;
+  'aria-label'?: string;
 }
 
 export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
@@ -22,6 +23,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   disabled,
   id,
   name,
+  'aria-label': ariaLabel,
 }) => {
   return (
     <PhoneInput
@@ -34,6 +36,9 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
       disabled={disabled}
       id={id}
       name={name}
+      numberInputProps={{
+        'aria-label': ariaLabel || 'رقم الهاتف',
+      }}
     />
   );
 };
