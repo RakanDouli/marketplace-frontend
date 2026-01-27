@@ -78,26 +78,8 @@ export default async function RootLayout({
   const categories = await fetchCategories();
 
   return (
-    <html lang="ar" dir="rtl" data-theme="light" className={`${rubik.variable} ${beiruti.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${rubik.variable} ${beiruti.variable}`}>
       <head>
-        {/* Theme initialization script - runs BEFORE React to prevent CLS */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('theme');
-                  if (!theme) {
-                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                  }
-                  document.documentElement.setAttribute('data-theme', theme);
-                } catch (e) {
-                  document.documentElement.setAttribute('data-theme', 'light');
-                }
-              })();
-            `,
-          }}
-        />
         {/* Favicon for browser tabs */}
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />

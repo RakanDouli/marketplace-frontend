@@ -22,23 +22,24 @@ export function ThemeProvider({
   children,
   defaultTheme = 'light'
 }: ThemeProviderProps) {
-  // Initialize with theme already set by blocking script in layout.tsx
-  // This prevents hydration mismatch and CLS
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      // Read from DOM (already set by blocking script)
-      const domTheme = document.documentElement.getAttribute('data-theme') as Theme;
-      if (domTheme && ['light', 'dark'].includes(domTheme)) {
-        return domTheme;
-      }
-    }
-    return defaultTheme;
-  });
+  // Start with default theme - CSS media queries handle initial styling
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Theme is already correct from blocking script, no need to re-read localStorage
+
+    // After mount, check localStorage and system preference
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
+      setThemeState(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      // Use system preference
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setThemeState(systemTheme);
+      document.documentElement.setAttribute('data-theme', systemTheme);
+    }
   }, []);
 
   useEffect(() => {
