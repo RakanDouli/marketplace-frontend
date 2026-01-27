@@ -78,7 +78,7 @@ export default async function RootLayout({
   const categories = await fetchCategories();
 
   return (
-    <html lang="ar" dir="rtl" className={`${rubik.variable} ${beiruti.variable}`}>
+    <html lang="ar" dir="rtl" className={`${rubik.variable} ${beiruti.variable}`} suppressHydrationWarning>
       <head>
         {/* Favicon for browser tabs */}
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
@@ -94,7 +94,7 @@ export default async function RootLayout({
         <JsonLd data={generateOrganizationSchema()} />
         <JsonLd data={generateWebsiteSchema()} />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <LanguageProvider defaultLanguage="ar">
           <ThemeProvider>
             <ErrorBoundary>
