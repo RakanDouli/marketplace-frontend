@@ -18,25 +18,27 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export function ThemeProvider({ 
-  children, 
-  defaultTheme = 'light' 
+export function ThemeProvider({
+  children,
+  defaultTheme = 'light'
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  // Initialize with theme already set by blocking script in layout.tsx
+  // This prevents hydration mismatch and CLS
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      // Read from DOM (already set by blocking script)
+      const domTheme = document.documentElement.getAttribute('data-theme') as Theme;
+      if (domTheme && ['light', 'dark'].includes(domTheme)) {
+        return domTheme;
+      }
+    }
+    return defaultTheme;
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    
-    // Check for saved theme in localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
-      setThemeState(savedTheme);
-    } else {
-      // Check system preference
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setThemeState(systemTheme);
-    }
+    // Theme is already correct from blocking script, no need to re-read localStorage
   }, []);
 
   useEffect(() => {
