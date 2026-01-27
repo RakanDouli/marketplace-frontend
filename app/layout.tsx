@@ -78,7 +78,7 @@ export default async function RootLayout({
   const categories = await fetchCategories();
 
   return (
-    <html lang="ar" dir="rtl" className={`${rubik.variable} ${beiruti.variable}`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" data-theme="light" className={`${rubik.variable} ${beiruti.variable}`} suppressHydrationWarning>
       <head>
         {/* Theme initialization script - runs BEFORE React to prevent CLS */}
         <script
