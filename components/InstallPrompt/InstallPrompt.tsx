@@ -17,8 +17,10 @@ export const InstallPrompt: React.FC = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Check if mobile screen (matches BottomNav breakpoint)
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -94,8 +96,9 @@ export const InstallPrompt: React.FC = () => {
     localStorage.setItem('pwa-prompt-dismissed', new Date().toISOString());
   };
 
+  // Don't render until mounted (prevents hydration mismatch)
   // Don't show if already installed or on desktop
-  if (isStandalone || !isMobile) return null;
+  if (!mounted || isStandalone || !isMobile) return null;
 
   return (
     <Modal isVisible={showPrompt} onClose={handleDismiss} maxWidth="md">
