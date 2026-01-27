@@ -74,6 +74,13 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Hydration-safe: track when we're on client to avoid SSR mismatch
+  // Server has empty provinces, client may have cached provinces from metadataStore
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   // Fetch provinces if not loaded (needed for Arabic location names)
   useEffect(() => {
     if (provinces.length === 0) {
@@ -81,8 +88,9 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
     }
   }, [provinces.length, fetchLocationMetadata]);
 
-  // Helper to get Arabic province name from key
+  // Helper to get Arabic province name from key (only after hydration to avoid mismatch)
   const getProvinceArabicName = (provinceKey: string): string => {
+    if (!isHydrated) return provinceKey; // Return raw key during SSR/hydration
     const province = provinces.find((p) => p.key === provinceKey);
     return province?.nameAr || provinceKey;
   };
