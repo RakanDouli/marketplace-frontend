@@ -13,6 +13,7 @@ import { SearchBarSection } from '@/components/SearchBarSection';
 import { CategorySection } from '@/components/CategorySection';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CMS_ASSETS } from '@/constants/cms-assets';
+import { Category } from '@/types/listing';
 import {
   Search,
   Shield,
@@ -68,7 +69,11 @@ const features = [
   },
 ];
 
-export default function HomeClient() {
+interface HomeClientProps {
+  categories: Category[];
+}
+
+export default function HomeClient({ categories }: HomeClientProps) {
   const { t } = useTranslation();
 
   return (
@@ -76,8 +81,8 @@ export default function HomeClient() {
       {/* 1. Hero + Search */}
       <SearchBarSection />
 
-      {/* 2. Category Tabs */}
-      <CategorySection />
+      {/* 2. Category Tabs - Server-side fetched for instant display */}
+      <CategorySection categories={categories} />
 
       {/* 3. Main CTA - Sell Your Car (Dubizzle style: CTA first) */}
       <PromoBanner

@@ -46,29 +46,6 @@
   min-height: $mobile-back-button-height;
 }
 
-.backButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 35px;
-  height: 35px;
-  border: none;
-  border-radius: $radius-full;
-  color: $text-light;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-
-  &:hover,
-  &:focus {
-    background: rgba(255, 255, 255, 0.25);
-  }
-
-  &:active {
-    background: rgba(255, 255, 255, 0.3);
-  }
-}
-
 .title {
   padding: 0 $space-sm;
   color: $text-light;

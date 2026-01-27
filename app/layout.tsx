@@ -7,14 +7,75 @@ import { generateDefaultMetadata } from '../utils/seo';
 import { PublicLayoutClient } from '../components/layouts/PublicLayoutClient';
 import { AdSenseScriptLoader } from '../components/ads/AdSenseScriptLoader';
 import { JsonLd, generateOrganizationSchema, generateWebsiteSchema } from '../components/seo';
+import { CategoriesProvider } from '../providers/CategoriesProvider';
+import { Category } from '../stores/types';
+import { ListingType } from '../common/enums';
 
 export const metadata: Metadata = generateDefaultMetadata('ar');
 
-export default function RootLayout({
+// GraphQL query for categories - fetched ONCE at root level
+const CATEGORIES_QUERY = `
+  query GetCategories {
+    categories {
+      id
+      name
+      nameAr
+      slug
+      isActive
+      icon
+      supportedListingTypes
+    }
+  }
+`;
+
+// Server-side fetch for categories - runs once, cached for 60 seconds
+async function fetchCategories(): Promise<Category[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  try {
+    const response = await fetch(`${apiUrl}/graphql`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: CATEGORIES_QUERY }),
+      next: { revalidate: 60 }, // ISR: revalidate every 60 seconds
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch categories:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error('GraphQL errors:', data.errors);
+      return [];
+    }
+
+    // Map to Category type
+    return (data.data?.categories || []).map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+      nameAr: cat.nameAr || cat.name,
+      slug: cat.slug,
+      isActive: cat.isActive,
+      icon: cat.icon,
+      supportedListingTypes: (cat.supportedListingTypes || [ListingType.SALE]) as ListingType[],
+    }));
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Fetch categories server-side - available to ALL pages instantly
+  const categories = await fetchCategories();
+
   return (
     <html lang="ar" dir="rtl" data-theme="light">
       <head>
@@ -50,9 +111,12 @@ export default function RootLayout({
             <ErrorBoundary>
               {/* Dynamic AdSense script loader - fetches client ID from database */}
               <AdSenseScriptLoader />
-              <PublicLayoutClient>
-                {children}
-              </PublicLayoutClient>
+              {/* Categories hydrated from server - available to all components instantly */}
+              <CategoriesProvider categories={categories}>
+                <PublicLayoutClient>
+                  {children}
+                </PublicLayoutClient>
+              </CategoriesProvider>
             </ErrorBoundary>
           </ThemeProvider>
         </LanguageProvider>

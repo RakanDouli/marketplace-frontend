@@ -2,7 +2,7 @@
 
 import React, { forwardRef, useState } from "react";
 import Link from "next/link";
-import { FiArrowLeftCircle } from "react-icons/fi";
+import { ArrowLeft } from "lucide-react";
 import Loading from "../Loading/Loading";
 import styles from "./Button.module.scss";
 
@@ -51,7 +51,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     // Determine which icon to show (icon prop takes priority over arrow)
-    const showIcon = icon || (arrow && !icon ? <FiArrowLeftCircle size={18} /> : null);
+    const showIcon = icon || (arrow && !icon ? <ArrowLeft size={18} /> : null);
 
     const buttonContent = (
       <>

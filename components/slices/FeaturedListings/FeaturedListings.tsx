@@ -66,7 +66,8 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   outerBackground = "bg",
   className = "",
 }) => {
-  const { categories, getCategoryById, getCategoryBySlug, initializeCategories } = useCategoriesStore();
+  // Categories are hydrated from root layout - instant access, no waiting
+  const { getCategoryById, getCategoryBySlug } = useCategoriesStore();
   const [listings, setListings] = useState<Listing[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -113,12 +114,7 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   // Dynamic link - use category slug
   const viewAllLink = category?.slug ? `/${category.slug}` : "/cars";
 
-  // Initialize categories if not loaded
-  useEffect(() => {
-    if (categories.length === 0) {
-      initializeCategories();
-    }
-  }, [categories.length, initializeCategories]);
+  // Categories are hydrated from root layout - no need to initialize here
 
   // Fetch listings and attributes for this category
   useEffect(() => {

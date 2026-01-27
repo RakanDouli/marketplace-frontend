@@ -6,13 +6,21 @@ import { ArrowLeft, Clock } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
 import { Container, Text } from '@/components/slices';
 import { CMS_ASSETS } from '@/constants/cms-assets';
+import { Category } from '@/types/listing';
 import styles from './CategorySection.module.scss';
 
 // Coming soon categories (by slug) - can be moved to backend later
 const COMING_SOON_CATEGORIES = ['real-estate'];
 
-export const CategorySection: React.FC = () => {
-  const { categories } = useCategoriesStore();
+interface CategorySectionProps {
+  /** Categories passed from server-side fetch (instant display) */
+  categories?: Category[];
+}
+
+export const CategorySection: React.FC<CategorySectionProps> = ({ categories: serverCategories }) => {
+  // Use server-side categories if provided, otherwise fall back to store (for other pages)
+  const storeCategories = useCategoriesStore((state) => state.categories);
+  const categories = serverCategories && serverCategories.length > 0 ? serverCategories : storeCategories;
 
   // Get active categories only
   const activeCategories = categories.filter(cat => cat.isActive);

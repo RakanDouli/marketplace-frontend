@@ -20,6 +20,7 @@ const CATEGORIES_QUERY = `
 
 interface CategoriesActions {
   setCategories: (categories: Category[]) => void;
+  setInitialized: (initialized: boolean) => void;
   addCategory: (category: Category) => void;
   updateCategory: (id: string, updates: Partial<Category>) => void;
   removeCategory: (id: string) => void;
@@ -27,9 +28,9 @@ interface CategoriesActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
-  // Data fetching methods - ONLY FETCH ONCE ON APP INIT
+  // Data fetching methods - ONLY FETCH ONCE ON APP INIT (fallback if SSR hydration fails)
   fetchCategories: () => Promise<void>;
-  initializeCategories: () => Promise<void>; // One-time initialization
+  initializeCategories: () => Promise<void>; // Fallback initialization
   // Helper methods - USE CACHED DATA ONLY
   getCategoryById: (id: string) => Category | undefined;
   getCategoryBySlug: (slug: string) => Category | undefined;
@@ -48,6 +49,10 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
   // Actions
   setCategories: (categories: Category[]) => {
     set({ categories, error: null });
+  },
+
+  setInitialized: (isInitialized: boolean) => {
+    set({ isInitialized });
   },
 
   addCategory: (category: Category) => {

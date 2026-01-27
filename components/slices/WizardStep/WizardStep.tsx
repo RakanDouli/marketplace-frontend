@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, Trash2 } from 'lucide-react';
-import { FiArrowRightCircle } from 'react-icons/fi';
+import { Check, Trash2, ArrowRight } from 'lucide-react';
 import { Text } from '../Text/Text';
 import { Button } from '../Button/Button';
 import styles from './WizardStep.module.scss';
@@ -131,7 +130,7 @@ export const WizardStep: React.FC<WizardStepProps> = ({
                 className={styles.prevButton}
               >
                 <span className={styles.prevIcon}>
-                  <FiArrowRightCircle size={18} />
+                  <ArrowRight size={18} />
                 </span>
                 السابق
               </Button>

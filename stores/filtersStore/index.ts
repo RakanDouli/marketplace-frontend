@@ -3,7 +3,6 @@ import type { Attribute, AttributeOption } from "../../types/listing";
 import { cachedGraphQLRequest } from "../../utils/graphql-cache";
 import {
   GET_CATEGORY_ATTRIBUTES_QUERY,
-  CATEGORIES_QUERY,
   GET_LISTING_AGGREGATIONS_QUERY,
 } from "./filtersStore.gql";
 
@@ -186,15 +185,8 @@ async function getListingAggregations(
 
 // Get all filter data for a category
 async function getAllFilterData(categorySlug: string, listingType?: string) {
-  const categoriesData = await cachedGraphQLRequest(
-    CATEGORIES_QUERY,
-    {},
-    { ttl: 10 * 60 * 1000 }
-  );
-  const category = (categoriesData.categories || []).find(
-    (cat: any) => cat.slug === categorySlug
-  );
-  const categoryId = category?.id;
+  // Note: Categories are now hydrated in the store from root layout
+  // No need to fetch here - we use categorySlug directly in queries
 
   // Use GraphQL to get dynamic category attributes directly by slug with caching
   const data = await cachedGraphQLRequest(

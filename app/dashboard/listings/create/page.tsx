@@ -20,7 +20,7 @@ export default function CreateListingPage() {
     error,
     isLoadingAttributes,
   } = useCreateListingStore();
-  const { categories, isLoading: isLoadingCategories, initializeCategories } = useCategoriesStore();
+  const { categories, isLoading: isLoadingCategories } = useCategoriesStore();
 
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -31,10 +31,7 @@ export default function CreateListingPage() {
     }
   }, [user, isAuthLoading, router]);
 
-  // Initialize categories on mount
-  useEffect(() => {
-    initializeCategories();
-  }, [initializeCategories]);
+  // Categories are now hydrated from root layout - no need to fetch here
 
   // Reset form on mount
   useEffect(() => {

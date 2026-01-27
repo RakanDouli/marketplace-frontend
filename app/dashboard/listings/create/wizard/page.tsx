@@ -24,8 +24,7 @@ import {
   validatePriceMinor,
   ListingValidationConfig,
 } from '@/lib/validation/listingValidation';
-import { MapPin, Check, Loader2, Trash2 } from 'lucide-react';
-import { FiArrowLeftCircle, FiArrowRightCircle } from 'react-icons/fi';
+import { MapPin, Check, Loader2, Trash2, ArrowRight } from 'lucide-react';
 import { ListingSubmitLoader } from '@/components/ListingSubmitLoader';
 import { Modal } from '@/components/slices';
 import styles from './CreateListingWizard.module.scss';
@@ -1514,7 +1513,7 @@ export default function CreateListingWizardPage() {
                   className={styles.mobilePrevButton}
                 >
                   <span className={styles.mobilePrevIcon}>
-                    <FiArrowRightCircle size={18} />
+                    <ArrowRight size={18} />
                   </span>
                   السابق
                 </Button>

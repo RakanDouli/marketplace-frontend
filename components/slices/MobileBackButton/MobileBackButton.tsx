@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search } from 'lucide-react';
-import { FiArrowLeftCircle } from 'react-icons/fi';
+import { Search, ArrowLeft } from 'lucide-react';
 import styles from './MobileBackButton.module.scss';
 import Text from '../Text/Text';
 import Input from '../Input/Input';
@@ -98,13 +97,15 @@ export const MobileBackButton: React.FC<MobileBackButtonProps> = ({
             <div className={styles.searchWrapper}>
               {/* Search button on the right side (start in RTL) - away from back button */}
               {(isFocused || searchValue) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onSearchSubmit}
-                  icon={<Search size={18} />}
-                  aria-label="بحث"
-                />
+                <div className=' searchButton'>
+                  <Button
+                    variant="outline"
+                    onClick={onSearchSubmit}
+                    icon={<Search size={18} />}
+                    aria-label="بحث"
+                  />
+                </div>
+
               )}
               <Input
                 type="search"
@@ -123,14 +124,15 @@ export const MobileBackButton: React.FC<MobileBackButtonProps> = ({
             title && <Text variant='h4' className={styles.title}>{title}</Text>
           )}
 
-          <button
+          <Button
+            variant='primary'
             type="button"
             className={styles.backButton}
             onClick={onClick}
             aria-label="الرجوع"
+            icon={<ArrowLeft size={24} />}
           >
-            <FiArrowLeftCircle size={24} />
-          </button>
+          </Button>
         </div>
       </div>
       {/* Spacer to prevent content from going under the fixed header on mobile */}
