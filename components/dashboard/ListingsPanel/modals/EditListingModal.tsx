@@ -46,6 +46,14 @@ interface Model {
   isActive: boolean;
 }
 
+interface Variant {
+  id: string;
+  modelId: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+}
+
 interface AttributeConfig {
   expectedValue?: 'string' | 'number' | 'date' | 'array' | 'boolean';
   dateFormat?: 'year' | 'month' | 'day' | 'full';
@@ -107,9 +115,22 @@ const GET_MODELS_QUERY = `
   }
 `;
 
+const GET_VARIANTS_BY_BRAND_QUERY = `
+  query GetVariantsByBrand($brandId: String!) {
+    variantsByBrand(brandId: $brandId) {
+      id
+      modelId
+      name
+      slug
+      isActive
+    }
+  }
+`;
+
+// variantId is optional - when provided, uses variant name for CarAPI lookup
 const GET_MODEL_SUGGESTION_QUERY = `
-  query GetModelSuggestion($brandId: String!, $modelId: String!, $year: Int) {
-    getModelSuggestion(brandId: $brandId, modelId: $modelId, year: $year) {
+  query GetModelSuggestion($brandId: String!, $modelId: String!, $year: Int, $variantId: String) {
+    getModelSuggestion(brandId: $brandId, modelId: $modelId, year: $year, variantId: $variantId) {
       id
       brandId
       modelId
@@ -159,8 +180,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [isLoadingVariants, setIsLoadingVariants] = useState(false);
   const [showCarDamage, setShowCarDamage] = useState(false);
 
   // Model suggestion specs - used to filter dropdown options (like create page)
@@ -193,9 +216,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const maxImagesAllowed = userPackage?.userSubscription?.maxImagesPerListing || 5;
   const videoAllowed = userPackage?.userSubscription?.videoAllowed || false;
 
-  // Find brand and model attributes
+  // Find brand, model, and variant attributes
   const brandAttribute = attributes.find(attr => attr.key === 'brandId');
   const modelAttribute = attributes.find(attr => attr.key === 'modelId');
+  const variantAttribute = attributes.find(attr => attr.key === 'variantId');
 
   // Find column-stored global attributes (like create page)
   const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
@@ -489,10 +513,35 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
   }, [formData.specs.brandId]);
 
+  // Fetch variants when brand is selected (for combined model/variant dropdown)
+  useEffect(() => {
+    const fetchVariants = async () => {
+      const brandId = formData.specs.brandId;
+      if (!brandId || brandId.startsWith('temp_')) return;
+
+      setIsLoadingVariants(true);
+      try {
+        const data = await cachedGraphQLRequest(GET_VARIANTS_BY_BRAND_QUERY, { brandId });
+        setVariants((data as any).variantsByBrand || []);
+      } catch (error) {
+        // Silently fail - variants are optional
+      } finally {
+        setIsLoadingVariants(false);
+      }
+    };
+
+    if (formData.specs.brandId) {
+      fetchVariants();
+    } else {
+      setVariants([]);
+    }
+  }, [formData.specs.brandId]);
+
   // Fetch model suggestions when brand + model + year are selected (like create page)
   useEffect(() => {
     const brandId = formData.specs.brandId;
     const modelId = formData.specs.modelId;
+    const variantId = formData.specs.variantId;
     const year = formData.specs.year;
 
     if (!brandId || !modelId || brandId.startsWith('temp_') || modelId.startsWith('temp_')) {
@@ -502,28 +551,28 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
     const fetchSuggestions = async () => {
       try {
+        // Pass variantId to get variant-specific specs from CarAPI
         const data = await cachedGraphQLRequest(GET_MODEL_SUGGESTION_QUERY, {
           brandId,
           modelId,
           year: year ? parseInt(String(year)) : null,
+          variantId: variantId || null,
         }, { ttl: 0 });
 
         const suggestion = (data as any).getModelSuggestion;
         if (suggestion?.specs) {
           setSuggestionSpecs(suggestion.specs);
 
-          // Auto-fill fields where there's only ONE option (auto-select)
-          const autoFillFields = [
-            'fuel_type', 'transmission', 'body_type', 'engine_size',
-            'cylinders', 'seats', 'doors', 'drive_type',
-          ] as const;
-
-          autoFillFields.forEach((field) => {
+          // Dynamic auto-fill: iterate over all keys from backend suggestion
+          // Auto-fill any field that has exactly one option
+          // Always overwrite since we clear fields when model changes (React batching causes stale state check to fail)
+          Object.keys(suggestion.specs).forEach((field) => {
             const options = suggestion.specs[field];
-            if (Array.isArray(options) && options.length === 1 && !formData.specs[field]) {
+            if (Array.isArray(options) && options.length === 1) {
               setFormData(prev => ({
                 ...prev,
-                specs: { ...prev.specs, [field]: options[0] },
+                // Convert to string for SELECTOR compatibility (validation expects string type)
+                specs: { ...prev.specs, [field]: String(options[0]) },
               }));
             }
           });
@@ -537,7 +586,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     };
 
     fetchSuggestions();
-  }, [formData.specs.brandId, formData.specs.modelId, formData.specs.year]);
+  }, [formData.specs.brandId, formData.specs.modelId, formData.specs.variantId, formData.specs.year]);
 
   // Handle creating a new brand
   const handleCreateBrand = (brandName: string) => {
@@ -873,6 +922,90 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const renderBrandModelFields = () => {
     if (brands.length === 0) return null;
 
+    // Build model options with variants included
+    // Models with variants show as optgroups, variants as selectable options
+    // Models without variants show as regular selectable options
+    const buildModelOptions = () => {
+      const options: Array<{ value: string; label: string; group?: string }> = [
+        { value: '', label: formData.specs.brandId ? `-- اختر ${modelAttribute?.name || 'الموديل'} --` : '-- اختر العلامة التجارية أولاً --' },
+      ];
+      const addedValues = new Set<string>(); // Prevent duplicates
+
+      models.filter(m => m.isActive).forEach(model => {
+        const modelVariants = variants.filter(v => v.modelId === model.id && v.isActive);
+
+        if (modelVariants.length > 0) {
+          // Model has variants - add variants with model name as group
+          modelVariants.forEach(variant => {
+            const value = `variant_${variant.id}`;
+            if (!addedValues.has(value)) {
+              addedValues.add(value);
+              options.push({
+                value,
+                label: variant.name,
+                group: model.name,
+              });
+            }
+          });
+        } else {
+          // Model has no variants - add model directly
+          const value = `model_${model.id}`;
+          if (!addedValues.has(value)) {
+            addedValues.add(value);
+            options.push({
+              value,
+              label: model.name,
+            });
+          }
+        }
+      });
+
+      return options;
+    };
+
+    // Get current value for model dropdown
+    const getModelDropdownValue = () => {
+      if (formData.specs.variantId) {
+        return `variant_${formData.specs.variantId}`;
+      }
+      if (formData.specs.modelId) {
+        return `model_${formData.specs.modelId}`;
+      }
+      return '';
+    };
+
+    // Handle model/variant selection
+    const handleModelSelection = (value: string) => {
+      // Clear auto-filled fields when model/variant changes
+      // Use current suggestionSpecs keys (dynamic from backend) instead of hardcoded list
+      const clearedSpecs: Record<string, string> = {};
+      if (suggestionSpecs) {
+        Object.keys(suggestionSpecs).forEach(field => { clearedSpecs[field] = ''; });
+      }
+
+      if (!value) {
+        setFormData(prev => ({
+          ...prev,
+          specs: { ...prev.specs, ...clearedSpecs, modelId: '', variantId: '' },
+        }));
+      } else if (value.startsWith('variant_')) {
+        const variantId = value.replace('variant_', '');
+        const variant = variants.find(v => v.id === variantId);
+        if (variant) {
+          setFormData(prev => ({
+            ...prev,
+            specs: { ...prev.specs, ...clearedSpecs, modelId: variant.modelId, variantId: variantId },
+          }));
+        }
+      } else if (value.startsWith('model_')) {
+        const modelId = value.replace('model_', '');
+        setFormData(prev => ({
+          ...prev,
+          specs: { ...prev.specs, ...clearedSpecs, modelId: modelId, variantId: '' },
+        }));
+      }
+    };
+
     return (
       <>
         <Input
@@ -882,7 +1015,7 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
           onChange={(e) => {
             setFormData(prev => ({
               ...prev,
-              specs: { ...prev.specs, brandId: e.target.value, modelId: '' },
+              specs: { ...prev.specs, brandId: e.target.value, modelId: '', variantId: '' },
             }));
           }}
           options={[
@@ -903,24 +1036,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
         <Input
           type="select"
           label={modelAttribute?.name || "الموديل"}
-          value={formData.specs.modelId || ''}
-          onChange={(e) => {
-            setFormData(prev => ({
-              ...prev,
-              specs: { ...prev.specs, modelId: e.target.value },
-            }));
-          }}
-          options={[
-            { value: '', label: formData.specs.brandId ? `-- اختر ${modelAttribute?.name || 'الموديل'} --` : '-- اختر العلامة التجارية أولاً --' },
-            ...models.filter(m => m.isActive).map(model => ({
-              value: model.id,
-              label: model.name,
-            })),
-          ]}
-          disabled={!formData.specs.brandId || isLoadingModels}
+          value={getModelDropdownValue()}
+          onChange={(e) => handleModelSelection(e.target.value)}
+          options={buildModelOptions()}
+          disabled={!formData.specs.brandId || isLoadingModels || isLoadingVariants}
           searchable={!!formData.specs.brandId}
           creatable={!!formData.specs.brandId}
-          isLoading={isLoadingModels}
+          isLoading={isLoadingModels || isLoadingVariants}
           onCreateOption={handleCreateModel}
           required={modelAttribute?.validation === 'REQUIRED'}
         />
@@ -933,9 +1055,9 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     const groupAttributes = group.attributes;
     if (groupAttributes.length === 0) return null;
 
-    const hasBrandModel = groupAttributes.some(attr => attr.key === 'brandId' || attr.key === 'modelId');
+    const hasBrandModel = groupAttributes.some(attr => attr.key === 'brandId' || attr.key === 'modelId' || attr.key === 'variantId');
     if (hasBrandModel && brands.length === 0) {
-      const otherAttrs = groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId');
+      const otherAttrs = groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId' && attr.key !== 'variantId');
       if (otherAttrs.length === 0) return null;
     }
 
@@ -946,9 +1068,14 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
 
     if (totalCount === 0) return null;
 
-    const regularAttributes = hasBrandModel
-      ? groupAttributes.filter(attr => attr.key !== 'brandId' && attr.key !== 'modelId')
-      : groupAttributes;
+    // Filter out special attributes that are handled separately:
+    // - brandId, modelId, variantId: handled by renderBrandModelFields
+    // - car_damage: handled by CarInspection component
+    const excludedKeys = ['variantId', 'car_damage'];
+    if (hasBrandModel) {
+      excludedKeys.push('brandId', 'modelId');
+    }
+    const regularAttributes = groupAttributes.filter(attr => !excludedKeys.includes(attr.key));
 
     return (
       <FormSection

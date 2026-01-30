@@ -526,7 +526,7 @@ export const Filter: React.FC<FilterProps> = ({
               {(() => {
                 // Exclude search (in header) and listingType (managed by routing)
                 const allAttributes = getSortedAttributes().filter(attr =>
-                  attr.key !== 'search' && attr.key !== 'listingType'
+                  !['search', 'listingType'].includes(attr.key)
                 );
                 const visibleAttributes = isMobile && !showAllFilters
                   ? allAttributes.slice(0, 7)

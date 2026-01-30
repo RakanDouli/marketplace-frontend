@@ -19,7 +19,7 @@ interface ImageUploadGridProps {
   images: ImageItem[];
   onChange: (images: ImageItem[]) => void;
   maxImages?: number;
-  maxSize?: number; // Maximum file size in bytes (e.g., 2MB = 2 * 1024 * 1024)
+  maxSize?: number; // Maximum file size in bytes (default: 10MB - Cloudflare handles optimization)
   accept?: string; // File types (e.g., 'image/*', 'video/*', 'image/*,video/*')
   disabled?: boolean;
   onError?: (error: string) => void; // Optional error callback
@@ -30,7 +30,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
   images,
   onChange,
   maxImages = 20,
-  maxSize = 2 * 1024 * 1024, // Default: 2MB
+  maxSize = 10 * 1024 * 1024, // Default: 10MB (Cloudflare handles compression/optimization)
   accept = 'image/*',
   disabled = false,
   onError,

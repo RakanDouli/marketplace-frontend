@@ -126,13 +126,15 @@ export const TokenExpirationModal: React.FC<TokenExpirationModalProps> = ({
           >
             {isExtending ? (
               <>
-                <RefreshCw size={16} className={styles.spinning} />
                 جاري التمديد...
+                <RefreshCw size={16} className={styles.spinning} />
+
               </>
             ) : (
               <>
-                <RefreshCw size={16} />
+
                 متابعة الجلسة
+                <RefreshCw size={16} />
               </>
             )}
           </Button>
@@ -142,8 +144,8 @@ export const TokenExpirationModal: React.FC<TokenExpirationModalProps> = ({
             variant="secondary"
             className={styles.logoutButton}
             size="lg"
+            icon={<LogOut size={16} />}
           >
-            <LogOut size={16} />
             تسجيل الخروج
           </Button>
         </div>

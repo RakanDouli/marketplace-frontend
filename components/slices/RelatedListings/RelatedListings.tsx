@@ -5,12 +5,21 @@ import { Slider } from "../Slider";
 import { Grid } from "../Grid/Grid";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
-import { useFiltersStore } from "@/stores/filtersStore";
+import { useMetadataStore } from "@/stores/metadataStore";
 import { useRelatedListingsStore, RelatedListing, RelatedType } from "@/stores/relatedListingsStore";
+import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
+import { GET_CATEGORY_ATTRIBUTES_QUERY } from "@/stores/filtersStore/filtersStore.gql";
 
 export type { RelatedType };
 export type DisplayMode = 'slider' | 'grid';
+
+interface Attribute {
+  id: string;
+  key: string;
+  name: string;
+  showInGrid?: boolean;
+}
 
 export interface RelatedListingsProps {
   listingId: string;
@@ -29,21 +38,45 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
   displayMode = 'slider',
   limit = 8,
   className = "",
-  listingTypeSlug = "sell", // Default to sell
+  listingTypeSlug = "sell",
 }) => {
   const { getCategoryById } = useCategoriesStore();
-  const { attributes } = useFiltersStore();
+  const { provinces, fetchLocationMetadata } = useMetadataStore();
   const { fetchRelatedListings } = useRelatedListingsStore();
   const [listings, setListings] = useState<RelatedListing[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filter specs based on showInGrid attribute flags
+  // Hydration-safe: track when we're on client to avoid SSR mismatch
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Fetch provinces if not loaded (needed for Arabic location names)
+  useEffect(() => {
+    if (provinces.length === 0) {
+      fetchLocationMetadata();
+    }
+  }, [provinces.length, fetchLocationMetadata]);
+
+  // Helper to get Arabic province name from key
+  const getProvinceArabicName = (provinceKey: string): string => {
+    if (!isHydrated) return provinceKey;
+    const province = provinces.find((p) => p.key === provinceKey);
+    return province?.nameAr || provinceKey;
+  };
+
+  // Filter specs based on showInGrid flag from attributes (same as FeaturedListings)
   const filterSpecsForGrid = (allSpecs: Record<string, unknown>): Record<string, unknown> => {
+    // If no attributes loaded yet, return empty to avoid showing all specs
     if (!attributes || attributes.length === 0) {
-      return allSpecs;
+      return {};
     }
 
     const filteredSpecs: Record<string, unknown> = {};
+
+    // Check each spec against attribute display flags
     Object.entries(allSpecs).forEach(([specKey, specValue]) => {
       const attribute = attributes.find(
         (attr) => attr.key === specKey || attr.name === specKey
@@ -57,29 +90,45 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
     return filteredSpecs;
   };
 
-  // Fetch related listings via store
+  // Fetch related listings, then fetch attributes based on first listing's category
   useEffect(() => {
-    const loadListings = async () => {
+    const loadData = async () => {
       if (!listingId) {
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
+
+      // First fetch listings
       const results = await fetchRelatedListings(listingId, type, limit);
       setListings(results);
+
+      // Get category slug from first listing's categoryId
+      if (results.length > 0 && results[0].categoryId) {
+        const category = getCategoryById(results[0].categoryId);
+        if (category?.slug) {
+          const attributesData = await cachedGraphQLRequest(
+            GET_CATEGORY_ATTRIBUTES_QUERY,
+            { categorySlug: category.slug },
+            { ttl: 30 * 60 * 1000 }
+          );
+          setAttributes(attributesData.getAttributesByCategorySlug || []);
+        }
+      }
+
       setIsLoading(false);
     };
 
-    loadListings();
-  }, [listingId, type, limit, fetchRelatedListings]);
+    loadData();
+  }, [listingId, type, limit, fetchRelatedListings, getCategoryById]);
 
-  // Don't render if loading or no listings (backend returns [] if < 3)
+  // Don't render if loading or no listings
   if (isLoading || listings.length === 0) {
     return null;
   }
 
-  // Render listing cards
+  // Render listing cards with filtered specs
   const renderListingCards = () => {
     return listings.map((listing) => {
       const listingCategory = listing.categoryId ? getCategoryById(listing.categoryId) : null;
@@ -97,7 +146,17 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
         parsedSpecs = {};
       }
 
+      // Filter specs to only show ones with showInGrid=true
       const filteredSpecs = filterSpecsForGrid(parsedSpecs);
+
+      // Extract location and translate province to Arabic
+      const provinceKey = listing.location?.province;
+      const city = listing.location?.city;
+      const province = provinceKey ? getProvinceArabicName(provinceKey) : "";
+      // Format: "city، province" or just "province"
+      const locationDisplay = city && province
+        ? `${city}، ${province}`
+        : province || "";
 
       return (
         <ListingCard
@@ -105,7 +164,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
           id={listing.id}
           title={listing.title}
           price={formatPrice(listing.priceMinor)}
-          location={listing.location?.city || listing.location?.province || ""}
+          location={locationDisplay}
           accountType={(listing.accountType as "individual" | "dealer" | "business") || "individual"}
           specs={filteredSpecs}
           images={listing.imageKeys}
@@ -118,7 +177,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
     });
   };
 
-  // Slider mode - Slider has its own Container
+  // Slider mode
   if (displayMode === 'slider') {
     return (
       <Slider
@@ -137,7 +196,7 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
     );
   }
 
-  // Grid mode - Grid has its own Container when title provided
+  // Grid mode
   return (
     <Grid
       title={title}

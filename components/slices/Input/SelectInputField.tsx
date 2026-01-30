@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 
@@ -45,6 +45,12 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
 }) => {
   const SelectComponent = creatable ? CreatableSelect : Select;
 
+  // Use state to set menuPortalTarget only after mount to avoid hydration mismatch
+  const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setMenuPortalTarget(document.body);
+  }, []);
+
   return (
     <SelectComponent
       instanceId={id}
@@ -59,16 +65,38 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
       isDisabled={disabled}
       isLoading={isLoading}
       isSearchable={searchable}
+      isOptionDisabled={(option: SelectOption) => option.disabled === true}
       placeholder={placeholder || 'اختر خيار...'}
       noOptionsMessage={() => "لا توجد نتائج"}
       loadingMessage={() => "جاري التحميل..."}
       formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
       classNamePrefix="react-select"
-      menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+      menuPortalTarget={menuPortalTarget}
       menuPosition="fixed"
       aria-label={ariaLabel || placeholder || 'اختر خيار'}
       styles={{
         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+        // Prevent scroll chaining - stops page scroll when scrolling dropdown options
+        menuList: (base) => ({
+          ...base,
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+        }),
+        // Prevent touch events on menu backdrop from scrolling page
+        menu: (base) => ({
+          ...base,
+          touchAction: 'none',
+        }),
+        // Style disabled options as group headers
+        option: (base, state) => ({
+          ...base,
+          ...(state.isDisabled && {
+            fontWeight: 600,
+            color: '#666',
+            backgroundColor: '#f5f5f5',
+            cursor: 'not-allowed',
+          }),
+        }),
       }}
     />
   );

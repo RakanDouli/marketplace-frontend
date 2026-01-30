@@ -107,12 +107,6 @@ async function getListingAggregations(
   attributes: Record<string, Record<string, number>>;
   rawAggregations?: any; // Keep raw data for brandId/modelId
 }> {
-  // console.log(
-  //   "🎯 Getting backend aggregations for:",
-  //   categorySlug,
-  //   additionalFilter
-  // );
-
   const query = GET_LISTING_AGGREGATIONS_QUERY;
 
   const variables: any = {};
@@ -211,9 +205,9 @@ async function getAllFilterData(categorySlug: string, listingType?: string) {
     rawAttributes.map((attr) => {
       let processedOptions: AttributeOptionWithCount[] = [];
 
-      // Special handling for brandId and modelId - create options from aggregation data
-      if (attr.key === "brandId" || attr.key === "modelId") {
-        // For brandId/modelId, get options directly from raw aggregation since seeder has empty options
+      // Special handling for brandId, modelId, and variantId - create options from aggregation data
+      if (attr.key === "brandId" || attr.key === "modelId" || attr.key === "variantId") {
+        // For brandId/modelId/variantId, get options directly from raw aggregation since seeder has empty options
         const rawAttributeData = aggregations.rawAggregations?.attributes?.find(
           (a: any) => a.field === attr.key
         );
@@ -225,6 +219,15 @@ async function getAllFilterData(categorySlug: string, listingType?: string) {
             sortOrder: 0,
             isActive: true,
             count: option.count,
+            // For variants: include model grouping for optgroup display
+            ...(attr.key === "variantId" && option.modelId && {
+              groupKey: option.modelId,
+              groupLabel: option.modelName,
+            }),
+            // For models: include hasVariants flag for non-clickable header display
+            ...(attr.key === "modelId" && option.hasVariants !== undefined && {
+              hasVariants: option.hasVariants,
+            }),
           }));
         } else {
           processedOptions = [];
@@ -287,8 +290,8 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         cachedData.baseAttributes.map((attr) => {
           let processedOptions: AttributeOptionWithCount[] = [];
 
-          // Special handling for brandId and modelId - create options from aggregation data
-          if (attr.key === "brandId" || attr.key === "modelId") {
+          // Special handling for brandId, modelId, and variantId - create options from aggregation data
+          if (attr.key === "brandId" || attr.key === "modelId" || attr.key === "variantId") {
             const rawAttributeData =
               aggregations.rawAggregations?.attributes?.find(
                 (a: any) => a.field === attr.key
@@ -302,6 +305,15 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
                   sortOrder: 0,
                   isActive: true,
                   count: option.count,
+                  // For variants: include model grouping for optgroup display
+                  ...(attr.key === "variantId" && option.modelId && {
+                    groupKey: option.modelId,
+                    groupLabel: option.modelName,
+                  }),
+                  // For models: include hasVariants flag for non-clickable header display
+                  ...(attr.key === "modelId" && option.hasVariants !== undefined && {
+                    hasVariants: option.hasVariants,
+                  }),
                 })
               );
             } else {
@@ -469,9 +481,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         rawAttributes.map((attr) => {
           let processedOptions: AttributeOptionWithCount[] = [];
 
-          // Special handling for brandId and modelId - create options from cascading aggregation data
-          if (attr.key === "brandId" || attr.key === "modelId") {
-            // For brandId/modelId, get options directly from raw cascading aggregation
+          // Special handling for brandId, modelId, and variantId - create options from cascading aggregation data
+          if (attr.key === "brandId" || attr.key === "modelId" || attr.key === "variantId") {
+            // For brandId/modelId/variantId, get options directly from raw cascading aggregation
             const rawAttributeData =
               cascadingAggregations.rawAggregations?.attributes?.find(
                 (a: any) => a.field === attr.key
@@ -485,6 +497,15 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
                   sortOrder: 0,
                   isActive: true,
                   count: option.count,
+                  // For variants: include model grouping for optgroup display
+                  ...(attr.key === "variantId" && option.modelId && {
+                    groupKey: option.modelId,
+                    groupLabel: option.modelName,
+                  }),
+                  // For models: include hasVariants flag for non-clickable header display
+                  ...(attr.key === "modelId" && option.hasVariants !== undefined && {
+                    hasVariants: option.hasVariants,
+                  }),
                 })
               );
             } else {

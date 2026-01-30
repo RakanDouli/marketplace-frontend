@@ -286,10 +286,25 @@ export const GET_MODELS_QUERY = `
   }
 `;
 
+// Query to get all variants for a brand (for combined model/variant dropdown)
+export const GET_VARIANTS_BY_BRAND_QUERY = `
+  query GetVariantsByBrand($brandId: String!) {
+    variantsByBrand(brandId: $brandId) {
+      id
+      modelId
+      name
+      slug
+      isActive
+    }
+  }
+`;
+
 // Query to get auto-fill suggestions for brand + model + year
+// variantId is optional - when provided, uses variant name for CarAPI lookup
+// (e.g., "A6 Sportback e-tron" instead of just "A6")
 export const GET_MODEL_SUGGESTION_QUERY = `
-  query GetModelSuggestion($brandId: String!, $modelId: String!, $year: Int) {
-    getModelSuggestion(brandId: $brandId, modelId: $modelId, year: $year) {
+  query GetModelSuggestion($brandId: String!, $modelId: String!, $year: Int, $variantId: String) {
+    getModelSuggestion(brandId: $brandId, modelId: $modelId, year: $year, variantId: $variantId) {
       id
       brandId
       modelId
