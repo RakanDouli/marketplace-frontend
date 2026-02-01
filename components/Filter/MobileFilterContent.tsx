@@ -266,28 +266,12 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
   };
 
   const renderDetailScreen = (attribute: FilterAttribute) => {
-    const hasValue = hasFilterValue(attribute);
-
     return (
       <div className={styles.detailScreen}>
-        {/* Options list - header is now in Aside */}
+        {/* Options list */}
         <div className={styles.optionsList}>
           {renderFilterOptions(attribute)}
         </div>
-
-        {/* Sticky footer with clear button - only show when filter has value */}
-        {hasValue && (
-          <div className={styles.detailFooter}>
-            <Button
-              variant="outline"
-              onClick={() => clearFilter(attribute)}
-              className={styles.clearFilterButton}
-            >
-              <Trash2 size={16} />
-              مسح الاختيار
-            </Button>
-          </div>
-        )}
       </div>
     );
   };
@@ -765,6 +749,20 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
 
   return (
     <div className={styles.mobileFilterContent}>
+      {/* Clear button - fixed under Aside header, only show on detail screen when filter has value */}
+      {screen.type === 'detail' && hasFilterValue(screen.attribute) && (
+        <div className={styles.detailHeader}>
+          <Button
+            variant="link"
+            onClick={() => clearFilter(screen.attribute)}
+            icon={<Trash2 size={14} />}
+            size="sm"
+          >
+            مسح الاختيار
+          </Button>
+        </div>
+      )}
+
       <div className={styles.mobileFilterScrollArea}>
         <div className={`${styles.screenContainer} ${getAnimationClass()}`}>
           {screen.type === 'list' && renderListScreen()}

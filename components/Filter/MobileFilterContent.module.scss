@@ -54,7 +54,6 @@
 
 .filterList {
   flex: 1;
-  overflow-y: auto;
 }
 
 .filterItem {
@@ -102,26 +101,34 @@
   height: 100%;
 }
 
+// Detail screen header - clear button with fade-in animation
+.detailHeader {
+  display: flex;
+  justify-content: flex-start;
+  animation: fadeInDelay 0.4s ease-out forwards;
+  opacity: 0;
+
+  button {
+    color: $primary !important;
+  }
+}
+
+@keyframes fadeInDelay {
+  0% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .optionsList {
   flex: 1;
-  overflow-y: auto;
-}
-
-// Detail screen sticky footer
-.detailFooter {
-  position: sticky;
-  bottom: 0;
-  padding: $space-md;
-  background: $bg;
-  border-top: 1px solid $border;
-}
-
-.clearFilterButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-sm;
 }
 
 // Option items (used in selector, multi-selector)
@@ -144,6 +151,10 @@
   border-bottom: 1px solid $border;
   cursor: pointer;
   text-align: right;
+
+  &:last-child {
+    border-bottom: none;
+  }
 
   &:hover {
     background: $surface;
@@ -280,8 +291,17 @@
 .mobileFilterScrollArea {
   flex: 1;
   overflow-y: auto;
-  // Extra padding to account for fixed footer height + safe area
-  padding-bottom: calc(#{$bottom-nav-height} + env(safe-area-inset-bottom, 0));
+  overflow-x: hidden;
+  // Extra padding to account for fixed footer height + extra spacing + safe area
+  padding-bottom: calc(#{$bottom-nav-height} + #{$space-lg} + env(safe-area-inset-bottom, 0));
+
+  // Hide scrollbar on mobile
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE/Edge
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome/Safari
+  }
 }
 
 // Fixed footer with clear and apply buttons
