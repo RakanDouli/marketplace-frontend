@@ -244,13 +244,50 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
   );
 
   // Render detail screen for a specific filter
+  // Check if a specific filter has a value
+  const hasFilterValue = (attribute: FilterAttribute): boolean => {
+    if (attribute.type === "CURRENCY") {
+      return !!(draftFilters.priceMinMinor ?? appliedFilters.priceMinMinor ?? draftFilters.priceMaxMinor ?? appliedFilters.priceMaxMinor);
+    }
+    const value = draftFilters.specs?.[attribute.key] ?? appliedFilters.specs?.[attribute.key];
+    if (Array.isArray(value)) {
+      return value.length > 0 && value.some(v => v !== undefined);
+    }
+    return value !== undefined && value !== null && value !== '';
+  };
+
+  // Clear a specific filter
+  const clearFilter = (attribute: FilterAttribute) => {
+    if (attribute.type === "CURRENCY") {
+      onPriceChange(undefined, undefined);
+    } else {
+      onFilterChange(attribute.key, undefined);
+    }
+  };
+
   const renderDetailScreen = (attribute: FilterAttribute) => {
+    const hasValue = hasFilterValue(attribute);
+
     return (
       <div className={styles.detailScreen}>
         {/* Options list - header is now in Aside */}
         <div className={styles.optionsList}>
           {renderFilterOptions(attribute)}
         </div>
+
+        {/* Sticky footer with clear button - only show when filter has value */}
+        {hasValue && (
+          <div className={styles.detailFooter}>
+            <Button
+              variant="outline"
+              onClick={() => clearFilter(attribute)}
+              className={styles.clearFilterButton}
+            >
+              <Trash2 size={16} />
+              مسح الاختيار
+            </Button>
+          </div>
+        )}
       </div>
     );
   };

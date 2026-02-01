@@ -107,6 +107,23 @@
   overflow-y: auto;
 }
 
+// Detail screen sticky footer
+.detailFooter {
+  position: sticky;
+  bottom: 0;
+  padding: $space-md;
+  background: $bg;
+  border-top: 1px solid $border;
+}
+
+.clearFilterButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+}
+
 // Option items (used in selector, multi-selector)
 .selectorOptions,
 .multiSelectorOptions,
