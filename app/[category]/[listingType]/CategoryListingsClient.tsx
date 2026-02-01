@@ -283,10 +283,6 @@ export default function CategoryListingsClient({
 
         {/* Listing Type Badge */}
         <div className={styles.typeHeader}>
-          <Text variant="h2" className={styles.pageTitle}>
-            {currentCategory.nameAr} <span className={styles.typeBadge}>{typeLabel}</span>
-          </Text>
-          {/* Tablet Filter Button - only shows between lg and md */}
           <Button
             variant="outline"
             className={styles.tabletFilterButton}
@@ -295,6 +291,11 @@ export default function CategoryListingsClient({
           >
             الفلاتر
           </Button>
+          <Text variant="h2" className={styles.pageTitle}>
+            {currentCategory.nameAr} <span className={styles.typeBadge}>{typeLabel}</span>
+          </Text>
+          {/* Tablet Filter Button - only shows between lg and md */}
+
         </div>
 
         {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}
@@ -302,19 +303,19 @@ export default function CategoryListingsClient({
 
         {/* Main Content */}
         <div className={styles.content}>
-        {/* Filters Sidebar */}
-        <div className={styles.filtersSection}>
-          <Filter
-            isOpen={isFilterOpen}
-            onOpenChange={setIsFilterOpen}
-          />
-        </div>
+          {/* Filters Sidebar */}
+          <div className={styles.filtersSection}>
+            <Filter
+              isOpen={isFilterOpen}
+              onOpenChange={setIsFilterOpen}
+            />
+          </div>
 
-        {/* Listings Area */}
-        <div className={styles.listingsSection}>
-          <ListingArea listingType={listingType} listingTypeSlug={listingTypeSlug} />
+          {/* Listings Area */}
+          <div className={styles.listingsSection}>
+            <ListingArea listingType={listingType} listingTypeSlug={listingTypeSlug} />
+          </div>
         </div>
-      </div>
       </Container>
     </>
   );
