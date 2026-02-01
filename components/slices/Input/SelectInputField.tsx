@@ -76,17 +76,6 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
       aria-label={ariaLabel || placeholder || 'اختر خيار'}
       styles={{
         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-        // Prevent scroll chaining - stops page scroll when scrolling dropdown options
-        menuList: (base) => ({
-          ...base,
-          overscrollBehavior: 'contain',
-          WebkitOverflowScrolling: 'touch',
-        }),
-        // Prevent touch events on menu backdrop from scrolling page
-        menu: (base) => ({
-          ...base,
-          touchAction: 'none',
-        }),
         // Style disabled options as group headers
         option: (base, state) => ({
           ...base,

@@ -182,11 +182,14 @@ export const useSearchStore = create<SearchStore>()(
       set({ appliedFilters: newAppliedFilters, draftFilters: newDraftFilters });
     },
 
-    // Clear all filters
+    // Clear all filters (preserves listingType since it's controlled by URL routing)
     clearAllFilters: () => {
+      const { appliedFilters } = get();
+      // Preserve listingType since it's controlled by URL routing, not user filter selection
+      const preservedListingType = appliedFilters.listingType;
       set({
-        appliedFilters: initialFilters,
-        draftFilters: initialFilters,
+        appliedFilters: { ...initialFilters, listingType: preservedListingType },
+        draftFilters: { ...initialFilters, listingType: preservedListingType },
       });
     },
 

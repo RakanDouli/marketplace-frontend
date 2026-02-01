@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { SlidersHorizontal, Trash2 } from "lucide-react";
+import { SlidersHorizontal, Trash2, ChevronRight } from "lucide-react";
 import { IconGridSelector } from "../IconGridSelector";
 import { Aside, Text, Button, Collapsible } from "../slices";
+import { MobileFilterContent, MobileFilterScreen } from "./MobileFilterContent";
 import { Loading } from "../slices/Loading/Loading";
 import {
   useTranslation,
@@ -85,18 +86,7 @@ export const Filter: React.FC<FilterProps> = ({
 
   // Support both controlled and uncontrolled modes
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-
-  // Mobile "show more" state - only show first 7 filters on mobile by default
-  const [showAllFilters, setShowAllFilters] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const [mobileScreen, setMobileScreen] = useState<MobileFilterScreen>({ type: 'list' });
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -335,6 +325,7 @@ export const Filter: React.FC<FilterProps> = ({
           value={getSingleSelectorValue(attribute.key)}
           onChange={(value) => handleSpecChange(attribute.key, value)}
           hideLabel
+          keepAllOptions={attribute.key === 'brandId'}
         />
       );
     }
@@ -498,19 +489,59 @@ export const Filter: React.FC<FilterProps> = ({
 
       <Aside
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => {
+          setIsOpen(false);
+          setMobileScreen({ type: 'list' }); // Reset to list when closing
+        }}
         header={
-          <button
-            type="button"
-            className={styles.resetButton}
-            onClick={async () => {
-              clearAllFilters();
-              await fetchListingsByCategory(categorySlug, { categoryId: categorySlug }, "grid");
-            }}
-          >
-            {t("search.clearAllFilters")}
-            <Trash2 size={14} />
-          </button>
+          <>
+            {/* Desktop: Clear all button */}
+            <button
+              type="button"
+              className={styles.resetButton}
+              onClick={async () => {
+                clearAllFilters();
+                // Preserve listingType when clearing other filters
+                const filters: any = { categoryId: categorySlug };
+                if (listingType) filters.listingType = listingType;
+                await fetchListingsByCategory(categorySlug, filters, "grid");
+              }}
+            >
+              {t("search.clearAllFilters")}
+              <Trash2 size={14} />
+            </button>
+
+            {/* Mobile: Back button + title when on detail screen */}
+            {mobileScreen.type === 'detail' && (
+              <div className={styles.mobileHeader}>
+                <button
+                  type="button"
+                  className={styles.mobileBackButton}
+                  onClick={() => setMobileScreen({ type: 'list' })}
+                >
+                  <ChevronRight size={24} />
+                  <span>{mobileScreen.attribute.name}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Mobile: Back button + title when on range-select screen */}
+            {mobileScreen.type === 'range-select' && (
+              <div className={styles.mobileHeader}>
+                <button
+                  type="button"
+                  className={styles.mobileBackButton}
+                  onClick={() => setMobileScreen({ type: 'detail', attribute: mobileScreen.attribute })}
+                >
+                  <ChevronRight size={24} />
+                  <div className={styles.mobileBackButtonText}>
+                    <span className={styles.mobileBackButtonTitle}>{mobileScreen.attribute.name}</span>
+                    <span className={styles.mobileBackButtonSubtitle}>{mobileScreen.field === 'min' ? 'من' : 'إلى'}</span>
+                  </div>
+                </button>
+              </div>
+            )}
+          </>
         }
       >
         {filtersLoading && (
@@ -521,56 +552,51 @@ export const Filter: React.FC<FilterProps> = ({
         )}
         {!filtersLoading && (
           <>
-            {/* Filter content with bottom padding for fixed footer */}
-            <div className={styles.filterContent}>
-              {(() => {
-                // Exclude search (in header) and listingType (managed by routing)
-                const allAttributes = getSortedAttributes().filter(attr =>
-                  !['search', 'listingType'].includes(attr.key)
-                );
-                const visibleAttributes = isMobile && !showAllFilters
-                  ? allAttributes.slice(0, 7)
-                  : allAttributes;
-                const hiddenCount = allAttributes.length - 7;
-
-                return (
-                  <>
-                    {visibleAttributes.map((attribute, index) => (
-                      <Collapsible
-                        key={attribute.id}
-                        title={attribute.name}
-                        defaultOpen={index < 7}
-                        variant="compact"
-                      >
-                        {renderAttribute(attribute)}
-                      </Collapsible>
-                    ))}
-
-                    {/* Show more/less button - only on mobile when there are hidden filters */}
-                    {isMobile && hiddenCount > 0 && (
-                      <Button
-                        variant="link"
-                        onClick={() => setShowAllFilters(!showAllFilters)}
-                        className={styles.showMoreButton}
-                      >
-                        {showAllFilters ? 'عرض أقل' : `عرض المزيد من الفلاتر (${hiddenCount})`}
-                      </Button>
-                    )}
-                  </>
-                );
-              })()}
+            {/* Desktop Content - hidden on mobile via CSS */}
+            <div className={styles.desktopContent}>
+              {getSortedAttributes()
+                .filter(attr => !['search', 'listingType'].includes(attr.key))
+                .map((attribute, index) => (
+                  <Collapsible
+                    key={attribute.id}
+                    title={attribute.name}
+                    defaultOpen={index < 7}
+                    variant="compact"
+                  >
+                    {renderAttribute(attribute)}
+                  </Collapsible>
+                ))}
             </div>
 
-            {/* Fixed footer with apply button - mobile only */}
-            <div className={styles.stickyFooter}>
-              <Button
-                variant="primary"
-                onClick={() => setIsOpen(false)}
-                className={styles.applyFooterButton}
-              >
-                تطبيق
-                <Text variant="small" > ( {totalResults} نتيجه )</Text>
-              </Button>
+            {/* Mobile Content - hidden on desktop via CSS */}
+            <div className={styles.mobileContent}>
+              <MobileFilterContent
+                attributes={getSortedAttributes().filter(attr =>
+                  !['search', 'listingType'].includes(attr.key)
+                )}
+                categorySlug={categorySlug}
+                screen={mobileScreen}
+                onScreenChange={setMobileScreen}
+                totalResults={totalResults}
+                onFilterChange={handleSpecChange}
+                onPriceChange={(min, max) => {
+                  setDraftFilter("priceMinMinor", min);
+                  setDraftFilter("priceMaxMinor", max);
+                  handleApplyFilter({ min, max });
+                }}
+                onApply={() => {
+                  setMobileScreen({ type: 'list' }); // Reset to first filter page
+                  setIsOpen(false);
+                }}
+                onClear={async () => {
+                  clearAllFilters();
+                  // Preserve listingType when clearing other filters
+                  const filters: any = { categoryId: categorySlug };
+                  if (listingType) filters.listingType = listingType;
+                  await fetchListingsByCategory(categorySlug, filters, "grid");
+                }}
+                isLoading={listingsLoading}
+              />
             </div>
           </>
         )}

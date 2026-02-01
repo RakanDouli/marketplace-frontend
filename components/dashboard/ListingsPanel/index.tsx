@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Loading, Text, Pagination, ListingCard, Container, Grid, Modal } from '@/components/slices';
 import { Input } from '@/components/slices/Input/Input';
 import { EditListingModal, DeleteListingModal } from './modals';
+import { ListingLimitModal } from '@/components/ListingLimitModal';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useUserListingsStore, ListingStatus } from '@/stores/userListingsStore';
 import { useArchivedListingStore } from '@/stores/archivedListingStore';
@@ -57,6 +58,7 @@ export const ListingsPanel: React.FC = () => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [listingToDelete, setListingToDelete] = useState<Listing | null>(null);
 
@@ -103,8 +105,12 @@ export const ListingsPanel: React.FC = () => {
 
 
 
-  // Handle create listing - navigate to create page
+  // Handle create listing - check limit then navigate to create page
   const handleCreateListing = () => {
+    if (isAtLimit) {
+      setShowLimitModal(true);
+      return;
+    }
     router.push('/dashboard/listings/create');
   };
 
@@ -294,10 +300,8 @@ export const ListingsPanel: React.FC = () => {
             </div>
             <Button
               onClick={handleCreateListing}
-              variant="primary"
+              variant={isAtLimit ? "outline" : "primary"}
               icon={<Plus size={16} />}
-              disabled={isAtLimit}
-              title={isAtLimit ? 'لقد وصلت للحد الأقصى من الإعلانات' : undefined}
             >
               إضافة إعلان جديد
             </Button>
@@ -555,6 +559,14 @@ export const ListingsPanel: React.FC = () => {
           </Button>
         </div>
       </Modal>
+
+      {/* Listing Limit Modal */}
+      <ListingLimitModal
+        isVisible={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        currentCount={currentListingsCount}
+        maxListings={maxListings}
+      />
 
     </>
   );

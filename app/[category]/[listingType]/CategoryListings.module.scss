@@ -79,11 +79,28 @@
 
 // Type header with badge
 .typeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
   margin-bottom: $space-md;
   padding-top: $space-sm;
 
   @media (max-width: $breakpoint-md) {
     display: none; // Mobile shows in MobileBackButton
+  }
+}
+
+// Tablet filter button - only shows between lg and md
+.tabletFilterButton {
+  display: none;
+
+  @media (max-width: $breakpoint-lg) {
+    display: flex;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    display: none; // MobileFilterBar handles this on mobile
   }
 }
 

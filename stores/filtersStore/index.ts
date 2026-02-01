@@ -25,6 +25,8 @@ interface DynamicFilterOption {
 interface CategoryCache {
   baseAttributes: Attribute[]; // Original attributes structure (cached)
   cachedAt: number; // Timestamp for cache expiration
+  // Cache initial brand options to allow switching brands even when model is selected
+  initialBrandOptions?: AttributeOptionWithCount[];
 }
 
 // Store state interface
@@ -372,12 +374,17 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         options: attr.options || [],
       }));
 
+      // Extract initial brand options to cache (for showing all brands when model is selected)
+      const brandAttribute = filterData.attributes.find(attr => attr.key === 'brandId');
+      const initialBrandOptions = brandAttribute?.processedOptions || [];
+
       // Update cache
       const newCache = {
         ...get().categoryCache,
         [categorySlug]: {
           baseAttributes,
           cachedAt: now,
+          initialBrandOptions,
         },
       };
 
@@ -430,12 +437,17 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
       options: attr.options || [],
     }));
 
+    // Extract initial brand options from SSR data
+    const brandAttribute = attributes.find(attr => attr.key === 'brandId');
+    const initialBrandOptions = (brandAttribute as AttributeWithProcessedOptions)?.processedOptions || [];
+
     // Update cache with SSR data
     const newCache = {
       ...get().categoryCache,
       [categorySlug]: {
         baseAttributes,
         cachedAt: now,
+        initialBrandOptions,
       },
     };
 
@@ -476,14 +488,53 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
         categorySlug,
         appliedFilters
       );
+
+      // Get cached initial brand options for merging
+      const cachedData = get().categoryCache[categorySlug];
+      const initialBrandOptions = cachedData?.initialBrandOptions || [];
+
       // Update attributes with cascading counts
       const attributesWithCascadingCounts: AttributeWithProcessedOptions[] =
         rawAttributes.map((attr) => {
           let processedOptions: AttributeOptionWithCount[] = [];
 
-          // Special handling for brandId, modelId, and variantId - create options from cascading aggregation data
-          if (attr.key === "brandId" || attr.key === "modelId" || attr.key === "variantId") {
-            // For brandId/modelId/variantId, get options directly from raw cascading aggregation
+          // Special handling for brandId - merge cached options with new counts
+          // This allows users to switch brands even when a model is selected
+          if (attr.key === "brandId") {
+            const rawAttributeData =
+              cascadingAggregations.rawAggregations?.attributes?.find(
+                (a: any) => a.field === attr.key
+              );
+
+            // Create a map of current counts from aggregation
+            const countMap = new Map<string, number>();
+            if (rawAttributeData?.options) {
+              rawAttributeData.options.forEach((option: any) => {
+                countMap.set(option.key || option.value, option.count);
+              });
+            }
+
+            // Merge cached brands with new counts (show all brands, update counts)
+            if (initialBrandOptions.length > 0) {
+              processedOptions = initialBrandOptions.map((cachedBrand) => ({
+                ...cachedBrand,
+                count: countMap.get(cachedBrand.key) || 0, // Use new count or 0
+              }));
+            } else if (rawAttributeData?.options) {
+              // Fallback to aggregation data if no cache
+              processedOptions = rawAttributeData.options.map((option: any) => ({
+                id: option.key || option.value,
+                key: option.key || option.value,
+                value: option.value,
+                sortOrder: 0,
+                isActive: true,
+                count: option.count,
+              }));
+            }
+          }
+          // Special handling for modelId and variantId - use aggregation data directly
+          else if (attr.key === "modelId" || attr.key === "variantId") {
+            // For modelId/variantId, get options directly from raw cascading aggregation
             const rawAttributeData =
               cascadingAggregations.rawAggregations?.attributes?.find(
                 (a: any) => a.field === attr.key

@@ -9,6 +9,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacer, Button } from "@/components/slices";
 import { Logo } from "@/components/Logo";
 import { UserMenu } from "@/components/UserMenu";
+import { ListingLimitModal } from "@/components/ListingLimitModal";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
@@ -23,9 +24,15 @@ export const Header: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [showPreheader, setShowPreheader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const { user, openAuthModal } = useUserAuthStore();
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const { user, userPackage, openAuthModal } = useUserAuthStore();
   const { unreadCount, fetchUnreadCount, fetchMyThreads } = useChatStore();
   const { loadMyWishlist } = useWishlistStore();
+
+  // Listing limit check
+  const maxListings = userPackage?.userSubscription?.maxListings || 0;
+  const currentListingsCount = userPackage?.currentListings || 0;
+  const isAtLimit = maxListings > 0 && currentListingsCount >= maxListings;
 
   // Fetch unread count and wishlist when user is logged in
   useEffect(() => {
@@ -92,12 +99,18 @@ export const Header: React.FC = () => {
     router.push('/dashboard/wishlist');
   };
 
-  // Handle create listing button click - check auth first
+  // Handle create listing button click - check auth and limit
   const handleCreateListingClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
     if (!user) {
       openAuthModal('login');
+      return;
+    }
+
+    // Check if user is at listing limit
+    if (isAtLimit) {
+      setShowLimitModal(true);
       return;
     }
 
@@ -174,6 +187,14 @@ export const Header: React.FC = () => {
           </div>
         </Container>
       </header>
+
+      {/* Listing Limit Modal */}
+      <ListingLimitModal
+        isVisible={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        currentCount={currentListingsCount}
+        maxListings={maxListings}
+      />
     </>
   );
 };

@@ -1,20 +1,8 @@
 @import "../../styles/variables";
 
+// Floating filter button - DISABLED (tablet filter button is now in CategoryListingsClient.tsx)
 .floatingFilterButton {
-  position: relative;
   display: none;
-  margin-right: 0;
-  z-index: $z-dropdown;
-
-  // Show on tablet (between md and lg) only
-  // On mobile (< md), MobileFilterBar handles this
-  @media (max-width: $breakpoint-lg) {
-    display: flex;
-  }
-
-  @media (max-width: $breakpoint-md) {
-    display: none;
-  }
 }
 
 .loading {
@@ -296,12 +284,6 @@
   }
 }
 
-// Show more/less button for mobile filters
-.showMoreButton {
-  width: 100%;
-  margin-top: $space-sm;
-}
-
 // Filter content wrapper - adds bottom padding for fixed footer on mobile
 .filterContent {
   @media (max-width: $breakpoint-md) {
@@ -403,6 +385,11 @@
   &:hover {
     opacity: 0.7;
   }
+
+  // Hide "clear all" on mobile - Aside only shows close button
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
 }
 
 // Result count in sticky header
@@ -410,4 +397,68 @@
   font-weight: 600;
   color: $text;
   margin: 0;
+}
+
+// Desktop content - show on desktop, hide on mobile
+.desktopContent {
+  display: block;
+
+  @media (max-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+// Mobile content - hide on desktop, show on mobile
+.mobileContent {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: block;
+  }
+}
+
+// Mobile header - back button + title (hidden on desktop)
+.mobileHeader {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+.mobileBackButton {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-xs;
+  background: transparent;
+  border: none;
+  color: $text;
+  font-size: $font-md;
+  font-weight: $weight-medium;
+  cursor: pointer;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.mobileBackButtonText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.mobileBackButtonTitle {
+  font-size: $font-md;
+  font-weight: $weight-medium;
+}
+
+.mobileBackButtonSubtitle {
+  font-size: $font-sm;
+  color: $text-muted;
 }

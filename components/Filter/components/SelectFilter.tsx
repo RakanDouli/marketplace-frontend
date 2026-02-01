@@ -33,6 +33,8 @@ export interface SelectFilterProps {
   showCounts?: boolean;
   /** Hide the label (when wrapped in Collapsible) */
   hideLabel?: boolean;
+  /** Keep all options visible (don't hide zero-count options) - useful for brand filter */
+  keepAllOptions?: boolean;
 }
 
 // Threshold for "long list" - hide zeros if more than this
@@ -46,6 +48,7 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
   onChange,
   showCounts = true,
   hideLabel = false,
+  keepAllOptions = false,
 }) => {
   const { t } = useTranslation();
 
@@ -64,7 +67,8 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
     const isLongList = options.length > LONG_LIST_THRESHOLD;
 
     let filtered = options;
-    if (isLongList) {
+    // Only hide zeros if it's a long list AND keepAllOptions is false
+    if (isLongList && !keepAllOptions) {
       // Long list: hide zeros
       filtered = options.filter(opt => opt.count === undefined || opt.count > 0);
     }
@@ -86,7 +90,7 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
     }
 
     return filtered;
-  }, [options, hasGroups]);
+  }, [options, hasGroups, keepAllOptions]);
 
   // Group options by groupKey for optgroup rendering
   const groupedOptions = useMemo(() => {

@@ -48,6 +48,12 @@ export const useFilterActions = (categorySlug: string | null, listingType?: stri
     // NOTE: Location will be extracted from specs and sent as top-level province in Filter.tsx submission
     setSpecFilter(attributeKey, value);
 
+    // Cascading filter: when brand changes, clear model selection
+    // This allows user to switch brands without manually clearing model first
+    if (attributeKey === 'brandId') {
+      setSpecFilter('modelId', undefined);
+    }
+
     // Apply filters with store coordination
     try {
       await applyFiltersToStores();

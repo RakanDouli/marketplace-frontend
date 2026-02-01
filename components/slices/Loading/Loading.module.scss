@@ -28,17 +28,69 @@
   }
 }
 
-// SVG loading (when type="svg")
+// SVG loading with brand icon (when type="svg")
 .loadingSvg {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  .spinner {
-    width: 32px;
-    height: 32px;
-    color: $primary;
-    animation: rotate 2s linear infinite;
+  // Size variants
+  &.sm .brandIcon {
+    height: 24px;
+    width: auto;
+  }
+
+  &.md .brandIcon {
+    height: 40px;
+    width: auto;
+  }
+
+  &.lg .brandIcon {
+    height: 60px;
+    width: auto;
+  }
+
+  .brandIcon {
+    path {
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke: $primary;
+      stroke-dasharray: 500;
+      stroke-dashoffset: 500;
+    }
+
+    // Wave bottom-to-top: path6 (circle) → path1 (middle) → path4 → path3 → path2 (top) → path5 (left)
+    .path6 {
+      animation: drawPath 3s ease-in-out infinite;
+      animation-delay: 0s;
+    }
+
+    .path1 {
+      animation: drawPath 3s ease-in-out infinite;
+      animation-delay: 0.3s;
+    }
+
+    .path4 {
+      animation: drawPath 3s ease-in-out infinite;
+      animation-delay: 0.6s;
+    }
+
+    .path3 {
+      animation: drawPath 3s ease-in-out infinite;
+      animation-delay: 0.9s;
+    }
+
+    .path2 {
+      animation: drawPath 3s ease-in-out infinite;
+      animation-delay: 1.2s;
+    }
+
+    .path5 {
+      animation: drawPath 3s ease-in-out infinite;
+      animation-delay: 1.5s;
+    }
   }
 }
 
@@ -55,8 +107,18 @@
   }
 }
 
-@keyframes rotate {
+// Draw path animation - path draws in and hides
+@keyframes drawPath {
+  0% {
+    stroke-dashoffset: 500;
+  }
+  40% {
+    stroke-dashoffset: 0;
+  }
+  60% {
+    stroke-dashoffset: 0;
+  }
   100% {
-    transform: rotate(360deg);
+    stroke-dashoffset: 500;
   }
 }

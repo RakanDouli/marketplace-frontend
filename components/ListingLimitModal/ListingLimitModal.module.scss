@@ -1,0 +1,54 @@
+@import "../../styles/variables";
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-md;
+  padding: $space-md 0;
+}
+
+.title {
+  margin: 0;
+}
+
+.description {
+  max-width: 360px;
+
+  strong {
+    color: $text;
+    font-weight: 600;
+  }
+}
+
+.options {
+  width: 100%;
+  text-align: right;
+  padding: $space-md;
+  background-color: $surface;
+  border-radius: $radius-md;
+}
+
+.optionsList {
+  margin: $space-sm 0 0 0;
+  padding-right: $space-lg;
+  list-style-type: disc;
+
+  li {
+    margin-bottom: $space-xs;
+    font-size: 14px;
+    color: $text-secondary;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $space-sm;
+  width: 100%;
+  margin-top: $space-sm;
+
+  button {
+    flex: 1;
+  }
+}

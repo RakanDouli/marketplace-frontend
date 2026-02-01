@@ -8,11 +8,11 @@
   border-radius: $radius-md;
   overflow-y: auto;
   background: $bg;
-  // Prevent scroll chaining to parent/body on mobile
-  overscroll-behavior: contain;
 
   // Mobile behavior - bottom sheet style (same as Modal)
   @media (max-width: $breakpoint-lg) {
+    // Prevent scroll chaining to parent/body on mobile only
+    overscroll-behavior: contain;
     position: fixed;
     bottom: -100%;
     left: 0;
@@ -50,13 +50,13 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  // Prevent scroll chaining - stops scroll from propagating to parent when hitting boundaries
-  overscroll-behavior: contain;
-  // Improve touch scrolling on iOS
-  -webkit-overflow-scrolling: touch;
 
   @media (max-width: $breakpoint-lg) {
     padding: $space-lg $space-md;
+    // Prevent scroll chaining - stops scroll from propagating to parent when hitting boundaries
+    overscroll-behavior: contain;
+    // Improve touch scrolling on iOS
+    -webkit-overflow-scrolling: touch;
   }
 }
 

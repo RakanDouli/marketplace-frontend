@@ -354,12 +354,30 @@ export default function CreateListingWizardPage() {
     return true;
   }, [currentStepIndex, steps, sectionInfo, firstGroup, otherGroups]);
 
+  // Listing limit check
+  const maxListings = userPackage?.userSubscription?.maxListings || 0;
+  const currentListingsCount = userPackage?.currentListings || 0;
+  const isAtLimit = maxListings > 0 && currentListingsCount >= maxListings;
+
   // Auth guard
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.push('/');
     }
   }, [user, isAuthLoading, router]);
+
+  // Listing limit guard
+  useEffect(() => {
+    if (!isAuthLoading && user && isAtLimit) {
+      addNotification({
+        type: 'warning',
+        title: 'لقد وصلت للحد الأقصى من الإعلانات',
+        message: `لديك ${currentListingsCount} إعلان من أصل ${maxListings}. قم بأرشفة بعض الإعلانات أو ترقية اشتراكك.`,
+        duration: 8000,
+      });
+      router.push('/dashboard/listings');
+    }
+  }, [user, isAuthLoading, isAtLimit, currentListingsCount, maxListings, router, addNotification]);
 
   // Load draft from URL parameter
   useEffect(() => {

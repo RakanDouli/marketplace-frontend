@@ -8,12 +8,14 @@ import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
 import { useCategoriesStore } from '@/stores/categoriesStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { Loading } from '@/components/slices';
 import styles from './CreateListing.module.scss';
 
 export default function CreateListingPage() {
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useUserAuthStore();
+  const { user, userPackage, isLoading: isAuthLoading } = useUserAuthStore();
+  const { addNotification } = useNotificationStore();
   const {
     setCategory,
     reset,
@@ -24,12 +26,30 @@ export default function CreateListingPage() {
 
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // Listing limit check
+  const maxListings = userPackage?.userSubscription?.maxListings || 0;
+  const currentListingsCount = userPackage?.currentListings || 0;
+  const isAtLimit = maxListings > 0 && currentListingsCount >= maxListings;
+
   // Auth guard
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.push('/');
     }
   }, [user, isAuthLoading, router]);
+
+  // Listing limit guard
+  useEffect(() => {
+    if (!isAuthLoading && user && isAtLimit) {
+      addNotification({
+        type: 'warning',
+        title: 'لقد وصلت للحد الأقصى من الإعلانات',
+        message: `لديك ${currentListingsCount} إعلان من أصل ${maxListings}. قم بأرشفة بعض الإعلانات أو ترقية اشتراكك.`,
+        duration: 8000,
+      });
+      router.push('/dashboard/listings');
+    }
+  }, [user, isAuthLoading, isAtLimit, currentListingsCount, maxListings, router, addNotification]);
 
   // Categories are now hydrated from root layout - no need to fetch here
 
@@ -38,7 +58,7 @@ export default function CreateListingPage() {
     reset();
   }, [reset]);
 
-  if (isAuthLoading || !user) {
+  if (isAuthLoading || !user || isAtLimit) {
     return null;
   }
 

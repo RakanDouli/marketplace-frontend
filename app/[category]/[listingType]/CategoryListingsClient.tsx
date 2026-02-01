@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import Container from "../../../components/slices/Container/Container";
 import Filter from "../../../components/Filter/Filter";
 import ListingArea from "../../../components/ListingArea/ListingArea";
@@ -286,6 +286,15 @@ export default function CategoryListingsClient({
           <Text variant="h2" className={styles.pageTitle}>
             {currentCategory.nameAr} <span className={styles.typeBadge}>{typeLabel}</span>
           </Text>
+          {/* Tablet Filter Button - only shows between lg and md */}
+          <Button
+            variant="outline"
+            className={styles.tabletFilterButton}
+            onClick={() => setIsFilterOpen(true)}
+            icon={<SlidersHorizontal size={20} />}
+          >
+            الفلاتر
+          </Button>
         </div>
 
         {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}

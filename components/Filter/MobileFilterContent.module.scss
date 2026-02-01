@@ -1,0 +1,297 @@
+@import "../../styles/variables";
+
+.mobileFilterContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: $bg;
+  overflow: hidden; // Prevent horizontal scroll during animation
+}
+
+// Screen container for animations
+.screenContainer {
+  width: 100%;
+  height: 100%;
+}
+
+// Slide animations (RTL: forward = from left, backward = from right)
+.slideInFromLeft {
+  animation: slideFromLeft 0.3s ease-out forwards;
+}
+
+.slideInFromRight {
+  animation: slideFromRight 0.3s ease-out forwards;
+}
+
+@keyframes slideFromLeft {
+  from {
+    transform: translateX(-30%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideFromRight {
+  from {
+    transform: translateX(30%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// List Screen
+.listScreen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.filterList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filterItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-md;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  text-align: right;
+
+  &:hover {
+    background: $surface;
+  }
+}
+
+.filterItemContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-xs;
+}
+
+.filterName {
+  color: $text;
+  font-weight: $weight-medium;
+  margin-bottom: 0;
+}
+
+.filterValue {
+  color: $primary;
+}
+
+.chevron {
+  color: $text-muted;
+}
+
+// Detail Screen
+.detailScreen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.optionsList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+// Option items (used in selector, multi-selector)
+.selectorOptions,
+.multiSelectorOptions,
+.priceOptions,
+.rangeOptions {
+  display: flex;
+  flex-direction: column;
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-md;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  text-align: right;
+
+  &:hover {
+    background: $surface;
+  }
+
+  &.selected {
+    background: rgba($primary, 0.1);
+
+    .checkIcon {
+      color: $primary;
+    }
+  }
+}
+
+// Group name + count together
+.optionContent {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  span {
+    margin-bottom: 0;
+  }
+}
+
+.optionCount {
+  color: $text-muted;
+}
+
+// Check icon container - always reserve space to prevent layout shift
+.checkIconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.checkIcon {
+  color: $primary;
+}
+
+// Multi-selector checkbox
+.checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: $space-sm;
+  border: 2px solid $border;
+  border-radius: $radius-md;
+  color: $text-inverse;
+  background: transparent;
+
+  .optionItem.selected & {
+    background: $primary;
+    border-color: $primary;
+  }
+}
+
+// Range inputs
+.rangeInputs,
+.customRange {
+  padding: $space-md;
+}
+
+.rangeInputGroup,
+.customRangeInputs {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  margin-bottom: $space-md;
+}
+
+.customRangeLabel {
+  color: $text-muted;
+  margin-bottom: $space-sm;
+}
+
+.customRangeInputs {
+  display: flex;
+  flex-direction: row;
+  gap: $space-sm;
+
+  input {
+    flex: 1;
+  }
+}
+
+// Range selector groups (for min/max selection)
+.rangeSelects {
+  display: flex;
+  flex-direction: column;
+  gap: $space-lg;
+}
+
+.rangeSelectGroup {
+  display: flex;
+  flex-direction: column;
+
+  > span {
+    padding: $space-sm $space-md;
+    color: $text-muted;
+    font-weight: $weight-semibold;
+    background: $surface;
+  }
+}
+
+// Range sub-menu (from/to options)
+.rangeSubMenu {
+  display: flex;
+  flex-direction: column;
+}
+
+// Custom input section at bottom of options list
+.customInputSection {
+  padding: $space-md;
+  border-top: 1px solid $border;
+  margin-top: $space-sm;
+}
+
+// Range input section for RANGE type
+.rangeInputSection {
+  padding: $space-md;
+}
+
+.rangeInputLabel {
+  margin-bottom: $space-sm;
+  color: $text-muted;
+}
+
+// Mobile filter scroll area (above fixed footer)
+.mobileFilterScrollArea {
+  flex: 1;
+  overflow-y: auto;
+  // Extra padding to account for fixed footer height + safe area
+  padding-bottom: calc(#{$bottom-nav-height} + env(safe-area-inset-bottom, 0));
+}
+
+// Fixed footer with clear and apply buttons
+.stickyFooter {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $space-md;
+  padding-bottom: calc($space-md + env(safe-area-inset-bottom, 0));
+  background: $bg;
+  border-top: 1px solid $border;
+  display: flex;
+  gap: $space-sm;
+  z-index: 10;
+}
+
+.clearButton {
+  flex-shrink: 0;
+}
+
+.applyButton {
+  flex: 1;
+}
+
+.resultCount {
+  color: inherit;
+  opacity: 0.8;
+  padding: 0 $space-sm;
+}
