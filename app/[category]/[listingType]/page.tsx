@@ -22,12 +22,15 @@ interface CategoryListingsPageProps {
   searchParams: Promise<{
     page?: string;
     brand?: string;
+    brandId?: string; // UUID for mobile selector brand filter
     model?: string;
+    modelId?: string; // UUID for mobile selector model filter
     minPrice?: string;
     maxPrice?: string;
     province?: string;
     city?: string;
     search?: string;
+    showListings?: string; // "true" to skip mobile selector
   }>;
 }
 
@@ -69,17 +72,25 @@ async function fetchListingById(listingId: string): Promise<{
 }
 
 // Fetch filter attributes server-side
-async function fetchFilterAttributes(categorySlug: string, listingType?: ListingType): Promise<{
+async function fetchFilterAttributes(
+  categorySlug: string,
+  listingType?: ListingType,
+  brandId?: string
+): Promise<{
   attributes: Attribute[];
   totalResults: number;
 }> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   try {
-    // Build filter for aggregations with listingType
+    // Build filter for aggregations with listingType and brandId (for cascading)
     const aggregationFilter: Record<string, unknown> = { categoryId: categorySlug };
     if (listingType) {
       aggregationFilter.listingType = listingType; // Enum value is already uppercase (SALE/RENT)
+    }
+    // Include brandId in aggregation filter for cascading (models filtered by brand)
+    if (brandId) {
+      aggregationFilter.specs = { brandId };
     }
 
     // Fetch attributes and aggregations in parallel
@@ -207,6 +218,8 @@ async function fetchListingsSSR(
     province?: string;
     minPrice?: string;
     maxPrice?: string;
+    brandId?: string;
+    modelId?: string;
   }
 ): Promise<{
   listings: Listing[];
@@ -240,6 +253,14 @@ async function fetchListingsSSR(
     filter.priceMaxMinor = parseInt(searchParams.maxPrice, 10);
   }
 
+  // Add brand/model filters (from mobile selector or direct URL)
+  if (searchParams?.brandId) {
+    filter.specs = { ...(filter.specs as object || {}), brandId: searchParams.brandId };
+  }
+  if (searchParams?.modelId) {
+    filter.specs = { ...(filter.specs as object || {}), modelId: searchParams.modelId };
+  }
+
   try {
     const response = await fetch(`${apiUrl}/graphql`, {
       method: "POST",
@@ -253,7 +274,7 @@ async function fetchListingsSSR(
         },
       }),
       // Don't cache when search params are present (dynamic content)
-      next: searchParams?.search || searchParams?.province
+      next: searchParams?.search || searchParams?.province || searchParams?.brandId || searchParams?.modelId
         ? { revalidate: 0 }
         : { revalidate: 120 },
     });
@@ -402,14 +423,15 @@ export default async function CategoryListingsPage({
   }
 
   // Fetch filter attributes AND listings server-side (SSR) in parallel
+  // Pass brandId to fetchFilterAttributes for cascading model filter
   const [filterData, listingsData] = await Promise.all([
-    fetchFilterAttributes(category, parsedListingType),
+    fetchFilterAttributes(category, parsedListingType, resolvedSearchParams?.brandId),
     fetchListingsSSR(category, parsedListingType, resolvedSearchParams),
   ]);
 
   // Use listingsData.totalResults when search params are present (filtered count)
   // Otherwise use filterData.totalResults (unfiltered count for aggregations)
-  const hasSearchFilters = resolvedSearchParams?.search || resolvedSearchParams?.province;
+  const hasSearchFilters = resolvedSearchParams?.search || resolvedSearchParams?.province || resolvedSearchParams?.brandId || resolvedSearchParams?.modelId;
   const totalResults = hasSearchFilters ? listingsData.totalResults : filterData.totalResults;
 
   return (

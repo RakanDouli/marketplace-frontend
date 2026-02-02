@@ -1,0 +1,140 @@
+@import "../../styles/variables";
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: $bg;
+
+  // Only show on mobile
+  @media (min-width: $breakpoint-md) {
+    display: none;
+  }
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+// Show All button - highlighted at top
+.showAllButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-md;
+  background: $surface;
+  border: none;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  text-align: right;
+
+  &:hover {
+    background: rgba($primary, 0.05);
+  }
+
+  &:active {
+    background: rgba($primary, 0.1);
+  }
+}
+
+.showAllContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-xs;
+}
+
+.showAllText {
+  color: $primary;
+  font-weight: $weight-semibold;
+  margin-bottom: 0;
+}
+
+.showAllCount {
+  color: $primary;
+}
+
+// Divider with text
+.divider {
+  display: flex;
+  align-items: center;
+  padding: $space-sm $space-md;
+  background: $surface;
+}
+
+.dividerText {
+  color: $text-muted;
+  font-weight: $weight-medium;
+}
+
+// Options list
+.optionsList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-md;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  text-align: right;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: $surface;
+  }
+
+  &:active {
+    background: rgba($primary, 0.05);
+  }
+}
+
+.optionContent {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.optionName {
+  color: $text;
+  margin-bottom: 0;
+}
+
+.optionCount {
+  color: $text-muted;
+}
+
+.chevron {
+  color: $text-muted;
+  flex-shrink: 0;
+}
+
+// Loading state
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $space-xl;
+}
+
+// Empty state
+.empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $space-xl;
+  text-align: center;
+}

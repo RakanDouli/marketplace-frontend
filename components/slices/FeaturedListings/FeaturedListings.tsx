@@ -183,14 +183,12 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
     fetchData();
   }, [categoryId, category?.id, category?.slug, categorySlug, limit]);
 
-  // Don't render if no category found
-  if (!category) {
-    return null;
-  }
-
-  // Show skeleton while loading to prevent CLS
+  // Show skeleton while loading OR before hydration to prevent CLS and hydration mismatch
+  // Server: categories store empty → category = null → show skeleton
+  // Client (initial): isHydrated = false → show skeleton (matches server)
+  // Client (after hydration): categories load → show real content
   // Use `limit` for skeleton count so height matches loaded content
-  if (isLoading) {
+  if (isLoading || !category || !isHydrated) {
     const skeletonCount = variant === "grid" ? limit : 5;
     const skeletonCards = Array.from({ length: skeletonCount }, (_, i) => (
       <ListingCard

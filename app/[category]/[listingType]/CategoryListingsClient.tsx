@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
 import { notFound, useRouter } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import Container from "../../../components/slices/Container/Container";
@@ -9,12 +9,14 @@ import ListingArea from "../../../components/ListingArea/ListingArea";
 import { Loading } from "../../../components/slices/Loading/Loading";
 import { MobileBackButton, Input, Button, Text } from "../../../components/slices";
 import { MobileFilterBar } from "../../../components/MobileFilterBar";
+import { MobileCatalogSelector } from "../../../components/MobileCatalogSelector";
 import {
   useCategoriesStore,
   useFiltersStore,
   useSearchStore,
   useListingsStore,
 } from "../../../stores";
+import { useIsMobile } from "../../../hooks";
 import { getListingTypeLabel } from "../../../utils/categoryRouting";
 import { ListingType } from "../../../common/enums";
 import type { Category, Attribute, Listing } from "../../../types/listing";
@@ -27,12 +29,15 @@ interface CategoryListingsClientProps {
   searchParams: {
     page?: string;
     brand?: string;
+    brandId?: string; // UUID for brand selection
     model?: string;
+    modelId?: string; // UUID for model selection
     minPrice?: string;
     maxPrice?: string;
     province?: string;
     city?: string;
     search?: string;
+    showListings?: string; // "true" to skip mobile selector (Show All)
   };
   // SSR props - pre-fetched on server
   initialAttributes?: Attribute[];
@@ -50,11 +55,85 @@ export default function CategoryListingsClient({
   initialListings,
 }: CategoryListingsClientProps) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const initializedRef = useRef(false);
+
+  // Mobile drill-down state
+  const hasBrandId = !!searchParams.brandId;
+  const hasModelId = !!searchParams.modelId;
+
+  // Use ref to "lock in" showListings=true once it's set
+  // This prevents race conditions where re-renders temporarily lose the searchParam
+  const showListingsLockedRef = useRef(false);
+  const showListingsFromUrl = searchParams.showListings?.toString().trim().toLowerCase() === "true";
+
+  // Lock in showListings when URL has it
+  if (showListingsFromUrl) {
+    showListingsLockedRef.current = true;
+  }
+
+  // Reset the lock when user navigates back to brand selector (no params at all)
+  // This happens when user clicks back from listings to go back to brand selection
+  const hasNoFilterParams = !hasBrandId && !hasModelId && !showListingsFromUrl;
+  if (hasNoFilterParams && showListingsLockedRef.current) {
+    // User navigated back to base URL - reset the lock
+    showListingsLockedRef.current = false;
+  }
+
+  const showListingsExplicitly = showListingsLockedRef.current;
+
+  // Extract brand options from initialAttributes for mobile selector
+  // Note: processedOptions is added by SSR code, not in the Attribute type
+  const brandOptions = useMemo(() => {
+    if (!initialAttributes) return [];
+    const brandAttr = initialAttributes.find((attr) => attr.key === "brandId") as any;
+    const options = brandAttr?.processedOptions || brandAttr?.options || [];
+    return options.map((opt: any) => ({
+      id: opt.key || opt.id,
+      name: opt.value,
+      count: opt.count,
+    }));
+  }, [initialAttributes]);
+
+  // Check if category has brand/model attributes (for mobile drill-down)
+  const hasBrandAttribute = brandOptions.length > 0;
+
+  // Determine mobile selector step
+  // Only show drill-down for categories with brand attributes
+  // - No brandId and not "showListings" → show brand selector
+  // - Has brandId but no modelId and not "showListings" → show model selector
+  // - Has both or "showListings" → show listings
+  const mobileSelectorStep = useMemo(() => {
+    // Skip drill-down for categories without brand attributes
+    if (!hasBrandAttribute) return null;
+    if (showListingsExplicitly) return null; // User chose "Show All"
+    if (!hasBrandId) return "brand";
+    if (!hasModelId) return "model";
+    return null; // Both selected, show listings
+  }, [hasBrandAttribute, hasBrandId, hasModelId, showListingsExplicitly]);
+
+  // Extract model options for selected brand
+  const modelOptions = useMemo(() => {
+    if (!initialAttributes || !searchParams.brandId) return [];
+    const modelAttr = initialAttributes.find((attr) => attr.key === "modelId") as any;
+    const options = modelAttr?.processedOptions || modelAttr?.options || [];
+    return options.map((opt: any) => ({
+      id: opt.key || opt.id,
+      name: opt.value,
+      count: opt.count,
+    }));
+  }, [initialAttributes, searchParams.brandId]);
+
+  // Get selected brand name for display
+  const selectedBrandName = useMemo(() => {
+    if (!searchParams.brandId || !brandOptions.length) return "";
+    const brand = brandOptions.find((b: { id: string; name: string }) => b.id === searchParams.brandId);
+    return brand?.name || "";
+  }, [searchParams.brandId, brandOptions]);
 
   // Store hooks - minimal usage, let components handle their own store coordination
   const {
@@ -82,16 +161,19 @@ export default function CategoryListingsClient({
   // Local search state for controlled input - initialize from URL params if available
   const [localSearch, setLocalSearch] = useState(searchParams.search || appliedFilters.search || '');
 
-  // SYNCHRONOUS hydration (runs during render, not in useEffect)
-  // This ensures data is set BEFORE ListingArea's useEffect runs
-  // Track previous values to re-hydrate when navigating between listing types
-  const lastHydratedRef = useRef<{ categorySlug: string; listingType: string } | null>(null);
-  const currentKey = `${categorySlug}-${listingType}`;
-  const lastKey = lastHydratedRef.current ? `${lastHydratedRef.current.categorySlug}-${lastHydratedRef.current.listingType}` : null;
+  // Track previous values to re-hydrate when URL params change (including brandId/modelId)
+  const lastHydratedRef = useRef<string | null>(null);
+  // Include filter params in key so hydration re-runs when they change
+  const currentKey = `${categorySlug}-${listingType}-${searchParams.brandId || ''}-${searchParams.modelId || ''}-${searchParams.showListings || ''}`;
 
-  // Re-hydrate if this is first render OR if category/listingType changed
-  if (lastKey !== currentKey) {
-    lastHydratedRef.current = { categorySlug, listingType };
+  // Hydrate stores from URL params using useLayoutEffect (runs before paint, after render)
+  // This ensures data is set early but avoids "setState during render" errors
+  useLayoutEffect(() => {
+    // Re-hydrate if this is first render OR if any key param changed
+    if (lastHydratedRef.current === currentKey) {
+      return;
+    }
+    lastHydratedRef.current = currentKey;
 
     // 1. Hydrate searchStore from URL params so filters show as applied
     if (searchParams.search) {
@@ -107,6 +189,21 @@ export default function CategoryListingsClient({
       setFilter('priceMaxMinor', parseInt(searchParams.maxPrice, 10));
     }
 
+    // Hydrate brand/model filters from URL (mobile selector flow)
+    // Also clear filters that are no longer in URL (for back navigation)
+    if (searchParams.brandId) {
+      setSpecFilter('brandId', searchParams.brandId);
+    } else {
+      // Clear brandId if not in URL (user navigated back)
+      setSpecFilter('brandId', undefined);
+    }
+    if (searchParams.modelId) {
+      setSpecFilter('modelId', searchParams.modelId);
+    } else {
+      // Clear modelId if not in URL (user navigated back or changed brand)
+      setSpecFilter('modelId', undefined);
+    }
+
     // 2. Set listingType filter
     setFilter('listingType', listingType);
 
@@ -115,7 +212,7 @@ export default function CategoryListingsClient({
     if (initialListings !== undefined) {
       hydrateListingsFromSSR(categorySlug, initialListings || [], initialTotalResults || 0, listingType);
     }
-  }
+  }, [currentKey, categorySlug, listingType, searchParams, initialListings, initialTotalResults, setFilter, setSpecFilter, hydrateListingsFromSSR]);
 
   // Sync local search with store when store changes (for in-page searches)
   useEffect(() => {
@@ -231,8 +328,30 @@ export default function CategoryListingsClient({
     return null;
   }
 
-  // Handle back navigation - goes to category preloader or categories page
+  // Handle back navigation
+  // On mobile with filters: go back through drill-down (model → brand → category)
+  // On desktop or no filters: go to category preloader or categories page
   const handleBack = () => {
+    // Mobile drill-down back navigation
+    if (isMobile) {
+      if (searchParams.modelId && searchParams.brandId) {
+        // Has both filters: go back to model selector (keep brand, remove model)
+        router.push(`/${categorySlug}/${listingTypeSlug}?brandId=${searchParams.brandId}`);
+        return;
+      }
+      if (searchParams.brandId && !searchParams.modelId) {
+        // Has brand only: go back to brand selector (remove brand)
+        router.push(`/${categorySlug}/${listingTypeSlug}`);
+        return;
+      }
+      if (searchParams.showListings === "true") {
+        // Came from "Show All" button: go back to selector
+        router.push(`/${categorySlug}/${listingTypeSlug}`);
+        return;
+      }
+    }
+
+    // Default navigation (desktop or no mobile filters)
     const supportedTypes = currentCategory.supportedListingTypes || [ListingType.SALE];
     if (supportedTypes.length > 1) {
       router.push(`/${categorySlug}`);
@@ -242,6 +361,23 @@ export default function CategoryListingsClient({
   };
 
   const typeLabel = getListingTypeLabel(listingType);
+
+  // Show mobile catalog selector if on mobile and user hasn't selected brand/model yet
+  if (isMobile && mobileSelectorStep) {
+    return (
+      <MobileCatalogSelector
+        step={mobileSelectorStep}
+        categorySlug={categorySlug}
+        listingType={listingTypeSlug}
+        categoryNameAr={currentCategory.nameAr}
+        options={mobileSelectorStep === "brand" ? brandOptions : modelOptions}
+        selectedBrandId={searchParams.brandId}
+        selectedBrandName={selectedBrandName}
+        totalCount={initialTotalResults}
+        isLoading={isCategoryLoading}
+      />
+    );
+  }
 
   return (
     <>

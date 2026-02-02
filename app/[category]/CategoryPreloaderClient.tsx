@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingBag, Key, ArrowRight } from "lucide-react";
 import Container from "../../components/slices/Container/Container";
-import { Text, MobileBackButton } from "../../components/slices";
+import { Text, MobileBackButton, Loading } from "../../components/slices";
 import styles from "./CategoryPreloader.module.scss";
 
 interface CategoryPreloaderClientProps {
