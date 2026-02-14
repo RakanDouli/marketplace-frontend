@@ -9,6 +9,7 @@ import { Button } from "../Button/Button";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
 import { useMetadataStore } from "@/stores/metadataStore";
+import { useCurrencyStore } from "@/stores/currencyStore";
 import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
 import { LISTINGS_GRID_QUERY } from "@/stores/listingsStore/listingsStore.gql";
@@ -70,6 +71,8 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
   // Categories are hydrated from root layout - instant access, no waiting
   const { getCategoryById, getCategoryBySlug } = useCategoriesStore();
   const { provinces, fetchLocationMetadata } = useMetadataStore();
+  // Subscribe to currency changes to re-render prices when user changes currency
+  const { preferredCurrency } = useCurrencyStore();
   const [listings, setListings] = useState<Listing[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);

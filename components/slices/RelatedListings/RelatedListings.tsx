@@ -6,6 +6,7 @@ import { Grid } from "../Grid/Grid";
 import { ListingCard } from "../ListingCard/ListingCard";
 import { useCategoriesStore } from "@/stores/categoriesStore";
 import { useMetadataStore } from "@/stores/metadataStore";
+import { useCurrencyStore } from "@/stores/currencyStore";
 import { useRelatedListingsStore, RelatedListing, RelatedType } from "@/stores/relatedListingsStore";
 import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
@@ -43,6 +44,8 @@ export const RelatedListings: React.FC<RelatedListingsProps> = ({
   const { getCategoryById } = useCategoriesStore();
   const { provinces, fetchLocationMetadata } = useMetadataStore();
   const { fetchRelatedListings } = useRelatedListingsStore();
+  // Subscribe to currency changes to re-render prices when user changes currency
+  const { preferredCurrency } = useCurrencyStore();
   const [listings, setListings] = useState<RelatedListing[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [isLoading, setIsLoading] = useState(true);

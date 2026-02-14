@@ -7,6 +7,7 @@ import { Send, UserCircle, MoreVertical, Trash2, Ban, AlertTriangle, Edit2, Chev
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useListingsStore } from '@/stores/listingsStore';
+import { useCurrencyStore } from '@/stores/currencyStore';
 import { Text, Button, Image, Dropdown, DropdownMenuItem, ImagePreview } from '@/components/slices';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDateShort, formatDayName, formatDateTime } from '@/utils/formatDate';
@@ -57,6 +58,8 @@ export const MessagesClient: React.FC = () => {
     markThreadRead,
   } = useChatStore();
   const { fetchListingById } = useListingsStore();
+  // Subscribe to currency changes to re-render prices when user changes currency
+  const { preferredCurrency } = useCurrencyStore();
 
   const [threadsWithListings, setThreadsWithListings] = useState<ThreadWithListing[]>([]);
   const [isMobile, setIsMobile] = useState(false);

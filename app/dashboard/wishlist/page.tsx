@@ -5,6 +5,7 @@ import { formatPrice } from '@/utils/formatPrice';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { useCurrencyStore } from '@/stores/currencyStore';
 import { Container, ListingCard, Text, Button, MobileBackButton, Grid } from '@/components/slices';
 import sharedStyles from '@/components/dashboard/SharedDashboardPanel.module.scss';
 import styles from './wishlist.module.scss';
@@ -12,6 +13,8 @@ import styles from './wishlist.module.scss';
 export default function WishlistPage() {
   const router = useRouter();
   const { listings, isLoading, error, loadMyWishlist } = useWishlistStore();
+  // Subscribe to currency changes to re-render prices when user changes currency
+  const { preferredCurrency } = useCurrencyStore();
 
   useEffect(() => {
     loadMyWishlist();
