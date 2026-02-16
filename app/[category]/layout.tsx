@@ -13,19 +13,22 @@ export async function generateMetadata({
 }: CategoryLayoutProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
   
-  // Static fallback mapping for common categories
+  // Static fallback mapping for common categories (use actual slugs from DB)
   const categoryNames: Record<string, { ar: string; en: string }> = {
-    car: { ar: "سيارات", en: "Cars" },
+    cars: { ar: "سيارات", en: "Cars" },
     electronics: { ar: "إلكترونيات", en: "Electronics" },
     furniture: { ar: "أثاث", en: "Furniture" },
     "real-estate": { ar: "عقارات", en: "Real Estate" },
+    phones: { ar: "هواتف", en: "Phones" },
+    motorcycles: { ar: "دراجات نارية", en: "Motorcycles" },
+    jobs: { ar: "وظائف", en: "Jobs" },
+    services: { ar: "خدمات", en: "Services" },
   };
-  
+
   const category = categoryNames[categorySlug];
-  const categoryNameAr = category?.ar || categorySlug.replace(/-/g, " ");
-  const categoryNameEn = category?.en || categorySlug
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+  // Fallback to generic Arabic text instead of showing English slug
+  const categoryNameAr = category?.ar || "إعلانات";
+  const categoryNameEn = category?.en || "Listings";
 
   return {
     title: `${categoryNameAr} للبيع في سوريا | شام باي`,
