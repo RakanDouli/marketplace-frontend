@@ -73,7 +73,7 @@ function getImageUrl(imageKey: string | undefined): string {
     return 'https://shambay.com/og-default.jpg'; // Default OG image
   }
 
-  const accountHash = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_HASH;
+  const accountHash = process.env.NEXT_PUBLIC_CLOUDFLARE_IMAGES_HASH;
   if (!accountHash) {
     return imageKey; // Fallback to raw key
   }
