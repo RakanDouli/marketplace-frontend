@@ -119,7 +119,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                   description: description || `${specs.year || ''} ${specs.make || ''} ${specs.model || ''}`,
                   url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://shambay.com'}${listingUrl}`,
                   image: images?.[0],
-                  siteName: 'السوق السوري للسيارات',
+                  siteName: 'شام باي',
                   type: 'product',
                   price: price,
                   currency: currency,

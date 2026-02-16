@@ -336,7 +336,7 @@ export async function generateMetadata({
   if (UUID_PATTERN.test(listingType)) {
     // Return minimal metadata for redirects
     return {
-      title: "جاري التحويل... | السوق السوري",
+      title: "جاري التحويل... | شام باي",
     };
   }
 
@@ -344,7 +344,7 @@ export async function generateMetadata({
   const parsedListingType = urlSegmentToListingType(listingType);
   if (!parsedListingType) {
     return {
-      title: "صفحة غير موجودة | السوق السوري",
+      title: "صفحة غير موجودة | شام باي",
     };
   }
 
@@ -352,12 +352,12 @@ export async function generateMetadata({
 
   if (!categoryData) {
     return {
-      title: "الفئة غير موجودة | السوق السوري",
+      title: "الفئة غير موجودة | شام باي",
     };
   }
 
   const typeLabel = getListingTypeLabel(parsedListingType);
-  const title = `${categoryData.nameAr} ${typeLabel} في سوريا | السوق السوري`;
+  const title = `${categoryData.nameAr} ${typeLabel} في سوريا | شام باي`;
   const description = `تصفح أحدث إعلانات ${categoryData.nameAr} ${typeLabel} في سوريا. أسعار منافسة وتشكيلة واسعة من المعروضات.`;
 
   return {

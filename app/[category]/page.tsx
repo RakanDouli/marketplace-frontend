@@ -50,7 +50,7 @@ export async function generateMetadata({
 
   if (!categoryData) {
     return {
-      title: "الفئة غير موجودة | السوق السوري",
+      title: "الفئة غير موجودة | شام باي",
     };
   }
 
@@ -62,13 +62,13 @@ export async function generateMetadata({
     // Compare case-insensitively (DB has lowercase, enum has uppercase)
     const typeLabel = types[0].toUpperCase() === ListingType.SALE ? "للبيع" : "للإيجار";
     return {
-      title: `${categoryData.nameAr} ${typeLabel} في سوريا | السوق السوري`,
+      title: `${categoryData.nameAr} ${typeLabel} في سوريا | شام باي`,
       description: `تصفح أحدث إعلانات ${categoryData.nameAr} ${typeLabel} في سوريا.`,
     };
   }
 
   // Pre-loader page metadata
-  const title = `${categoryData.nameAr} للبيع والإيجار في سوريا | السوق السوري`;
+  const title = `${categoryData.nameAr} للبيع والإيجار في سوريا | شام باي`;
   const description = `اختر نوع الإعلان الذي تبحث عنه: ${categoryData.nameAr} للبيع أو ${categoryData.nameAr} للإيجار في سوريا.`;
 
   return {

@@ -93,7 +93,7 @@ export async function generateMetadata({
   const parsedListingType = urlSegmentToListingType(listingType);
   if (!parsedListingType) {
     return {
-      title: 'صفحة غير موجودة | السوق السوري',
+      title: 'صفحة غير موجودة | شام باي',
     };
   }
 
@@ -101,14 +101,14 @@ export async function generateMetadata({
 
   if (!listing) {
     return {
-      title: 'الإعلان غير موجود | السوق السوري للسيارات',
+      title: 'الإعلان غير موجود | شام باي',
       description: 'لم يتم العثور على الإعلان المطلوب',
     };
   }
 
-  const title = `${listing.title} | السوق السوري للسيارات`;
+  const title = `${listing.title} | شام باي`;
   const description = listing.description?.slice(0, 160) ||
-    `${listing.title} - اعثر على أفضل العروض في السوق السوري للسيارات`;
+    `${listing.title} - اعثر على أفضل العروض في شام باي`;
   const imageUrl = getImageUrl(listing.imageKeys?.[0]);
   const price = listing.priceMinor ? `$${listing.priceMinor.toLocaleString()}` : '';
 
@@ -136,7 +136,7 @@ export async function generateMetadata({
       ],
       type: 'website',
       locale: 'ar_SY',
-      siteName: 'السوق السوري للسيارات',
+      siteName: 'شام باي',
     },
     twitter: {
       card: 'summary_large_image',

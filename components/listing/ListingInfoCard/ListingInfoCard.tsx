@@ -95,7 +95,7 @@ export const ListingInfoCard: React.FC<ListingInfoCardProps> = ({
             description: description || '',
             url: shareUrl,
             image: imageKeys?.[0],
-            siteName: 'السوق السوري للسيارات',
+            siteName: 'شام باي',
             type: 'product',
             price: priceMinor?.toString(),
             currency: 'USD',

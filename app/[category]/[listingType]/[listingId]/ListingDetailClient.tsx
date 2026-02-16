@@ -152,7 +152,7 @@ export const ListingDetailClient: React.FC<ListingDetailClientProps> = ({
                         description: listing.description || '',
                         url: shareUrl,
                         image: listing.imageKeys?.[0],
-                        siteName: 'السوق السوري للسيارات',
+                        siteName: 'شام باي',
                         type: 'product',
                         price: listing.priceMinor?.toString(),
                         currency: 'USD',
