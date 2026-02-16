@@ -832,86 +832,48 @@ export default function CreateListingWizardPage() {
     const renderBrandModelFields = () => {
       if (!hasBrandModel || brands.length === 0) return null;
 
-      // Build model options with variants included
-      // Models with variants show as optgroups, variants as selectable options
-      // Models without variants show as regular selectable options
-      const buildModelOptions = () => {
-        const options: Array<{ value: string; label: string; group?: string }> = [
-          { value: '', label: formData.specs.brandId ? `-- اختر ${modelAttribute?.name || 'الموديل'} --` : '-- اختر العلامة التجارية أولاً --' },
-        ];
-        const addedValues = new Set<string>(); // Prevent duplicates
+      /**
+       * NEW STRUCTURE:
+       * - Brand: Mercedes-Benz (from brands table)
+       * - Series: C-Class (from models table) - displayed as "الفئة"
+       * - Model: C-180, C-200 (from model_variants table) - displayed as "الموديل"
+       *
+       * Data mapping:
+       * - brandId → Brand
+       * - modelId → Series (stored in models table)
+       * - variantId → Actual model (stored in model_variants table)
+       */
 
-        models.filter(m => m.isActive).forEach(model => {
-          const modelVariants = variants.filter(v => v.modelId === model.id && v.isActive);
+      // Get variants (actual models) for the selected series
+      const selectedSeriesId = formData.specs.modelId;
+      const modelsForSeries = selectedSeriesId
+        ? variants.filter(v => v.modelId === selectedSeriesId && v.isActive)
+        : [];
 
-          if (modelVariants.length > 0) {
-            // Model has variants - add variants with model name as group
-            modelVariants.forEach(variant => {
-              const value = `variant_${variant.id}`;
-              if (!addedValues.has(value)) {
-                addedValues.add(value);
-                options.push({
-                  value,
-                  label: variant.name,
-                  group: model.name,
-                });
-              }
-            });
-          } else {
-            // Model has no variants - add model directly
-            const value = `model_${model.id}`;
-            if (!addedValues.has(value)) {
-              addedValues.add(value);
-              options.push({
-                value,
-                label: model.name,
-              });
-            }
-          }
-        });
-
-        return options;
-      };
-
-      // Get current value for model dropdown
-      const getModelDropdownValue = () => {
-        if (formData.specs.variantId) {
-          return `variant_${formData.specs.variantId}`;
-        }
-        if (formData.specs.modelId) {
-          return `model_${formData.specs.modelId}`;
-        }
-        return '';
-      };
-
-      // Handle model/variant selection
-      const handleModelSelection = (value: string) => {
-        // Clear auto-filled fields when model/variant changes
-        // Use current suggestionSpecs keys (dynamic from backend) instead of hardcoded list
+      // Handle series selection
+      const handleSeriesSelection = (seriesId: string) => {
+        // Clear auto-filled fields when series changes
         if (suggestionSpecs) {
           Object.keys(suggestionSpecs).forEach(field => setSpecField(field, ''));
         }
+        setSpecField('modelId', seriesId);
+        setSpecField('variantId', ''); // Clear model when series changes
+        saveDraft();
+      };
 
-        if (!value) {
-          setSpecField('modelId', '');
-          setSpecField('variantId', '');
-        } else if (value.startsWith('variant_')) {
-          const variantId = value.replace('variant_', '');
-          const variant = variants.find(v => v.id === variantId);
-          if (variant) {
-            setSpecField('modelId', variant.modelId);
-            setSpecField('variantId', variantId);
-          }
-        } else if (value.startsWith('model_')) {
-          const modelId = value.replace('model_', '');
-          setSpecField('modelId', modelId);
-          setSpecField('variantId', '');
+      // Handle model selection (from variants)
+      const handleModelSelection = (variantId: string) => {
+        // Clear auto-filled fields when model changes
+        if (suggestionSpecs) {
+          Object.keys(suggestionSpecs).forEach(field => setSpecField(field, ''));
         }
+        setSpecField('variantId', variantId);
         saveDraft();
       };
 
       return (
         <>
+          {/* Brand Dropdown */}
           <Input
             type="select"
             label={brandAttribute?.name || "العلامة التجارية"}
@@ -941,26 +903,55 @@ export default function CreateListingWizardPage() {
             success={!!formData.specs.brandId && !getError('brandId', undefined)}
           />
 
+          {/* Series Dropdown (stored in models table) */}
           <Input
             type="select"
-            label={modelAttribute?.name || "الموديل"}
-            value={getModelDropdownValue()}
-            onChange={(e) => handleModelSelection(e.target.value)}
+            label="الفئة"
+            value={formData.specs.modelId || ''}
+            onChange={(e) => handleSeriesSelection(e.target.value)}
             onBlur={() => handleBlur('modelId')}
-            options={buildModelOptions()}
-            disabled={!formData.specs.brandId || isLoadingModels || isLoadingVariants}
+            options={[
+              { value: '', label: formData.specs.brandId ? '-- اختر الفئة --' : '-- اختر العلامة التجارية أولاً --' },
+              ...models.filter(m => m.isActive).map(model => ({ value: model.id, label: model.name })),
+            ]}
+            disabled={!formData.specs.brandId || isLoadingModels}
             searchable={!!formData.specs.brandId}
             creatable={!!formData.specs.brandId}
-            isLoading={isLoadingModels || isLoadingVariants}
+            isLoading={isLoadingModels}
             onCreateOption={handleCreateModel}
             required={modelAttribute?.validation === 'REQUIRED'}
             error={getError('modelId',
               modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
-                ? `${modelAttribute?.name || 'الموديل'} مطلوب`
+                ? 'الفئة مطلوبة'
                 : undefined
             )}
             success={!!formData.specs.modelId && !getError('modelId', undefined)}
           />
+
+          {/* Model Dropdown (stored in model_variants table) */}
+          {formData.specs.modelId && (
+            <Input
+              type="select"
+              label="الموديل"
+              value={formData.specs.variantId || ''}
+              onChange={(e) => handleModelSelection(e.target.value)}
+              onBlur={() => handleBlur('variantId')}
+              options={[
+                { value: '', label: modelsForSeries.length > 0 ? '-- اختر الموديل --' : '-- لا توجد موديلات متاحة --' },
+                ...modelsForSeries.map(variant => ({ value: variant.id, label: variant.name })),
+              ]}
+              disabled={!formData.specs.modelId || isLoadingVariants || modelsForSeries.length === 0}
+              searchable={modelsForSeries.length > 5}
+              isLoading={isLoadingVariants}
+              required={variantAttribute?.validation === 'REQUIRED'}
+              error={getError('variantId',
+                variantAttribute?.validation === 'REQUIRED' && !formData.specs.variantId
+                  ? 'الموديل مطلوب'
+                  : undefined
+              )}
+              success={!!formData.specs.variantId && !getError('variantId', undefined)}
+            />
+          )}
         </>
       );
     };
