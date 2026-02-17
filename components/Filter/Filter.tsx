@@ -180,6 +180,37 @@ export const Filter: React.FC<FilterProps> = ({
     getSingleSelectorValue,
   } = attributeFilters;
 
+  // Check if a filter attribute should be shown
+  // Hide filters where ALL options have count 0 (no listings match any option)
+  const shouldShowAttribute = (attribute: any): boolean => {
+    // For SELECTOR and MULTI_SELECTOR types, check if at least one option has count > 0
+    if (
+      (attribute.type === AttributeType.SELECTOR || attribute.type === AttributeType.MULTI_SELECTOR) &&
+      attribute.processedOptions &&
+      attribute.processedOptions.length > 0
+    ) {
+      // Special case: brandId should always show (user may want to change brand)
+      if (attribute.key === 'brandId') return true;
+
+      // Check if at least one option has count > 0
+      const hasVisibleOptions = attribute.processedOptions.some(
+        (opt: any) => opt.count > 0
+      );
+      return hasVisibleOptions;
+    }
+
+    // For RANGE_SELECTOR, also check if options exist with counts
+    if (attribute.type === AttributeType.RANGE_SELECTOR && attribute.processedOptions) {
+      const hasVisibleOptions = attribute.processedOptions.some(
+        (opt: any) => opt.count > 0
+      );
+      return hasVisibleOptions;
+    }
+
+    // For other types (RANGE, CURRENCY, TEXT), always show
+    return true;
+  };
+
   // Get sorted attributes for filters (no grouping - each attribute is its own section)
   const getSortedAttributes = () => {
     const attributes = getFilterableAttributes();
@@ -556,6 +587,7 @@ export const Filter: React.FC<FilterProps> = ({
             <div className={styles.desktopContent}>
               {getSortedAttributes()
                 .filter(attr => !['search', 'listingType'].includes(attr.key))
+                .filter(attr => shouldShowAttribute(attr))
                 .map((attribute, index) => (
                   <Collapsible
                     key={attribute.id}
@@ -571,9 +603,10 @@ export const Filter: React.FC<FilterProps> = ({
             {/* Mobile Content - hidden on desktop via CSS */}
             <div className={styles.mobileContent}>
               <MobileFilterContent
-                attributes={getSortedAttributes().filter(attr =>
-                  !['search', 'listingType'].includes(attr.key)
-                )}
+                attributes={getSortedAttributes()
+                  .filter(attr => !['search', 'listingType'].includes(attr.key))
+                  .filter(attr => shouldShowAttribute(attr))
+                }
                 categorySlug={categorySlug}
                 screen={mobileScreen}
                 onScreenChange={setMobileScreen}
