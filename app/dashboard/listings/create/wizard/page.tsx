@@ -327,6 +327,64 @@ export default function CreateListingWizardPage() {
     };
   }, [formData, attributes, attributeGroups, brands.length, brandAttribute, modelAttribute, listingTypeAttribute, conditionAttribute, touched, videoAllowed]);
 
+  // Grouped model options for Sahibinden-style dropdown
+  // Must be at component level to follow React hooks rules
+  const groupedModelOptions = useMemo(() => {
+    if (!formData.specs.brandId || variants.length === 0) return [];
+
+    // Create a map of modelId -> model name
+    const modelNameMap = new Map(models.map(m => [m.id, m.name]));
+
+    // Group variants by modelId
+    const variantsByModel = new Map<string, Variant[]>();
+    variants.filter(v => v.isActive).forEach(variant => {
+      const existing = variantsByModel.get(variant.modelId) || [];
+      existing.push(variant);
+      variantsByModel.set(variant.modelId, existing);
+    });
+
+    // Build grouped options for react-select
+    const groups: { label: string; options: { value: string; label: string; modelId: string }[] }[] = [];
+
+    // Sort models alphabetically
+    const sortedModelIds = Array.from(variantsByModel.keys()).sort((a, b) => {
+      const nameA = modelNameMap.get(a) || '';
+      const nameB = modelNameMap.get(b) || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    for (const modelId of sortedModelIds) {
+      const modelName = modelNameMap.get(modelId) || 'غير معروف';
+      const modelVariants = variantsByModel.get(modelId) || [];
+
+      groups.push({
+        label: modelName,
+        options: modelVariants
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map(v => ({
+            value: v.id,
+            label: v.name,
+            modelId: v.modelId,
+          })),
+      });
+    }
+
+    return groups;
+  }, [formData.specs.brandId, variants, models]);
+
+  // Selected model value for the grouped dropdown
+  const selectedModelValue = useMemo(() => {
+    if (!formData.specs.variantId) return null;
+    return {
+      value: formData.specs.variantId,
+      label: variants.find(v => v.id === formData.specs.variantId)?.name || '',
+      modelId: formData.specs.modelId,
+    };
+  }, [formData.specs.variantId, formData.specs.modelId, variants]);
+
+  // Check if we have variants to show
+  const hasVariants = variants.length > 0;
+
   // Check if current step is valid
   const isCurrentStepValid = useCallback(() => {
     const currentStep = steps[currentStepIndex];
@@ -834,51 +892,6 @@ export default function CreateListingWizardPage() {
        * - variantId → The selected variant (actual model like C-180)
        */
 
-      // Create grouped options for react-select
-      // Group variants by their modelId (series)
-      const groupedModelOptions = useMemo(() => {
-        if (!formData.specs.brandId || variants.length === 0) return [];
-
-        // Create a map of modelId -> model name
-        const modelNameMap = new Map(models.map(m => [m.id, m.name]));
-
-        // Group variants by modelId
-        const variantsByModel = new Map<string, Variant[]>();
-        variants.filter(v => v.isActive).forEach(variant => {
-          const existing = variantsByModel.get(variant.modelId) || [];
-          existing.push(variant);
-          variantsByModel.set(variant.modelId, existing);
-        });
-
-        // Build grouped options for react-select
-        const groups: { label: string; options: { value: string; label: string; modelId: string }[] }[] = [];
-
-        // Sort models alphabetically
-        const sortedModelIds = Array.from(variantsByModel.keys()).sort((a, b) => {
-          const nameA = modelNameMap.get(a) || '';
-          const nameB = modelNameMap.get(b) || '';
-          return nameA.localeCompare(nameB);
-        });
-
-        for (const modelId of sortedModelIds) {
-          const modelName = modelNameMap.get(modelId) || 'غير معروف';
-          const modelVariants = variantsByModel.get(modelId) || [];
-
-          groups.push({
-            label: modelName,
-            options: modelVariants
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map(v => ({
-                value: v.id,
-                label: v.name,
-                modelId: v.modelId, // Store modelId for auto-setting
-              })),
-          });
-        }
-
-        return groups;
-      }, [formData.specs.brandId, variants, models]);
-
       // Handle model selection (from grouped dropdown)
       // When user selects a variant, also set the modelId (series)
       const handleModelSelection = (selectedOption: { value: string; label: string; modelId?: string } | null) => {
@@ -900,17 +913,7 @@ export default function CreateListingWizardPage() {
         saveDraft();
       };
 
-      // Get current selected value for the grouped dropdown
-      const selectedModelValue = formData.specs.variantId
-        ? {
-            value: formData.specs.variantId,
-            label: variants.find(v => v.id === formData.specs.variantId)?.name || '',
-            modelId: formData.specs.modelId,
-          }
-        : null;
-
-      // Check if we have variants to show
-      const hasVariants = variants.length > 0;
+      // Note: groupedModelOptions, selectedModelValue, and hasVariants are defined at component level
 
       return (
         <>
