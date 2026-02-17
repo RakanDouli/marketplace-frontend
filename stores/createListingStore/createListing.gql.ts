@@ -286,7 +286,21 @@ export const GET_MODELS_QUERY = `
   }
 `;
 
-// Query to get all variants for a brand (for combined model/variant dropdown)
+// Query to get variants by model/series (EFFICIENT - only loads variants for selected series)
+export const GET_VARIANTS_BY_MODEL_QUERY = `
+  query GetVariants($modelId: String!) {
+    variants(modelId: $modelId) {
+      id
+      modelId
+      name
+      slug
+      isActive
+    }
+  }
+`;
+
+// DEPRECATED: Fetches ALL variants for a brand - inefficient for brands with many series
+// Use GET_VARIANTS_BY_MODEL_QUERY instead
 export const GET_VARIANTS_BY_BRAND_QUERY = `
   query GetVariantsByBrand($brandId: String!) {
     variantsByBrand(brandId: $brandId) {

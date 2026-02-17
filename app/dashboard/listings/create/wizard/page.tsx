@@ -10,7 +10,7 @@ import Text from '@/components/slices/Text/Text';
 import { Input } from '@/components/slices/Input/Input';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
-import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_VARIANTS_BY_BRAND_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
+import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_VARIANTS_BY_MODEL_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useCurrencyStore, CURRENCY_SYMBOLS } from '@/stores/currencyStore';
@@ -447,17 +447,18 @@ export default function CreateListingWizardPage() {
     }
   }, [formData.specs.brandId]);
 
-  // Fetch variants by brand (alongside models)
+  // Fetch variants (actual models like C-180) only when a series (modelId) is selected
+  // OPTIMIZED: Only loads ~10-20 variants for selected series, not all variants for entire brand
   useEffect(() => {
-    const brandId = formData.specs.brandId;
-    if (brandId && !brandId.startsWith('temp_')) {
+    const modelId = formData.specs.modelId;
+    if (modelId && !modelId.startsWith('temp_')) {
       const fetchVariants = async () => {
         setIsLoadingVariants(true);
         try {
-          const data = await cachedGraphQLRequest(GET_VARIANTS_BY_BRAND_QUERY, {
-            brandId: brandId,
+          const data = await cachedGraphQLRequest(GET_VARIANTS_BY_MODEL_QUERY, {
+            modelId: modelId,
           });
-          setVariants((data as any).variantsByBrand || []);
+          setVariants((data as any).variants || []);
         } catch (error) {
           console.error('Error fetching variants:', error);
         } finally {
@@ -468,7 +469,7 @@ export default function CreateListingWizardPage() {
     } else {
       setVariants([]);
     }
-  }, [formData.specs.brandId]);
+  }, [formData.specs.modelId]);
 
   // Fetch model suggestions
   useEffect(() => {

@@ -115,9 +115,10 @@ const GET_MODELS_QUERY = `
   }
 `;
 
-const GET_VARIANTS_BY_BRAND_QUERY = `
-  query GetVariantsByBrand($brandId: String!) {
-    variantsByBrand(brandId: $brandId) {
+// OPTIMIZED: Fetch variants only for selected series, not entire brand
+const GET_VARIANTS_BY_MODEL_QUERY = `
+  query GetVariants($modelId: String!) {
+    variants(modelId: $modelId) {
       id
       modelId
       name
@@ -513,16 +514,17 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     }
   }, [formData.specs.brandId]);
 
-  // Fetch variants when brand is selected (for combined model/variant dropdown)
+  // Fetch variants (actual models like C-180) only when a series (modelId) is selected
+  // OPTIMIZED: Only loads ~10-20 variants for selected series, not all variants for entire brand
   useEffect(() => {
     const fetchVariants = async () => {
-      const brandId = formData.specs.brandId;
-      if (!brandId || brandId.startsWith('temp_')) return;
+      const modelId = formData.specs.modelId;
+      if (!modelId || modelId.startsWith('temp_')) return;
 
       setIsLoadingVariants(true);
       try {
-        const data = await cachedGraphQLRequest(GET_VARIANTS_BY_BRAND_QUERY, { brandId });
-        setVariants((data as any).variantsByBrand || []);
+        const data = await cachedGraphQLRequest(GET_VARIANTS_BY_MODEL_QUERY, { modelId });
+        setVariants((data as any).variants || []);
       } catch (error) {
         // Silently fail - variants are optional
       } finally {
@@ -530,12 +532,12 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       }
     };
 
-    if (formData.specs.brandId) {
+    if (formData.specs.modelId) {
       fetchVariants();
     } else {
       setVariants([]);
     }
-  }, [formData.specs.brandId]);
+  }, [formData.specs.modelId]);
 
   // Fetch model suggestions when brand + model + year are selected (like create page)
   useEffect(() => {
