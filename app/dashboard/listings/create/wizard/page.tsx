@@ -8,9 +8,10 @@ import type { WizardStepStatus } from '@/components/slices';
 import { WizardStep } from '@/components/slices';
 import Text from '@/components/slices/Text/Text';
 import { Input } from '@/components/slices/Input/Input';
+import { SelectInputField } from '@/components/slices/Input/SelectInputField';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useCreateListingStore } from '@/stores/createListingStore';
-import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_VARIANTS_BY_MODEL_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
+import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_VARIANTS_BY_BRAND_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useCurrencyStore, CURRENCY_SYMBOLS } from '@/stores/currencyStore';
@@ -424,52 +425,35 @@ export default function CreateListingWizardPage() {
     }
   }, [formData.categoryId]);
 
-  // Fetch models
+  // Fetch models AND variants together when brand is selected
+  // This enables the grouped dropdown (Sahibinden-style)
   useEffect(() => {
     const brandId = formData.specs.brandId;
     if (brandId && !brandId.startsWith('temp_')) {
-      const fetchModels = async () => {
+      const fetchModelsAndVariants = async () => {
         setIsLoadingModels(true);
-        try {
-          const data = await cachedGraphQLRequest(GET_MODELS_QUERY, {
-            brandId: brandId,
-          });
-          setModels((data as any).models || []);
-        } catch (error) {
-          console.error('Error fetching models:', error);
-        } finally {
-          setIsLoadingModels(false);
-        }
-      };
-      fetchModels();
-    } else {
-      setModels([]);
-    }
-  }, [formData.specs.brandId]);
-
-  // Fetch variants (actual models like C-180) only when a series (modelId) is selected
-  // OPTIMIZED: Only loads ~10-20 variants for selected series, not all variants for entire brand
-  useEffect(() => {
-    const modelId = formData.specs.modelId;
-    if (modelId && !modelId.startsWith('temp_')) {
-      const fetchVariants = async () => {
         setIsLoadingVariants(true);
         try {
-          const data = await cachedGraphQLRequest(GET_VARIANTS_BY_MODEL_QUERY, {
-            modelId: modelId,
-          });
-          setVariants((data as any).variants || []);
+          // Fetch both in parallel
+          const [modelsData, variantsData] = await Promise.all([
+            cachedGraphQLRequest(GET_MODELS_QUERY, { brandId }),
+            cachedGraphQLRequest(GET_VARIANTS_BY_BRAND_QUERY, { brandId }),
+          ]);
+          setModels((modelsData as any).models || []);
+          setVariants((variantsData as any).variantsByBrand || []);
         } catch (error) {
-          console.error('Error fetching variants:', error);
+          console.error('Error fetching models/variants:', error);
         } finally {
+          setIsLoadingModels(false);
           setIsLoadingVariants(false);
         }
       };
-      fetchVariants();
+      fetchModelsAndVariants();
     } else {
+      setModels([]);
       setVariants([]);
     }
-  }, [formData.specs.modelId]);
+  }, [formData.specs.brandId]);
 
   // Fetch model suggestions
   useEffect(() => {
@@ -834,43 +818,99 @@ export default function CreateListingWizardPage() {
       if (!hasBrandModel || brands.length === 0) return null;
 
       /**
-       * NEW STRUCTURE:
-       * - Brand: Mercedes-Benz (from brands table)
-       * - Series: C-Class (from models table) - displayed as "الفئة"
-       * - Model: C-180, C-200 (from model_variants table) - displayed as "الموديل"
+       * SAHIBINDEN-STYLE GROUPED DROPDOWN:
+       * - Brand: Mercedes-Benz (separate dropdown)
+       * - Model: Grouped dropdown with Series as headers and variants as options
+       *   Example:
+       *   [C-Class]     <- non-clickable header
+       *     C-180       <- selectable option
+       *     C-200
+       *   [E-Class]
+       *     E-200
        *
        * Data mapping:
        * - brandId → Brand
-       * - modelId → Series (stored in models table)
-       * - variantId → Actual model (stored in model_variants table)
+       * - modelId → Auto-set from selected variant's modelId (series)
+       * - variantId → The selected variant (actual model like C-180)
        */
 
-      // Get variants (actual models) for the selected series
-      const selectedSeriesId = formData.specs.modelId;
-      const modelsForSeries = selectedSeriesId
-        ? variants.filter(v => v.modelId === selectedSeriesId && v.isActive)
-        : [];
+      // Create grouped options for react-select
+      // Group variants by their modelId (series)
+      const groupedModelOptions = useMemo(() => {
+        if (!formData.specs.brandId || variants.length === 0) return [];
 
-      // Handle series selection
-      const handleSeriesSelection = (seriesId: string) => {
-        // Clear auto-filled fields when series changes
-        if (suggestionSpecs) {
-          Object.keys(suggestionSpecs).forEach(field => setSpecField(field, ''));
+        // Create a map of modelId -> model name
+        const modelNameMap = new Map(models.map(m => [m.id, m.name]));
+
+        // Group variants by modelId
+        const variantsByModel = new Map<string, Variant[]>();
+        variants.filter(v => v.isActive).forEach(variant => {
+          const existing = variantsByModel.get(variant.modelId) || [];
+          existing.push(variant);
+          variantsByModel.set(variant.modelId, existing);
+        });
+
+        // Build grouped options for react-select
+        const groups: { label: string; options: { value: string; label: string; modelId: string }[] }[] = [];
+
+        // Sort models alphabetically
+        const sortedModelIds = Array.from(variantsByModel.keys()).sort((a, b) => {
+          const nameA = modelNameMap.get(a) || '';
+          const nameB = modelNameMap.get(b) || '';
+          return nameA.localeCompare(nameB);
+        });
+
+        for (const modelId of sortedModelIds) {
+          const modelName = modelNameMap.get(modelId) || 'غير معروف';
+          const modelVariants = variantsByModel.get(modelId) || [];
+
+          groups.push({
+            label: modelName,
+            options: modelVariants
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map(v => ({
+                value: v.id,
+                label: v.name,
+                modelId: v.modelId, // Store modelId for auto-setting
+              })),
+          });
         }
-        setSpecField('modelId', seriesId);
-        setSpecField('variantId', ''); // Clear model when series changes
-        saveDraft();
-      };
 
-      // Handle model selection (from variants)
-      const handleModelSelection = (variantId: string) => {
+        return groups;
+      }, [formData.specs.brandId, variants, models]);
+
+      // Handle model selection (from grouped dropdown)
+      // When user selects a variant, also set the modelId (series)
+      const handleModelSelection = (selectedOption: { value: string; label: string; modelId?: string } | null) => {
         // Clear auto-filled fields when model changes
         if (suggestionSpecs) {
           Object.keys(suggestionSpecs).forEach(field => setSpecField(field, ''));
         }
-        setSpecField('variantId', variantId);
+
+        if (selectedOption) {
+          setSpecField('variantId', selectedOption.value);
+          // Auto-set modelId from the variant's modelId
+          if (selectedOption.modelId) {
+            setSpecField('modelId', selectedOption.modelId);
+          }
+        } else {
+          setSpecField('variantId', '');
+          setSpecField('modelId', '');
+        }
         saveDraft();
       };
+
+      // Get current selected value for the grouped dropdown
+      const selectedModelValue = formData.specs.variantId
+        ? {
+            value: formData.specs.variantId,
+            label: variants.find(v => v.id === formData.specs.variantId)?.name || '',
+            modelId: formData.specs.modelId,
+          }
+        : null;
+
+      // Check if we have variants to show
+      const hasVariants = variants.length > 0;
 
       return (
         <>
@@ -904,54 +944,39 @@ export default function CreateListingWizardPage() {
             success={!!formData.specs.brandId && !getError('brandId', undefined)}
           />
 
-          {/* Series Dropdown (stored in models table) */}
-          <Input
-            type="select"
-            label="الفئة"
-            value={formData.specs.modelId || ''}
-            onChange={(e) => handleSeriesSelection(e.target.value)}
-            onBlur={() => handleBlur('modelId')}
-            options={[
-              { value: '', label: formData.specs.brandId ? '-- اختر الفئة --' : '-- اختر العلامة التجارية أولاً --' },
-              ...models.filter(m => m.isActive).map(model => ({ value: model.id, label: model.name })),
-            ]}
-            disabled={!formData.specs.brandId || isLoadingModels}
-            searchable={!!formData.specs.brandId}
-            creatable={!!formData.specs.brandId}
-            isLoading={isLoadingModels}
-            onCreateOption={handleCreateModel}
-            required={modelAttribute?.validation === 'REQUIRED'}
-            error={getError('modelId',
-              modelAttribute?.validation === 'REQUIRED' && !formData.specs.modelId
-                ? 'الفئة مطلوبة'
-                : undefined
-            )}
-            success={!!formData.specs.modelId && !getError('modelId', undefined)}
-          />
-
-          {/* Model Dropdown (stored in model_variants table) */}
-          {formData.specs.modelId && (
-            <Input
-              type="select"
-              label="الموديل"
-              value={formData.specs.variantId || ''}
-              onChange={(e) => handleModelSelection(e.target.value)}
-              onBlur={() => handleBlur('variantId')}
-              options={[
-                { value: '', label: modelsForSeries.length > 0 ? '-- اختر الموديل --' : '-- لا توجد موديلات متاحة --' },
-                ...modelsForSeries.map(variant => ({ value: variant.id, label: variant.name })),
-              ]}
-              disabled={!formData.specs.modelId || isLoadingVariants || modelsForSeries.length === 0}
-              searchable={modelsForSeries.length > 5}
-              isLoading={isLoadingVariants}
-              required={variantAttribute?.validation === 'REQUIRED'}
-              error={getError('variantId',
-                variantAttribute?.validation === 'REQUIRED' && !formData.specs.variantId
-                  ? 'الموديل مطلوب'
-                  : undefined
+          {/* Model Dropdown (Grouped by Series - Sahibinden style) */}
+          {formData.specs.brandId && (
+            <div className={styles.selectFieldWrapper}>
+              <label className={styles.selectLabel}>
+                الموديل
+                {(variantAttribute?.validation === 'REQUIRED' || modelAttribute?.validation === 'REQUIRED') && (
+                  <span className={styles.required}>*</span>
+                )}
+              </label>
+              <SelectInputField
+                id="model-select"
+                name="modelId"
+                options={hasVariants ? groupedModelOptions : []}
+                value={selectedModelValue}
+                onChange={(option) => handleModelSelection(option as any)}
+                onFocus={() => {}}
+                onBlur={() => handleBlur('variantId')}
+                disabled={!formData.specs.brandId || isLoadingModels || isLoadingVariants}
+                searchable
+                isLoading={isLoadingModels || isLoadingVariants}
+                placeholder={
+                  isLoadingModels || isLoadingVariants
+                    ? 'جاري التحميل...'
+                    : hasVariants
+                      ? '-- اختر الموديل --'
+                      : '-- لا توجد موديلات متاحة --'
+                }
+                aria-label="الموديل"
+              />
+              {touched.variantId && (variantAttribute?.validation === 'REQUIRED' || modelAttribute?.validation === 'REQUIRED') && !formData.specs.variantId && (
+                <span className={styles.errorText}>الموديل مطلوب</span>
               )}
-              success={!!formData.specs.variantId && !getError('variantId', undefined)}
-            />
+            </div>
           )}
         </>
       );

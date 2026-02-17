@@ -10,10 +10,19 @@ interface SelectOption {
   disabled?: boolean;
 }
 
+/**
+ * Grouped options format for react-select.
+ * Used for Sahibinden-style grouped dropdowns.
+ */
+interface GroupedOption {
+  label: string;
+  options: SelectOption[];
+}
+
 interface SelectInputFieldProps {
   id: string;
   name: string;
-  options: SelectOption[];
+  options: SelectOption[] | GroupedOption[];
   value: SelectOption | null;
   onChange: (newValue: any) => void;
   onFocus: () => void;

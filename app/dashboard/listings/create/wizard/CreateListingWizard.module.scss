@@ -329,6 +329,32 @@
   }
 }
 
+// Select Field Wrapper (for grouped select using SelectInputField directly)
+.selectFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+}
+
+.selectLabel {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $text;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+
+  .required {
+    color: $error;
+  }
+}
+
+.errorText {
+  font-size: $font-sm;
+  color: $error;
+  margin-top: $space-xs;
+}
+
 // Location Link Row
 .locationLinkRow {
   display: flex;
