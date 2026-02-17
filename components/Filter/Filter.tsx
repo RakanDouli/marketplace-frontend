@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { SlidersHorizontal, Trash2, ChevronRight } from "lucide-react";
 import { IconGridSelector } from "../IconGridSelector";
 import { Aside, Text, Button, Collapsible } from "../slices";
+import { SelectInputField } from "../slices/Input/SelectInputField";
 import { MobileFilterContent, MobileFilterScreen } from "./MobileFilterContent";
 import { Loading } from "../slices/Loading/Loading";
 import {
@@ -180,6 +181,112 @@ export const Filter: React.FC<FilterProps> = ({
     getSingleSelectorValue,
   } = attributeFilters;
 
+  // Get attributes from store for building grouped model options
+  const { attributes: allAttributes } = useFiltersStore();
+
+  // Build grouped model options (Sahibinden-style: variants grouped under model headers)
+  // This combines modelId and variantId into a single dropdown
+  const groupedModelOptions = useMemo(() => {
+    // Get variantId attribute which has variants with groupKey (modelId) and groupLabel (modelName)
+    const variantAttr = allAttributes.find(attr => attr.key === 'variantId');
+    const modelAttr = allAttributes.find(attr => attr.key === 'modelId');
+
+    if (!variantAttr?.processedOptions || variantAttr.processedOptions.length === 0) {
+      // No variants available - show plain models if available
+      if (modelAttr?.processedOptions) {
+        return modelAttr.processedOptions.map((model: any) => ({
+          value: model.key,
+          label: model.count !== undefined ? `${model.value} (${model.count})` : model.value,
+          isModel: true, // Flag to identify this is a model, not variant
+        }));
+      }
+      return [];
+    }
+
+    // Group variants by their parent model
+    const modelGroups = new Map<string, { modelName: string; variants: any[] }>();
+
+    variantAttr.processedOptions.forEach((variant: any) => {
+      const modelId = variant.groupKey;
+      const modelName = variant.groupLabel || 'أخرى';
+
+      if (!modelGroups.has(modelId)) {
+        modelGroups.set(modelId, { modelName, variants: [] });
+      }
+      modelGroups.get(modelId)!.variants.push(variant);
+    });
+
+    // Build grouped options for react-select
+    const groups: { label: string; options: { value: string; label: string; modelId: string }[] }[] = [];
+
+    modelGroups.forEach((group, modelId) => {
+      groups.push({
+        label: group.modelName, // Model name as group header (non-clickable)
+        options: group.variants.map((variant: any) => ({
+          value: variant.key, // variantId
+          label: variant.count !== undefined ? `${variant.value} (${variant.count})` : variant.value,
+          modelId: modelId, // Store modelId for setting both filters
+        })),
+      });
+    });
+
+    // Sort groups alphabetically by model name
+    groups.sort((a, b) => a.label.localeCompare(b.label, 'ar'));
+
+    return groups;
+  }, [allAttributes]);
+
+  // Get current selected model value for the grouped dropdown
+  const selectedModelValue = useMemo(() => {
+    const variantId = draftFilters.specs?.variantId as string | undefined;
+    const modelId = draftFilters.specs?.modelId as string | undefined;
+
+    if (!variantId && !modelId) return null;
+
+    // If we have a variantId, find it in the grouped options
+    if (variantId && groupedModelOptions.length > 0) {
+      for (const group of groupedModelOptions) {
+        if ('options' in group) {
+          const found = group.options.find((opt: any) => opt.value === variantId);
+          if (found) {
+            return {
+              value: found.value,
+              label: found.label,
+              modelId: found.modelId,
+            };
+          }
+        }
+      }
+    }
+
+    // Fallback: if only modelId is set (from old selection), try to show something
+    return null;
+  }, [draftFilters.specs?.variantId, draftFilters.specs?.modelId, groupedModelOptions]);
+
+  // Check if we have grouped model options (variants available)
+  const hasGroupedModelOptions = groupedModelOptions.length > 0 &&
+    groupedModelOptions.some((g: any) => 'options' in g);
+
+  // Handle model/variant selection from grouped dropdown
+  const handleModelSelection = (option: any) => {
+    if (!option) {
+      // Clear both modelId and variantId
+      handleSpecChange('modelId', undefined);
+      handleSpecChange('variantId', undefined);
+      return;
+    }
+
+    if (option.isModel) {
+      // Plain model selected (no variants)
+      handleSpecChange('modelId', option.value);
+      handleSpecChange('variantId', undefined);
+    } else {
+      // Variant selected - set both modelId and variantId
+      handleSpecChange('modelId', option.modelId);
+      handleSpecChange('variantId', option.value);
+    }
+  };
+
   // Get sorted attributes for filters (no grouping - each attribute is its own section)
   const getSortedAttributes = () => {
     const attributes = getFilterableAttributes();
@@ -294,6 +401,11 @@ export const Filter: React.FC<FilterProps> = ({
       return null;
     }
 
+    // Skip variantId - it's now combined into modelId dropdown (Sahibinden-style)
+    if (attribute.key === 'variantId') {
+      return null;
+    }
+
     // SELECTOR (single dropdown) - with special icon grid for body_type
     if (attribute.type === AttributeType.SELECTOR && attribute.processedOptions) {
       // Special icon-based selector for body_type (multi-select with icons)
@@ -313,6 +425,28 @@ export const Filter: React.FC<FilterProps> = ({
               count: opt.count,
             }))}
           />
+        );
+      }
+
+      // Special handling for modelId - use grouped dropdown with variants (Sahibinden-style)
+      if (attribute.key === "modelId" && hasGroupedModelOptions) {
+        return (
+          <div className={styles.selectFieldWrapper} key={attribute.id}>
+            <SelectInputField
+              id="filter-model-select"
+              name="modelId"
+              options={groupedModelOptions}
+              value={selectedModelValue}
+              onChange={(option) => handleModelSelection(option as any)}
+              onFocus={() => {}}
+              onBlur={() => {}}
+              disabled={false}
+              isLoading={false}
+              searchable={true}
+              placeholder="اختر الموديل..."
+              aria-label="الموديل"
+            />
+          </div>
         );
       }
 
@@ -555,7 +689,7 @@ export const Filter: React.FC<FilterProps> = ({
             {/* Desktop Content - hidden on mobile via CSS */}
             <div className={styles.desktopContent}>
               {getSortedAttributes()
-                .filter(attr => !['search', 'listingType'].includes(attr.key))
+                .filter(attr => !['search', 'listingType', 'variantId'].includes(attr.key))
                 .map((attribute, index) => (
                   <Collapsible
                     key={attribute.id}
@@ -572,7 +706,7 @@ export const Filter: React.FC<FilterProps> = ({
             <div className={styles.mobileContent}>
               <MobileFilterContent
                 attributes={getSortedAttributes().filter(attr =>
-                  !['search', 'listingType'].includes(attr.key)
+                  !['search', 'listingType', 'variantId'].includes(attr.key)
                 )}
                 categorySlug={categorySlug}
                 screen={mobileScreen}
