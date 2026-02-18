@@ -201,7 +201,8 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
           { value: "", label: t("search.selectOption") },
           ...processedOptions.map((option) => ({
             value: option.key,
-            label: formatLabel(option),
+            label: option.value,
+            count: showCounts ? option.count : undefined,
           })),
         ]}
       />

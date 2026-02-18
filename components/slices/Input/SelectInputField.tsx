@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
+import styles from './Input.module.scss';
 
 interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  count?: number;
 }
 
 /**
@@ -79,6 +81,14 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
       noOptionsMessage={() => "لا توجد نتائج"}
       loadingMessage={() => "جاري التحميل..."}
       formatCreateLabel={(inputValue) => `إضافة "${inputValue}"`}
+      formatOptionLabel={(option: SelectOption) => (
+        <div className={styles.selectOptionRow}>
+          <span className={styles.selectOptionLabel}>{option.label}</span>
+          {option.count !== undefined && (
+            <span className={styles.selectOptionCount}>{option.count}</span>
+          )}
+        </div>
+      )}
       classNamePrefix="react-select"
       menuPortalTarget={menuPortalTarget}
       menuPosition="fixed"

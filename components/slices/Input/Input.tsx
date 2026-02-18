@@ -59,7 +59,7 @@ export interface InputProps
   /** Input size */
   size?: "sm" | "md" | "lg";
   /** Options for select */
-  options?: Array<{ value: string; label: string; disabled?: boolean }>;
+  options?: Array<{ value: string; label: string; disabled?: boolean; count?: number }>;
   /** Additional CSS classes */
   className?: string;
   /** Textarea rows */

@@ -573,3 +573,29 @@ textarea.input {
     color: $text !important;
   }
 }
+
+// Select option row with count
+.selectOptionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: $space-sm;
+}
+
+.selectOptionLabel {
+  flex: 1;
+}
+
+.selectOptionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px $space-sm;
+  background-color: $surface;
+  border-radius: $radius-md;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+  color: $text-muted;
+}
