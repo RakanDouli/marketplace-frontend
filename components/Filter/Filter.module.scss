@@ -406,11 +406,42 @@
 
 // Desktop content - show on desktop, hide on mobile
 .desktopContent {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
 
   @media (max-width: $breakpoint-md) {
     display: none;
   }
+}
+
+// Individual filter item wrapper
+.filterItem {
+  background-color: $surface;
+  border-radius: $radius-md;
+  padding: $space-xs;
+}
+
+// Filter title with count badge
+.filterTitle {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  width: 100%;
+}
+
+// Count badge next to filter title
+.filterCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 2px $space-xs;
+  background-color: $bg;
+  border-radius: $radius-sm;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
+  color: $text-muted;
 }
 
 // Mobile content - hide on desktop, show on mobile

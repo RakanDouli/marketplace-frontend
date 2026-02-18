@@ -180,6 +180,23 @@ export const Filter: React.FC<FilterProps> = ({
     getSingleSelectorValue,
   } = attributeFilters;
 
+  // Calculate total count for an attribute (sum of all option counts)
+  const getAttributeTotalCount = (attribute: any): number => {
+    if (
+      (attribute.type === AttributeType.SELECTOR ||
+       attribute.type === AttributeType.MULTI_SELECTOR ||
+       attribute.type === AttributeType.RANGE_SELECTOR) &&
+      attribute.processedOptions &&
+      attribute.processedOptions.length > 0
+    ) {
+      return attribute.processedOptions.reduce(
+        (sum: number, opt: any) => sum + (opt.count || 0),
+        0
+      );
+    }
+    return 0;
+  };
+
   // Check if a filter attribute should be shown
   // Hide filters where ALL options have count 0 (no listings match any option)
   const shouldShowAttribute = (attribute: any): boolean => {
@@ -588,16 +605,27 @@ export const Filter: React.FC<FilterProps> = ({
               {getSortedAttributes()
                 .filter(attr => !['search', 'listingType'].includes(attr.key))
                 .filter(attr => shouldShowAttribute(attr))
-                .map((attribute, index) => (
-                  <Collapsible
-                    key={attribute.id}
-                    title={attribute.name}
-                    defaultOpen={index < 7}
-                    variant="compact"
-                  >
-                    {renderAttribute(attribute)}
-                  </Collapsible>
-                ))}
+                .map((attribute, index) => {
+                  const totalCount = getAttributeTotalCount(attribute);
+                  return (
+                    <div key={attribute.id} className={styles.filterItem}>
+                      <Collapsible
+                        title={
+                          <span className={styles.filterTitle}>
+                            {attribute.name}
+                            {totalCount > 0 && (
+                              <span className={styles.filterCount}>{totalCount}</span>
+                            )}
+                          </span>
+                        }
+                        defaultOpen={index < 7}
+                        variant="compact"
+                      >
+                        {renderAttribute(attribute)}
+                      </Collapsible>
+                    </div>
+                  );
+                })}
             </div>
 
             {/* Mobile Content - hidden on desktop via CSS */}
