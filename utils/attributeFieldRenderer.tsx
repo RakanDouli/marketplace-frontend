@@ -42,7 +42,7 @@ export const renderAttributeField = ({
    * Check if field was auto-filled (exactly 1 suggestion and value matches it)
    */
   const isAutoFilled = (): boolean => {
-    if (!suggestedValues || suggestedValues.length !== 1) return false;
+    if (!suggestedValues || !Array.isArray(suggestedValues) || suggestedValues.length !== 1) return false;
     return String(value).toLowerCase() === String(suggestedValues[0]).toLowerCase();
   };
 
@@ -50,7 +50,7 @@ export const renderAttributeField = ({
    * Check if we have multiple suggestions to show as chips
    */
   const hasMultipleSuggestions = (): boolean => {
-    if (!suggestedValues || suggestedValues.length <= 1) return false;
+    if (!suggestedValues || !Array.isArray(suggestedValues) || suggestedValues.length <= 1) return false;
     // Also check that suggestions match actual options
     const suggestedSet = new Set(suggestedValues.map(v => String(v).toLowerCase()));
     const matchingOptions = attribute.options.filter(opt =>
@@ -81,7 +81,7 @@ export const renderAttributeField = ({
    * Get suggested options with their labels (for clickable chips)
    */
   const getSuggestedOptions = (): Array<{ key: string; label: string }> => {
-    if (!suggestedValues || suggestedValues.length === 0) return [];
+    if (!suggestedValues || !Array.isArray(suggestedValues) || suggestedValues.length === 0) return [];
 
     const suggestedSet = new Set(suggestedValues.map(v => String(v).toLowerCase()));
     return attribute.options

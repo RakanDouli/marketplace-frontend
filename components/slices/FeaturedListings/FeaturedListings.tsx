@@ -135,7 +135,10 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
       : null;
 
   // Dynamic title - "categoryNameAr جديدة" (e.g. "سيارات جديدة")
-  const displayTitle = title || (category?.nameAr ? `${category.nameAr} جديدة` : "إعلانات جديدة");
+  // Use static fallback during SSR/hydration to prevent mismatch
+  const displayTitle = !isHydrated
+    ? "إعلانات جديدة"  // Static during SSR to match server
+    : title || (category?.nameAr ? `${category.nameAr} جديدة` : "إعلانات جديدة");
 
   // Dynamic link - use category slug
   const viewAllLink = category?.slug ? `/${category.slug}` : "/cars";

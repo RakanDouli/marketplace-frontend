@@ -296,7 +296,8 @@ export enum BrandStatus {
 /**
  * Attribute Type Enum
  * Backend: marketplace-backend/src/common/enums/attribute-type.enum.ts
- * NOTE: Values are UPPERCASE because GraphQL returns enum values in uppercase
+ * NOTE: Values are UPPERCASE because GraphQL returns enum KEYS (not values)
+ * GraphQL serializes TypeScript enums by their KEY names, not their string values.
  */
 export enum AttributeType {
   SELECTOR = "SELECTOR",
