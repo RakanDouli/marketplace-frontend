@@ -95,15 +95,47 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
       aria-label={ariaLabel || placeholder || 'اختر خيار'}
       styles={{
         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+        // Control (input field) styling
+        control: (base) => ({
+          ...base,
+          backgroundColor: 'var(--surface)',
+          borderColor: 'var(--border)',
+          minHeight: '44px',
+          '&:hover': {
+            borderColor: 'var(--primary)',
+          },
+        }),
         // Style disabled options as group headers
         option: (base, state) => ({
           ...base,
           ...(state.isDisabled && {
             fontWeight: 600,
             color: '#666',
-            backgroundColor: '#f5f5f5',
+            backgroundColor: 'var(--bg)',
             cursor: 'not-allowed',
           }),
+        }),
+        // Menu dropdown styling
+        menu: (base) => ({
+          ...base,
+          backgroundColor: 'var(--bg)',
+          borderColor: 'var(--border)',
+        }),
+        menuList: (base) => ({
+          ...base,
+          backgroundColor: 'var(--bg)',
+        }),
+        singleValue: (base) => ({
+          ...base,
+          color: 'var(--text)',
+        }),
+        input: (base) => ({
+          ...base,
+          color: 'var(--text)',
+        }),
+        placeholder: (base) => ({
+          ...base,
+          color: 'var(--text-muted)',
         }),
       }}
     />
