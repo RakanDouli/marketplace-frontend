@@ -577,7 +577,7 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
           // Hide options with 0 count, except for brand (which always shows all)
           const filteredOptions = attr.key === 'brandId'
             ? processedOptions
-            : processedOptions.filter(opt => opt.count > 0);
+            : processedOptions.filter(opt => (opt.count ?? 0) > 0);
 
           return {
             ...attr,

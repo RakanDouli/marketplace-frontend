@@ -14,19 +14,19 @@ interface CatalogOption {
 }
 
 interface MobileCatalogSelectorProps {
-  /** Current step: 'brand' or 'model' */
-  step: "brand" | "model";
+  /** Current step: 'brand' or 'variant' */
+  step: "brand" | "variant";
   /** Category slug for URL building */
   categorySlug: string;
   /** Listing type: 'sell' or 'rent' */
   listingType: string;
   /** Category name in Arabic for display */
   categoryNameAr: string;
-  /** List of options (brands or models) */
+  /** List of options (brands or variants) */
   options: CatalogOption[];
-  /** Currently selected brand ID (when on model step) */
+  /** Currently selected brand ID (when on variant step) */
   selectedBrandId?: string;
-  /** Currently selected brand name (when on model step) */
+  /** Currently selected brand name (when on variant step) */
   selectedBrandName?: string;
   /** Total count for "Show All" option */
   totalCount?: number;
@@ -49,7 +49,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
 
   // Handle back navigation
   const handleBack = () => {
-    if (step === "model" && selectedBrandId) {
+    if (step === "variant" && selectedBrandId) {
       // Go back to brand selection
       router.push(`/${categorySlug}/${listingType}`);
     } else {
@@ -66,11 +66,11 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
   // Handle option selection
   const handleOptionSelect = (option: CatalogOption) => {
     if (step === "brand") {
-      // Navigate to model selection for this brand
+      // Navigate to variant selection for this brand
       router.push(`/${categorySlug}/${listingType}?brandId=${option.id}`);
     } else {
-      // Navigate to listings with brand + model filter
-      router.push(`/${categorySlug}/${listingType}?brandId=${selectedBrandId}&modelId=${option.id}`);
+      // Navigate to listings with brand + variant filter
+      router.push(`/${categorySlug}/${listingType}?brandId=${selectedBrandId}&variantId=${option.id}`);
     }
   };
 
@@ -79,7 +79,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
     if (step === "brand") {
       return `${categoryNameAr} - اختر الماركة`;
     }
-    return selectedBrandName || "اختر الموديل";
+    return selectedBrandName || "اختر الطراز";
   };
 
   return (
@@ -94,7 +94,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
         >
           <div className={styles.showAllContent}>
             <Text variant="h4" className={styles.showAllText}>
-              {step === "brand" ? "عرض كل الإعلانات" : `عرض كل موديلات ${selectedBrandName}`}
+              {step === "brand" ? "عرض كل الإعلانات" : `عرض كل طرازات ${selectedBrandName}`}
             </Text>
             {totalCount !== undefined && (
               <Text variant="small" className={styles.showAllCount}>
@@ -108,7 +108,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
         {/* Divider */}
         <div className={styles.divider}>
           <Text variant="small" className={styles.dividerText}>
-            {step === "brand" ? "أو اختر ماركة" : "أو اختر موديل"}
+            {step === "brand" ? "أو اختر ماركة" : "أو اختر طراز"}
           </Text>
         </div>
 
@@ -143,7 +143,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
             {options.length === 0 && !isLoading && (
               <div className={styles.empty}>
                 <Text variant="paragraph" color="secondary">
-                  {step === "brand" ? "لا توجد ماركات متاحة" : "لا توجد موديلات متاحة"}
+                  {step === "brand" ? "لا توجد ماركات متاحة" : "لا توجد طرازات متاحة"}
                 </Text>
               </div>
             )}

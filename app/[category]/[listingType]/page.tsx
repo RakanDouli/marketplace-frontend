@@ -23,8 +23,7 @@ interface CategoryListingsPageProps {
     page?: string;
     brand?: string;
     brandId?: string; // UUID for mobile selector brand filter
-    model?: string;
-    modelId?: string; // UUID for mobile selector model filter
+    variantId?: string; // UUID for mobile selector variant filter (skipping model)
     minPrice?: string;
     maxPrice?: string;
     province?: string;
@@ -146,7 +145,7 @@ async function fetchFilterAttributes(
     const attributesWithCounts = rawAttributes.map((attr) => {
       let processedOptions: any[] = [];
 
-      if (attr.key === "brandId" || attr.key === "modelId") {
+      if (attr.key === "brandId" || attr.key === "variantId") {
         // For brandId/modelId, get options from aggregation data
         const rawAttributeData = (aggregations.attributes || []).find(
           (a: any) => a.field === attr.key
@@ -219,7 +218,7 @@ async function fetchListingsSSR(
     minPrice?: string;
     maxPrice?: string;
     brandId?: string;
-    modelId?: string;
+    variantId?: string;
   }
 ): Promise<{
   listings: Listing[];
@@ -253,12 +252,12 @@ async function fetchListingsSSR(
     filter.priceMaxMinor = parseInt(searchParams.maxPrice, 10);
   }
 
-  // Add brand/model filters (from mobile selector or direct URL)
+  // Add brand/variant filters (from mobile selector or direct URL)
   if (searchParams?.brandId) {
     filter.specs = { ...(filter.specs as object || {}), brandId: searchParams.brandId };
   }
-  if (searchParams?.modelId) {
-    filter.specs = { ...(filter.specs as object || {}), modelId: searchParams.modelId };
+  if (searchParams?.variantId) {
+    filter.specs = { ...(filter.specs as object || {}), variantId: searchParams.variantId };
   }
 
   try {
@@ -274,7 +273,7 @@ async function fetchListingsSSR(
         },
       }),
       // Don't cache when search params are present (dynamic content)
-      next: searchParams?.search || searchParams?.province || searchParams?.brandId || searchParams?.modelId
+      next: searchParams?.search || searchParams?.province || searchParams?.brandId || searchParams?.variantId
         ? { revalidate: 0 }
         : { revalidate: 120 },
     });
@@ -431,7 +430,7 @@ export default async function CategoryListingsPage({
 
   // Use listingsData.totalResults when search params are present (filtered count)
   // Otherwise use filterData.totalResults (unfiltered count for aggregations)
-  const hasSearchFilters = resolvedSearchParams?.search || resolvedSearchParams?.province || resolvedSearchParams?.brandId || resolvedSearchParams?.modelId;
+  const hasSearchFilters = resolvedSearchParams?.search || resolvedSearchParams?.province || resolvedSearchParams?.brandId || resolvedSearchParams?.variantId;
   const totalResults = hasSearchFilters ? listingsData.totalResults : filterData.totalResults;
 
   return (

@@ -30,8 +30,7 @@ interface CategoryListingsClientProps {
     page?: string;
     brand?: string;
     brandId?: string; // UUID for brand selection
-    model?: string;
-    modelId?: string; // UUID for model selection
+    variantId?: string; // UUID for variant selection (skipping model)
     minPrice?: string;
     maxPrice?: string;
     province?: string;
@@ -64,7 +63,7 @@ export default function CategoryListingsClient({
 
   // Mobile drill-down state
   const hasBrandId = !!searchParams.brandId;
-  const hasModelId = !!searchParams.modelId;
+  const hasVariantId = !!searchParams.variantId;
 
   // Use ref to "lock in" showListings=true once it's set
   // This prevents race conditions where re-renders temporarily lose the searchParam
@@ -78,7 +77,7 @@ export default function CategoryListingsClient({
 
   // Reset the lock when user navigates back to brand selector (no params at all)
   // This happens when user clicks back from listings to go back to brand selection
-  const hasNoFilterParams = !hasBrandId && !hasModelId && !showListingsFromUrl;
+  const hasNoFilterParams = !hasBrandId && !hasVariantId && !showListingsFromUrl;
   if (hasNoFilterParams && showListingsLockedRef.current) {
     // User navigated back to base URL - reset the lock
     showListingsLockedRef.current = false;
@@ -105,22 +104,22 @@ export default function CategoryListingsClient({
   // Determine mobile selector step
   // Only show drill-down for categories with brand attributes
   // - No brandId and not "showListings" → show brand selector
-  // - Has brandId but no modelId and not "showListings" → show model selector
+  // - Has brandId but no variantId and not "showListings" → show variant selector
   // - Has both or "showListings" → show listings
   const mobileSelectorStep = useMemo(() => {
     // Skip drill-down for categories without brand attributes
     if (!hasBrandAttribute) return null;
     if (showListingsExplicitly) return null; // User chose "Show All"
     if (!hasBrandId) return "brand";
-    if (!hasModelId) return "model";
+    if (!hasVariantId) return "variant";
     return null; // Both selected, show listings
-  }, [hasBrandAttribute, hasBrandId, hasModelId, showListingsExplicitly]);
+  }, [hasBrandAttribute, hasBrandId, hasVariantId, showListingsExplicitly]);
 
-  // Extract model options for selected brand
-  const modelOptions = useMemo(() => {
+  // Extract variant options for selected brand
+  const variantOptions = useMemo(() => {
     if (!initialAttributes || !searchParams.brandId) return [];
-    const modelAttr = initialAttributes.find((attr) => attr.key === "modelId") as any;
-    const options = modelAttr?.processedOptions || modelAttr?.options || [];
+    const variantAttr = initialAttributes.find((attr) => attr.key === "variantId") as any;
+    const options = variantAttr?.processedOptions || variantAttr?.options || [];
     return options.map((opt: any) => ({
       id: opt.key || opt.id,
       name: opt.value,
@@ -164,7 +163,7 @@ export default function CategoryListingsClient({
   // Track previous values to re-hydrate when URL params change (including brandId/modelId)
   const lastHydratedRef = useRef<string | null>(null);
   // Include filter params in key so hydration re-runs when they change
-  const currentKey = `${categorySlug}-${listingType}-${searchParams.brandId || ''}-${searchParams.modelId || ''}-${searchParams.showListings || ''}`;
+  const currentKey = `${categorySlug}-${listingType}-${searchParams.brandId || ''}-${searchParams.variantId || ''}-${searchParams.showListings || ''}`;
 
   // Hydrate stores from URL params using useLayoutEffect (runs before paint, after render)
   // This ensures data is set early but avoids "setState during render" errors
@@ -189,7 +188,7 @@ export default function CategoryListingsClient({
       setFilter('priceMaxMinor', parseInt(searchParams.maxPrice, 10));
     }
 
-    // Hydrate brand/model filters from URL (mobile selector flow)
+    // Hydrate brand/variant filters from URL (mobile selector flow)
     // Also clear filters that are no longer in URL (for back navigation)
     if (searchParams.brandId) {
       setSpecFilter('brandId', searchParams.brandId);
@@ -197,11 +196,11 @@ export default function CategoryListingsClient({
       // Clear brandId if not in URL (user navigated back)
       setSpecFilter('brandId', undefined);
     }
-    if (searchParams.modelId) {
-      setSpecFilter('modelId', searchParams.modelId);
+    if (searchParams.variantId) {
+      setSpecFilter('variantId', searchParams.variantId);
     } else {
-      // Clear modelId if not in URL (user navigated back or changed brand)
-      setSpecFilter('modelId', undefined);
+      // Clear variantId if not in URL (user navigated back or changed brand)
+      setSpecFilter('variantId', undefined);
     }
 
     // 2. Set listingType filter
@@ -329,17 +328,17 @@ export default function CategoryListingsClient({
   }
 
   // Handle back navigation
-  // On mobile with filters: go back through drill-down (model → brand → category)
+  // On mobile with filters: go back through drill-down (variant → brand → category)
   // On desktop or no filters: go to category preloader or categories page
   const handleBack = () => {
     // Mobile drill-down back navigation
     if (isMobile) {
-      if (searchParams.modelId && searchParams.brandId) {
-        // Has both filters: go back to model selector (keep brand, remove model)
+      if (searchParams.variantId && searchParams.brandId) {
+        // Has both filters: go back to variant selector (keep brand, remove variant)
         router.push(`/${categorySlug}/${listingTypeSlug}?brandId=${searchParams.brandId}`);
         return;
       }
-      if (searchParams.brandId && !searchParams.modelId) {
+      if (searchParams.brandId && !searchParams.variantId) {
         // Has brand only: go back to brand selector (remove brand)
         router.push(`/${categorySlug}/${listingTypeSlug}`);
         return;
@@ -362,7 +361,7 @@ export default function CategoryListingsClient({
 
   const typeLabel = getListingTypeLabel(listingType);
 
-  // Show mobile catalog selector if on mobile and user hasn't selected brand/model yet
+  // Show mobile catalog selector if on mobile and user hasn't selected brand/variant yet
   if (isMobile && mobileSelectorStep) {
     return (
       <MobileCatalogSelector
@@ -370,7 +369,7 @@ export default function CategoryListingsClient({
         categorySlug={categorySlug}
         listingType={listingTypeSlug}
         categoryNameAr={currentCategory.nameAr}
-        options={mobileSelectorStep === "brand" ? brandOptions : modelOptions}
+        options={mobileSelectorStep === "brand" ? brandOptions : variantOptions}
         selectedBrandId={searchParams.brandId}
         selectedBrandName={selectedBrandName}
         totalCount={initialTotalResults}
