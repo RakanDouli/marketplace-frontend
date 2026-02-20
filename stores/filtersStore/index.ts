@@ -574,9 +574,10 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             }));
           }
 
-          // Show all options (including those with count 0) for better UX
-          // Users can still select options with 0 count, which will update the filter
-          const filteredOptions = processedOptions;
+          // Hide options with 0 count, except for brand (which always shows all)
+          const filteredOptions = attr.key === 'brandId'
+            ? processedOptions
+            : processedOptions.filter(opt => opt.count > 0);
 
           return {
             ...attr,
