@@ -66,15 +66,6 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
   const processedDisplay = useMemo(() => {
     if (step !== "variant") return null;
 
-    // DEBUG: Log options to verify modelName is present
-    console.log("[MobileCatalogSelector] Processing variant options:", options.length);
-    console.log("[MobileCatalogSelector] First 3 options:", options.slice(0, 3).map(o => ({
-      id: o.id,
-      name: o.name,
-      modelName: o.modelName,
-      modelId: o.modelId
-    })));
-
     // Get model names that have variants
     const modelsWithVariants = new Set<string>();
     options.forEach((opt) => {
