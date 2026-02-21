@@ -154,3 +154,20 @@
   color: $text;
   margin-bottom: 0;
 }
+
+// Section divider (between grouped variants and standalone models)
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-sm $space-md;
+  background: $bg;
+  border-top: 1px solid $border;
+  border-bottom: 1px solid $border;
+  margin-top: $space-sm;
+}
+
+.sectionDividerText {
+  color: $text-muted;
+  font-weight: $weight-medium;
+}

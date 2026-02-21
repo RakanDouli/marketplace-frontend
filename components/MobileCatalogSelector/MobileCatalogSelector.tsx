@@ -13,6 +13,14 @@ interface CatalogOption {
   count?: number;
   /** Model name for grouping variants */
   modelName?: string;
+  /** Model ID for variants (to identify which model this variant belongs to) */
+  modelId?: string;
+}
+
+interface ModelOption {
+  id: string;
+  name: string;
+  count?: number;
 }
 
 interface MobileCatalogSelectorProps {
@@ -26,6 +34,8 @@ interface MobileCatalogSelectorProps {
   categoryNameAr: string;
   /** List of options (brands or variants) */
   options: CatalogOption[];
+  /** List of models (for showing models without variants as clickable items) */
+  modelOptions?: ModelOption[];
   /** Currently selected brand ID (when on variant step) */
   selectedBrandId?: string;
   /** Currently selected brand name (when on variant step) */
@@ -42,6 +52,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
   listingType,
   categoryNameAr,
   options,
+  modelOptions = [],
   selectedBrandId,
   selectedBrandName,
   totalCount,
@@ -49,26 +60,62 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
 }) => {
   const router = useRouter();
 
-  // Group variants by model name (only for variant step)
-  const groupedOptions = useMemo(() => {
+  // Process options for mixed display (variant step only)
+  // - Group variants by model name
+  // - Add models without variants as standalone clickable items
+  const processedDisplay = useMemo(() => {
     if (step !== "variant") return null;
 
-    const groups: Record<string, CatalogOption[]> = {};
+    // Get model names that have variants
+    const modelsWithVariants = new Set<string>();
     options.forEach((opt) => {
-      const modelName = opt.modelName || "أخرى"; // "Other" for variants without model
-      if (!groups[modelName]) {
-        groups[modelName] = [];
+      if (opt.modelName) {
+        modelsWithVariants.add(opt.modelName);
       }
-      groups[modelName].push(opt);
+      if (opt.modelId) {
+        modelsWithVariants.add(opt.modelId);
+      }
+    });
+
+    // Find models without variants (appear in modelOptions but not in variants' modelName)
+    const modelsWithoutVariants = modelOptions.filter((model) => {
+      // Check if this model has any variants
+      const hasVariants = options.some(
+        (opt) => opt.modelId === model.id || opt.modelName === model.name
+      );
+      return !hasVariants;
+    });
+
+    // Group variants by model name
+    const variantGroups: Record<string, CatalogOption[]> = {};
+    options.forEach((opt) => {
+      const modelName = opt.modelName || "أخرى";
+      if (!variantGroups[modelName]) {
+        variantGroups[modelName] = [];
+      }
+      variantGroups[modelName].push(opt);
     });
 
     // Sort model names alphabetically
-    const sortedModelNames = Object.keys(groups).sort();
-    return sortedModelNames.map((modelName) => ({
+    const sortedModelNames = Object.keys(variantGroups).sort();
+    const groups = sortedModelNames.map((modelName) => ({
       modelName,
-      variants: groups[modelName],
+      variants: variantGroups[modelName],
+      isGroup: true as const,
     }));
-  }, [step, options]);
+
+    // Sort models without variants alphabetically
+    const standaloneModels = modelsWithoutVariants
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((model) => ({
+        id: model.id,
+        name: model.name,
+        count: model.count,
+        isGroup: false as const,
+      }));
+
+    return { groups, standaloneModels };
+  }, [step, options, modelOptions]);
 
   // Handle back navigation
   const handleBack = () => {
@@ -95,6 +142,12 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
       // Navigate to listings with brand + variant filter
       router.push(`/${categorySlug}/${listingType}?brandId=${selectedBrandId}&variantId=${option.id}`);
     }
+  };
+
+  // Handle model selection (for models without variants)
+  const handleModelSelect = (model: ModelOption) => {
+    // Navigate to listings with brand + model filter (no variant)
+    router.push(`/${categorySlug}/${listingType}?brandId=${selectedBrandId}&modelId=${model.id}`);
   };
 
   // Get header title based on step
@@ -140,10 +193,11 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
           <div className={styles.loading}>
             <Text variant="paragraph" color="secondary">جاري التحميل...</Text>
           </div>
-        ) : step === "variant" && groupedOptions ? (
-          // Grouped variant list with model section headers
+        ) : step === "variant" && processedDisplay ? (
+          // Mixed display: grouped variants + standalone models
           <div className={styles.optionsList}>
-            {groupedOptions.map((group) => (
+            {/* First: Groups (models with variants) */}
+            {processedDisplay.groups.map((group) => (
               <div key={group.modelName}>
                 {/* Model Section Header */}
                 <div className={styles.sectionHeader}>
@@ -176,7 +230,41 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
               </div>
             ))}
 
-            {options.length === 0 && (
+            {/* Second: Standalone models (models without variants) */}
+            {processedDisplay.standaloneModels.length > 0 && (
+              <>
+                {/* Divider between groups and standalone models */}
+                {processedDisplay.groups.length > 0 && (
+                  <div className={styles.sectionDivider}>
+                    <Text variant="small" className={styles.sectionDividerText}>
+                      موديلات أخرى
+                    </Text>
+                  </div>
+                )}
+                {processedDisplay.standaloneModels.map((model) => (
+                  <button
+                    key={model.id}
+                    type="button"
+                    className={styles.optionItem}
+                    onClick={() => handleModelSelect(model)}
+                  >
+                    <div className={styles.optionContent}>
+                      <Text variant="paragraph" className={styles.optionName}>
+                        {model.name}
+                      </Text>
+                      {model.count !== undefined && (
+                        <Text variant="small" className={styles.optionCount}>
+                          ({model.count})
+                        </Text>
+                      )}
+                    </div>
+                    <ChevronLeft size={20} className={styles.chevron} />
+                  </button>
+                ))}
+              </>
+            )}
+
+            {options.length === 0 && processedDisplay.standaloneModels.length === 0 && (
               <div className={styles.empty}>
                 <Text variant="paragraph" color="secondary">
                   لا توجد طرازات متاحة

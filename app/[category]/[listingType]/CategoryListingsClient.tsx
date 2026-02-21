@@ -30,6 +30,7 @@ interface CategoryListingsClientProps {
     page?: string;
     brand?: string;
     brandId?: string; // UUID for brand selection
+    modelId?: string; // UUID for model selection (for models without variants)
     variantId?: string; // UUID for variant selection (skipping model)
     minPrice?: string;
     maxPrice?: string;
@@ -63,6 +64,7 @@ export default function CategoryListingsClient({
 
   // Mobile drill-down state
   const hasBrandId = !!searchParams.brandId;
+  const hasModelId = !!searchParams.modelId;
   const hasVariantId = !!searchParams.variantId;
 
   // Use ref to "lock in" showListings=true once it's set
@@ -77,7 +79,7 @@ export default function CategoryListingsClient({
 
   // Reset the lock when user navigates back to brand selector (no params at all)
   // This happens when user clicks back from listings to go back to brand selection
-  const hasNoFilterParams = !hasBrandId && !hasVariantId && !showListingsFromUrl;
+  const hasNoFilterParams = !hasBrandId && !hasModelId && !hasVariantId && !showListingsFromUrl;
   if (hasNoFilterParams && showListingsLockedRef.current) {
     // User navigated back to base URL - reset the lock
     showListingsLockedRef.current = false;
@@ -104,18 +106,19 @@ export default function CategoryListingsClient({
   // Determine mobile selector step
   // Only show drill-down for categories with brand attributes
   // - No brandId and not "showListings" → show brand selector
-  // - Has brandId but no variantId and not "showListings" → show variant selector
-  // - Has both or "showListings" → show listings
+  // - Has brandId but no variantId/modelId and not "showListings" → show variant/model selector
+  // - Has variantId OR modelId or "showListings" → show listings
   const mobileSelectorStep = useMemo(() => {
     // Skip drill-down for categories without brand attributes
     if (!hasBrandAttribute) return null;
     if (showListingsExplicitly) return null; // User chose "Show All"
     if (!hasBrandId) return "brand";
-    if (!hasVariantId) return "variant";
-    return null; // Both selected, show listings
-  }, [hasBrandAttribute, hasBrandId, hasVariantId, showListingsExplicitly]);
+    // If user selected a variant OR a model (for models without variants), show listings
+    if (!hasVariantId && !hasModelId) return "variant";
+    return null; // Selection made (variant or model), show listings
+  }, [hasBrandAttribute, hasBrandId, hasModelId, hasVariantId, showListingsExplicitly]);
 
-  // Extract variant options for selected brand (include modelName for grouping)
+  // Extract variant options for selected brand (include modelName and modelId for grouping)
   const variantOptions = useMemo(() => {
     if (!initialAttributes || !searchParams.brandId) return [];
     const variantAttr = initialAttributes.find((attr) => attr.key === "variantId") as any;
@@ -125,6 +128,19 @@ export default function CategoryListingsClient({
       name: opt.value,
       count: opt.count,
       modelName: opt.groupLabel || opt.modelName, // Include model name for grouping
+      modelId: opt.modelId, // Include model ID for identifying parent model
+    }));
+  }, [initialAttributes, searchParams.brandId]);
+
+  // Extract model options for selected brand (for models without variants - mixed display)
+  const modelOptions = useMemo(() => {
+    if (!initialAttributes || !searchParams.brandId) return [];
+    const modelAttr = initialAttributes.find((attr) => attr.key === "modelId") as any;
+    const options = modelAttr?.processedOptions || modelAttr?.options || [];
+    return options.map((opt: any) => ({
+      id: opt.key || opt.id,
+      name: opt.value,
+      count: opt.count,
     }));
   }, [initialAttributes, searchParams.brandId]);
 
@@ -161,10 +177,10 @@ export default function CategoryListingsClient({
   // Local search state for controlled input - initialize from URL params if available
   const [localSearch, setLocalSearch] = useState(searchParams.search || appliedFilters.search || '');
 
-  // Track previous values to re-hydrate when URL params change (including brandId/modelId)
+  // Track previous values to re-hydrate when URL params change (including brandId/modelId/variantId)
   const lastHydratedRef = useRef<string | null>(null);
   // Include filter params in key so hydration re-runs when they change
-  const currentKey = `${categorySlug}-${listingType}-${searchParams.brandId || ''}-${searchParams.variantId || ''}-${searchParams.showListings || ''}`;
+  const currentKey = `${categorySlug}-${listingType}-${searchParams.brandId || ''}-${searchParams.modelId || ''}-${searchParams.variantId || ''}-${searchParams.showListings || ''}`;
 
   // Hydrate stores from URL params using useLayoutEffect (runs before paint, after render)
   // This ensures data is set early but avoids "setState during render" errors
@@ -202,6 +218,13 @@ export default function CategoryListingsClient({
     } else {
       // Clear variantId if not in URL (user navigated back or changed brand)
       setSpecFilter('variantId', undefined);
+    }
+    // Hydrate modelId for models without variants (mobile selector flow)
+    if (searchParams.modelId) {
+      setSpecFilter('modelId', searchParams.modelId);
+    } else {
+      // Clear modelId if not in URL (user navigated back or changed brand)
+      setSpecFilter('modelId', undefined);
     }
 
     // 2. Set listingType filter
@@ -329,17 +352,22 @@ export default function CategoryListingsClient({
   }
 
   // Handle back navigation
-  // On mobile with filters: go back through drill-down (variant → brand → category)
+  // On mobile with filters: go back through drill-down (variant/model → brand → category)
   // On desktop or no filters: go to category preloader or categories page
   const handleBack = () => {
     // Mobile drill-down back navigation
     if (isMobile) {
       if (searchParams.variantId && searchParams.brandId) {
-        // Has both filters: go back to variant selector (keep brand, remove variant)
+        // Has variant selected: go back to variant/model selector (keep brand, remove variant)
         router.push(`/${categorySlug}/${listingTypeSlug}?brandId=${searchParams.brandId}`);
         return;
       }
-      if (searchParams.brandId && !searchParams.variantId) {
+      if (searchParams.modelId && searchParams.brandId) {
+        // Has model selected (no variant): go back to variant/model selector (keep brand, remove model)
+        router.push(`/${categorySlug}/${listingTypeSlug}?brandId=${searchParams.brandId}`);
+        return;
+      }
+      if (searchParams.brandId && !searchParams.variantId && !searchParams.modelId) {
         // Has brand only: go back to brand selector (remove brand)
         router.push(`/${categorySlug}/${listingTypeSlug}`);
         return;
@@ -371,6 +399,7 @@ export default function CategoryListingsClient({
         listingType={listingTypeSlug}
         categoryNameAr={currentCategory.nameAr}
         options={mobileSelectorStep === "brand" ? brandOptions : variantOptions}
+        modelOptions={mobileSelectorStep === "variant" ? modelOptions : undefined}
         selectedBrandId={searchParams.brandId}
         selectedBrandName={selectedBrandName}
         totalCount={initialTotalResults}
