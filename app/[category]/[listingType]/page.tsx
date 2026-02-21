@@ -110,7 +110,7 @@ async function fetchFilterAttributes(
           query: GET_LISTING_AGGREGATIONS_QUERY,
           variables: { filter: aggregationFilter },
         }),
-        next: { revalidate: 120 }, // Cache for 2 minutes (more dynamic)
+        next: { revalidate: 0 }, // No cache - ensure fresh data with modelId/modelName
       }),
     ]);
 
@@ -151,6 +151,15 @@ async function fetchFilterAttributes(
           (a: any) => a.field === attr.key
         );
         if (rawAttributeData?.options) {
+          // DEBUG: Log raw aggregation data for variantId to verify modelName is present
+          if (attr.key === "variantId" && rawAttributeData.options.length > 0) {
+            console.log("[SSR] variantId raw options first 3:", rawAttributeData.options.slice(0, 3).map((o: any) => ({
+              value: o.value,
+              key: o.key,
+              modelId: o.modelId,
+              modelName: o.modelName,
+            })));
+          }
           processedOptions = rawAttributeData.options.map((option: any) => ({
             id: option.key || option.value,
             key: option.key || option.value,
