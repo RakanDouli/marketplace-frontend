@@ -123,6 +123,20 @@ export default function CategoryListingsClient({
     if (!initialAttributes || !searchParams.brandId) return [];
     const variantAttr = initialAttributes.find((attr) => attr.key === "variantId") as any;
     const options = variantAttr?.processedOptions || variantAttr?.options || [];
+
+    // DEBUG: Log raw options to see what SSR provides
+    console.log("[CategoryListingsClient] variantAttr found:", !!variantAttr);
+    console.log("[CategoryListingsClient] Raw variant options count:", options.length);
+    if (options.length > 0) {
+      console.log("[CategoryListingsClient] First 3 raw options:", options.slice(0, 3).map((o: any) => ({
+        key: o.key,
+        value: o.value,
+        modelId: o.modelId,
+        modelName: o.modelName,
+        groupLabel: o.groupLabel,
+      })));
+    }
+
     return options.map((opt: any) => ({
       id: opt.key || opt.id,
       name: opt.value,
