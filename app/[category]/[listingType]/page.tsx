@@ -145,8 +145,8 @@ async function fetchFilterAttributes(
     const attributesWithCounts = rawAttributes.map((attr) => {
       let processedOptions: any[] = [];
 
-      if (attr.key === "brandId" || attr.key === "variantId") {
-        // For brandId/modelId, get options from aggregation data
+      if (attr.key === "brandId" || attr.key === "modelId" || attr.key === "variantId") {
+        // For brandId/modelId/variantId, get options from aggregation data
         const rawAttributeData = (aggregations.attributes || []).find(
           (a: any) => a.field === attr.key
         );
@@ -158,6 +158,9 @@ async function fetchFilterAttributes(
             sortOrder: 0,
             isActive: true,
             count: option.count,
+            // Include modelId and modelName for variant grouping
+            modelId: option.modelId,
+            modelName: option.modelName,
           }));
         }
       } else {
