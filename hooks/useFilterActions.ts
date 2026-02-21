@@ -44,19 +44,27 @@ export const useFilterActions = (categorySlug: string | null, listingType?: stri
   const handleSpecChange = async (attributeKey: string, value: any) => {
     if (!categorySlug) return;
 
-    // All SELECTOR attributes go to specs
-    // NOTE: Location will be extracted from specs and sent as top-level province in Filter.tsx submission
-    setSpecFilter(attributeKey, value);
-
-    // Cascading filter: when brand changes, clear model and variant
-    if (attributeKey === 'brandId') {
-      setSpecFilter('modelId', undefined);
+    // Handle variantId special case: models without variants have key "model_<uuid>"
+    // When user selects a model without variants, set modelId instead of variantId
+    if (attributeKey === 'variantId' && typeof value === 'string' && value.startsWith('model_')) {
+      const actualModelId = value.replace('model_', '');
+      setSpecFilter('modelId', actualModelId);
       setSpecFilter('variantId', undefined);
-    }
+    } else {
+      // All SELECTOR attributes go to specs
+      // NOTE: Location will be extracted from specs and sent as top-level province in Filter.tsx submission
+      setSpecFilter(attributeKey, value);
 
-    // Cascading filter: when model changes, clear variant
-    if (attributeKey === 'modelId') {
-      setSpecFilter('variantId', undefined);
+      // Cascading filter: when brand changes, clear model and variant
+      if (attributeKey === 'brandId') {
+        setSpecFilter('modelId', undefined);
+        setSpecFilter('variantId', undefined);
+      }
+
+      // Cascading filter: when model changes, clear variant
+      if (attributeKey === 'modelId') {
+        setSpecFilter('variantId', undefined);
+      }
     }
 
     // Apply filters with store coordination

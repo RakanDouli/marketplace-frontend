@@ -25,6 +25,7 @@ import {
   MultiSelectFilter,
   SearchFilter,
   PriceFilter,
+  BrandModelFilter,
 } from "./components";
 import styles from "./Filter.module.scss";
 
@@ -183,15 +184,15 @@ export const Filter: React.FC<FilterProps> = ({
   // Check if a filter attribute should be shown
   // Hide filters where ALL options have count 0 (no listings match any option)
   const shouldShowAttribute = (attribute: any): boolean => {
+    // Hide brand, model, variant - handled by BrandModelFilter component
+    if (['brandId', 'modelId', 'variantId'].includes(attribute.key)) return false;
+
     // For SELECTOR and MULTI_SELECTOR types, check if at least one option has count > 0
     if (
       (attribute.type === AttributeType.SELECTOR || attribute.type === AttributeType.MULTI_SELECTOR) &&
       attribute.processedOptions &&
       attribute.processedOptions.length > 0
     ) {
-      // Special case: brandId should always show (user may want to change brand)
-      if (attribute.key === 'brandId') return true;
-
       // Check if at least one option has count > 0
       const hasVisibleOptions = attribute.processedOptions.some(
         (opt: any) => opt.count > 0
@@ -209,6 +210,100 @@ export const Filter: React.FC<FilterProps> = ({
 
     // For other types (RANGE, CURRENCY, TEXT), always show
     return true;
+  };
+
+  // Extract brand/model/variant data for BrandModelFilter
+  const getBrandModelData = () => {
+    const attributes = getFilterableAttributes();
+    const brandAttr = attributes.find((a: any) => a.key === 'brandId');
+    const modelAttr = attributes.find((a: any) => a.key === 'modelId');
+    const variantAttr = attributes.find((a: any) => a.key === 'variantId');
+
+    // Brand options
+    const brandOptions = brandAttr?.processedOptions || [];
+
+    // Combine model and variant options for the unified selector
+    // Models without variants come from modelId aggregation
+    // Variants come from variantId aggregation (with modelId/modelName for grouping)
+    const modelVariantOptions: any[] = [];
+
+    // Add variants (with grouping info)
+    if (variantAttr?.processedOptions) {
+      variantAttr.processedOptions.forEach((opt: any) => {
+        modelVariantOptions.push({
+          key: opt.key,
+          value: opt.value,
+          count: opt.count,
+          modelId: opt.modelId || opt.groupKey,
+          modelName: opt.modelName || opt.groupLabel,
+          isModelWithoutVariants: false,
+        });
+      });
+    }
+
+    // Find models that DON'T have variants (not in variantAttr's modelIds)
+    if (modelAttr?.processedOptions && variantAttr?.processedOptions) {
+      const modelIdsWithVariants = new Set(
+        variantAttr.processedOptions.map((v: any) => v.modelId || v.groupKey).filter(Boolean)
+      );
+
+      modelAttr.processedOptions.forEach((opt: any) => {
+        if (!modelIdsWithVariants.has(opt.key)) {
+          modelVariantOptions.push({
+            key: opt.key,
+            value: opt.value,
+            count: opt.count,
+            isModelWithoutVariants: true,
+          });
+        }
+      });
+    } else if (modelAttr?.processedOptions && !variantAttr?.processedOptions) {
+      // No variants at all - all models are standalone
+      modelAttr.processedOptions.forEach((opt: any) => {
+        modelVariantOptions.push({
+          key: opt.key,
+          value: opt.value,
+          count: opt.count,
+          isModelWithoutVariants: true,
+        });
+      });
+    }
+
+    return {
+      hasBrandModel: !!brandAttr,
+      brandOptions,
+      modelVariantOptions,
+      brandLabel: brandAttr?.name,
+      modelLabel: variantAttr?.name || modelAttr?.name,
+    };
+  };
+
+  const brandModelData = getBrandModelData();
+
+  // Handle brand change - clear model/variant when brand changes
+  const handleBrandChange = (brandId: string | undefined) => {
+    handleSpecChange('brandId', brandId);
+    // Clear model and variant when brand changes (cascading)
+    if (!brandId || brandId !== draftFilters.specs?.brandId) {
+      setDraftSpecFilter('modelId', undefined);
+      setDraftSpecFilter('variantId', undefined);
+    }
+  };
+
+  // Handle model/variant change
+  const handleModelVariantChange = (value: { modelId?: string; variantId?: string }) => {
+    if (value.modelId) {
+      handleSpecChange('modelId', value.modelId);
+      setDraftSpecFilter('variantId', undefined);
+    } else if (value.variantId) {
+      handleSpecChange('variantId', value.variantId);
+      // Don't clear modelId - backend may need it for filtering
+    } else {
+      // Clearing selection
+      setDraftSpecFilter('modelId', undefined);
+      setDraftSpecFilter('variantId', undefined);
+      handleApplyFilter();
+    }
   };
 
   // Get sorted attributes for filters (no grouping - each attribute is its own section)
@@ -572,6 +667,34 @@ export const Filter: React.FC<FilterProps> = ({
                 </button>
               </div>
             )}
+
+            {/* Mobile: Back button + title when on brand screen */}
+            {mobileScreen.type === 'brand' && (
+              <div className={styles.mobileHeader}>
+                <button
+                  type="button"
+                  className={styles.mobileBackButton}
+                  onClick={() => setMobileScreen({ type: 'list' })}
+                >
+                  <ChevronRight size={24} />
+                  <span>{brandModelData.brandLabel || t("search.brand") || "الماركة"}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Mobile: Back button + title when on model screen */}
+            {mobileScreen.type === 'model' && (
+              <div className={styles.mobileHeader}>
+                <button
+                  type="button"
+                  className={styles.mobileBackButton}
+                  onClick={() => setMobileScreen({ type: 'list' })}
+                >
+                  <ChevronRight size={24} />
+                  <span>{brandModelData.modelLabel || t("search.model") || "الموديل"}</span>
+                </button>
+              </div>
+            )}
           </>
         }
       >
@@ -585,6 +708,28 @@ export const Filter: React.FC<FilterProps> = ({
           <>
             {/* Desktop Content - hidden on mobile via CSS */}
             <div className={styles.desktopContent}>
+              {/* Brand/Model Filter - dedicated component */}
+              {brandModelData.hasBrandModel && (
+                <Collapsible
+                  title={brandModelData.brandLabel || t("search.brand") || "الماركة"}
+                  defaultOpen={true}
+                  variant="compact"
+                >
+                  <BrandModelFilter
+                    brandOptions={brandModelData.brandOptions}
+                    modelVariantOptions={brandModelData.modelVariantOptions}
+                    selectedBrandId={getSingleSelectorValue('brandId')}
+                    selectedModelId={getSingleSelectorValue('modelId')}
+                    selectedVariantId={getSingleSelectorValue('variantId')}
+                    onBrandChange={handleBrandChange}
+                    onModelVariantChange={handleModelVariantChange}
+                    brandLabel={brandModelData.brandLabel}
+                    modelLabel={brandModelData.modelLabel}
+                  />
+                </Collapsible>
+              )}
+
+              {/* Other dynamic filters */}
               {getSortedAttributes()
                 .filter(attr => !['search', 'listingType'].includes(attr.key))
                 .filter(attr => shouldShowAttribute(attr))
@@ -592,7 +737,7 @@ export const Filter: React.FC<FilterProps> = ({
                   <Collapsible
                     key={attribute.id}
                     title={attribute.name}
-                    defaultOpen={index < 7}
+                    defaultOpen={index < 6}
                     variant="compact"
                   >
                     {renderAttribute(attribute)}
@@ -629,6 +774,18 @@ export const Filter: React.FC<FilterProps> = ({
                   await fetchListingsByCategory(categorySlug, filters, "grid");
                 }}
                 isLoading={listingsLoading}
+                // Brand/Model data passed separately
+                brandModelData={brandModelData.hasBrandModel ? {
+                  brandOptions: brandModelData.brandOptions,
+                  modelVariantOptions: brandModelData.modelVariantOptions,
+                  selectedBrandId: getSingleSelectorValue('brandId'),
+                  selectedModelId: getSingleSelectorValue('modelId'),
+                  selectedVariantId: getSingleSelectorValue('variantId'),
+                  brandLabel: brandModelData.brandLabel,
+                  modelLabel: brandModelData.modelLabel,
+                } : undefined}
+                onBrandChange={handleBrandChange}
+                onModelVariantChange={handleModelVariantChange}
               />
             </div>
           </>

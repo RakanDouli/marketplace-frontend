@@ -151,17 +151,66 @@ async function fetchFilterAttributes(
           (a: any) => a.field === attr.key
         );
         if (rawAttributeData?.options) {
-          processedOptions = rawAttributeData.options.map((option: any) => ({
-            id: option.key || option.value,
-            key: option.key || option.value,
-            value: option.value,
-            sortOrder: 0,
-            isActive: true,
-            count: option.count,
-            // Include modelId and modelName for variant grouping
-            modelId: option.modelId,
-            modelName: option.modelName,
-          }));
+          // For variantId: merge variants (grouped by model) + models without variants
+          if (attr.key === "variantId") {
+            // Get modelIds that have variants
+            const modelIdsWithVariants = new Set<string>();
+            rawAttributeData.options.forEach((option: any) => {
+              if (option.modelId) {
+                modelIdsWithVariants.add(option.modelId);
+              }
+            });
+
+            // Start with variants (grouped by model)
+            processedOptions = rawAttributeData.options.map((option: any) => ({
+              id: option.key || option.value,
+              key: option.key || option.value,
+              value: option.value,
+              sortOrder: 0,
+              isActive: true,
+              count: option.count,
+              modelId: option.modelId,
+              modelName: option.modelName,
+              groupKey: option.modelId,
+              groupLabel: option.modelName,
+            }));
+
+            // Add models WITHOUT variants as standalone options (no group)
+            const modelAttrData = (aggregations.attributes || []).find(
+              (a: any) => a.field === "modelId"
+            );
+            if (modelAttrData?.options) {
+              const modelsWithoutVariants = modelAttrData.options.filter(
+                (model: any) => !modelIdsWithVariants.has(model.key)
+              );
+              // Add models without variants - they use modelId as key (prefixed to avoid collision)
+              const modelOptions = modelsWithoutVariants.map((model: any) => ({
+                id: `model_${model.key}`,
+                key: `model_${model.key}`, // Prefix to distinguish from variants
+                value: model.value,
+                sortOrder: 0,
+                isActive: true,
+                count: model.count,
+                modelId: model.key,
+                modelName: model.value,
+                // No groupKey/groupLabel = standalone option (not grouped)
+                isModelWithoutVariants: true, // Flag for filtering logic
+              }));
+              processedOptions = [...processedOptions, ...modelOptions];
+            }
+          } else {
+            // brandId and modelId - simple mapping
+            processedOptions = rawAttributeData.options.map((option: any) => ({
+              id: option.key || option.value,
+              key: option.key || option.value,
+              value: option.value,
+              sortOrder: 0,
+              isActive: true,
+              count: option.count,
+              modelId: option.modelId,
+              modelName: option.modelName,
+            }));
+          }
         }
       } else {
         // Regular attributes - use existing options with counts

@@ -105,6 +105,10 @@ export const SelectInputField: React.FC<SelectInputFieldProps> = ({
             borderColor: 'var(--primary)',
           },
         }),
+        // Hide the separator line between value and dropdown arrow
+        indicatorSeparator: () => ({
+          display: 'none',
+        }),
         // Style disabled options as group headers
         option: (base, state) => ({
           ...base,

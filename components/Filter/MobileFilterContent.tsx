@@ -14,13 +14,41 @@ interface FilterAttribute extends Attribute {
     key: string;
     value: string;
     count?: number;
+    /** Group key for optgroup display (e.g., modelId for variants) */
+    groupKey?: string;
+    /** Group label for optgroup display (e.g., modelName for variants) */
+    groupLabel?: string;
+    /** For models: true if this model has variants (renders as non-clickable header) */
+    hasVariants?: boolean;
+    /** For variantId filter: true if this is a model without variants (from modelId aggregation) */
+    isModelWithoutVariants?: boolean;
   }>;
 }
 
 export type MobileFilterScreen =
   | { type: 'list' }
   | { type: 'detail'; attribute: FilterAttribute }
-  | { type: 'range-select'; attribute: FilterAttribute; field: 'min' | 'max' };
+  | { type: 'range-select'; attribute: FilterAttribute; field: 'min' | 'max' }
+  | { type: 'brand' }
+  | { type: 'model' };
+
+// Brand/Model data for dedicated filter
+interface BrandModelData {
+  brandOptions: Array<{ key: string; value: string; count?: number }>;
+  modelVariantOptions: Array<{
+    key: string;
+    value: string;
+    count?: number;
+    modelId?: string;
+    modelName?: string;
+    isModelWithoutVariants?: boolean;
+  }>;
+  selectedBrandId?: string;
+  selectedModelId?: string;
+  selectedVariantId?: string;
+  brandLabel?: string;
+  modelLabel?: string;
+}
 
 interface MobileFilterContentProps {
   attributes: FilterAttribute[];
@@ -33,6 +61,10 @@ interface MobileFilterContentProps {
   onApply: () => void;
   onClear: () => void;
   isLoading?: boolean;
+  // Brand/Model dedicated filter
+  brandModelData?: BrandModelData;
+  onBrandChange?: (brandId: string | undefined) => void;
+  onModelVariantChange?: (value: { modelId?: string; variantId?: string }) => void;
 }
 
 // Price range type
@@ -89,6 +121,9 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
   onApply,
   onClear,
   isLoading,
+  brandModelData,
+  onBrandChange,
+  onModelVariantChange,
 }) => {
   const { draftFilters, appliedFilters } = useSearchStore();
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
@@ -161,7 +196,18 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
     // Selector filters
     if (attribute.type === "SELECTOR") {
       const value = draftFilters.specs?.[attribute.key] ?? appliedFilters.specs?.[attribute.key];
-      if (!value) return null;
+      if (!value) {
+        // For variantId, also check if a model without variants is selected (stored as modelId)
+        if (attribute.key === "variantId") {
+          const modelIdValue = draftFilters.specs?.modelId ?? appliedFilters.specs?.modelId;
+          if (modelIdValue) {
+            // Find the model option by checking model_<uuid> key
+            const option = attribute.processedOptions?.find(o => o.key === `model_${modelIdValue}`);
+            return option?.value || null;
+          }
+        }
+        return null;
+      }
       const option = attribute.processedOptions?.find(o => o.key === value);
       return option?.value || null;
     }
@@ -210,11 +256,87 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
     }
   };
 
+  // Get display value for brand
+  const getBrandDisplayValue = (): string | null => {
+    if (!brandModelData?.selectedBrandId) return null;
+    const brand = brandModelData.brandOptions.find(b => b.key === brandModelData.selectedBrandId);
+    return brand?.value || null;
+  };
+
+  // Get display value for model/variant
+  const getModelDisplayValue = (): string | null => {
+    if (!brandModelData) return null;
+
+    // Check variant first
+    if (brandModelData.selectedVariantId) {
+      const variant = brandModelData.modelVariantOptions.find(
+        v => v.key === brandModelData.selectedVariantId && !v.isModelWithoutVariants
+      );
+      return variant?.value || null;
+    }
+
+    // Check model
+    if (brandModelData.selectedModelId) {
+      const model = brandModelData.modelVariantOptions.find(
+        m => m.key === brandModelData.selectedModelId && m.isModelWithoutVariants
+      );
+      return model?.value || null;
+    }
+
+    return null;
+  };
+
   // Render filter list screen
   const renderListScreen = () => (
     <div className={styles.listScreen}>
       {/* Filter list - header/footer handled by Aside */}
       <div className={styles.filterList}>
+        {/* Brand/Model filters - at the top */}
+        {brandModelData && (
+          <>
+            {/* Brand */}
+            <button
+              type="button"
+              className={styles.filterItem}
+              onClick={() => onScreenChange({ type: 'brand' })}
+            >
+              <div className={styles.filterItemContent}>
+                <Text variant="h4" className={styles.filterName}>
+                  {brandModelData.brandLabel || "الماركة"}
+                </Text>
+                {getBrandDisplayValue() && (
+                  <Text variant="small" className={styles.filterValue}>
+                    {getBrandDisplayValue()}
+                  </Text>
+                )}
+              </div>
+              <ChevronLeft size={20} className={styles.chevron} />
+            </button>
+
+            {/* Model - only show if brand is selected */}
+            {brandModelData.selectedBrandId && brandModelData.modelVariantOptions.length > 0 && (
+              <button
+                type="button"
+                className={styles.filterItem}
+                onClick={() => onScreenChange({ type: 'model' })}
+              >
+                <div className={styles.filterItemContent}>
+                  <Text variant="h4" className={styles.filterName}>
+                    {brandModelData.modelLabel || "الموديل"}
+                  </Text>
+                  {getModelDisplayValue() && (
+                    <Text variant="small" className={styles.filterValue}>
+                      {getModelDisplayValue()}
+                    </Text>
+                  )}
+                </div>
+                <ChevronLeft size={20} className={styles.chevron} />
+              </button>
+            )}
+          </>
+        )}
+
+        {/* Other dynamic filters */}
         {attributes.map((attribute) => {
           const valueDisplay = getValueDisplay(attribute);
 
@@ -417,6 +539,10 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
     // SELECTOR - Single select
     if (attribute.type === "SELECTOR" && attribute.processedOptions) {
       const currentValue = (draftFilters.specs?.[attribute.key] ?? appliedFilters.specs?.[attribute.key]) as string | undefined;
+      // For variantId filter, also get modelId to check if a model without variants is selected
+      const modelIdValue = attribute.key === "variantId"
+        ? (draftFilters.specs?.modelId ?? appliedFilters.specs?.modelId) as string | undefined
+        : undefined;
 
       // Special handling for body_type with icons
       if (attribute.key === "body_type") {
@@ -449,6 +575,158 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
         ? attribute.processedOptions
         : attribute.processedOptions.filter(opt => opt.count !== 0);
 
+      // Check if options have groups (for variants grouped by model)
+      const hasGroups = visibleOptions.some(opt => opt.groupKey && opt.groupLabel);
+      // Check if we have models without variants (merged into variantId)
+      const hasModelsWithoutVariants = visibleOptions.some(opt => opt.isModelWithoutVariants);
+
+      // Group options if they have groupKey/groupLabel (variants grouped by model)
+      // Also handle models without variants as standalone options
+      if (hasGroups || hasModelsWithoutVariants) {
+        const groups: Record<string, { label: string; options: typeof visibleOptions }> = {};
+        const standaloneModels: typeof visibleOptions = [];
+
+        visibleOptions.forEach(opt => {
+          // Models without variants go to standalone list (no group header)
+          if (opt.isModelWithoutVariants) {
+            standaloneModels.push(opt);
+          } else if (opt.groupKey && opt.groupLabel) {
+            // Variants are grouped by model
+            const groupKey = opt.groupKey;
+            const groupLabel = opt.groupLabel;
+
+            if (!groups[groupKey]) {
+              groups[groupKey] = { label: groupLabel, options: [] };
+            }
+            groups[groupKey].options.push(opt);
+          } else {
+            // Fallback: ungrouped options
+            if (!groups['__ungrouped__']) {
+              groups['__ungrouped__'] = { label: 'أخرى', options: [] };
+            }
+            groups['__ungrouped__'].options.push(opt);
+          }
+        });
+
+        const groupedOptions = Object.values(groups);
+
+        return (
+          <div className={styles.selectorOptions}>
+            {/* First: Models without variants (standalone, no header) */}
+            {standaloneModels.map((option) => {
+              // For model options (model_<uuid>), check against modelIdValue
+              const isSelected = option.isModelWithoutVariants
+                ? option.key === `model_${modelIdValue}`
+                : currentValue === option.key;
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                  onClick={() => handleSelectorSelect(attribute, option.key)}
+                >
+                  <div className={styles.optionContent}>
+                    <Text variant="paragraph">{option.value}</Text>
+                    {option.count !== undefined && (
+                      <Text variant="small" className={styles.optionCount}>
+                        ({option.count})
+                      </Text>
+                    )}
+                  </div>
+                  <span className={styles.checkIconContainer}>
+                    {isSelected && <Check size={18} className={styles.checkIcon} />}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Then: Variants grouped by model */}
+            {groupedOptions.map((group, groupIndex) => (
+              <div key={`${groupIndex}-${group.label}`}>
+                {/* Group header */}
+                <div className={styles.groupHeader}>
+                  <Text variant="h4" className={styles.groupHeaderText}>
+                    {group.label}
+                  </Text>
+                </div>
+                {/* Group options */}
+                {group.options.map((option) => {
+                  const isSelected = currentValue === option.key;
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                      onClick={() => handleSelectorSelect(attribute, option.key)}
+                    >
+                      <div className={styles.optionContent}>
+                        <Text variant="paragraph">{option.value}</Text>
+                        {option.count !== undefined && (
+                          <Text variant="small" className={styles.optionCount}>
+                            ({option.count})
+                          </Text>
+                        )}
+                      </div>
+                      <span className={styles.checkIconContainer}>
+                        {isSelected && <Check size={18} className={styles.checkIcon} />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      // Check if this is modelId with hasVariants (models that have variants are non-clickable headers)
+      const hasModelVariants = attribute.key === 'modelId' && visibleOptions.some(opt => opt.hasVariants === true);
+
+      if (hasModelVariants) {
+        return (
+          <div className={styles.selectorOptions}>
+            {visibleOptions.map((option) => {
+              const isSelected = currentValue === option.key;
+
+              // Models with variants are non-clickable headers
+              if (option.hasVariants) {
+                return (
+                  <div key={option.key} className={styles.groupHeader}>
+                    <Text variant="h4" className={styles.groupHeaderText}>
+                      {option.value}
+                      {option.count !== undefined && ` (${option.count})`}
+                    </Text>
+                  </div>
+                );
+              }
+
+              // Models without variants are clickable
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                  onClick={() => handleSelectorSelect(attribute, option.key)}
+                >
+                  <div className={styles.optionContent}>
+                    <Text variant="paragraph">{option.value}</Text>
+                    {option.count !== undefined && (
+                      <Text variant="small" className={styles.optionCount}>
+                        ({option.count})
+                      </Text>
+                    )}
+                  </div>
+                  <span className={styles.checkIconContainer}>
+                    {isSelected && <Check size={18} className={styles.checkIcon} />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        );
+      }
+
+      // Regular flat list (no groups)
       return (
         <div className={styles.selectorOptions}>
           {visibleOptions.map((option) => {
@@ -747,9 +1025,168 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
     return direction === 'forward' ? styles.slideInFromLeft : styles.slideInFromRight;
   };
 
+  // Render brand selection screen
+  const renderBrandScreen = () => {
+    if (!brandModelData) return null;
+
+    return (
+      <div className={styles.detailScreen}>
+        <div className={styles.optionsList}>
+          <div className={styles.selectorOptions}>
+            {brandModelData.brandOptions.map((brand) => {
+              const isSelected = brandModelData.selectedBrandId === brand.key;
+              return (
+                <button
+                  key={brand.key}
+                  type="button"
+                  className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                  onClick={() => {
+                    if (onBrandChange) {
+                      onBrandChange(isSelected ? undefined : brand.key);
+                    }
+                    setTimeout(() => onScreenChange({ type: 'list' }), 150);
+                  }}
+                >
+                  <div className={styles.optionContent}>
+                    <Text variant="paragraph">{brand.value}</Text>
+                    {brand.count !== undefined && (
+                      <Text variant="small" className={styles.optionCount}>
+                        ({brand.count})
+                      </Text>
+                    )}
+                  </div>
+                  <span className={styles.checkIconContainer}>
+                    {isSelected && <Check size={18} className={styles.checkIcon} />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render model/variant selection screen
+  const renderModelScreen = () => {
+    if (!brandModelData) return null;
+
+    // Group variants by model, separate standalone models
+    const standaloneModels = brandModelData.modelVariantOptions.filter(opt => opt.isModelWithoutVariants);
+    const variants = brandModelData.modelVariantOptions.filter(opt => !opt.isModelWithoutVariants);
+
+    // Group variants by modelId
+    const variantGroups: Record<string, { label: string; options: typeof variants }> = {};
+    variants.forEach(v => {
+      if (v.modelId && v.modelName) {
+        if (!variantGroups[v.modelId]) {
+          variantGroups[v.modelId] = { label: v.modelName, options: [] };
+        }
+        variantGroups[v.modelId].options.push(v);
+      }
+    });
+
+    const handleModelVariantSelect = (key: string, isModel: boolean) => {
+      if (onModelVariantChange) {
+        if (isModel) {
+          // Check if already selected
+          const isSelected = brandModelData.selectedModelId === key;
+          onModelVariantChange(isSelected ? {} : { modelId: key });
+        } else {
+          const isSelected = brandModelData.selectedVariantId === key;
+          onModelVariantChange(isSelected ? {} : { variantId: key });
+        }
+      }
+      setTimeout(() => onScreenChange({ type: 'list' }), 150);
+    };
+
+    return (
+      <div className={styles.detailScreen}>
+        <div className={styles.optionsList}>
+          <div className={styles.selectorOptions}>
+            {/* Standalone models (no variants) */}
+            {standaloneModels.map((model) => {
+              const isSelected = brandModelData.selectedModelId === model.key;
+              return (
+                <button
+                  key={model.key}
+                  type="button"
+                  className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                  onClick={() => handleModelVariantSelect(model.key, true)}
+                >
+                  <div className={styles.optionContent}>
+                    <Text variant="paragraph">{model.value}</Text>
+                    {model.count !== undefined && (
+                      <Text variant="small" className={styles.optionCount}>
+                        ({model.count})
+                      </Text>
+                    )}
+                  </div>
+                  <span className={styles.checkIconContainer}>
+                    {isSelected && <Check size={18} className={styles.checkIcon} />}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Variants grouped by model */}
+            {Object.entries(variantGroups).map(([modelId, group]) => (
+              <div key={modelId}>
+                <div className={styles.groupHeader}>
+                  <Text variant="h4" className={styles.groupHeaderText}>
+                    {group.label}
+                  </Text>
+                </div>
+                {group.options.map((variant) => {
+                  const isSelected = brandModelData.selectedVariantId === variant.key;
+                  return (
+                    <button
+                      key={variant.key}
+                      type="button"
+                      className={`${styles.optionItem} ${isSelected ? styles.selected : ''}`}
+                      onClick={() => handleModelVariantSelect(variant.key, false)}
+                    >
+                      <div className={styles.optionContent}>
+                        <Text variant="paragraph">{variant.value}</Text>
+                        {variant.count !== undefined && (
+                          <Text variant="small" className={styles.optionCount}>
+                            ({variant.count})
+                          </Text>
+                        )}
+                      </div>
+                      <span className={styles.checkIconContainer}>
+                        {isSelected && <Check size={18} className={styles.checkIcon} />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Check if brand/model has value (for clear button)
+  const hasBrandModelValue = (type: 'brand' | 'model'): boolean => {
+    if (!brandModelData) return false;
+    if (type === 'brand') return !!brandModelData.selectedBrandId;
+    return !!(brandModelData.selectedModelId || brandModelData.selectedVariantId);
+  };
+
+  // Clear brand/model filter
+  const clearBrandModelFilter = (type: 'brand' | 'model') => {
+    if (type === 'brand' && onBrandChange) {
+      onBrandChange(undefined);
+    } else if (type === 'model' && onModelVariantChange) {
+      onModelVariantChange({});
+    }
+  };
+
   return (
     <div className={styles.mobileFilterContent}>
-      {/* Clear button - fixed under Aside header, only show on detail screen when filter has value */}
+      {/* Clear button - for detail screen */}
       {screen.type === 'detail' && hasFilterValue(screen.attribute) && (
         <div className={styles.detailHeader}>
           <Button
@@ -763,11 +1200,41 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
         </div>
       )}
 
+      {/* Clear button - for brand screen */}
+      {screen.type === 'brand' && hasBrandModelValue('brand') && (
+        <div className={styles.detailHeader}>
+          <Button
+            variant="link"
+            onClick={() => clearBrandModelFilter('brand')}
+            icon={<Trash2 size={14} />}
+            size="sm"
+          >
+            مسح الاختيار
+          </Button>
+        </div>
+      )}
+
+      {/* Clear button - for model screen */}
+      {screen.type === 'model' && hasBrandModelValue('model') && (
+        <div className={styles.detailHeader}>
+          <Button
+            variant="link"
+            onClick={() => clearBrandModelFilter('model')}
+            icon={<Trash2 size={14} />}
+            size="sm"
+          >
+            مسح الاختيار
+          </Button>
+        </div>
+      )}
+
       <div className={styles.mobileFilterScrollArea}>
         <div className={`${styles.screenContainer} ${getAnimationClass()}`}>
           {screen.type === 'list' && renderListScreen()}
           {screen.type === 'detail' && renderDetailScreen(screen.attribute)}
           {screen.type === 'range-select' && renderRangeSelectScreen(screen.attribute, screen.field)}
+          {screen.type === 'brand' && renderBrandScreen()}
+          {screen.type === 'model' && renderModelScreen()}
         </div>
       </div>
 

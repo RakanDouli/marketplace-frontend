@@ -140,6 +140,19 @@
   flex-direction: column;
 }
 
+// Group header for grouped options (e.g., variants grouped by model)
+.groupHeader {
+  padding: $space-sm $space-md;
+  background: $surface;
+  border-bottom: 1px solid $border;
+}
+
+.groupHeaderText {
+  color: $text-muted;
+  font-weight: $weight-semibold;
+  margin-bottom: 0;
+}
+
 .optionItem {
   display: flex;
   align-items: center;

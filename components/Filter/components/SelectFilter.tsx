@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { Input } from "../../slices/Input/Input";
+import { SelectInputField } from "../../slices/Input/SelectInputField";
 import { Text } from "../../slices";
 import { useTranslation } from "../../../hooks";
 import styles from "../Filter.module.scss";
@@ -16,6 +17,8 @@ export interface SelectOption {
   groupLabel?: string;
   /** For models: true if this model has variants (renders as non-clickable header) */
   hasVariants?: boolean;
+  /** For variantId filter: true if this is a model without variants (from modelId aggregation) */
+  isModelWithoutVariants?: boolean;
 }
 
 export interface SelectFilterProps {
@@ -57,6 +60,11 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
     return options.some(opt => opt.groupKey && opt.groupLabel);
   }, [options]);
 
+  // Check if we have models without variants (merged into variantId)
+  const hasModelsWithoutVariants = useMemo(() => {
+    return options.some(opt => opt.isModelWithoutVariants === true);
+  }, [options]);
+
   // Check if this is a model selector with hasVariants options
   const hasModelVariants = useMemo(() => {
     return attributeKey === "modelId" && options.some(opt => opt.hasVariants === true);
@@ -92,34 +100,111 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
     return filtered;
   }, [options, hasGroups, keepAllOptions]);
 
-  // Group options by groupKey for optgroup rendering
-  const groupedOptions = useMemo(() => {
-    if (!hasGroups) return null;
+  // Group options by groupKey for react-select GroupedOption format
+  // Also separate models without variants (standalone options)
+  const { reactSelectGroupedOptions, standaloneModels } = useMemo(() => {
+    if (!hasGroups && !hasModelsWithoutVariants) return { reactSelectGroupedOptions: null, standaloneModels: [] };
 
-    const groups: Record<string, { label: string; options: SelectOption[] }> = {};
+    const groups: Record<string, { label: string; options: { value: string; label: string; count?: number; isModelOnly?: boolean }[] }> = {};
+    const standalone: { value: string; label: string; count?: number; isModelOnly: boolean }[] = [];
 
     processedOptions.forEach(opt => {
-      const groupKey = opt.groupKey || '__ungrouped__';
-      const groupLabel = opt.groupLabel || t("common.other");
+      // Models without variants go to standalone list
+      if (opt.isModelWithoutVariants) {
+        standalone.push({
+          value: opt.key,
+          label: opt.value,
+          count: showCounts ? opt.count : undefined,
+          isModelOnly: true,
+        });
+      } else if (opt.groupKey && opt.groupLabel) {
+        // Variants grouped by model
+        const groupKey = opt.groupKey;
+        const groupLabel = opt.groupLabel;
 
-      if (!groups[groupKey]) {
-        groups[groupKey] = { label: groupLabel, options: [] };
+        if (!groups[groupKey]) {
+          groups[groupKey] = { label: groupLabel, options: [] };
+        }
+        groups[groupKey].options.push({
+          value: opt.key,
+          label: opt.value,
+          count: showCounts ? opt.count : undefined,
+        });
+      } else {
+        // Fallback: ungrouped
+        const groupKey = '__ungrouped__';
+        const groupLabel = t("common.other");
+
+        if (!groups[groupKey]) {
+          groups[groupKey] = { label: groupLabel, options: [] };
+        }
+        groups[groupKey].options.push({
+          value: opt.key,
+          label: opt.value,
+          count: showCounts ? opt.count : undefined,
+        });
       }
-      groups[groupKey].options.push(opt);
     });
 
-    return Object.values(groups);
-  }, [processedOptions, hasGroups, t]);
+    // Build final grouped options for react-select
+    // First add standalone models as a group "موديلات أخرى", then add variant groups
+    const result: { label: string; options: { value: string; label: string; count?: number; isModelOnly?: boolean }[] }[] = [];
 
-  // Format option label with count
-  const formatLabel = (opt: SelectOption) => {
-    return showCounts && opt.count !== undefined
-      ? `${opt.value} (${opt.count})`
-      : opt.value;
+    if (standalone.length > 0) {
+      result.push({
+        label: t("common.otherModels") || "موديلات أخرى",
+        options: standalone,
+      });
+    }
+
+    // Add variant groups sorted alphabetically
+    const sortedGroups = Object.values(groups).sort((a, b) => a.label.localeCompare(b.label));
+    result.push(...sortedGroups);
+
+    return { reactSelectGroupedOptions: result, standaloneModels: standalone };
+  }, [processedOptions, hasGroups, hasModelsWithoutVariants, t, showCounts]);
+
+  // Get selected value for react-select
+  const selectedValue = useMemo(() => {
+    if (!value) return null;
+
+    // Find the option in processedOptions
+    const opt = processedOptions.find(o => o.key === value);
+    if (opt) {
+      return {
+        value: opt.key,
+        label: opt.value,
+        count: showCounts ? opt.count : undefined,
+        isModelOnly: opt.isModelWithoutVariants,
+      };
+    }
+    return null;
+  }, [value, processedOptions, showCounts]);
+
+  // For modelId filter with hasVariants: convert to flat list (models without variants only)
+  const modelFlatOptions = useMemo(() => {
+    if (!hasModelVariants) return [];
+
+    return processedOptions
+      .filter(opt => !opt.hasVariants)
+      .map(opt => ({
+        value: opt.key,
+        label: opt.value,
+        count: showCounts ? opt.count : undefined,
+      }));
+  }, [processedOptions, showCounts, hasModelVariants]);
+
+  // Handle selection change for react-select
+  const handleSelectChange = (selected: { value: string; isModelOnly?: boolean } | null) => {
+    if (selected) {
+      onChange(selected.value);
+    } else {
+      onChange(undefined);
+    }
   };
 
-  // Render grouped select with native optgroup
-  if (hasGroups && groupedOptions) {
+  // Render grouped select using react-select (consistent with create form)
+  if ((hasGroups || hasModelsWithoutVariants) && reactSelectGroupedOptions) {
     return (
       <div className={styles.filterField}>
         {!hideLabel && (
@@ -127,27 +212,23 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
             {label}
           </Text>
         )}
-        <select
-          className={styles.nativeSelect}
-          value={value}
-          onChange={(e) => onChange(e.target.value || undefined)}
-        >
-          <option value="">{t("search.selectOption")}</option>
-          {groupedOptions.map((group) => (
-            <optgroup key={group.label} label={group.label}>
-              {group.options.map((opt) => (
-                <option key={opt.key} value={opt.key}>
-                  {formatLabel(opt)}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        <SelectInputField
+          id={`filter-${attributeKey}`}
+          name={attributeKey}
+          options={reactSelectGroupedOptions}
+          value={selectedValue}
+          onChange={handleSelectChange}
+          onFocus={() => {}}
+          onBlur={() => {}}
+          searchable
+          placeholder={t("search.selectOption")}
+          aria-label={label}
+        />
       </div>
     );
   }
 
-  // Render model select with hasVariants headers (non-clickable group headers)
+  // Render model select with hasVariants headers using react-select
   if (hasModelVariants) {
     return (
       <div className={styles.filterField}>
@@ -156,31 +237,18 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
             {label}
           </Text>
         )}
-        <select
-          className={styles.nativeSelect}
-          value={value}
-          onChange={(e) => onChange(e.target.value || undefined)}
-        >
-          <option value="">{t("search.selectOption")}</option>
-          {processedOptions.map((opt) => (
-            opt.hasVariants ? (
-              // Models with variants: non-clickable header style
-              <option
-                key={opt.key}
-                value={opt.key}
-                disabled
-                className={styles.modelHeader}
-              >
-                {formatLabel(opt)}
-              </option>
-            ) : (
-              // Models without variants: regular selectable option
-              <option key={opt.key} value={opt.key}>
-                {formatLabel(opt)}
-              </option>
-            )
-          ))}
-        </select>
+        <SelectInputField
+          id={`filter-${attributeKey}`}
+          name={attributeKey}
+          options={modelFlatOptions}
+          value={selectedValue}
+          onChange={handleSelectChange}
+          onFocus={() => {}}
+          onBlur={() => {}}
+          searchable
+          placeholder={t("search.selectOption")}
+          aria-label={label}
+        />
       </div>
     );
   }

@@ -329,11 +329,17 @@ export default function CreateListingWizardPage() {
 
   // Grouped model options for Sahibinden-style dropdown
   // Must be at component level to follow React hooks rules
+  // Handles both:
+  // 1. Models WITH variants → grouped dropdown (model name as header, variants as options)
+  // 2. Models WITHOUT variants → shown as direct selectable options under "موديلات أخرى"
   const groupedModelOptions = useMemo(() => {
-    if (!formData.specs.brandId || variants.length === 0) return [];
+    if (!formData.specs.brandId) return [];
 
     // Create a map of modelId -> model name
     const modelNameMap = new Map(models.map(m => [m.id, m.name]));
+
+    // Find models that have variants
+    const modelsWithVariantsIds = new Set(variants.filter(v => v.isActive).map(v => v.modelId));
 
     // Group variants by modelId
     const variantsByModel = new Map<string, Variant[]>();
@@ -344,15 +350,16 @@ export default function CreateListingWizardPage() {
     });
 
     // Build grouped options for react-select
-    const groups: { label: string; options: { value: string; label: string; modelId: string }[] }[] = [];
+    const groups: { label: string; options: { value: string; label: string; modelId: string; isModelOnly?: boolean }[] }[] = [];
 
-    // Sort models alphabetically
+    // Sort models with variants alphabetically
     const sortedModelIds = Array.from(variantsByModel.keys()).sort((a, b) => {
       const nameA = modelNameMap.get(a) || '';
       const nameB = modelNameMap.get(b) || '';
       return nameA.localeCompare(nameB);
     });
 
+    // Add grouped options for models with variants
     for (const modelId of sortedModelIds) {
       const modelName = modelNameMap.get(modelId) || 'غير معروف';
       const modelVariants = variantsByModel.get(modelId) || [];
@@ -369,21 +376,58 @@ export default function CreateListingWizardPage() {
       });
     }
 
+    // Find models WITHOUT variants (directly selectable)
+    const modelsWithoutVariants = models
+      .filter(m => m.isActive && !modelsWithVariantsIds.has(m.id))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    // Add models without variants as a separate group
+    if (modelsWithoutVariants.length > 0) {
+      groups.push({
+        label: 'موديلات أخرى',
+        options: modelsWithoutVariants.map(m => ({
+          value: m.id,
+          label: m.name,
+          modelId: m.id,
+          isModelOnly: true, // Flag to indicate this is a model, not a variant
+        })),
+      });
+    }
+
     return groups;
   }, [formData.specs.brandId, variants, models]);
 
   // Selected model value for the grouped dropdown
+  // Handles both variant selection and model-only selection
   const selectedModelValue = useMemo(() => {
-    if (!formData.specs.variantId) return null;
-    return {
-      value: formData.specs.variantId,
-      label: variants.find(v => v.id === formData.specs.variantId)?.name || '',
-      modelId: formData.specs.modelId,
-    };
-  }, [formData.specs.variantId, formData.specs.modelId, variants]);
+    // If variantId is set, user selected a variant
+    if (formData.specs.variantId) {
+      return {
+        value: formData.specs.variantId,
+        label: variants.find(v => v.id === formData.specs.variantId)?.name || '',
+        modelId: formData.specs.modelId,
+      };
+    }
+    // If only modelId is set (no variantId), user selected a model without variants
+    if (formData.specs.modelId && !formData.specs.variantId) {
+      const model = models.find(m => m.id === formData.specs.modelId);
+      if (model) {
+        return {
+          value: model.id,
+          label: model.name,
+          modelId: model.id,
+          isModelOnly: true,
+        };
+      }
+    }
+    return null;
+  }, [formData.specs.variantId, formData.specs.modelId, variants, models]);
 
-  // Check if we have variants to show
-  const hasVariants = variants.length > 0;
+  // Check if we have models/variants to show in dropdown
+  // True if either:
+  // 1. We have variants (grouped by model)
+  // 2. We have models without variants (shown as direct options)
+  const hasModelsOrVariants = variants.length > 0 || models.length > 0;
 
   // Check if current step is valid
   const isCurrentStepValid = useCallback(() => {
@@ -893,18 +937,27 @@ export default function CreateListingWizardPage() {
        */
 
       // Handle model selection (from grouped dropdown)
-      // When user selects a variant, also set the modelId (series)
-      const handleModelSelection = (selectedOption: { value: string; label: string; modelId?: string } | null) => {
+      // Handles two cases:
+      // 1. User selects a variant → set both modelId and variantId
+      // 2. User selects a model without variants → set only modelId, clear variantId
+      const handleModelSelection = (selectedOption: { value: string; label: string; modelId?: string; isModelOnly?: boolean } | null) => {
         // Clear auto-filled fields when model changes
         if (suggestionSpecs) {
           Object.keys(suggestionSpecs).forEach(field => setSpecField(field, ''));
         }
 
         if (selectedOption) {
-          setSpecField('variantId', selectedOption.value);
-          // Auto-set modelId from the variant's modelId
-          if (selectedOption.modelId) {
-            setSpecField('modelId', selectedOption.modelId);
+          if (selectedOption.isModelOnly) {
+            // Model without variants - set modelId only, clear variantId
+            setSpecField('modelId', selectedOption.value);
+            setSpecField('variantId', '');
+          } else {
+            // Variant selected - set both variantId and modelId
+            setSpecField('variantId', selectedOption.value);
+            // Auto-set modelId from the variant's modelId
+            if (selectedOption.modelId) {
+              setSpecField('modelId', selectedOption.modelId);
+            }
           }
         } else {
           setSpecField('variantId', '');
@@ -913,7 +966,7 @@ export default function CreateListingWizardPage() {
         saveDraft();
       };
 
-      // Note: groupedModelOptions, selectedModelValue, and hasVariants are defined at component level
+      // Note: groupedModelOptions, selectedModelValue, and hasModelsOrVariants are defined at component level
 
       return (
         <>
@@ -959,24 +1012,24 @@ export default function CreateListingWizardPage() {
               <SelectInputField
                 id="model-select"
                 name="modelId"
-                options={hasVariants ? groupedModelOptions : []}
+                options={hasModelsOrVariants ? groupedModelOptions : []}
                 value={selectedModelValue}
                 onChange={(option) => handleModelSelection(option as any)}
                 onFocus={() => {}}
-                onBlur={() => handleBlur('variantId')}
+                onBlur={() => handleBlur('modelId')}
                 disabled={!formData.specs.brandId || isLoadingModels || isLoadingVariants}
                 searchable
                 isLoading={isLoadingModels || isLoadingVariants}
                 placeholder={
                   isLoadingModels || isLoadingVariants
                     ? 'جاري التحميل...'
-                    : hasVariants
+                    : hasModelsOrVariants
                       ? '-- اختر الموديل --'
                       : '-- لا توجد موديلات متاحة --'
                 }
                 aria-label="الموديل"
               />
-              {touched.variantId && (variantAttribute?.validation === 'REQUIRED' || modelAttribute?.validation === 'REQUIRED') && !formData.specs.variantId && (
+              {touched.modelId && (variantAttribute?.validation === 'REQUIRED' || modelAttribute?.validation === 'REQUIRED') && !formData.specs.modelId && (
                 <span className={styles.errorText}>الموديل مطلوب</span>
               )}
             </div>

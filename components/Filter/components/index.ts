@@ -15,3 +15,6 @@ export type { SearchFilterProps } from "./SearchFilter";
 
 export { PriceFilter } from "./PriceFilter";
 export type { PriceFilterProps } from "./PriceFilter";
+
+export { BrandModelFilter } from "./BrandModelFilter";
+export type { default as BrandModelFilterProps } from "./BrandModelFilter";
