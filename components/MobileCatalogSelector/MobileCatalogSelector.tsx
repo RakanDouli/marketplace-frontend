@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -11,6 +11,8 @@ interface CatalogOption {
   id: string;
   name: string;
   count?: number;
+  /** Model name for grouping variants */
+  modelName?: string;
 }
 
 interface MobileCatalogSelectorProps {
@@ -46,6 +48,27 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
   isLoading = false,
 }) => {
   const router = useRouter();
+
+  // Group variants by model name (only for variant step)
+  const groupedOptions = useMemo(() => {
+    if (step !== "variant") return null;
+
+    const groups: Record<string, CatalogOption[]> = {};
+    options.forEach((opt) => {
+      const modelName = opt.modelName || "أخرى"; // "Other" for variants without model
+      if (!groups[modelName]) {
+        groups[modelName] = [];
+      }
+      groups[modelName].push(opt);
+    });
+
+    // Sort model names alphabetically
+    const sortedModelNames = Object.keys(groups).sort();
+    return sortedModelNames.map((modelName) => ({
+      modelName,
+      variants: groups[modelName],
+    }));
+  }, [step, options]);
 
   // Handle back navigation
   const handleBack = () => {
@@ -117,7 +140,52 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
           <div className={styles.loading}>
             <Text variant="paragraph" color="secondary">جاري التحميل...</Text>
           </div>
+        ) : step === "variant" && groupedOptions ? (
+          // Grouped variant list with model section headers
+          <div className={styles.optionsList}>
+            {groupedOptions.map((group) => (
+              <div key={group.modelName}>
+                {/* Model Section Header */}
+                <div className={styles.sectionHeader}>
+                  <Text variant="h4" className={styles.sectionHeaderText}>
+                    {group.modelName}
+                  </Text>
+                </div>
+
+                {/* Variants under this model */}
+                {group.variants.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={styles.optionItem}
+                    onClick={() => handleOptionSelect(option)}
+                  >
+                    <div className={styles.optionContent}>
+                      <Text variant="paragraph" className={styles.optionName}>
+                        {option.name}
+                      </Text>
+                      {option.count !== undefined && (
+                        <Text variant="small" className={styles.optionCount}>
+                          ({option.count})
+                        </Text>
+                      )}
+                    </div>
+                    <ChevronLeft size={20} className={styles.chevron} />
+                  </button>
+                ))}
+              </div>
+            ))}
+
+            {options.length === 0 && (
+              <div className={styles.empty}>
+                <Text variant="paragraph" color="secondary">
+                  لا توجد طرازات متاحة
+                </Text>
+              </div>
+            )}
+          </div>
         ) : (
+          // Regular flat list (for brands)
           <div className={styles.optionsList}>
             {options.map((option) => (
               <button
@@ -143,7 +211,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
             {options.length === 0 && !isLoading && (
               <div className={styles.empty}>
                 <Text variant="paragraph" color="secondary">
-                  {step === "brand" ? "لا توجد ماركات متاحة" : "لا توجد طرازات متاحة"}
+                  لا توجد ماركات متاحة
                 </Text>
               </div>
             )}

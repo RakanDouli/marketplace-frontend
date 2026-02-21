@@ -138,3 +138,19 @@
   padding: $space-xl;
   text-align: center;
 }
+
+// Section headers (for grouped variants by model)
+.sectionHeader {
+  background: $surface;
+  padding: $space-sm $space-md;
+  border-bottom: 1px solid $border;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sectionHeaderText {
+  font-weight: $weight-semibold;
+  color: $text;
+  margin-bottom: 0;
+}

@@ -115,7 +115,7 @@ export default function CategoryListingsClient({
     return null; // Both selected, show listings
   }, [hasBrandAttribute, hasBrandId, hasVariantId, showListingsExplicitly]);
 
-  // Extract variant options for selected brand
+  // Extract variant options for selected brand (include modelName for grouping)
   const variantOptions = useMemo(() => {
     if (!initialAttributes || !searchParams.brandId) return [];
     const variantAttr = initialAttributes.find((attr) => attr.key === "variantId") as any;
@@ -124,6 +124,7 @@ export default function CategoryListingsClient({
       id: opt.key || opt.id,
       name: opt.value,
       count: opt.count,
+      modelName: opt.groupLabel || opt.modelName, // Include model name for grouping
     }));
   }, [initialAttributes, searchParams.brandId]);
 
