@@ -747,7 +747,8 @@ export const MessagesClient: React.FC = () => {
                         )}
 
                       </div>
-                      {isSentByMe && (
+                      {/* Only show dropdown for own messages within 5 min */}
+                      {isSentByMe && Date.now() - new Date(message.createdAt).getTime() < 5 * 60 * 1000 && (
                         <Dropdown
                           isOpen={messageMenuOpen === message.id}
                           onClose={() => setMessageMenuOpen(null)}
