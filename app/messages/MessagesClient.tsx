@@ -511,7 +511,7 @@ export const MessagesClient: React.FC = () => {
                         <MoreVertical size={20} />
                       </button>
                     }
-                    align="left"
+                    align="right"
                   >
                     <DropdownMenuItem
                       icon={<AlertTriangle size={16} />}
@@ -854,7 +854,7 @@ export const MessagesClient: React.FC = () => {
                 <Dropdown
                   isOpen={attachDropdownOpen}
                   onClose={() => setAttachDropdownOpen(false)}
-                  align="left"
+                  align="right"
                   trigger={
                     <Button
                       type="button"
