@@ -14,6 +14,7 @@ import { cachedGraphQLRequest } from "@/utils/graphql-cache";
 import { formatPrice } from "@/utils/formatPrice";
 import { LISTINGS_GRID_QUERY } from "@/stores/listingsStore/listingsStore.gql";
 import { GET_CATEGORY_ATTRIBUTES_QUERY } from "@/stores/filtersStore/filtersStore.gql";
+import { ListingStatus } from "@/common/enums";
 
 export interface FeaturedListingsProps {
   categoryId?: string;    // Pass category ID - component fetches nameAr and listings
@@ -162,7 +163,7 @@ export const FeaturedListings: React.FC<FeaturedListingsProps> = ({
           cachedGraphQLRequest(
             LISTINGS_GRID_QUERY,
             {
-              filter: { categoryId: catId },
+              filter: { categoryId: catId, status: ListingStatus.ACTIVE },
               limit,
               offset: 0
             },
