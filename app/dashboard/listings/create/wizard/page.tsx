@@ -1364,7 +1364,7 @@ export default function CreateListingWizardPage() {
                       images={imagesWithUploadState}
                       onChange={handleImagesChange}
                       maxImages={maxImagesAllowed}
-                      maxSize={2 * 1024 * 1024}
+                      maxSize={10 * 1024 * 1024}
                       accept="image/jpeg,image/png,image/webp,image/gif"
                       label="الصور"
                       onError={(error) => {
@@ -1389,13 +1389,13 @@ export default function CreateListingWizardPage() {
                           {isUploadingVideo && ' (جاري الرفع...)'}
                         </Text>
                         <Text variant="small" color="secondary" className={styles.videoHint}>
-                          الحد الأقصى 20 ميجابايت - MP4 فقط (30-45 ثانية)
+                          الحد الأقصى 50 ميجابايت - MP4 فقط (30-45 ثانية)
                         </Text>
                         <ImageUploadGrid
                           images={videoWithUploadState}
                           onChange={handleVideoChange}
                           maxImages={1}
-                          maxSize={20 * 1024 * 1024}
+                          maxSize={50 * 1024 * 1024}
                           accept="video/mp4"
                           label="الفيديو"
                           onError={(error) => {

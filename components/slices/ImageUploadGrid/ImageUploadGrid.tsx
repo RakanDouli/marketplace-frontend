@@ -19,7 +19,7 @@ interface ImageUploadGridProps {
   images: ImageItem[];
   onChange: (images: ImageItem[]) => void;
   maxImages?: number;
-  maxSize?: number; // Maximum file size in bytes (default: 10MB - Cloudflare handles optimization)
+  maxSize?: number; // Maximum file size in bytes (optional - Cloudflare handles optimization for images)
   accept?: string; // File types (e.g., 'image/*', 'video/*', 'image/*,video/*')
   disabled?: boolean;
   onError?: (error: string) => void; // Optional error callback
@@ -30,7 +30,7 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
   images,
   onChange,
   maxImages = 20,
-  maxSize = 10 * 1024 * 1024, // Default: 10MB (Cloudflare handles compression/optimization)
+  maxSize, // Optional - only enforced for videos, Cloudflare handles images
   accept = 'image/*',
   disabled = false,
   onError,
@@ -101,8 +101,9 @@ export const ImageUploadGrid: React.FC<ImageUploadGridProps> = ({
         continue;
       }
 
-      // Validate file size
-      if (file.size > maxSize) {
+      // Validate file size only if maxSize is specified (for videos)
+      // Images don't need size validation - Cloudflare handles optimization
+      if (maxSize && file.size > maxSize) {
         const fileSizeFormatted = formatFileSize(file.size);
         const maxSizeFormatted = formatFileSize(maxSize);
         errors.push(`حجم الملف كبير جداً: ${file.name} (${fileSizeFormatted}). الحد الأقصى: ${maxSizeFormatted}`);
