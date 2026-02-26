@@ -3,10 +3,9 @@
  *
  * Frontend mirror of backend enums for TYPE SAFETY in comparisons.
  *
- * IMPORTANT: Enum values must match what GraphQL returns:
- * - Most enums: UPPERCASE (GraphQL returns enum KEY names)
- * - Some enums: lowercase (when backend returns VALUE instead of KEY)
- * - Check the TypeScript interface for the actual type to confirm
+ * IMPORTANT: All enum values are LOWERCASE to match backend database storage.
+ * Backend enums: KEY = "value" (e.g., ACTIVE = "active")
+ * Frontend enums: KEY = "value" (e.g., ACTIVE = "active")
  *
  * Usage:
  * ```ts
@@ -16,7 +15,7 @@
  * if (listing.status === ListingStatus.ACTIVE) { }
  *
  * // ❌ WRONG - Typos not caught
- * if (listing.status === 'ACTVE') { }
+ * if (listing.status === 'actve') { }
  * ```
  *
  * For dropdowns: Use metadataStore + metadata-labels
@@ -68,11 +67,10 @@ export enum UserRole {
 /**
  * Listing Type Enum
  * Backend: marketplace-backend/src/common/enums/listing-type.enum.ts
- * NOTE: Values are UPPERCASE because GraphQL accepts/returns enum keys (not values)
  */
 export enum ListingType {
-  SALE = "SALE",
-  RENT = "RENT",
+  SALE = "sale",
+  RENT = "rent",
 }
 
 // ===== CONDITION =====
@@ -92,17 +90,16 @@ export enum Condition {
 /**
  * Listing Status Enum
  * Backend: marketplace-backend/src/common/enums/listing-status.enum.ts
- * NOTE: Values are UPPERCASE because GraphQL returns enum keys (not values)
  */
 export enum ListingStatus {
-  DRAFT = "DRAFT",
-  PENDING_APPROVAL = "PENDING_APPROVAL",
-  REJECTED = "REJECTED",
-  ACTIVE = "ACTIVE",
-  SOLD = "SOLD",
-  SOLD_VIA_PLATFORM = "SOLD_VIA_PLATFORM",
-  HIDDEN = "HIDDEN",
-  ARCHIVED = "ARCHIVED",
+  DRAFT = "draft",
+  PENDING_APPROVAL = "pending_approval",
+  REJECTED = "rejected",
+  ACTIVE = "active",
+  SOLD = "sold",
+  SOLD_VIA_PLATFORM = "sold_via_platform",
+  HIDDEN = "hidden",
+  ARCHIVED = "archived",
 }
 
 // ===== REPORT ENUMS =====
@@ -296,20 +293,18 @@ export enum BrandStatus {
 /**
  * Attribute Type Enum
  * Backend: marketplace-backend/src/common/enums/attribute-type.enum.ts
- * NOTE: Values are UPPERCASE because GraphQL returns enum KEYS (not values)
- * GraphQL serializes TypeScript enums by their KEY names, not their string values.
  */
 export enum AttributeType {
-  SELECTOR = "SELECTOR",
-  MULTI_SELECTOR = "MULTI_SELECTOR",
-  RANGE = "RANGE",
-  RANGE_SELECTOR = "RANGE_SELECTOR",
-  CURRENCY = "CURRENCY",
-  TEXT = "TEXT",
-  TEXTAREA = "TEXTAREA",
-  NUMBER = "NUMBER",
-  DATE_RANGE = "DATE_RANGE",
-  BOOLEAN = "BOOLEAN",
+  SELECTOR = "selector",
+  MULTI_SELECTOR = "multi_selector",
+  RANGE = "range",
+  RANGE_SELECTOR = "range_selector",
+  CURRENCY = "currency",
+  TEXT = "text",
+  TEXTAREA = "textarea",
+  NUMBER = "number",
+  DATE_RANGE = "date_range",
+  BOOLEAN = "boolean",
 }
 
 // ===== REJECTION REASON =====
