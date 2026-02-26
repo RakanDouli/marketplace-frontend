@@ -19,6 +19,7 @@ import {
   CREATE_IMAGE_UPLOAD_URL_MUTATION,
 } from './chatStore.gql';
 import type { ChatThread, ChatMessage } from './types';
+import { MessageStatus } from '@/common/enums';
 
 export interface BlockedUser {
   id: string;
@@ -559,9 +560,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   if (
                     msg.senderId === userId &&
                     new Date(msg.createdAt) <= lastReadAt &&
-                    msg.status !== 'read'
+                    msg.status !== MessageStatus.READ
                   ) {
-                    return { ...msg, status: 'read' as const };
+                    return { ...msg, status: MessageStatus.READ };
                   }
                   return msg;
                 }),
@@ -760,9 +761,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     if (
                       msg.senderId === userId &&
                       new Date(msg.createdAt) <= lastReadAt &&
-                      msg.status !== 'read'
+                      msg.status !== MessageStatus.READ
                     ) {
-                      return { ...msg, status: 'read' as const };
+                      return { ...msg, status: MessageStatus.READ };
                     }
                     return msg;
                   }),

@@ -10,6 +10,7 @@ import {
   DELETE_AVATAR_MUTATION
 } from './userProfile.gql';
 import { uploadToCloudflare } from '@/utils/cloudflare-upload';
+import { UserStatus } from '@/common/enums';
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
 
@@ -100,7 +101,7 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
     try {
       await makeGraphQLCall(
         DEACTIVATE_MY_ACCOUNT_MUTATION,
-        { input: { status: 'INACTIVE' } },
+        { input: { status: UserStatus.INACTIVE } },
         token
       );
       set({ isLoading: false });

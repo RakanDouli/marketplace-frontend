@@ -6,6 +6,7 @@ import {
   getQueryByViewType,
   LISTING_BY_ID_QUERY,
 } from "./listingsStore.gql";
+import { ListingStatus, UserStatus } from "../../common/enums";
 
 interface ListingsActions {
   setListings: (listings: Listing[]) => void;
@@ -216,7 +217,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
 
       // Convert frontend filter format to backend GraphQL format
       const graphqlFilter: any = {
-        status: "ACTIVE", // Default filter for active listings only (uppercase for GraphQL enum)
+        status: ListingStatus.ACTIVE,
       };
 
       // Category filter - use categoryId string instead of category enum
@@ -336,7 +337,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
               name: '',
               email: '',
               role: '',
-              status: 'active' as const,
+              status: UserStatus.ACTIVE,
               accountType: item.accountType as "individual" | "dealer" | "business",
               companyName: undefined,
               accountBadge: 'none' as const,
@@ -482,7 +483,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           name: item.user.name,
           email: '',
           role: '',
-          status: 'active' as const,
+          status: UserStatus.ACTIVE,
           accountType: item.user.accountType as "individual" | "dealer" | "business",
           companyName: item.user.companyName,
           website: item.user.website,

@@ -5,6 +5,7 @@ import { Button, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useUserProfileStore } from '@/stores/userProfileStore';
 import { useRouter } from 'next/navigation';
+import { UserStatus } from '@/common/enums';
 import styles from './ReactivateContent.module.scss';
 
 export const ReactivateContent: React.FC = () => {
@@ -18,7 +19,7 @@ export const ReactivateContent: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await updateProfile(user.token, { status: 'ACTIVE' });
+      await updateProfile(user.token, { status: UserStatus.ACTIVE });
 
       // Refresh the page to update user status in UI
       window.location.reload();

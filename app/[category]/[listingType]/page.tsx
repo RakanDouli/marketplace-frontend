@@ -9,7 +9,7 @@ import {
   CATEGORIES_QUERY,
 } from "../../../stores/filtersStore/filtersStore.gql";
 import { urlSegmentToListingType, getListingTypeLabel, listingTypeToUrlSegment } from "../../../utils/categoryRouting";
-import { ListingType } from "../../../common/enums";
+import { ListingType, ListingStatus } from "../../../common/enums";
 
 // UUID regex pattern for detecting legacy URLs
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -282,7 +282,7 @@ async function fetchListingsSSR(
   const filter: Record<string, unknown> = {
     categoryId: categorySlug,
     listingType: listingType, // Enum value is already uppercase (SALE/RENT)
-    status: "ACTIVE",
+    status: ListingStatus.ACTIVE,
     viewType: "grid",
   };
 
@@ -357,7 +357,7 @@ async function fetchListingsSSR(
         prices: [{ currency: "USD", value: item.priceMinor?.toString() || "0" }],
         location: item.location, // Pass the entire location object for ListingArea
         city: (specs as any).location || item.location?.city || "",
-        status: "active" as const,
+        status: ListingStatus.ACTIVE,
         allowBidding: false,
         specs,
         specsDisplay,

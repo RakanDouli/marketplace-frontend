@@ -5,6 +5,7 @@ import { useAdsStore, AdPackageInstance, AdSenseSettings } from '@/stores/adsSto
 import { Container, ContainerProps } from '@/components/slices/Container/Container';
 import { CustomAd } from '../CustomAd';
 import { GoogleAdSense } from '../GoogleAdSense';
+import { AdCampaignStatus } from '@/common/enums';
 
 export interface AdContainerProps {
   placement: string; // For tracking purposes (e.g., "homepage-top", "listings-between")
@@ -153,7 +154,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       id: selectedPackage.campaignId,
       campaignName: selectedPackage.campaignName,
       description: '',
-      status: 'ACTIVE',
+      status: AdCampaignStatus.ACTIVE,
       startDate: selectedPackage.packageData.startDate,
       endDate: selectedPackage.endDate,
       priority: selectedPackage.priority,

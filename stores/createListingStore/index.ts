@@ -15,6 +15,7 @@ import {
   CREATE_MY_LISTING_MUTATION,
 } from "./createListing.gql";
 import { ListingValidationConfig } from "../../lib/validation/listingValidation";
+import { ListingStatus } from "@/common/enums";
 import type {
   CreateListingStore,
   CreateListingFormData,
@@ -263,7 +264,7 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
     try {
       const data = await cachedGraphQLRequest(
         GET_MY_DRAFTS,
-        { status: 'DRAFT' },
+        { status: ListingStatus.DRAFT },
         { ttl: 0 }
       );
       const drafts = (data as any).myListings || [];
