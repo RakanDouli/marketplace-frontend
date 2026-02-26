@@ -267,10 +267,31 @@ export enum AccountBadge {
   PREMIUM = "PREMIUM",
 }
 
+// ===== CATALOG ENUMS =====
+
+/**
+ * Catalog Source Enum
+ * Backend: marketplace-backend/src/common/enums/catalog-source.enum.ts
+ */
+export enum CatalogSource {
+  SYNC = "SYNC",
+  MANUAL = "MANUAL",
+}
+
+/**
+ * Catalog Status Enum (used for Models and Brands in backend)
+ * Backend: marketplace-backend/src/common/enums/catalog-status.enum.ts
+ */
+export enum CatalogStatus {
+  ACTIVE = "ACTIVE",
+  ARCHIVED = "ARCHIVED",
+}
+
 // ===== BRAND ENUMS =====
 
 /**
  * Brand Source Enum
+ * @deprecated Use CatalogSource instead - same values
  */
 export enum BrandSource {
   SYNC = "SYNC",
@@ -279,6 +300,8 @@ export enum BrandSource {
 
 /**
  * Brand Status Enum
+ * Note: Brand entity uses CatalogStatus (active/archived) in backend
+ * This enum exists for backwards compatibility
  */
 export enum BrandStatus {
   ACTIVE = "ACTIVE",
