@@ -22,6 +22,8 @@ export interface ChatThread {
   lastMessage?: ThreadLastMessage | null;
 }
 
+import { MessageStatus } from '@/common/enums';
+
 export interface ChatMessage {
   id: string;
   threadId: string;
@@ -29,7 +31,7 @@ export interface ChatMessage {
   text: string | null;
   imageKeys: string[] | null;
   messageType?: 'text' | 'review_request'; // Special message types
-  status: 'sent' | 'delivered' | 'read';
+  status: MessageStatus;
   createdAt: string;
 }
 
