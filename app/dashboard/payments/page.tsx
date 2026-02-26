@@ -57,7 +57,7 @@ interface Transaction {
   amount: number;
   currency: string;
   paymentMethod: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
+  status: TransactionStatus;
   notes?: string;
   createdAt: string;
   description: string;
@@ -65,12 +65,12 @@ interface Transaction {
 }
 
 // Status labels in Arabic
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'قيد الانتظار',
-  completed: 'مكتملة',
-  failed: 'فاشلة',
-  refunded: 'مستردة',
-  cancelled: 'ملغاة',
+const STATUS_LABELS: Record<TransactionStatus, string> = {
+  [TransactionStatus.PENDING]: 'قيد الانتظار',
+  [TransactionStatus.COMPLETED]: 'مكتملة',
+  [TransactionStatus.FAILED]: 'فاشلة',
+  [TransactionStatus.REFUNDED]: 'مستردة',
+  [TransactionStatus.CANCELLED]: 'ملغاة',
 };
 
 // Transaction type labels in Arabic

@@ -6,7 +6,7 @@ import {
   getQueryByViewType,
   LISTING_BY_ID_QUERY,
 } from "./listingsStore.gql";
-import { ListingStatus, UserStatus } from "../../common/enums";
+import { ListingStatus, UserStatus, AccountType, AccountBadge } from "../../common/enums";
 
 interface ListingsActions {
   setListings: (listings: Listing[]) => void;
@@ -328,7 +328,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
             specs, // English keys for backend processing and filtering
             specsDisplay, // Arabic keys and values for frontend display
             imageKeys: item.imageKeys || [], // Store raw keys, optimize per usage
-            accountType: item.accountType as "individual" | "dealer" | "business",
+            accountType: item.accountType as AccountType,
             createdAt: item.createdAt,
             updatedAt: item.createdAt,
             location: item.location, // Preserve full location object for ListingArea
@@ -338,7 +338,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
               email: '',
               role: '',
               status: UserStatus.ACTIVE,
-              accountType: item.accountType as "individual" | "dealer" | "business",
+              accountType: item.accountType as AccountType,
               companyName: undefined,
               accountBadge: 'none' as const,
               businessVerified: false,
@@ -467,7 +467,7 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         specsDisplay,
         imageKeys: item.imageKeys || [],
         videoUrl: item.videoUrl || null,
-        accountType: item.accountType as "individual" | "dealer" | "business",
+        accountType: item.accountType as AccountType,
         createdAt: item.createdAt,
         updatedAt: item.createdAt,
         location: item.location,
@@ -484,11 +484,11 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
           email: '',
           role: '',
           status: UserStatus.ACTIVE,
-          accountType: item.user.accountType as "individual" | "dealer" | "business",
+          accountType: item.user.accountType as AccountType,
           companyName: item.user.companyName,
           website: item.user.website,
           companyRegistrationNumber: item.user.companyRegistrationNumber,
-          accountBadge: 'none' as const,
+          accountBadge: AccountBadge.NONE,
           businessVerified: false,
           phone: item.user.phone,
           contactPhone: item.user.contactPhone,
