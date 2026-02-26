@@ -2,6 +2,54 @@
 
 ---
 
+## ⚠️ CRITICAL: GraphQL Returns UPPERCASE Enum Keys
+
+**The #1 source of bugs:** GraphQL returns enum **KEYS** (UPPERCASE), not **VALUES** (lowercase).
+
+```
+Backend Enum Definition:
+  export enum ListingStatus {
+    ACTIVE = 'active',    // KEY = 'value'
+    PENDING = 'pending',
+  }
+
+Database stores: 'active' (lowercase VALUE)
+GraphQL returns: 'ACTIVE' (UPPERCASE KEY) ← This is what frontend receives!
+```
+
+**Therefore, frontend enums MUST use UPPERCASE values:**
+```typescript
+// ✅ CORRECT - Frontend enum (matches GraphQL response)
+export enum ListingStatus {
+  ACTIVE = 'ACTIVE',
+  PENDING = 'PENDING',
+}
+
+// ❌ WRONG - Will never match GraphQL response
+export enum ListingStatus {
+  ACTIVE = 'active',
+  PENDING = 'pending',
+}
+```
+
+**Key Rules:**
+1. **Frontend enum values are UPPERCASE** - Match GraphQL response keys
+2. **When sending mutations to backend, use `.toLowerCase()`** - Backend expects lowercase
+3. **Use enum imports, NEVER hardcoded strings** - Prevents typos
+
+**Example:**
+```typescript
+import { ListingStatus } from '@/common/enums';
+
+// Comparing (use enum directly - values are UPPERCASE)
+if (listing.status === ListingStatus.ACTIVE) { }  // ✅
+
+// Sending mutation (convert to lowercase)
+await updateListing({ status: formData.status.toLowerCase() });  // ✅
+```
+
+---
+
 ## 🚧 IN PROGRESS: User Review System with Tag-Based Feedback (2025-12-03)
 
 ### **Purpose:** Implement complete review system for users to rate each other using predefined positive/negative tags (no free text)
