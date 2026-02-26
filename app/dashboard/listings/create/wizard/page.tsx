@@ -1389,13 +1389,13 @@ export default function CreateListingWizardPage() {
                           {isUploadingVideo && ' (جاري الرفع...)'}
                         </Text>
                         <Text variant="small" color="secondary" className={styles.videoHint}>
-                          الحد الأقصى 50 ميجابايت - MP4 فقط (30-45 ثانية)
+                          الحد الأقصى 25 ميجابايت - MP4 فقط (30-45 ثانية)
                         </Text>
                         <ImageUploadGrid
                           images={videoWithUploadState}
                           onChange={handleVideoChange}
                           maxImages={1}
-                          maxSize={50 * 1024 * 1024}
+                          maxSize={25 * 1024 * 1024}
                           accept="video/mp4"
                           label="الفيديو"
                           onError={(error) => {
