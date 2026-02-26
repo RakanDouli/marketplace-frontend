@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Container, Button } from '@/components/slices';
-import UserTokenMonitor from '@/components/UserTokenMonitor';
 import { WarningBanner } from '@/components/WarningBanner';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import styles from './Dashboard.module.scss';
@@ -55,8 +54,6 @@ export default function DashboardLayout({
 
   return (
     <>
-      <UserTokenMonitor />
-
       <Container className={styles.dashboardContainer}>
         {/* Warning Banner - shows if user has active warning */}
         <WarningBanner />
