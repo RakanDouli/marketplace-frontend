@@ -706,6 +706,40 @@ if (typeof window !== 'undefined') {
       }
     }
   });
+
+  // =============================================================================
+  // INITIAL SESSION CHECK (for mobile WebView injection)
+  // =============================================================================
+  // When the page loads, check if Supabase has a session in localStorage
+  // that we need to sync to the Zustand store (e.g., from mobile app injection)
+  const checkInitialSession = async () => {
+    const state = useUserAuthStore.getState();
+
+    // If already authenticated, skip
+    if (state.isAuthenticated) {
+      console.log('[Auth] Already authenticated, skipping initial check');
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        console.log('[Auth] Found existing Supabase session, syncing to store...');
+        console.log('[Auth] Session user:', session.user?.email);
+
+        // Fetch user data from backend
+        useUserAuthStore.getState().fetchCurrentUser();
+      } else {
+        console.log('[Auth] No Supabase session found');
+      }
+    } catch (error) {
+      console.error('[Auth] Error checking initial session:', error);
+    }
+  };
+
+  // Run after a short delay to ensure Supabase client is ready
+  setTimeout(checkInitialSession, 100);
 }
 
 // Selectors for better performance
