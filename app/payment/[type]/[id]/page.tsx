@@ -12,7 +12,7 @@ import styles from '../../payment.module.scss';
 
 // GraphQL helper
 const makeGraphQLCall = async (query: string, variables: any = {}, token?: string) => {
-  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql', {
+  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
