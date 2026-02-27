@@ -673,7 +673,7 @@ if (typeof window !== 'undefined') {
       if (!state.isAuthenticated) {
         console.log('[Auth] INITIAL_SESSION with valid session, fetching user data...');
         console.log('[Auth] Session user email:', session.user?.email);
-        useUserAuthStore.getState().fetchCurrentUser();
+        useUserAuthStore.getState().refreshUserData();
       }
     } else if (event === 'SIGNED_IN' && session) {
       // User signed in (including from setSession in mobile-auth)
@@ -681,7 +681,7 @@ if (typeof window !== 'undefined') {
       if (!state.isAuthenticated) {
         console.log('[Auth] SIGNED_IN event detected, fetching user data...');
         // Fetch the full user data from backend
-        useUserAuthStore.getState().fetchCurrentUser();
+        useUserAuthStore.getState().refreshUserData();
       }
     } else if (event === 'TOKEN_REFRESHED' && session) {
       // Token was auto-refreshed by Supabase - update store with new token
@@ -736,7 +736,7 @@ if (typeof window !== 'undefined') {
         console.log('[Auth] Session user:', session.user?.email);
 
         // Fetch user data from backend
-        useUserAuthStore.getState().fetchCurrentUser();
+        useUserAuthStore.getState().refreshUserData();
       } else {
         console.log('[Auth] No Supabase session found');
       }
