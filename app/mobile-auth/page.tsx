@@ -3,19 +3,19 @@
 /**
  * Mobile Auth Page
  *
- * This page receives an access token from the mobile app WebView
+ * This page receives access_token and refresh_token from the mobile app WebView
  * and sets up a Supabase session, then redirects to the target page.
  *
  * Flow:
- * 1. Mobile app opens: /mobile-auth?token=xxx&redirect=/advertise
- * 2. This page receives the token
- * 3. Sets Supabase session using the token
+ * 1. Mobile app opens: /mobile-auth?access_token=xxx&refresh_token=xxx&redirect=/advertise
+ * 2. This page receives both tokens
+ * 3. Sets Supabase session using both tokens
  * 4. Redirects to the target page (e.g., /advertise)
  *
  * Security Notes:
- * - Token is a valid Supabase JWT from the mobile app
- * - Token is only valid for the same Supabase project
- * - Token expires according to Supabase settings
+ * - Tokens are valid Supabase JWTs from the mobile app
+ * - Tokens are only valid for the same Supabase project
+ * - Tokens expire according to Supabase settings
  */
 
 import { useEffect, useState } from 'react';
@@ -35,20 +35,21 @@ export default function MobileAuthPage() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        const token = searchParams.get('token');
+        const accessToken = searchParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token');
         const redirect = searchParams.get('redirect') || '/';
 
-        if (!token) {
+        if (!accessToken || !refreshToken) {
           setError('رمز المصادقة مفقود');
           setIsProcessing(false);
           return;
         }
 
-        // Set the session using the access token from mobile app
+        // Set the session using BOTH tokens from mobile app
         // This creates a valid Supabase session in the WebView
         const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: token,
-          refresh_token: '', // We don't have refresh token, but session will work for the current visit
+          access_token: accessToken,
+          refresh_token: refreshToken,
         });
 
         if (sessionError) {
