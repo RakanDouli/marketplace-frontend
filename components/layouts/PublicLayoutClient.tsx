@@ -15,6 +15,7 @@ import React from 'react';
 import { ReactivateContent } from '../ForceModal/contents';
 import { UserStatus } from '@/common/enums';
 import { InstallPrompt } from '../InstallPrompt';
+import UserTokenMonitor from '../UserTokenMonitor';
 import styles from './PublicLayoutClient.module.scss';
 
 interface PublicLayoutClientProps {
@@ -63,6 +64,7 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
       <NotificationToast />
       <AuthModal />
       <ForceModal />
+      <UserTokenMonitor />
       <main className={styles.main}>{children}</main>
       {!hideFooterCompletely && (
         <Footer hideOnMobile={hideFooterOnMobile} />

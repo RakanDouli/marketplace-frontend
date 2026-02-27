@@ -657,6 +657,49 @@ export const useUserAuthStore = create<UserAuthStore>()(
   )
 );
 
+// =============================================================================
+// SUPABASE AUTH STATE LISTENER
+// =============================================================================
+// Listen for Supabase auth events (token refresh, sign out, etc.)
+// This keeps the store in sync with Supabase's internal token management
+if (typeof window !== 'undefined') {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    const state = useUserAuthStore.getState();
+
+    console.log('[Auth] Supabase auth state changed:', event);
+
+    if (event === 'TOKEN_REFRESHED' && session) {
+      // Token was auto-refreshed by Supabase - update store with new token
+      const newExpiresAt = calculateTokenExpiration(session.expires_at);
+
+      if (state.user) {
+        useUserAuthStore.setState({
+          user: {
+            ...state.user,
+            token: session.access_token,
+            tokenExpiresAt: newExpiresAt,
+          },
+          showExpirationWarning: false,
+        });
+        console.log('[Auth] Token refreshed, new expiry:', new Date(newExpiresAt).toLocaleString());
+      }
+    } else if (event === 'SIGNED_OUT') {
+      // User signed out (possibly from another tab or token expired)
+      if (state.isAuthenticated) {
+        useUserAuthStore.setState({
+          user: null,
+          userPackage: null,
+          isAuthenticated: false,
+          showExpirationWarning: false,
+          error: 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى',
+        });
+        // Open auth modal
+        useUserAuthStore.getState().openAuthModal('login');
+      }
+    }
+  });
+}
+
 // Selectors for better performance
 export const useUser = () => useUserAuthStore((state) => state.user);
 export const useIsAuthenticated = () => useUserAuthStore((state) => state.isAuthenticated);

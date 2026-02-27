@@ -1,0 +1,25 @@
+@use '../../styles/variables' as *;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+.loadingText {
+  margin-top: $space-lg;
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-md;
+  padding: $space-xl;
+  background: $surface;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+}
