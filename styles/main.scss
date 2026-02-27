@@ -3,7 +3,6 @@
 // ===================================
 
 // Import all styles
-@import 'base';
-@import 'typography';
-@import 'themes';
-
+@use 'base';
+@use 'typography';
+@use 'themes';
