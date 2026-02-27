@@ -668,7 +668,15 @@ if (typeof window !== 'undefined') {
 
     console.log('[Auth] Supabase auth state changed:', event);
 
-    if (event === 'TOKEN_REFRESHED' && session) {
+    if (event === 'SIGNED_IN' && session) {
+      // User signed in (including from setSession in mobile-auth)
+      // Only fetch user data if not already authenticated
+      if (!state.isAuthenticated) {
+        console.log('[Auth] SIGNED_IN event detected, fetching user data...');
+        // Fetch the full user data from backend
+        useUserAuthStore.getState().fetchCurrentUser();
+      }
+    } else if (event === 'TOKEN_REFRESHED' && session) {
       // Token was auto-refreshed by Supabase - update store with new token
       const newExpiresAt = calculateTokenExpiration(session.expires_at);
 
