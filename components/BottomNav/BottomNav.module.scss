@@ -85,12 +85,9 @@
     color: $primary;
   }
 
-  &:active {
-    transform: scale(0.95);
-  }
-
   &.active {
-    color: $text-light; // White icon on primary circle
+    transform: scale(0.95);
+    color: $text-light !important; // White icon on primary circle
   }
 }
 
