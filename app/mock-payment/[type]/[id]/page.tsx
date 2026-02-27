@@ -86,7 +86,7 @@ const CONFIRM_SUBSCRIPTION_PAYMENT_MUTATION = `
 
 // Helper function for GraphQL calls
 const makeGraphQLCall = async (query: string, variables: Record<string, unknown> = {}) => {
-  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql', {
+  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
