@@ -39,17 +39,35 @@ export default function MobileAuthPage() {
         const refreshToken = searchParams.get('refresh_token');
         const redirect = searchParams.get('redirect') || '/';
 
+        console.log('[MobileAuth] Received tokens:', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          accessTokenLength: accessToken?.length,
+          refreshTokenLength: refreshToken?.length,
+          redirect,
+        });
+
         if (!accessToken || !refreshToken) {
           setError('رمز المصادقة مفقود');
           setIsProcessing(false);
           return;
         }
 
+        // Decode tokens in case they were double-encoded
+        const decodedAccessToken = decodeURIComponent(accessToken);
+        const decodedRefreshToken = decodeURIComponent(refreshToken);
+
+        console.log('[MobileAuth] Decoded tokens:', {
+          accessTokenLength: decodedAccessToken.length,
+          refreshTokenLength: decodedRefreshToken.length,
+          accessTokenStart: decodedAccessToken.substring(0, 20),
+        });
+
         // Set the session using BOTH tokens from mobile app
         // This creates a valid Supabase session in the WebView
         const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
+          access_token: decodedAccessToken,
+          refresh_token: decodedRefreshToken,
         });
 
         if (sessionError) {
@@ -60,7 +78,8 @@ export default function MobileAuthPage() {
         }
 
         if (data.session) {
-          console.log('[MobileAuth] Session established, redirecting to:', redirect);
+          console.log('[MobileAuth] Session established successfully');
+          console.log('[MobileAuth] User:', data.session.user?.email);
         }
 
         // Redirect to target page
