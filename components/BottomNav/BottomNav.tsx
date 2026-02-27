@@ -35,8 +35,16 @@ export const BottomNav: React.FC = () => {
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRenderMenu, setShouldRenderMenu] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [isInMobileWebView, setIsInMobileWebView] = useState(false);
   const lastScrollY = useRef(0);
   const lastBrowsePathRef = useRef<string | null>(null);
+
+  // Detect if running inside mobile app WebView - hide BottomNav
+  useEffect(() => {
+    const userAgent = navigator.userAgent || '';
+    const inMobileWebView = userAgent.includes('ShambayMobile');
+    setIsInMobileWebView(inMobileWebView);
+  }, []);
 
   // Handle menu open/close with animation
   useEffect(() => {
@@ -172,6 +180,9 @@ export const BottomNav: React.FC = () => {
   };
 
   const activeIndex = getActiveIndex();
+
+  // Don't render BottomNav in mobile app WebView (mobile app has its own navigation)
+  if (isInMobileWebView) return null;
 
   return (
     <>

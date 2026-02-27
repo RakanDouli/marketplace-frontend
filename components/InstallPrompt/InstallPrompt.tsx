@@ -17,10 +17,18 @@ export const InstallPrompt: React.FC = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isInMobileWebView, setIsInMobileWebView] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    // Check if running inside mobile app WebView (don't show install prompt)
+    const userAgent = navigator.userAgent || '';
+    const inMobileWebView = userAgent.includes('ShambayMobile');
+    setIsInMobileWebView(inMobileWebView);
+    if (inMobileWebView) return; // Don't show prompt in mobile WebView
+
     // Check if mobile screen (matches BottomNav breakpoint)
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -97,8 +105,8 @@ export const InstallPrompt: React.FC = () => {
   };
 
   // Don't render until mounted (prevents hydration mismatch)
-  // Don't show if already installed or on desktop
-  if (!mounted || isStandalone || !isMobile) return null;
+  // Don't show if already installed, on desktop, or in mobile app WebView
+  if (!mounted || isStandalone || !isMobile || isInMobileWebView) return null;
 
   return (
     <Modal isVisible={showPrompt} onClose={handleDismiss} maxWidth="md">
