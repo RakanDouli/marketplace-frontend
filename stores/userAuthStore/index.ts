@@ -666,9 +666,16 @@ if (typeof window !== 'undefined') {
   supabase.auth.onAuthStateChange(async (event, session) => {
     const state = useUserAuthStore.getState();
 
-    console.log('[Auth] Supabase auth state changed:', event);
+    console.log('[Auth] Supabase auth state changed:', event, 'session:', !!session);
 
-    if (event === 'SIGNED_IN' && session) {
+    // Handle INITIAL_SESSION - this fires when Supabase loads session from localStorage
+    if (event === 'INITIAL_SESSION' && session) {
+      if (!state.isAuthenticated) {
+        console.log('[Auth] INITIAL_SESSION with valid session, fetching user data...');
+        console.log('[Auth] Session user email:', session.user?.email);
+        useUserAuthStore.getState().fetchCurrentUser();
+      }
+    } else if (event === 'SIGNED_IN' && session) {
       // User signed in (including from setSession in mobile-auth)
       // Only fetch user data if not already authenticated
       if (!state.isAuthenticated) {
