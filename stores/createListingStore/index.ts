@@ -768,8 +768,12 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
         { ttl: 0 }
       );
 
-      // Invalidate user listings cache so dashboard refreshes
+      // Invalidate all listings caches so pages show fresh data
       invalidateGraphQLCache('MyListings');
+      invalidateGraphQLCache('listingsSearch');
+      invalidateGraphQLCache('listingsAggregations');
+      invalidateGraphQLCache('ListingsGrid');
+      invalidateGraphQLCache('ListingsList');
 
       set({ isSubmitting: false });
     } catch (error: any) {
