@@ -171,8 +171,12 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
         { ttl: 0 }
       );
 
-      // Invalidate cache and refresh listings
+      // Invalidate all listings caches so public pages show fresh data
       invalidateGraphQLCache('myListings');
+      invalidateGraphQLCache('listingsSearch');
+      invalidateGraphQLCache('listingsAggregations');
+      invalidateGraphQLCache('ListingsGrid');
+      invalidateGraphQLCache('ListingsList');
       await get().refreshMyListings();
 
       set({ isLoading: false });
@@ -196,8 +200,13 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
         { ttl: 0 }
       );
 
-      // Invalidate cache and refresh listings
+      // Invalidate all listings caches so public pages show fresh data
       invalidateGraphQLCache('myListings');
+      invalidateGraphQLCache('listingsSearch');
+      invalidateGraphQLCache('listingsAggregations');
+      invalidateGraphQLCache('ListingsGrid');
+      invalidateGraphQLCache('ListingsList');
+      invalidateGraphQLCache('ListingsDetail');
       await get().refreshMyListings();
 
       set({ isLoading: false });
@@ -220,8 +229,12 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
         { ttl: 0 }
       );
 
-      // Invalidate cache and refresh listings
+      // Invalidate all listings caches so public pages show fresh data
       invalidateGraphQLCache('myListings');
+      invalidateGraphQLCache('listingsSearch');
+      invalidateGraphQLCache('listingsAggregations');
+      invalidateGraphQLCache('ListingsGrid');
+      invalidateGraphQLCache('ListingsList');
       await get().refreshMyListings();
 
       set({ isLoading: false });
