@@ -10,7 +10,9 @@ import { Category } from '@/types/listing';
 import styles from './CategorySection.module.scss';
 
 // Coming soon categories (by slug) - can be moved to backend later
-const COMING_SOON_CATEGORIES = ['real-estate'];
+// Note: Categories that need brands/models synced via admin panel will show "coming soon"
+// until their data is populated
+const COMING_SOON_CATEGORIES: string[] = [];
 
 interface CategorySectionProps {
   /** Categories passed from server-side fetch (instant display) */
