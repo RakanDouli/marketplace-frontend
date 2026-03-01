@@ -100,25 +100,8 @@ export default function CategoryListingsClient({
     }));
   }, [initialAttributes]);
 
-  // Check if category has brand/model attributes (for mobile drill-down)
-  const hasBrandAttribute = brandOptions.length > 0;
-
-  // Determine mobile selector step
-  // Only show drill-down for categories with brand attributes
-  // - No brandId and not "showListings" → show brand selector
-  // - Has brandId but no variantId/modelId and not "showListings" → show variant/model selector
-  // - Has variantId OR modelId or "showListings" → show listings
-  const mobileSelectorStep = useMemo(() => {
-    // Skip drill-down for categories without brand attributes
-    if (!hasBrandAttribute) return null;
-    if (showListingsExplicitly) return null; // User chose "Show All"
-    if (!hasBrandId) return "brand";
-    // If user selected a variant OR a model (for models without variants), show listings
-    if (!hasVariantId && !hasModelId) return "variant";
-    return null; // Selection made (variant or model), show listings
-  }, [hasBrandAttribute, hasBrandId, hasModelId, hasVariantId, showListingsExplicitly]);
-
   // Extract variant options for selected brand (include modelName and modelId for grouping)
+  // MOVED BEFORE mobileSelectorStep to allow dynamic step checking
   const variantOptions = useMemo(() => {
     if (!initialAttributes || !searchParams.brandId) return [];
     const variantAttr = initialAttributes.find((attr) => attr.key === "variantId") as any;
@@ -134,6 +117,7 @@ export default function CategoryListingsClient({
   }, [initialAttributes, searchParams.brandId]);
 
   // Extract model options for selected brand (for models without variants - mixed display)
+  // MOVED BEFORE mobileSelectorStep to allow dynamic step checking
   const modelOptions = useMemo(() => {
     if (!initialAttributes || !searchParams.brandId) return [];
     const modelAttr = initialAttributes.find((attr) => attr.key === "modelId") as any;
@@ -144,6 +128,32 @@ export default function CategoryListingsClient({
       count: opt.count,
     }));
   }, [initialAttributes, searchParams.brandId]);
+
+  // Check if category has brand/model attributes (for mobile drill-down)
+  const hasBrandAttribute = brandOptions.length > 0;
+
+  // Determine mobile selector step
+  // Only show drill-down for categories with brand attributes
+  // - No brandId and not "showListings" → show brand selector
+  // - Has brandId but no variantId/modelId and not "showListings" → show variant/model selector
+  // - Has variantId OR modelId or "showListings" → show listings
+  // - DYNAMIC: If brand has NO models/variants, skip variant step and show listings
+  const mobileSelectorStep = useMemo(() => {
+    // Skip drill-down for categories without brand attributes
+    if (!hasBrandAttribute) return null;
+    if (showListingsExplicitly) return null; // User chose "Show All"
+    if (!hasBrandId) return "brand";
+
+    // DYNAMIC CHECK: Only show variant step if this brand has models or variants
+    const hasModelsOrVariants = variantOptions.length > 0 || modelOptions.length > 0;
+
+    // If brand has no models/variants, skip variant step and go directly to listings
+    if (!hasModelsOrVariants) return null;
+
+    // If user selected a variant OR a model (for models without variants), show listings
+    if (!hasVariantId && !hasModelId) return "variant";
+    return null; // Selection made (variant or model), show listings
+  }, [hasBrandAttribute, hasBrandId, hasModelId, hasVariantId, showListingsExplicitly, variantOptions.length, modelOptions.length]);
 
   // Get selected brand name for display
   const selectedBrandName = useMemo(() => {
@@ -405,6 +415,7 @@ export default function CategoryListingsClient({
         selectedBrandName={selectedBrandName}
         totalCount={initialTotalResults}
         isLoading={isCategoryLoading}
+        supportsMultipleTypes={(currentCategory.supportedListingTypes?.length || 1) > 1}
       />
     );
   }
