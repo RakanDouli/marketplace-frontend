@@ -43,8 +43,11 @@ export const CATEGORIES_QUERY = `
       name
       nameAr
       slug
+      icon
       isActive
       supportedListingTypes
+      isCollection
+      parentCollectionId
     }
   }
 `;

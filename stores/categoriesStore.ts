@@ -14,6 +14,8 @@ const CATEGORIES_QUERY = `
       isActive
       icon
       supportedListingTypes
+      isCollection
+      parentCollectionId
     }
   }
 `;
@@ -124,6 +126,8 @@ export const useCategoriesStore = create<CategoriesStore>((set, get) => ({
           isActive: cat.isActive,
           icon: cat.icon, // SVG icon from backend
           supportedListingTypes: (cat.supportedListingTypes || [ListingType.SALE]) as ListingType[],
+          isCollection: cat.isCollection || false,
+          parentCollectionId: cat.parentCollectionId || null,
         })
       );
 

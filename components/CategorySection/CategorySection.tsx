@@ -24,8 +24,11 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ categories: se
   const storeCategories = useCategoriesStore((state) => state.categories);
   const categories = serverCategories && serverCategories.length > 0 ? serverCategories : storeCategories;
 
-  // Get active categories only
-  const activeCategories = categories.filter(cat => cat.isActive);
+  // Get active categories only, excluding child categories of collections
+  // Show: standalone categories + collection parents (not their children)
+  const activeCategories = categories.filter(cat =>
+    cat.isActive && !cat.parentCollectionId
+  );
 
   // Count visible cards on mobile (excludes coming soon)
   const mobileVisibleCount = activeCategories.filter(
