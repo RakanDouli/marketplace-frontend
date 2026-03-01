@@ -58,6 +58,8 @@ const CATEGORIES_QUERY = `
       isActive
       icon
       supportedListingTypes
+      isCollection
+      parentCollectionId
     }
   }
 `;
@@ -100,6 +102,8 @@ async function fetchCategories(): Promise<Category[]> {
       isActive: cat.isActive,
       icon: cat.icon,
       supportedListingTypes: (cat.supportedListingTypes || [ListingType.SALE]) as ListingType[],
+      isCollection: cat.isCollection || false,
+      parentCollectionId: cat.parentCollectionId || null,
       level: 0,
       createdAt: '',
       updatedAt: '',

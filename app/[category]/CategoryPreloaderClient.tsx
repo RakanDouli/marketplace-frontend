@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingBag, Key, ArrowRight } from "lucide-react";
 import Container from "../../components/slices/Container/Container";
-import { Text, MobileBackButton } from "../../components/slices";
+import { Text, MobileBackButton, CategoryCard } from "../../components/slices";
 import styles from "./CategoryPreloader.module.scss";
 
 interface ChildCategory {
@@ -45,7 +45,7 @@ export default function CategoryPreloaderClient({
     return params ? `${path}?${params}` : path;
   };
 
-  // If this is a collection, show child categories
+  // If this is a collection, show child categories as simple grid cards
   if (isCollection) {
     return (
       <Container className={styles.preloaderPage}>
@@ -69,31 +69,16 @@ export default function CategoryPreloaderClient({
             اختر القسم الذي تبحث عنه
           </Text>
 
-          {/* Child Categories Grid */}
-          <div className={styles.optionsGrid}>
+          {/* Child Categories Grid - Using reusable CategoryCard */}
+          <div className={styles.collectionGrid}>
             {childCategories.map((child) => (
-              <Link
+              <CategoryCard
                 key={child.id}
                 href={getHrefWithParams(`/${child.slug}`)}
-                className={styles.optionCard}
-              >
-                {child.icon ? (
-                  <div
-                    className={styles.optionIcon}
-                    dangerouslySetInnerHTML={{ __html: child.icon }}
-                  />
-                ) : (
-                  <div className={styles.optionIcon}>
-                    <ShoppingBag size={48} />
-                  </div>
-                )}
-                <div className={styles.optionContent}>
-                  <Text variant="h3" className={styles.optionTitle}>
-                    {child.nameAr || child.name}
-                  </Text>
-                </div>
-                <ArrowRight size={24} className={styles.arrow} />
-              </Link>
+                nameAr={child.nameAr}
+                name={child.name}
+                hideIcon={true}
+              />
             ))}
           </div>
         </div>

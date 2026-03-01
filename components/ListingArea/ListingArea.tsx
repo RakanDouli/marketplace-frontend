@@ -86,6 +86,25 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
 
   // Filter toggle is now handled by Filter component itself (self-sufficient)
 
+  // Track if we're waiting for SSR hydration
+  // SSR passes data via props → useLayoutEffect hydrates store → then we render
+  // On first render, store may be empty while hydration is pending
+  const [isHydrating, setIsHydrating] = useState(true);
+
+  // Detect when hydration completes (store matches expected category)
+  useEffect(() => {
+    // If store has been hydrated for current category, stop showing loading
+    if (currentCategoryId === categorySlug && currentListingType === listingType) {
+      setIsHydrating(false);
+    }
+  }, [currentCategoryId, currentListingType, categorySlug, listingType]);
+
+  // Also stop hydrating after a short delay (fallback for edge cases)
+  useEffect(() => {
+    const timer = setTimeout(() => setIsHydrating(false), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Fetch listings when component mounts or category changes
   // Skip if SSR already hydrated the store with listings
   useEffect(() => {
@@ -104,7 +123,12 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       // currentCategoryId and currentListingType are set after each successful fetch/hydration
       // This prevents infinite loop when category has no listings
       // Check both category AND listing type to ensure we refetch when navigating between /sell and /rent
-      if (!loading && currentCategoryId === categorySlug && currentListingType === listingType) {
+      if (currentCategoryId === categorySlug && currentListingType === listingType) {
+        return;
+      }
+
+      // Skip if still hydrating from SSR
+      if (isHydrating) {
         return;
       }
 
@@ -125,7 +149,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
     };
 
     fetchInitialListings();
-  }, [categorySlug, listingType, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, loading, currentCategoryId, currentListingType]);
+  }, [categorySlug, listingType, viewType, fetchListingsByCategory, getStoreFilters, getCategoryBySlug, currentCategoryId, currentListingType, isHydrating]);
 
   // Sync local viewMode with store viewType for backward compatibility
   const [viewMode, setViewMode] = useState<"grid" | "list">(
@@ -355,8 +379,8 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       {/* Applied Filters */}
       <AppliedFilters />
 
-      {/* Loading state - Show skeleton cards */}
-      {loading && (
+      {/* Loading state - Show skeleton cards (during fetch OR during SSR hydration) */}
+      {(loading || isHydrating) && (
         <div className={`${styles.listingsContainer} ${styles[viewMode]}`}>
           {Array.from({ length: 8 }).map((_, index) => (
             <ListingCard
@@ -374,7 +398,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       )}
 
       {/* Empty state */}
-      {!loading && listingData.length === 0 && (
+      {!loading && !isHydrating && listingData.length === 0 && (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}><Search size={48} /></div>
           <Text variant="h3" className={styles.emptyTitle}>
@@ -387,7 +411,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       )}
 
       {/* Listings Grid/List */}
-      {!loading && listingData.length > 0 && (
+      {!loading && !isHydrating && listingData.length > 0 && (
         <div className={`${styles.listingsContainer} ${styles[viewMode]}`}>
           {listingData.map((listing, index) => {
             // Calculate ad insertion frequency based on grid columns
@@ -419,7 +443,7 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
       )}
 
       {/* Pagination */}
-      {!loading && listingData.length > 0 && (
+      {!loading && !isHydrating && listingData.length > 0 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
