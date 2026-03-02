@@ -1,4 +1,3 @@
-
 // ========================================
 // Payment Pages - Unified Styles
 // ========================================
@@ -98,7 +97,9 @@
 .resultActions {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: $space-md;
+  padding-top: $space-md;
   margin-bottom: $space-lg;
 }
 

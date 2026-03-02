@@ -48,14 +48,10 @@ export const REQUEST_PASSWORD_RESET_MUTATION = `
   }
 `;
 
-// Note: Email change requires password verification via Supabase
-// Backend needs to implement changeEmail mutation with password check
+// Change email mutation
 export const CHANGE_EMAIL_MUTATION = `
-  mutation UpdateMe($input: UpdateUserInput!) {
-    updateMe(input: $input) {
-      id
-      email
-    }
+  mutation ChangeMyEmail($input: ChangeEmailInput!) {
+    changeMyEmail(input: $input)
   }
 `;
 
