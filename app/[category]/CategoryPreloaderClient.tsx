@@ -5,35 +5,88 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingBag, Key, ArrowRight } from "lucide-react";
 import Container from "../../components/slices/Container/Container";
-import { Text, MobileBackButton, Loading } from "../../components/slices";
+import { Text, MobileBackButton, CategoryCard } from "../../components/slices";
 import styles from "./CategoryPreloader.module.scss";
+
+interface ChildCategory {
+  id: string;
+  name: string;
+  nameAr: string;
+  slug: string;
+  icon?: string;
+}
 
 interface CategoryPreloaderClientProps {
   categorySlug: string;
   categoryName: string;
   categoryNameAr: string;
   categoryIcon?: string;
+  isCollection?: boolean;
+  childCategories?: ChildCategory[];
 }
 
 export default function CategoryPreloaderClient({
   categorySlug,
   categoryNameAr,
   categoryIcon,
+  isCollection = false,
+  childCategories = [],
 }: CategoryPreloaderClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleBack = () => {
-    router.push("/categories");
+    router.push("/");
   };
 
-  // Preserve search params when navigating to sell/rent pages
-  const getHrefWithParams = (listingType: string) => {
+  // Preserve search params when navigating
+  const getHrefWithParams = (path: string) => {
     const params = searchParams.toString();
-    const basePath = `/${categorySlug}/${listingType}`;
-    return params ? `${basePath}?${params}` : basePath;
+    return params ? `${path}?${params}` : path;
   };
 
+  // If this is a collection, show child categories as simple grid cards
+  if (isCollection) {
+    return (
+      <Container className={styles.preloaderPage}>
+        <MobileBackButton onClick={handleBack} title={categoryNameAr} />
+
+        <div className={styles.content}>
+          {/* Collection Icon */}
+          {categoryIcon && (
+            <div
+              className={styles.categoryIcon}
+              dangerouslySetInnerHTML={{ __html: categoryIcon }}
+            />
+          )}
+
+          {/* Title */}
+          <Text variant="h2" className={styles.title}>
+            {categoryNameAr}
+          </Text>
+
+          <Text variant="paragraph" color="secondary" className={styles.subtitle}>
+            اختر القسم الذي تبحث عنه
+          </Text>
+
+          {/* Child Categories Grid - Using reusable CategoryCard */}
+          <div className={styles.collectionGrid}>
+            {childCategories.map((child) => (
+              <CategoryCard
+                key={child.id}
+                href={getHrefWithParams(`/${child.slug}`)}
+                nameAr={child.nameAr}
+                name={child.name}
+                hideIcon={true}
+              />
+            ))}
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  // Normal flow: show sell/rent selector
   return (
     <Container className={styles.preloaderPage}>
       <MobileBackButton onClick={handleBack} title={categoryNameAr} />
@@ -59,7 +112,7 @@ export default function CategoryPreloaderClient({
         {/* Type Selection Cards */}
         <div className={styles.optionsGrid}>
           {/* For Sale Option */}
-          <Link href={getHrefWithParams("sell")} className={styles.optionCard}>
+          <Link href={getHrefWithParams(`/${categorySlug}/sell`)} className={styles.optionCard}>
             <div className={styles.optionIcon}>
               <ShoppingBag size={48} />
             </div>
@@ -75,7 +128,7 @@ export default function CategoryPreloaderClient({
           </Link>
 
           {/* For Rent Option */}
-          <Link href={getHrefWithParams("rent")} className={styles.optionCard}>
+          <Link href={getHrefWithParams(`/${categorySlug}/rent`)} className={styles.optionCard}>
             <div className={styles.optionIcon}>
               <Key size={48} />
             </div>

@@ -44,6 +44,8 @@ interface MobileCatalogSelectorProps {
   totalCount?: number;
   /** Whether options are loading */
   isLoading?: boolean;
+  /** Whether category supports multiple listing types (for back navigation) */
+  supportsMultipleTypes?: boolean;
 }
 
 export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
@@ -57,6 +59,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
   selectedBrandName,
   totalCount,
   isLoading = false,
+  supportsMultipleTypes = false,
 }) => {
   const router = useRouter();
 
@@ -122,9 +125,13 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
     if (step === "variant" && selectedBrandId) {
       // Go back to brand selection
       router.push(`/${categorySlug}/${listingType}`);
-    } else {
-      // Go back to category/type selection
+    } else if (supportsMultipleTypes) {
+      // Go back to listing type selection (sell/rent preloader)
       router.push(`/${categorySlug}`);
+    } else {
+      // Category only supports one type - go to categories page
+      // (avoids redirect loop: /cars → /cars/sell → back → /cars → /cars/sell...)
+      router.push('/categories');
     }
   };
 

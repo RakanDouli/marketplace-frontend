@@ -22,7 +22,9 @@ export const SearchBarSection: React.FC = () => {
   const [shakeKey, setShakeKey] = useState<number>(0);
   const [showMobileDropdown, setShowMobileDropdown] = useState<boolean>(false);
 
-  const activeCategories = categories.filter(cat => cat.isActive);
+  // Filter active categories, excluding child categories of collections
+  // Show: standalone categories + collection parents (not their children)
+  const activeCategories = categories.filter(cat => cat.isActive && !cat.parentCollectionId);
   const selectedCategoryObj = activeCategories.find(cat => cat.slug === selectedCategory);
 
   useEffect(() => {

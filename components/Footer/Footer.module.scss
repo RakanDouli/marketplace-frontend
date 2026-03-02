@@ -115,6 +115,29 @@
   }
 }
 
+.socialLinks {
+  display: flex;
+  gap: $space-md;
+  margin-top: $space-sm;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: $primary;
+  color: white;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
 .bottom {
   display: flex;
   justify-content: space-between;
