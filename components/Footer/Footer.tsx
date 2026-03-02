@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Container, Text } from "@/components/slices";
 import { Logo } from "@/components/Logo";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, MapPin, Instagram, Facebook } from "lucide-react";
 import styles from "./Footer.module.scss";
 
 interface FooterProps {
@@ -25,6 +25,11 @@ export const Footer: React.FC<FooterProps> = ({ hideOnMobile = false }) => {
   const legalLinks = [
     { href: "/terms", label: "الشروط والأحكام" },
     { href: "/privacy", label: "سياسة الخصوصية" },
+  ];
+
+  const socialLinks = [
+    { href: "https://www.instagram.com/theshambay/", icon: Instagram, label: "Instagram" },
+    { href: "https://www.facebook.com/profile.php?id=61584913273672", icon: Facebook, label: "Facebook" },
   ];
 
   return (
@@ -66,6 +71,20 @@ export const Footer: React.FC<FooterProps> = ({ hideOnMobile = false }) => {
               <div className={styles.contactItem}>
                 <MapPin size={16} />
                 <span>دمشق، سوريا</span>
+              </div>
+              <div className={styles.socialLinks}>
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.socialLink}
+                    aria-label={social.label}
+                  >
+                    <social.icon size={20} />
+                  </a>
+                ))}
               </div>
             </div>
           </div>
