@@ -82,7 +82,7 @@ const nextConfig = {
   // Enable SCSS support
   sassOptions: {
     includePaths: ["./styles"],
-    prependData: `@import "styles/variables.scss";`,
+    prependData: `@use "styles/variables" as *;`,
   },
   // Proxy API requests to backend
   async rewrites() {

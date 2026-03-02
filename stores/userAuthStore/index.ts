@@ -657,6 +657,98 @@ export const useUserAuthStore = create<UserAuthStore>()(
   )
 );
 
+// =============================================================================
+// SUPABASE AUTH STATE LISTENER
+// =============================================================================
+// Listen for Supabase auth events (token refresh, sign out, etc.)
+// This keeps the store in sync with Supabase's internal token management
+if (typeof window !== 'undefined') {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    const state = useUserAuthStore.getState();
+
+    console.log('[Auth] Supabase auth state changed:', event, 'session:', !!session);
+
+    // Handle INITIAL_SESSION - this fires when Supabase loads session from localStorage
+    if (event === 'INITIAL_SESSION' && session) {
+      if (!state.isAuthenticated) {
+        console.log('[Auth] INITIAL_SESSION with valid session, fetching user data...');
+        console.log('[Auth] Session user email:', session.user?.email);
+        useUserAuthStore.getState().refreshUserData();
+      }
+    } else if (event === 'SIGNED_IN' && session) {
+      // User signed in (including from setSession in mobile-auth)
+      // Only fetch user data if not already authenticated
+      if (!state.isAuthenticated) {
+        console.log('[Auth] SIGNED_IN event detected, fetching user data...');
+        // Fetch the full user data from backend
+        useUserAuthStore.getState().refreshUserData();
+      }
+    } else if (event === 'TOKEN_REFRESHED' && session) {
+      // Token was auto-refreshed by Supabase - update store with new token
+      const newExpiresAt = calculateTokenExpiration(session.expires_at);
+
+      if (state.user) {
+        useUserAuthStore.setState({
+          user: {
+            ...state.user,
+            token: session.access_token,
+            tokenExpiresAt: newExpiresAt,
+          },
+          showExpirationWarning: false,
+        });
+        console.log('[Auth] Token refreshed, new expiry:', new Date(newExpiresAt).toLocaleString());
+      }
+    } else if (event === 'SIGNED_OUT') {
+      // User signed out (possibly from another tab or token expired)
+      if (state.isAuthenticated) {
+        useUserAuthStore.setState({
+          user: null,
+          userPackage: null,
+          isAuthenticated: false,
+          showExpirationWarning: false,
+          error: 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى',
+        });
+        // Open auth modal
+        useUserAuthStore.getState().openAuthModal('login');
+      }
+    }
+  });
+
+  // =============================================================================
+  // INITIAL SESSION CHECK (for mobile WebView injection)
+  // =============================================================================
+  // When the page loads, check if Supabase has a session in localStorage
+  // that we need to sync to the Zustand store (e.g., from mobile app injection)
+  const checkInitialSession = async () => {
+    const state = useUserAuthStore.getState();
+
+    // If already authenticated, skip
+    if (state.isAuthenticated) {
+      console.log('[Auth] Already authenticated, skipping initial check');
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        console.log('[Auth] Found existing Supabase session, syncing to store...');
+        console.log('[Auth] Session user:', session.user?.email);
+
+        // Fetch user data from backend
+        useUserAuthStore.getState().refreshUserData();
+      } else {
+        console.log('[Auth] No Supabase session found');
+      }
+    } catch (error) {
+      console.error('[Auth] Error checking initial session:', error);
+    }
+  };
+
+  // Run after a short delay to ensure Supabase client is ready
+  setTimeout(checkInitialSession, 100);
+}
+
 // Selectors for better performance
 export const useUser = () => useUserAuthStore((state) => state.user);
 export const useIsAuthenticated = () => useUserAuthStore((state) => state.isAuthenticated);

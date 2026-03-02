@@ -1,16 +1,16 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Clock } from 'lucide-react';
 import { useCategoriesStore } from '@/stores/categoriesStore';
-import { Container, Text } from '@/components/slices';
+import { Container, Text, CategoryCard } from '@/components/slices';
 import { CMS_ASSETS } from '@/constants/cms-assets';
 import { Category } from '@/types/listing';
 import styles from './CategorySection.module.scss';
 
 // Coming soon categories (by slug) - can be moved to backend later
-const COMING_SOON_CATEGORIES = ['real-estate'];
+// Note: Categories that need brands/models synced via admin panel will show "coming soon"
+// until their data is populated
+const COMING_SOON_CATEGORIES: string[] = [];
 
 interface CategorySectionProps {
   /** Categories passed from server-side fetch (instant display) */
@@ -22,8 +22,11 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ categories: se
   const storeCategories = useCategoriesStore((state) => state.categories);
   const categories = serverCategories && serverCategories.length > 0 ? serverCategories : storeCategories;
 
-  // Get active categories only
-  const activeCategories = categories.filter(cat => cat.isActive);
+  // Get active categories only, excluding child categories of collections
+  // Show: standalone categories + collection parents (not their children)
+  const activeCategories = categories.filter(cat =>
+    cat.isActive && !cat.parentCollectionId
+  );
 
   // Count visible cards on mobile (excludes coming soon)
   const mobileVisibleCount = activeCategories.filter(
@@ -74,57 +77,15 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ categories: se
               {activeCategories.map((category) => {
                 const isComingSoon = COMING_SOON_CATEGORIES.includes(category.slug);
 
-                if (isComingSoon) {
-                  return (
-                    <div
-                      key={category.id}
-                      className={`${styles.categoryCard} ${styles.comingSoon}`}
-                    >
-                      <div className={styles.cardContent}>
-                        <Text variant="h3" className={styles.categoryName}>
-                          {category.nameAr || category.name}
-                        </Text>
-                        <div className={styles.cardCta}>
-                          <Clock size={14} />
-                          <span>قريباً</span>
-                        </div>
-                      </div>
-                      <div className={styles.cardIcon}>
-                        {category.icon && (
-                          <div
-                            className={styles.svgIcon}
-                            dangerouslySetInnerHTML={{ __html: category.icon }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-
                 return (
-                  <Link
+                  <CategoryCard
                     key={category.id}
                     href={`/${category.slug}`}
-                    className={styles.categoryCard}
-                  >
-                    <div className={styles.cardContent}>
-                      <Text variant="h3" className={styles.categoryName}>
-                        {category.nameAr || category.name}
-                      </Text>
-                      <div className={styles.cardCta}>
-                        <span>تصفح الآن</span>
-                        <ArrowLeft size={16} />
-                      </div>
-                    </div>
-                    <div className={styles.cardIcon}>
-                      {category.icon && (
-                        <div
-                          className={styles.svgIcon}
-                          dangerouslySetInnerHTML={{ __html: category.icon }}
-                        />
-                      )}
-                    </div>
-                  </Link>
+                    nameAr={category.nameAr}
+                    name={category.name}
+                    icon={category.icon}
+                    comingSoon={isComingSoon}
+                  />
                 );
               })}
             </div>

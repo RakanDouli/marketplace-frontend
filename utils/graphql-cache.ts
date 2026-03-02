@@ -197,10 +197,60 @@ class GraphQLCache {
 
     if (result.errors) {
       console.error('GraphQL Response Errors:', result.errors);
+
+      // Check for auth-related errors
+      const errorMessages = result.errors.map((e: any) => e.message?.toLowerCase() || '');
+      const isAuthError = errorMessages.some((msg: string) =>
+        msg.includes('unauthorized') ||
+        msg.includes('unauthenticated') ||
+        msg.includes('jwt expired') ||
+        msg.includes('invalid token') ||
+        msg.includes('token expired') ||
+        msg.includes('not authenticated')
+      );
+
+      if (isAuthError) {
+        // Trigger logout and show auth modal
+        this.handleAuthError();
+      }
+
       throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
     }
 
     return result.data;
+  }
+
+  // Handle auth errors by logging out and showing auth modal
+  private handleAuthError(): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+      // Import dynamically to avoid circular dependencies
+      const storageKey = 'user-auth-storage';
+      const authData = localStorage.getItem(storageKey);
+
+      if (authData) {
+        const { state } = JSON.parse(authData);
+        if (state?.isAuthenticated) {
+          console.warn('[GraphQL Cache] Auth error detected - session expired');
+
+          // Clear the auth state
+          localStorage.setItem(storageKey, JSON.stringify({
+            state: {
+              user: null,
+              userPackage: null,
+              isAuthenticated: false,
+            },
+            version: 0,
+          }));
+
+          // Force page reload to reset all state and show login
+          window.location.reload();
+        }
+      }
+    } catch (error) {
+      console.error('[GraphQL Cache] Failed to handle auth error:', error);
+    }
   }
 
   // Clear expired entries

@@ -37,8 +37,10 @@ function generatePriceOptions(categoryKey?: string): number[] {
   const options: number[] = [];
 
   // Determine category type
-  const isVehicle = categoryKey?.includes("car") || categoryKey?.includes("vehicle") || categoryKey?.includes("سيار");
-  const isRealEstate = categoryKey?.includes("real") || categoryKey?.includes("estate") || categoryKey?.includes("عقار") || categoryKey?.includes("property");
+  const key = categoryKey?.toLowerCase() || "";
+  const isVehicle = key.includes("car") || key.includes("vehicle") || key.includes("سيار") ||
+                    key.includes("motorcycle") || key.includes("دراج");
+  const isRealEstate = key.includes("real") || key.includes("estate") || key.includes("عقار") || key.includes("property");
 
   if (isVehicle) {
     // CARS: Max 300,000

@@ -95,6 +95,9 @@ export interface Category {
   icon?: string; // SVG icon code
   isActive: boolean;
   supportedListingTypes: ListingType[]; // [ListingType.SALE], [ListingType.RENT], or both
+  // Collection system fields
+  isCollection?: boolean; // True if this is a collection (parent of child categories)
+  parentCollectionId?: string | null; // ID of parent collection (if this is a child category)
   createdAt: string;
   updatedAt: string;
   // Relations

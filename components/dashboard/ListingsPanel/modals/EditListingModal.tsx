@@ -1355,13 +1355,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
             {videoAllowed && (
               <div className={styles.videoSection}>
                 <Text variant="small" color="secondary" style={{ marginBottom: '8px' }}>
-                  الفيديو (اختياري) - الحد الأقصى 50 ميجابايت (30-45 ثانية)
+                  الفيديو (اختياري) - الحد الأقصى 25 ميجابايت (30-45 ثانية)
                 </Text>
                 <ImageUploadGrid
                   images={videoWithUploadState}
                   onChange={handleVideoChange}
                   maxImages={1}
-                  maxSize={50 * 1024 * 1024}
+                  maxSize={25 * 1024 * 1024}
                   accept="video/*"
                   label="الفيديو"
                   onError={(error) => {

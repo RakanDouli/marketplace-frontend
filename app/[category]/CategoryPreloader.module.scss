@@ -1,10 +1,8 @@
-@import "../../styles/variables";
-
 .preloaderPage {
   min-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
-  padding-top: $space-lg;
+
   padding-bottom: $space-xxl;
 }
 
@@ -15,7 +13,7 @@
   justify-content: center;
   flex: 1;
   text-align: center;
-  padding: $space-xl 0;
+  padding: $space-lg 0;
 }
 
 .categoryIcon {
@@ -118,6 +116,24 @@
 // Hide arrow - not needed with new design
 .arrow {
   display: none;
+}
+
+// Collection Grid - CSS Grid for child categories (uses reusable CategoryCard)
+.collectionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-md;
+  width: 100%;
+  max-width: 900px;
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-sm;
+  }
 }
 
 // Mobile adjustments

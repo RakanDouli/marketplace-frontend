@@ -22,7 +22,7 @@ const GET_PAYMENT_METHODS_QUERY = `
 
 // Helper function for GraphQL calls
 const makeGraphQLCall = async (query: string) => {
-  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql', {
+  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

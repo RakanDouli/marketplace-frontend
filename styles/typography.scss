@@ -1,8 +1,7 @@
 // ===================================
 // TYPOGRAPHY SYSTEM - Font Families Only
 // ===================================
-
-@import 'variables';
+@use 'variables' as *;
 
 // Fonts are loaded via next/font in app/fonts.ts (self-hosted, zero CLS)
 // CSS variables --font-rubik and --font-beiruti are set on <html>

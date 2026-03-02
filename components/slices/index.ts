@@ -83,3 +83,5 @@ export { PromoBanner } from "./PromoBanner";
 export type { PromoBannerProps } from "./PromoBanner";
 export { PromoCard } from "./PromoCard";
 export type { PromoCardProps } from "./PromoCard";
+export { CategoryCard } from "./CategoryCard";
+export type { CategoryCardProps } from "./CategoryCard";

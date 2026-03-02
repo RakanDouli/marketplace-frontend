@@ -182,30 +182,28 @@ export const Filter: React.FC<FilterProps> = ({
   } = attributeFilters;
 
   // Check if a filter attribute should be shown
-  // Hide filters where ALL options have count 0 (no listings match any option)
+  // Show all filter attributes that have options defined (even if counts are 0)
+  // This ensures users can see available filters even when there are no listings yet
   const shouldShowAttribute = (attribute: any): boolean => {
     // Hide brand, model, variant - handled by BrandModelFilter component
     if (['brandId', 'modelId', 'variantId'].includes(attribute.key)) return false;
 
-    // For SELECTOR and MULTI_SELECTOR types, check if at least one option has count > 0
+    // For SELECTOR and MULTI_SELECTOR types, show if options are defined
+    // Options come from attributes seeder, not from listings
     if (
-      (attribute.type === AttributeType.SELECTOR || attribute.type === AttributeType.MULTI_SELECTOR) &&
-      attribute.processedOptions &&
-      attribute.processedOptions.length > 0
+      (attribute.type === AttributeType.SELECTOR || attribute.type === AttributeType.MULTI_SELECTOR)
     ) {
-      // Check if at least one option has count > 0
-      const hasVisibleOptions = attribute.processedOptions.some(
-        (opt: any) => opt.count > 0
-      );
-      return hasVisibleOptions;
+      // Show if there are any options (from seeder) or processedOptions
+      const hasOptions = (attribute.options && attribute.options.length > 0) ||
+                        (attribute.processedOptions && attribute.processedOptions.length > 0);
+      return hasOptions;
     }
 
-    // For RANGE_SELECTOR, also check if options exist with counts
-    if (attribute.type === AttributeType.RANGE_SELECTOR && attribute.processedOptions) {
-      const hasVisibleOptions = attribute.processedOptions.some(
-        (opt: any) => opt.count > 0
-      );
-      return hasVisibleOptions;
+    // For RANGE_SELECTOR, show if options are defined
+    if (attribute.type === AttributeType.RANGE_SELECTOR) {
+      const hasOptions = (attribute.options && attribute.options.length > 0) ||
+                        (attribute.processedOptions && attribute.processedOptions.length > 0);
+      return hasOptions;
     }
 
     // For other types (RANGE, CURRENCY, TEXT), always show
