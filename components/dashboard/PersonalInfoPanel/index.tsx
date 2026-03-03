@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Text, Button, Image, Container, Grid } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
@@ -14,7 +14,12 @@ import { Upload, Trash2 } from 'lucide-react';
 import { EditProfileModal, DeleteAccountModal, DeactivateAccountModal, ChangeEmailModal } from './modals';
 import styles from '../SharedDashboardPanel.module.scss';
 
-export const PersonalInfoPanel: React.FC = () => {
+interface PersonalInfoPanelProps {
+  /** Initial action to perform (e.g., 'password' to auto-open password reset) */
+  initialAction?: string | null;
+}
+
+export const PersonalInfoPanel: React.FC<PersonalInfoPanelProps> = ({ initialAction }) => {
   const router = useRouter();
   const { user, userPackage, logout, refreshUserData } = useUserAuthStore();
   const { updateProfile, deleteAccount, deactivateAccount, sendPasswordResetEmail, changeEmail, uploadAvatar, deleteAvatar } = useUserProfileStore();
@@ -143,6 +148,33 @@ export const PersonalInfoPanel: React.FC = () => {
   };
 
   const hasCustomBranding = userPackage?.userSubscription?.customBranding === true;
+
+  // Handle initial action from URL params (e.g., from mobile app WebView)
+  useEffect(() => {
+    if (initialAction === 'password' && user?.token && user?.email) {
+      // Auto-trigger password reset when accessed from mobile with action=password
+      handleSendPasswordReset()
+        .then(() => {
+          addNotification({
+            type: 'success',
+            title: 'تم الإرسال',
+            message: 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
+            duration: 5000
+          });
+        })
+        .catch((error) => {
+          addNotification({
+            type: 'error',
+            title: 'خطأ',
+            message: error instanceof Error ? error.message : 'فشل إرسال رابط إعادة التعيين',
+            duration: 5000
+          });
+        });
+    } else if (initialAction === 'email' && user?.token) {
+      // Auto-open change email modal when accessed from mobile with action=email
+      setShowEmailModal(true);
+    }
+  }, [initialAction, user?.token, user?.email]);
 
   const getAvatarUrl = (avatar: string | null, variant: 'small' | 'card' | 'thumbnail' = 'small') => {
     if (!avatar) return null;
