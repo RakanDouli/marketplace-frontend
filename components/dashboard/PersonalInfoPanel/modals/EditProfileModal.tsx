@@ -31,6 +31,7 @@ interface EditProfileModalProps {
   onSave: (data: any) => Promise<void>;
   onSendPasswordReset: () => Promise<void>;
   onChangeEmailClick: () => void;
+  emailChangeSuccess?: boolean;
 }
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
@@ -39,6 +40,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onSave,
   onSendPasswordReset,
   onChangeEmailClick,
+  emailChangeSuccess,
 }) => {
   const { addNotification } = useNotificationStore();
 
@@ -60,6 +62,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordResetSuccess, setPasswordResetSuccess] = useState(false);
+  const [passwordResetError, setPasswordResetError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,21 +123,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const handlePasswordReset = async () => {
     setIsResettingPassword(true);
+    setPasswordResetSuccess(false);
+    setPasswordResetError(null);
     try {
       await onSendPasswordReset();
-      addNotification({
-        type: 'success',
-        title: 'تم إرسال الرابط',
-        message: 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
-        duration: 5000
-      });
+      setPasswordResetSuccess(true);
     } catch (err) {
-      addNotification({
-        type: 'error',
-        title: 'خطأ',
-        message: 'فشل في إرسال الرابط. حاول مرة أخرى.',
-        duration: 5000
-      });
+      setPasswordResetError('فشل في إرسال الرابط. حاول مرة أخرى.');
     } finally {
       setIsResettingPassword(false);
     }
@@ -287,9 +283,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   تغيير
                 </Button>
               </div>
-              <Text variant="small" className={styles.fieldHint}>
-                لتغيير البريد الإلكتروني، يجب تأكيد كلمة المرور
-              </Text>
+              {emailChangeSuccess ? (
+                <Text variant="small" color="success" className={styles.fieldHint}>
+                  تم تغيير البريد الإلكتروني بنجاح
+                </Text>
+              ) : (
+                <Text variant="small" className={styles.fieldHint}>
+                  لتغيير البريد الإلكتروني، يجب تأكيد كلمة المرور
+                </Text>
+              )}
             </div>
 
             {/* Password Reset */}
@@ -301,15 +303,25 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={handlePasswordReset}
-                  disabled={isResettingPassword}
+                  disabled={isResettingPassword || passwordResetSuccess}
                   type="button"
                 >
                   {isResettingPassword ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
                 </Button>
               </div>
-              <Text variant="small" className={styles.fieldHint}>
-                سيتم إرسال رابط آمن إلى: {user.email}
-              </Text>
+              {passwordResetSuccess ? (
+                <Text variant="small" color="success" className={styles.fieldHint}>
+                  تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني
+                </Text>
+              ) : passwordResetError ? (
+                <Text variant="small" color="error" className={styles.fieldHint}>
+                  {passwordResetError}
+                </Text>
+              ) : (
+                <Text variant="small" className={styles.fieldHint}>
+                  سيتم إرسال رابط آمن إلى: {user.email}
+                </Text>
+              )}
             </div>
           </div>
         </div>

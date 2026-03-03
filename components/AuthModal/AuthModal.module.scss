@@ -184,11 +184,17 @@
 .successMessage {
   display: flex;
   flex-direction: column;
-  gap: $space-md;
+  align-items: center;
+  gap: $space-sm;
   text-align: center;
   padding: $space-lg;
   background: $surface;
   border-radius: $radius-md;
+}
+
+.successIcon {
+  font-size: 48px;
+  margin-bottom: $space-sm;
 }
 
 .successTitle {

@@ -5,7 +5,6 @@ import { Modal, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
-import { MagicLinkForm } from './MagicLinkForm';
 import styles from './AuthModal.module.scss';
 
 export const AuthModal: React.FC = () => {
@@ -34,7 +33,6 @@ export const AuthModal: React.FC = () => {
         <div className={styles.formContainer}>
           {authModalView === 'login' && <LoginForm />}
           {authModalView === 'signup' && <SignupForm />}
-          {authModalView === 'magic-link' && <MagicLinkForm />}
         </div>
       </div>
     </Modal>

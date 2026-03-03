@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, Text } from '@/components/slices';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { SocialButtons } from './SocialButtons';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { AccountType } from '@/common/enums';
 import {
   validateLoginForm,
@@ -11,6 +12,7 @@ import {
   hasValidationErrors,
   type ValidationErrors,
 } from '@/lib/validation/authValidation';
+import { ArrowLeft } from 'lucide-react';
 import styles from './AuthModal.module.scss';
 
 // Development credentials from backend seed
@@ -59,7 +61,8 @@ const DEV_CREDENTIALS = [
 ];
 
 export const LoginForm: React.FC = () => {
-  const { login, isLoading, error, switchAuthView } = useUserAuthStore();
+  const { login, resetPassword, isLoading, error, switchAuthView } = useUserAuthStore();
+  const { addNotification } = useNotificationStore();
   // Show dev credentials on development and staging, hide on production
   const appEnv = process.env.NEXT_PUBLIC_APP_ENV || 'development';
   const showDevCredentials = appEnv !== 'production';
@@ -71,6 +74,11 @@ export const LoginForm: React.FC = () => {
   });
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [formError, setFormError] = useState<string>('');
+
+  // Forgot password state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Update form when option changes (development/staging only)
   useEffect(() => {
@@ -114,6 +122,121 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  const handleForgotPassword = () => {
+    // Pre-fill email from login form if available
+    setForgotPasswordEmail(formData.email);
+    setShowForgotPassword(true);
+    setResetEmailSent(false);
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
+    setResetEmailSent(false);
+  };
+
+  const handleSendResetEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!forgotPasswordEmail) {
+      addNotification({
+        type: 'error',
+        title: 'بيانات ناقصة',
+        message: 'يرجى إدخال البريد الإلكتروني',
+      });
+      return;
+    }
+
+    try {
+      await resetPassword(forgotPasswordEmail);
+      setResetEmailSent(true);
+      addNotification({
+        type: 'success',
+        title: 'تم إرسال الرابط',
+        message: 'يرجى التحقق من بريدك الإلكتروني',
+      });
+    } catch (err) {
+      addNotification({
+        type: 'error',
+        title: 'خطأ',
+        message: 'فشل إرسال الرابط. يرجى المحاولة مرة أخرى',
+      });
+    }
+  };
+
+  // Forgot Password View (inline in same form)
+  if (showForgotPassword) {
+    return (
+      <div className={styles.form}>
+        {/* Back button */}
+        <Button
+          variant="link"
+          onClick={handleBackToLogin}
+          disabled={isLoading}
+          className={styles.backButton}
+          arrow
+        >
+          <Text variant="small">العودة لتسجيل الدخول</Text>
+        </Button>
+
+        {!resetEmailSent ? (
+          <>
+            <div className={styles.magicLinkInfo}>
+              <Text variant="paragraph">
+                أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور
+              </Text>
+            </div>
+
+            <form onSubmit={handleSendResetEmail} className={styles.formFields}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>
+                  <Text variant="small">البريد الإلكتروني</Text>
+                </label>
+                <Input
+                  type="email"
+                  name="resetEmail"
+                  placeholder="example@email.com"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading || !forgotPasswordEmail}
+                className={styles.submitButton}
+              >
+                {isLoading ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
+              </Button>
+            </form>
+          </>
+        ) : (
+          <div className={styles.successMessage}>
+            <Text variant="h4" className={styles.successTitle}>
+              تم إرسال الرابط
+            </Text>
+            <Text variant="paragraph">
+              يرجى التحقق من بريدك الإلكتروني <strong>{forgotPasswordEmail}</strong> والنقر على
+              الرابط لإعادة تعيين كلمة المرور
+            </Text>
+            <Text variant="small" className={styles.note}>
+              لم تستلم البريد؟{' '}
+              <Button
+                variant="link"
+                onClick={() => setResetEmailSent(false)}
+                disabled={isLoading}
+              >
+                إعادة الإرسال
+              </Button>
+            </Text>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Regular Login Form
   return (
     <div className={styles.form}>
       {/* Development/Staging credential selector */}
@@ -171,8 +294,9 @@ export const LoginForm: React.FC = () => {
         <div className={styles.forgotPassword}>
           <Button
             variant="link"
-            onClick={() => switchAuthView('magic-link')}
+            onClick={handleForgotPassword}
             disabled={isLoading}
+            type="button"
           >
             <Text variant="small">نسيت كلمة المرور؟</Text>
           </Button>

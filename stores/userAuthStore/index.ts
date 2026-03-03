@@ -211,14 +211,14 @@ interface UserAuthActions {
   signup: (email: string, password: string, name: string, accountType: AccountType) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
-  sendMagicLink: (email: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => void;
   refreshUserData: () => Promise<void>;
 
   // Modal control
-  openAuthModal: (view?: 'login' | 'signup' | 'magic-link', closeable?: boolean) => void;
+  openAuthModal: (view?: 'login' | 'signup', closeable?: boolean) => void;
   closeAuthModal: () => void;
-  switchAuthView: (view: 'login' | 'signup' | 'magic-link') => void;
+  switchAuthView: (view: 'login' | 'signup') => void;
 
   // Token expiration management
   extendSession: () => Promise<void>;
@@ -364,48 +364,18 @@ export const useUserAuthStore = create<UserAuthStore>()(
 
         try {
           // Step 1: Call backend signup mutation
+          // This creates user in Supabase Auth (unconfirmed) and users table
+          // Supabase will send confirmation email automatically
           await makeGraphQLCall(SIGNUP_MUTATION, {
             input: { email, password, name, accountType }
           });
 
-          // Step 2: Login to get session token
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (error) {
-            console.error('Login after signup error:', error);
-            throw new Error('تم إنشاء الحساب ولكن فشل تسجيل الدخول. يرجى تسجيل الدخول يدوياً');
-          }
-
-          if (!data.session?.access_token) {
-            throw new Error('No access token received');
-          }
-
-          const token = data.session.access_token;
-
-          // Step 3: Get full user data from backend
-          const meData = await makeGraphQLCall(ME_QUERY, {}, token);
-          const user = meData?.me?.user;
-
-          if (!user) {
-            throw new Error('المستخدم غير موجود');
-          }
-
-          const finalTokenExpiresAt = calculateTokenExpiration(data.session.expires_at);
-
+          // Step 2: Account created successfully - user needs to confirm email
+          // Don't close the modal - SignupForm will show success message
           set({
-            user: {
-              ...user,
-              token,
-              tokenExpiresAt: finalTokenExpiresAt,
-            },
-            isAuthenticated: true,
             isLoading: false,
             error: null,
-            showAuthModal: false,
-            authModalCloseable: true,
+            // Keep modal open so SignupForm can show success message
           });
 
         } catch (error) {
@@ -424,16 +394,13 @@ export const useUserAuthStore = create<UserAuthStore>()(
       // Login with Facebook
       loginWithFacebook: () => loginWithOAuth('facebook', set),
 
-      // Send magic link
-      sendMagicLink: async (email: string) => {
+      // Reset password (send password reset email)
+      resetPassword: async (email: string) => {
         set({ isLoading: true, error: null });
 
         try {
-          const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`,
-            },
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`,
           });
 
           if (error) throw error;
@@ -443,10 +410,10 @@ export const useUserAuthStore = create<UserAuthStore>()(
             error: null,
           });
         } catch (error) {
-          console.error('Magic link error:', error);
+          console.error('Reset password error:', error);
           set({
             isLoading: false,
-            error: 'فشل إرسال الرابط السحري',
+            error: 'فشل إرسال رابط إعادة تعيين كلمة المرور',
           });
           throw error;
         }

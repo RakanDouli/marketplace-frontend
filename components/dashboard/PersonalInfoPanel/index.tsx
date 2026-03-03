@@ -24,6 +24,7 @@ export const PersonalInfoPanel: React.FC = () => {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [emailChangeSuccess, setEmailChangeSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
@@ -60,9 +61,10 @@ export const PersonalInfoPanel: React.FC = () => {
   const handleChangeEmail = async (newEmail: string, password: string) => {
     if (!user.token) throw new Error('No authentication token');
 
-    await changeEmail(user.token, newEmail);
+    await changeEmail(user.token, newEmail, password);
     await refreshUserData();
     setShowEmailModal(false);
+    setEmailChangeSuccess(true);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -348,10 +350,11 @@ export const PersonalInfoPanel: React.FC = () => {
       {showEditModal && (
         <EditProfileModal
           user={{ ...user, token: user.token }}
-          onClose={() => setShowEditModal(false)}
+          onClose={() => { setShowEditModal(false); setEmailChangeSuccess(false); }}
           onSave={handleSaveProfile}
           onSendPasswordReset={handleSendPasswordReset}
           onChangeEmailClick={() => setShowEmailModal(true)}
+          emailChangeSuccess={emailChangeSuccess}
         />
       )}
 
