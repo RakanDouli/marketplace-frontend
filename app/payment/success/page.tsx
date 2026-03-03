@@ -8,20 +8,24 @@ import type { PaymentType } from '@/components/payment';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import styles from '../payment.module.scss';
 
-// GraphQL query for generating invoice PDF
-const GENERATE_INVOICE_PDF_QUERY = `
-  query GenerateInvoicePdf($transactionId: ID!) {
-    generateInvoicePdf(transactionId: $transactionId)
+// GraphQL query for generating invoice PDF (user-facing)
+const MY_TRANSACTION_INVOICE_QUERY = `
+  query MyTransactionInvoice($transactionId: ID!, $userId: ID!) {
+    myTransactionInvoice(transactionId: $transactionId, userId: $userId)
   }
 `;
 
-// Helper for GraphQL calls
-const makeGraphQLCall = async (query: string, variables: Record<string, unknown> = {}) => {
+// Helper for GraphQL calls with auth token
+const makeGraphQLCall = async (query: string, variables: Record<string, unknown> = {}, token?: string) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ query, variables }),
   });
   const result = await response.json();
@@ -37,7 +41,7 @@ function PaymentSuccessContent() {
   const type = searchParams?.get('type') as PaymentType | null;
   const id = searchParams?.get('id');
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
-  const { refreshUserData, isAuthenticated } = useUserAuthStore();
+  const { refreshUserData, isAuthenticated, user } = useUserAuthStore();
 
   // Refresh user data after successful subscription payment to update the dashboard
   useEffect(() => {
@@ -77,15 +81,19 @@ function PaymentSuccessContent() {
 
   // Download invoice as PDF
   const handleDownloadInvoice = async () => {
-    if (!id || type !== 'subscription') return;
+    if (!id || type !== 'subscription' || !user?.id || !user?.token) return;
 
     try {
       setDownloadingInvoice(true);
-      const data = await makeGraphQLCall(GENERATE_INVOICE_PDF_QUERY, { transactionId: id });
+      const data = await makeGraphQLCall(
+        MY_TRANSACTION_INVOICE_QUERY,
+        { transactionId: id, userId: user.id },
+        user.token
+      );
 
-      if (data.generateInvoicePdf) {
+      if (data.myTransactionInvoice) {
         // Convert base64 to blob and download
-        const byteCharacters = atob(data.generateInvoicePdf);
+        const byteCharacters = atob(data.myTransactionInvoice);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
           byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -104,7 +112,7 @@ function PaymentSuccessContent() {
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      // Silently fail - user can retry
+      console.error('Failed to download invoice:', error);
     } finally {
       setDownloadingInvoice(false);
     }
