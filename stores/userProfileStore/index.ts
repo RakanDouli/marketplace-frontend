@@ -11,6 +11,7 @@ import {
 } from './userProfile.gql';
 import { uploadToCloudflare } from '@/utils/cloudflare-upload';
 import { UserStatus } from '@/common/enums';
+import { supabase } from '@/lib/supabase';
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
 
@@ -139,6 +140,7 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
   },
 
   // Change email with password verification
+  // After success, automatically re-authenticates with new email to refresh JWT token
   changeEmail: async (token: string, newEmail: string, password: string) => {
     set({ isLoading: true, error: null });
 
@@ -148,6 +150,21 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
         { input: { newEmail, password } },
         token
       );
+
+      // IMPORTANT: Re-authenticate with new email to get fresh JWT token
+      // This is needed because the JWT still contains the old email after change
+      // Without this, subsequent email changes would fail (backend uses jwt.email)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: newEmail,
+        password,
+      });
+
+      if (signInError) {
+        console.warn('[ChangeEmail] Re-auth failed, user may need to re-login:', signInError);
+        // Email was changed successfully, but re-auth failed
+        // User might need to re-login manually
+      }
+
       set({ isLoading: false });
       return true;
     } catch (error) {
