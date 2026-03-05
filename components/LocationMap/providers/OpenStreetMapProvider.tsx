@@ -89,6 +89,34 @@ export class OpenStreetMapProvider implements IMapProvider {
   }
 
   /**
+   * Extract coordinates from a Google Maps link
+   * Supports formats:
+   * - https://www.google.com/maps?q=LAT,LNG
+   * - https://www.google.com/maps/search/?api=1&query=LAT,LNG
+   */
+  private extractCoordsFromLink(link: string): Coordinates | null {
+    if (!link) return null;
+
+    try {
+      // Try to extract from ?q=LAT,LNG format
+      const qMatch = link.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (qMatch) {
+        return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+      }
+
+      // Try to extract from query=LAT,LNG format
+      const queryMatch = link.match(/[?&]query=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (queryMatch) {
+        return { lat: parseFloat(queryMatch[1]), lng: parseFloat(queryMatch[2]) };
+      }
+    } catch {
+      // Parsing failed, return null
+    }
+
+    return null;
+  }
+
+  /**
    * Calculate map configuration based on location detail level
    */
   calculateMapConfig(location: LocationData): MapConfig | null {
@@ -101,7 +129,19 @@ export class OpenStreetMapProvider implements IMapProvider {
       };
     }
 
-    // Priority 2: Use province coordinates
+    // Priority 2: Extract coordinates from link if available
+    if (location.link) {
+      const linkCoords = this.extractCoordsFromLink(location.link);
+      if (linkCoords) {
+        return {
+          center: linkCoords,
+          zoom: 14, // Close zoom for exact location
+          marker: linkCoords,
+        };
+      }
+    }
+
+    // Priority 3: Use province coordinates
     if (location.province) {
       // Try to find province by English key first (lowercase)
       let provinceKey = location.province.toLowerCase();
