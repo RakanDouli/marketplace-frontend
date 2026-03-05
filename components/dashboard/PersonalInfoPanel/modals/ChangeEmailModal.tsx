@@ -111,7 +111,7 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
 
           <div className={styles.infoBox}>
             <Text variant="small">
-              ملاحظة: سيتم إرسال رسالة تأكيد إلى البريد الإلكتروني الجديد
+              ملاحظة: سيتم تغيير البريد الإلكتروني مباشرة بعد التأكد من كلمة المرور
             </Text>
           </div>
         </div>

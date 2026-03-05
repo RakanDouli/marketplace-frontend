@@ -27,6 +27,7 @@ export const SignupForm: React.FC = () => {
 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [formError, setFormError] = useState<string>('');
+  const [signupSuccess, setSignupSuccess] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -45,6 +46,7 @@ export const SignupForm: React.FC = () => {
 
     // Clear previous form error
     setFormError('');
+    setSignupSuccess(null);
 
     // Validate form - BLOCKS submission if errors exist
     const errors = validateSignupForm(formData);
@@ -56,12 +58,45 @@ export const SignupForm: React.FC = () => {
 
     try {
       await signup(formData.email, formData.password, formData.name, formData.accountType);
-      // Success - modal will close automatically via store
+      // Success - show confirmation message
+      setSignupSuccess(formData.email);
     } catch (signupError) {
       // Show error in Form component (inside modal)
       setFormError(error || 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى');
     }
   };
+
+  // Show success message if signup completed
+  if (signupSuccess) {
+    return (
+      <div className={styles.form}>
+        <div className={styles.successMessage}>
+          <div className={styles.successIcon}>✉️</div>
+          <Text variant="h3" style={{ marginBottom: '16px', textAlign: 'center' }}>
+            تم إنشاء الحساب بنجاح!
+          </Text>
+          <Text variant="paragraph" style={{ textAlign: 'center', marginBottom: '16px' }}>
+            تم إرسال رابط التأكيد إلى:
+          </Text>
+          <Text variant="paragraph" style={{ textAlign: 'center', fontWeight: 600, marginBottom: '24px' }}>
+            {signupSuccess}
+          </Text>
+          <Text variant="small" color="secondary" style={{ textAlign: 'center', marginBottom: '24px' }}>
+            يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد لتفعيل حسابك.
+            <br />
+            قد يستغرق وصول الرسالة بضع دقائق.
+          </Text>
+          <Button
+            variant="outline"
+            onClick={() => switchAuthView('login')}
+            style={{ width: '100%' }}
+          >
+            العودة لتسجيل الدخول
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.form}>

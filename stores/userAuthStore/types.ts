@@ -72,7 +72,7 @@ export interface UserAuthState {
   isLoading: boolean;
   error: string | null;
   showAuthModal: boolean;
-  authModalView: 'login' | 'signup' | 'magic-link';
+  authModalView: 'login' | 'signup';
   authModalCloseable: boolean;
   showExpirationWarning: boolean;
 }

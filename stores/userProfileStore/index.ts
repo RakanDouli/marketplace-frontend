@@ -11,6 +11,7 @@ import {
 } from './userProfile.gql';
 import { uploadToCloudflare } from '@/utils/cloudflare-upload';
 import { UserStatus } from '@/common/enums';
+import { supabase } from '@/lib/supabase';
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql";
 
@@ -20,6 +21,7 @@ const makeGraphQLCall = async (query: string, variables: any = {}, token?: strin
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Accept-Language": "ar", // Request Arabic error messages
       ...(token && { Authorization: `Bearer ${token}` }),
     },
     body: JSON.stringify({ query, variables }),
@@ -44,7 +46,7 @@ interface UserProfileActions {
   deleteAccount: (token: string) => Promise<boolean>;
   deactivateAccount: (token: string) => Promise<boolean>;
   sendPasswordResetEmail: (token: string, email: string) => Promise<boolean>;
-  changeEmail: (token: string, newEmail: string) => Promise<boolean>;
+  changeEmail: (token: string, newEmail: string, password: string) => Promise<boolean>;
   uploadAvatar: (token: string, file: File) => Promise<string>;
   deleteAvatar: (token: string) => Promise<boolean>;
   setLoading: (isLoading: boolean) => void;
@@ -123,7 +125,7 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
         {
           input: {
             email,
-            redirectTo: window.location.origin + '/reset-password'
+            redirectTo: window.location.origin + '/auth/reset-password'
           }
         }
         // No token needed - this is a public mutation
@@ -137,15 +139,32 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
     }
   },
 
-  // Change email
-  changeEmail: async (token: string, newEmail: string) => {
+  // Change email with password verification
+  // After success, automatically re-authenticates with new email to refresh JWT token
+  changeEmail: async (token: string, newEmail: string, password: string) => {
     set({ isLoading: true, error: null });
 
     try {
-      // TODO: Add mutation to change email with password verification
-      // For now, throw an error to indicate not implemented
-      throw new Error('Email change feature not yet implemented');
-      // await makeGraphQLCall(CHANGE_EMAIL_MUTATION, { input: { email: newEmail } }, token);
+      await makeGraphQLCall(
+        CHANGE_EMAIL_MUTATION,
+        { input: { newEmail, password } },
+        token
+      );
+
+      // IMPORTANT: Re-authenticate with new email to get fresh JWT token
+      // This is needed because the JWT still contains the old email after change
+      // Without this, subsequent email changes would fail (backend uses jwt.email)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: newEmail,
+        password,
+      });
+
+      if (signInError) {
+        console.warn('[ChangeEmail] Re-auth failed, user may need to re-login:', signInError);
+        // Email was changed successfully, but re-auth failed
+        // User might need to re-login manually
+      }
+
       set({ isLoading: false });
       return true;
     } catch (error) {
