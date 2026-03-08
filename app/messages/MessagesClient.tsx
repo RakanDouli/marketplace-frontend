@@ -153,23 +153,27 @@ export const MessagesClient: React.FC = () => {
     let isMounted = true;
 
     const fetchListingsForThreads = async () => {
-      const threadsWithData: ThreadWithListing[] = [];
+      // Fetch all listings in parallel for better performance
+      const listingPromises = threads
+        .filter(thread => {
+          // Skip threads with blocked users
+          const otherUserId = user?.id === thread.buyerId ? thread.sellerId : thread.buyerId;
+          return !isUserBlocked(otherUserId);
+        })
+        .map(async (thread) => {
+          try {
+            await fetchListingById(thread.listingId);
+            const listing = useListingsStore.getState().currentListing;
+            return { ...thread, listing };
+          } catch (error) {
+            // Listing might be deleted/archived - return thread without listing
+            return null;
+          }
+        });
 
-      for (const thread of threads) {
-        // Skip threads with blocked users
-        const otherUserId = user?.id === thread.buyerId ? thread.sellerId : thread.buyerId;
-        if (isUserBlocked(otherUserId)) {
-          continue;
-        }
-
-        try {
-          await fetchListingById(thread.listingId);
-          const listing = useListingsStore.getState().currentListing;
-          threadsWithData.push({ ...thread, listing });
-        } catch (error) {
-          // Listing might be deleted/archived - skip this thread
-        }
-      }
+      const results = await Promise.all(listingPromises);
+      // Filter out null results (failed listing fetches)
+      const threadsWithData = results.filter((thread): thread is ThreadWithListing => thread !== null);
 
       // Only update state if component is still mounted
       if (isMounted) {
