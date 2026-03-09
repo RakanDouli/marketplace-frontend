@@ -480,10 +480,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
           filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
+          console.log('[Realtime] INSERT event received:', payload);
           const newMessage = payload.new as ChatMessage;
+          console.log('[Realtime] New message:', { id: newMessage.id, senderId: newMessage.senderId, currentUserId: userId });
 
           // Add message to store if it's not from current user AND not already in state
           if (newMessage.senderId !== userId) {
+            console.log('[Realtime] Message is from other user, adding to store');
             set((state) => {
               // Check if message already exists
               const existingMessages = state.messages[threadId] || [];
