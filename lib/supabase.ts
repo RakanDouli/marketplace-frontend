@@ -13,6 +13,11 @@ const getSupabaseClient = () => {
         persistSession: true,
         autoRefreshToken: true,
       },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+      },
     });
   }
   return supabaseInstance;

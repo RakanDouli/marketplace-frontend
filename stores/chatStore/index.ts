@@ -458,8 +458,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   // Realtime Subscriptions
-  subscribeToThread: (threadId: string, userId: string) => {
+  subscribeToThread: async (threadId: string, userId: string) => {
     console.log('[Realtime] subscribeToThread called with:', { threadId, userId });
+
+    // Check Supabase auth session
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('[Realtime] Supabase session:', session ? `authenticated as ${session.user?.id}` : 'NOT AUTHENTICATED');
+
     const { realtimeChannel } = get();
 
     // Unsubscribe from previous channel if exists
