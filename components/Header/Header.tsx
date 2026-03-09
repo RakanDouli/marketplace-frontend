@@ -26,7 +26,7 @@ export const Header: React.FC = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const { user, userPackage, openAuthModal } = useUserAuthStore();
-  const { unreadCount, fetchUnreadCount, fetchMyThreads } = useChatStore();
+  const { unreadCount, fetchUnreadCount, fetchMyThreads, subscribeGlobal, unsubscribeGlobal } = useChatStore();
   const { loadMyWishlist } = useWishlistStore();
 
   // Listing limit check
@@ -34,18 +34,21 @@ export const Header: React.FC = () => {
   const currentListingsCount = userPackage?.currentListings || 0;
   const isAtLimit = maxListings > 0 && currentListingsCount >= maxListings;
 
-  // Fetch unread count and wishlist when user is logged in
+  // Fetch unread count, wishlist, and subscribe to realtime when user is logged in
   useEffect(() => {
-    if (user) {
-      fetchUnreadCount();
+    if (user?.id) {
       loadMyWishlist();
-      // Poll every 30 seconds for new messages
-      const interval = setInterval(() => {
+      // Fetch threads first, then subscribe to realtime for instant updates
+      fetchMyThreads().then(() => {
         fetchUnreadCount();
-      }, 30000);
-      return () => clearInterval(interval);
+        subscribeGlobal(user.id);
+      });
+
+      return () => {
+        unsubscribeGlobal();
+      };
     }
-  }, [user, fetchUnreadCount, loadMyWishlist]);
+  }, [user?.id, loadMyWishlist]);
 
   // Handle scroll behavior - hide when scrolling down, show when scrolling up
   useEffect(() => {
