@@ -459,6 +459,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   // Realtime Subscriptions
   subscribeToThread: (threadId: string, userId: string) => {
+    console.log('[Realtime] subscribeToThread called with:', { threadId, userId });
     const { realtimeChannel } = get();
 
     // Unsubscribe from previous channel if exists
@@ -620,8 +621,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
           });
         }
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('[Realtime] Subscription status:', status, err ? `Error: ${err.message}` : '');
+        if (status === 'SUBSCRIBED') {
+          console.log('[Realtime] Successfully subscribed to thread:', threadId);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] Channel error:', err);
+        } else if (status === 'TIMED_OUT') {
+          console.error('[Realtime] Subscription timed out');
+        }
+      });
 
+    console.log('[Realtime] Initiating subscription for thread:', threadId);
     set({ realtimeChannel: channel });
   },
 
