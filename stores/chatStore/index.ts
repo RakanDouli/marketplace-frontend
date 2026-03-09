@@ -482,6 +482,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         },
         (payload) => {
           console.log('[Realtime] INSERT event received:', payload);
+          console.log('[Realtime] payload.new keys:', Object.keys(payload.new || {}));
+          console.log('[Realtime] payload.new raw:', JSON.stringify(payload.new));
           const newMessage = payload.new as ChatMessage;
           console.log('[Realtime] New message:', { id: newMessage.id, senderId: newMessage.senderId, threadId: newMessage.threadId, currentUserId: userId });
 
