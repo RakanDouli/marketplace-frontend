@@ -481,24 +481,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
         (payload) => {
           const newMessage = payload.new as ChatMessage;
 
-          // Add message to store if it's not from current user
+          // Add message to store if it's not from current user AND not already in state
           if (newMessage.senderId !== userId) {
-            set((state) => ({
-              messages: {
-                ...state.messages,
-                [threadId]: [...(state.messages[threadId] || []), newMessage],
-              },
-              // Update thread's lastMessageAt and increment unreadCount
-              threads: state.threads.map(thread =>
-                thread.id === threadId
-                  ? {
-                      ...thread,
-                      lastMessageAt: newMessage.createdAt,
-                      unreadCount: (thread.unreadCount || 0) + 1,
-                    }
-                  : thread
-              ),
-            }));
+            set((state) => {
+              // Check if message already exists
+              const existingMessages = state.messages[threadId] || [];
+              const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
+
+              if (messageExists) {
+                return state; // Don't add duplicate
+              }
+
+              return {
+                messages: {
+                  ...state.messages,
+                  [threadId]: [...existingMessages, newMessage],
+                },
+                // Update thread's lastMessageAt and increment unreadCount
+                threads: state.threads.map(thread =>
+                  thread.id === threadId
+                    ? {
+                        ...thread,
+                        lastMessageAt: newMessage.createdAt,
+                        unreadCount: (thread.unreadCount || 0) + 1,
+                      }
+                    : thread
+                ),
+              };
+            });
 
             // Auto-mark as read if thread is currently active (user is viewing it)
             const currentActiveThread = get().activeThreadId;
