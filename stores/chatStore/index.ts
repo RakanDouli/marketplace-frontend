@@ -476,7 +476,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
-          filter: `thread_id=eq.${threadId}`,
+          filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
@@ -518,7 +518,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'UPDATE',
           schema: 'public',
           table: 'chat_messages',
-          filter: `thread_id=eq.${threadId}`,
+          filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
           const updatedMessage = payload.new as ChatMessage;
@@ -543,7 +543,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'UPDATE',
           schema: 'public',
           table: 'chat_participants',
-          filter: `thread_id=eq.${threadId}`,
+          filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
           // When other user reads messages, update message statuses to READ
