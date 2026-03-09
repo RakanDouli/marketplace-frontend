@@ -477,12 +477,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
-          filter: `threadId=eq.${threadId}`,
+          // Temporarily removed filter to test if events arrive without filtering
+          // filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
           console.log('[Realtime] INSERT event received:', payload);
           const newMessage = payload.new as ChatMessage;
-          console.log('[Realtime] New message:', { id: newMessage.id, senderId: newMessage.senderId, currentUserId: userId });
+          console.log('[Realtime] New message:', { id: newMessage.id, senderId: newMessage.senderId, threadId: newMessage.threadId, currentUserId: userId });
+
+          // Client-side filter: only process messages for this thread
+          if (newMessage.threadId !== threadId) {
+            console.log('[Realtime] Message not for this thread, ignoring');
+            return;
+          }
 
           // Add message to store if it's not from current user AND not already in state
           if (newMessage.senderId !== userId) {
@@ -532,10 +539,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'UPDATE',
           schema: 'public',
           table: 'chat_messages',
-          filter: `threadId=eq.${threadId}`,
+          // Temporarily removed filter to test if events arrive without filtering
+          // filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
           const updatedMessage = payload.new as ChatMessage;
+
+          // Client-side filter: only process messages for this thread
+          if (updatedMessage.threadId !== threadId) {
+            return;
+          }
 
           set((state) => ({
             messages: {
@@ -557,11 +570,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'UPDATE',
           schema: 'public',
           table: 'chat_participants',
-          filter: `threadId=eq.${threadId}`,
+          // Removed filter - camelCase columns don't work with Supabase Realtime filters
         },
         (payload) => {
           // When other user reads messages, update message statuses to READ
           const participant = payload.new as any;
+
+          // Client-side filter: only process participants for this thread
+          if (participant.threadId !== threadId) {
+            return;
+          }
 
           if (participant.userId !== userId && participant.lastReadAt) {
             const lastReadAt = new Date(participant.lastReadAt);
