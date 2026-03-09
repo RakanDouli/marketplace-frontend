@@ -213,6 +213,7 @@ export const MessagesClient: React.FC = () => {
   // Subscribe to realtime updates when thread is active
   useEffect(() => {
     if (activeThreadId && user?.id) {
+      console.log('[MessagesClient] useEffect triggered - subscribing to thread:', activeThreadId);
       subscribeToThread(activeThreadId, user.id);
 
       // Fetch messages for this thread
@@ -225,10 +226,12 @@ export const MessagesClient: React.FC = () => {
     // Cleanup: unsubscribe when thread changes or component unmounts
     return () => {
       if (activeThreadId) {
+        console.log('[MessagesClient] useEffect cleanup - unsubscribing from thread:', activeThreadId);
         unsubscribeFromThread();
       }
     };
-  }, [activeThreadId, user?.id, subscribeToThread, unsubscribeFromThread, fetchThreadMessages, markThreadRead]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeThreadId, user?.id]); // Only re-run when thread or user changes, NOT when functions change
 
   // Broadcast typing indicator when user types
   useEffect(() => {
