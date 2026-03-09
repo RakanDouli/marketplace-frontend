@@ -458,13 +458,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   // Realtime Subscriptions
-  subscribeToThread: async (threadId: string, userId: string) => {
-    console.log('[Realtime] subscribeToThread called with:', { threadId, userId });
-
-    // Check Supabase auth session
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log('[Realtime] Supabase session:', session ? `authenticated as ${session.user?.id}` : 'NOT AUTHENTICATED');
-
+  subscribeToThread: (threadId: string, userId: string) => {
     const { realtimeChannel } = get();
 
     // Unsubscribe from previous channel if exists
@@ -482,25 +476,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
-          // Temporarily removed filter to test if events arrive without filtering
-          // filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
-          console.log('[Realtime] INSERT event received:', payload);
-          console.log('[Realtime] payload.new keys:', Object.keys(payload.new || {}));
-          console.log('[Realtime] payload.new raw:', JSON.stringify(payload.new));
           const newMessage = payload.new as ChatMessage;
-          console.log('[Realtime] New message:', { id: newMessage.id, senderId: newMessage.senderId, threadId: newMessage.threadId, currentUserId: userId });
 
           // Client-side filter: only process messages for this thread
           if (newMessage.threadId !== threadId) {
-            console.log('[Realtime] Message not for this thread, ignoring');
             return;
           }
 
           // Add message to store if it's not from current user AND not already in state
           if (newMessage.senderId !== userId) {
-            console.log('[Realtime] Message is from other user, adding to store');
             set((state) => {
               // Check if message already exists
               const existingMessages = state.messages[threadId] || [];
@@ -546,8 +532,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'UPDATE',
           schema: 'public',
           table: 'chat_messages',
-          // Temporarily removed filter to test if events arrive without filtering
-          // filter: `threadId=eq.${threadId}`,
         },
         (payload) => {
           const updatedMessage = payload.new as ChatMessage;
@@ -577,7 +561,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           event: 'UPDATE',
           schema: 'public',
           table: 'chat_participants',
-          // Removed filter - camelCase columns don't work with Supabase Realtime filters
         },
         (payload) => {
           // When other user reads messages, update message statuses to READ
@@ -649,18 +632,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
           });
         }
       })
-      .subscribe((status, err) => {
-        console.log('[Realtime] Subscription status:', status, err ? `Error: ${err.message}` : '');
-        if (status === 'SUBSCRIBED') {
-          console.log('[Realtime] Successfully subscribed to thread:', threadId);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('[Realtime] Channel error:', err);
-        } else if (status === 'TIMED_OUT') {
-          console.error('[Realtime] Subscription timed out');
-        }
-      });
+      .subscribe();
 
-    console.log('[Realtime] Initiating subscription for thread:', threadId);
     set({ realtimeChannel: channel });
   },
 
