@@ -14,6 +14,7 @@ import { useCreateListingStore } from '@/stores/createListingStore';
 import { GET_BRANDS_QUERY, GET_MODELS_QUERY, GET_VARIANTS_BY_BRAND_QUERY, GET_MODEL_SUGGESTION_QUERY } from '@/stores/createListingStore/createListing.gql';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useCategoriesStore } from '@/stores/categoriesStore';
 import { useCurrencyStore, CURRENCY_SYMBOLS } from '@/stores/currencyStore';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
@@ -139,6 +140,14 @@ export default function CreateListingWizardPage() {
   const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
   const conditionAttribute = attributes.find(attr => attr.key === 'condition');
 
+  // Get current category to check supportedListingTypes
+  const { getCategoryById } = useCategoriesStore();
+  const currentCategory = formData.categoryId ? getCategoryById(formData.categoryId) : null;
+  const supportedListingTypes = currentCategory?.supportedListingTypes || [];
+
+  // If category only supports one listing type, auto-set it and hide the selector
+  const shouldShowListingTypeSelector = listingTypeAttribute && supportedListingTypes.length > 1;
+
   // Separate first group (lowest groupOrder) from other dynamic groups
   // Sort by groupOrder to find the first one dynamically
   const sortedGroups = [...attributeGroups].sort((a, b) => a.groupOrder - b.groupOrder);
@@ -230,7 +239,8 @@ export default function CreateListingWizardPage() {
     if (titleFilled) basicInfoFilled++;
     if (descriptionFilled) basicInfoFilled++;
     if (priceFilled) basicInfoFilled++;
-    if (listingTypeAttribute) {
+    // Only count listingType in total if we're showing the selector (multiple types supported)
+    if (shouldShowListingTypeSelector) {
       basicInfoTotal++;
       if (listingTypeFilled) basicInfoFilled++;
     }
@@ -239,11 +249,13 @@ export default function CreateListingWizardPage() {
       if (conditionFilled) basicInfoFilled++;
     }
 
+    // For required validation, if category only supports one type, it's auto-filled so always OK
+    const listingTypeOk = !shouldShowListingTypeSelector || !listingTypeRequired || listingTypeFilled;
     const basicInfoRequiredOk = titleFilled && priceFilled &&
-      (!listingTypeRequired || listingTypeFilled) &&
+      listingTypeOk &&
       (!conditionRequired || conditionFilled);
     const basicInfoError = (touched.title && !titleFilled) || (touched.price && !priceFilled) ||
-      (touched.listingType && listingTypeRequired && !listingTypeFilled) ||
+      (shouldShowListingTypeSelector && touched.listingType && listingTypeRequired && !listingTypeFilled) ||
       (touched.condition && conditionRequired && !conditionFilled);
 
     // Media
@@ -498,6 +510,14 @@ export default function CreateListingWizardPage() {
       router.push('/dashboard/listings/create');
     }
   }, [draftId, draftIdFromUrl, formData.categoryId, router, isLoadingDraft]);
+
+  // Auto-set listingType if category only supports one type
+  useEffect(() => {
+    if (supportedListingTypes.length === 1 && !formData.listingType) {
+      // Category only supports one listing type, auto-set it
+      setFormField('listingType', supportedListingTypes[0]);
+    }
+  }, [supportedListingTypes, formData.listingType, setFormField]);
 
   // Fetch provinces
   useEffect(() => {
@@ -1280,7 +1300,8 @@ export default function CreateListingWizardPage() {
                       />
                     )}
 
-                    {listingTypeAttribute && (
+                    {/* Only show listing type selector if category supports multiple types */}
+                    {shouldShowListingTypeSelector && (
                       <Input
                         type="select"
                         label={listingTypeAttribute.name}

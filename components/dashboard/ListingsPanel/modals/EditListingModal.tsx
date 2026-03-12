@@ -11,6 +11,7 @@ import { useUserListingsStore } from '@/stores/userListingsStore';
 import { useUserAuthStore } from '@/stores/userAuthStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useCategoriesStore } from '@/stores/categoriesStore';
 import { cachedGraphQLRequest } from '@/utils/graphql-cache';
 import { LISTING_STATUS_LABELS, REJECTION_REASON_LABELS, mapToOptions, getLabel } from '@/constants/metadata-labels';
 import { renderAttributeField } from '@/utils/attributeFieldRenderer';
@@ -226,6 +227,14 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
   const listingTypeAttribute = attributes.find(attr => attr.key === 'listingType');
   const conditionAttribute = attributes.find(attr => attr.key === 'condition');
 
+  // Get current category to check supportedListingTypes
+  const { getCategoryById } = useCategoriesStore();
+  const currentCategory = listing.category?.id ? getCategoryById(listing.category.id) : null;
+  const supportedListingTypes = currentCategory?.supportedListingTypes || [];
+
+  // If category only supports one listing type, auto-set it and hide the selector
+  const shouldShowListingTypeSelector = listingTypeAttribute && supportedListingTypes.length > 1;
+
   // Group attributes by group field (like create page store does)
   const attributeGroups: AttributeGroup[] = useMemo(() => {
     // Filter out non-spec attributes
@@ -285,7 +294,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
     if (titleFilled) basicInfoFilled++;
     if (descriptionFilled) basicInfoFilled++;
     if (priceFilled) basicInfoFilled++;
-    if (listingTypeAttribute) {
+    // Only count listingType in total if we're showing the selector (multiple types supported)
+    if (shouldShowListingTypeSelector) {
       basicInfoTotal++;
       if (listingTypeFilled) basicInfoFilled++;
     }
@@ -294,8 +304,10 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       if (conditionFilled) basicInfoFilled++;
     }
 
+    // For required validation, if category only supports one type, it's auto-filled so always OK
+    const listingTypeOk = !shouldShowListingTypeSelector || !listingTypeRequired || listingTypeFilled;
     const basicInfoRequiredOk = titleFilled && priceFilled &&
-      (!listingTypeRequired || listingTypeFilled) &&
+      listingTypeOk &&
       (!conditionRequired || conditionFilled);
     const basicInfoAllFilled = basicInfoFilled === basicInfoTotal;
 
@@ -448,6 +460,13 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       metadataStore.fetchLocationMetadata();
     }
   }, [provinces.length]);
+
+  // Auto-set listingType if category only supports one type
+  useEffect(() => {
+    if (supportedListingTypes.length === 1 && !formData.listingType) {
+      setFormData(prev => ({ ...prev, listingType: supportedListingTypes[0] }));
+    }
+  }, [supportedListingTypes, formData.listingType]);
 
   // Fetch attributes
   useEffect(() => {
@@ -1258,7 +1277,8 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
                 />
               )}
 
-              {listingTypeAttribute && (
+              {/* Only show listing type selector if category supports multiple types */}
+              {shouldShowListingTypeSelector && (
                 <Input
                   type="select"
                   label={listingTypeAttribute.name}
