@@ -181,29 +181,22 @@ export const ListingsPanel: React.FC = () => {
   };
 
   // Handle edit save
+  // Note: Errors are NOT caught here - they bubble up to the modal for inline display
+  // Only success shows notification since the modal closes on success
   const handleEditSave = async (updatedData: Partial<Listing>) => {
     if (!selectedListing) return;
 
-    try {
-      await updateMyListing(selectedListing.id, updatedData);
+    await updateMyListing(selectedListing.id, updatedData);
 
-      addNotification({
-        type: 'success',
-        title: 'تم تحديث الإعلان بنجاح',
-        message: 'تم حفظ التغييرات بنجاح',
-        duration: 3000
-      });
-      setShowEditModal(false);
-      setSelectedListing(null);
-    } catch (error) {
-      console.error('Update listing error:', error);
-      addNotification({
-        type: 'error',
-        title: 'فشل في تحديث الإعلان',
-        message: 'حدث خطأ أثناء حفظ التغييرات',
-        duration: 5000
-      });
-    }
+    // Success notification (modal will close after this)
+    addNotification({
+      type: 'success',
+      title: 'تم تحديث الإعلان بنجاح',
+      message: 'تم حفظ التغييرات بنجاح',
+      duration: 3000
+    });
+    setShowEditModal(false);
+    setSelectedListing(null);
   };
 
 
