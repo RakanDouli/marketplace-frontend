@@ -179,8 +179,8 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // Step 1: Upload to Cloudflare using unified utility
-      const realImageId = await uploadToCloudflare(file, 'avatar');
+      // Step 1: Upload to Cloudflare using unified utility (with metadata for cleanup)
+      const realImageId = await uploadToCloudflare(file, 'avatar', { type: 'profile' });
 
       // Step 2: Save REAL Cloudflare ID to database
       await makeGraphQLCall(

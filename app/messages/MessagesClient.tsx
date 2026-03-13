@@ -326,10 +326,10 @@ export const MessagesClient: React.FC = () => {
     try {
       let imageKeys: string[] | undefined;
 
-      // Upload images if selected (using unified utility)
+      // Upload images if selected (using unified utility with metadata for cleanup)
       if (selectedImages.length > 0) {
         const { uploadMultipleToCloudflare } = await import('@/utils/cloudflare-upload');
-        imageKeys = await uploadMultipleToCloudflare(selectedImages, 'image');
+        imageKeys = await uploadMultipleToCloudflare(selectedImages, 'image', { type: 'message' });
       }
 
       // Send message with optional images

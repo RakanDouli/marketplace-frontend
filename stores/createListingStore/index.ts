@@ -350,9 +350,11 @@ export const useCreateListingStore = create<CreateListingStore>((set, get) => ({
 
     try {
       // 1. Upload to Cloudflare FIRST (before creating draft) - with progress tracking
+      // Include context metadata for future cleanup scripts
+      const uploadContext = { type: 'listing' as const, category: formData.categoryId };
       const imageKey = onProgress
-        ? await uploadToCloudflareWithProgress(file, 'image', onProgress)
-        : await uploadToCloudflare(file, 'image');
+        ? await uploadToCloudflareWithProgress(file, 'image', onProgress, uploadContext)
+        : await uploadToCloudflare(file, 'image', uploadContext);
 
       // 2. Ensure draft exists (creates if needed - lazy creation)
       const draftId = await get().ensureDraftExists();

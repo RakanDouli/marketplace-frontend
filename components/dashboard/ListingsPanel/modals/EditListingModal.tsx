@@ -682,12 +682,14 @@ export function EditListingModal({ listing, onClose, onSave }: EditListingModalP
       for (let i = 0; i < addedImages.length; i++) {
         const img = addedImages[i];
         if (img.file) {
+          // Include context metadata for future cleanup scripts
+          const uploadContext = { type: 'listing' as const, category: listing.category?.id };
           const imageKey = await uploadToCloudflareWithProgress(img.file, 'image', (progress) => {
             // Update progress for this specific image
             setPendingImages(prev => prev.map((p, idx) =>
               idx === i ? { ...p, uploadProgress: progress } : p
             ));
-          });
+          }, uploadContext);
           uploadedImageKeys.push(imageKey);
         }
       }

@@ -17,6 +17,15 @@ export interface CloudflareUploadError {
 export type ProgressCallback = (progress: number) => void;
 
 /**
+ * Context for Cloudflare metadata - enables future cleanup scripts
+ * Example: Delete all 'message' images older than 30 days
+ */
+export interface UploadContext {
+  type: 'profile' | 'listing' | 'message';
+  category?: string; // e.g., 'cars', 'phones' - only for listings
+}
+
+/**
  * Upload a single file (image or video) to Cloudflare
  *
  * @param file - The image or video file to upload
@@ -86,7 +95,8 @@ async function directGraphQLRequest(query: string): Promise<any> {
 
 export async function uploadToCloudflare(
   file: File,
-  mutationType: 'image' | 'avatar' | 'video' = 'image'
+  mutationType: 'image' | 'avatar' | 'video' = 'image',
+  context?: UploadContext
 ): Promise<string> {
   try {
     // Step 1: Get fresh Cloudflare upload URL from backend (direct request, no cache!)
@@ -106,9 +116,19 @@ export async function uploadToCloudflare(
     const data = await directGraphQLRequest(mutation);
     const { uploadUrl, assetKey } = data[field];
 
-    // Step 2: Upload file to Cloudflare
+    // Step 2: Upload file to Cloudflare with metadata for future cleanup
     const formData = new FormData();
     formData.append('file', file);
+
+    // Add metadata for future cleanup scripts (e.g., delete message images after 30 days)
+    const metadata: Record<string, string> = {
+      type: context?.type || (mutationType === 'avatar' ? 'profile' : 'listing'),
+      uploadedAt: new Date().toISOString(),
+    };
+    if (context?.category) {
+      metadata.category = context.category;
+    }
+    formData.append('metadata', JSON.stringify(metadata));
 
     const uploadResponse = await fetch(uploadUrl, {
       method: 'POST',
@@ -151,7 +171,8 @@ export async function uploadToCloudflare(
 export async function uploadToCloudflareWithProgress(
   file: File,
   mutationType: 'image' | 'avatar' | 'video' = 'image',
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  context?: UploadContext
 ): Promise<string> {
   try {
     // Step 1: Get fresh Cloudflare upload URL from backend
@@ -172,6 +193,16 @@ export async function uploadToCloudflareWithProgress(
     // Step 2: Upload file to Cloudflare with progress tracking using XMLHttpRequest
     const formData = new FormData();
     formData.append('file', file);
+
+    // Add metadata for future cleanup scripts
+    const metadata: Record<string, string> = {
+      type: context?.type || (mutationType === 'avatar' ? 'profile' : 'listing'),
+      uploadedAt: new Date().toISOString(),
+    };
+    if (context?.category) {
+      metadata.category = context.category;
+    }
+    formData.append('metadata', JSON.stringify(metadata));
 
     const uploadResult = await new Promise<any>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -238,10 +269,11 @@ export async function uploadToCloudflareWithProgress(
  */
 export async function uploadMultipleToCloudflare(
   files: File[],
-  mutationType: 'image' | 'avatar' | 'video' = 'image'
+  mutationType: 'image' | 'avatar' | 'video' = 'image',
+  context?: UploadContext
 ): Promise<string[]> {
   try {
-    const uploadPromises = files.map(file => uploadToCloudflare(file, mutationType));
+    const uploadPromises = files.map(file => uploadToCloudflare(file, mutationType, context));
     const assetIds = await Promise.all(uploadPromises);
     return assetIds;
   } catch (error) {

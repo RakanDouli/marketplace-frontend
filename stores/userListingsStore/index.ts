@@ -250,9 +250,11 @@ export const useUserListingsStore = create<UserListingsStore>((set, get) => ({
   // ===== IMAGE OPERATIONS =====
 
   // Upload single image and update listing (use for single image upload)
-  uploadListingImage: async (listingId: string, file: File, currentImageKeys: string[], onProgress?: ProgressCallback) => {
+  uploadListingImage: async (listingId: string, file: File, currentImageKeys: string[], onProgress?: ProgressCallback, categoryId?: string) => {
     try {
-      const imageKey = await uploadToCloudflareWithProgress(file, 'image', onProgress);
+      // Include context metadata for future cleanup scripts
+      const uploadContext = { type: 'listing' as const, category: categoryId };
+      const imageKey = await uploadToCloudflareWithProgress(file, 'image', onProgress, uploadContext);
       const newImageKeys = [...currentImageKeys, imageKey];
       await cachedGraphQLRequest(
         UPDATE_MY_LISTING_MUTATION,
