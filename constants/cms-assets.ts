@@ -15,8 +15,9 @@ export const CMS_ASSETS = {
    * Homepage Assets
    */
   home: {
-    // Main CTA - "Sell Your Car" banner
+    // Main CTA banners
     promoBanner: {
+      phone: '/images/cms/phone.avif',
       car: '/images/cms/car.avif',
     },
 

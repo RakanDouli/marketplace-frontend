@@ -23,7 +23,17 @@ import {
 import styles from './Home.module.scss';
 
 // Promo cards config - "Add listing" CTAs for categories
+// Order: Cars first, then Real Estate (Phones is now the main banner)
 const promoCategories = [
+  {
+    slug: 'cars',
+    title: 'هل لديك سيارة للبيع؟',
+    subtitle: 'أضف إعلانك الآن واوصل لآلاف المشترين',
+    buttonText: 'أضف إعلانك',
+    buttonHref: '/dashboard/listings/create?category=cars',
+    imageSrc: CMS_ASSETS.home.promoBanner.car,
+    imageAlt: 'بيع سيارتك',
+  },
   {
     slug: 'real-estate',
     title: 'هل لديك عقار للبيع؟',
@@ -33,15 +43,6 @@ const promoCategories = [
     imageSrc: CMS_ASSETS.home.promoCards.realEstate,
     imageAlt: 'بيع عقارك',
     badge: 'جديد',
-  },
-  {
-    slug: 'electronics',
-    title: 'هل لديك جهاز للبيع؟',
-    subtitle: 'أضف إعلانك الآن واوصل لآلاف المشترين',
-    buttonText: 'أضف إعلانك',
-    buttonHref: '/dashboard/listings/create?category=electronics',
-    imageSrc: CMS_ASSETS.home.promoCards.electronics,
-    imageAlt: 'بيع جهازك',
   },
 ];
 
@@ -84,14 +85,14 @@ export default function HomeClient({ categories }: HomeClientProps) {
       {/* 2. Category Tabs - Server-side fetched for instant display */}
       <CategorySection categories={categories} />
 
-      {/* 3. Main CTA - Sell Your Car (Dubizzle style: CTA first) */}
+      {/* 3. Main CTA - Sell Your Phone (Phones-first strategy) */}
       <PromoBanner
-        title="هل لديك سيارة للبيع؟"
+        title="هل لديك جهاز للبيع؟"
         subtitle="أضف إعلانك الآن واوصل لآلاف المشترين"
         buttonText="أضف إعلانك"
-        buttonHref="/dashboard/listings/create"
-        imageSrc={CMS_ASSETS.home.promoBanner.car}
-        imageAlt="بيع سيارتك"
+        buttonHref="/dashboard/listings/create?category=electronics"
+        imageSrc={CMS_ASSETS.home.promoBanner.phone}
+        imageAlt="بيع جهازك"
       />
 
       {/* 4. Featured Listings */}

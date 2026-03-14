@@ -28,6 +28,13 @@
   }
 }
 
+.heroTagline {
+  color: $text-light;
+  margin-top: $space-sm;
+  font-weight: $weight-medium;
+  letter-spacing: 0.5px;
+}
+
 // Cards Wrapper - Pulls up into the hero
 .cardsWrapper {
   position: relative;

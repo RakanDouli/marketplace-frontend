@@ -63,8 +63,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ categories: se
           <Text variant="h1" className={styles.heroTitle}>
             مرحباً بكم في شام باي
           </Text>
-          <Text variant="paragraph" className={styles.heroSubtitle}>
-            منصتك الأولى للبيع والشراء في سوريا
+          <Text variant="h3" className={styles.heroTagline}>
+            بيع بذكاء. اشترِ بثقة.
           </Text>
         </div>
       </Container>

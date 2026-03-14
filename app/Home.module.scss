@@ -104,6 +104,24 @@
   }
 }
 
+// Brand Tagline - Centered under hero
+.brandTagline {
+  text-align: center;
+  padding: $space-md 0 $space-lg;
+
+  p {
+    font-size: $font-xl;
+    font-weight: $weight-semibold;
+    color: $primary;
+    margin: 0;
+    letter-spacing: 0.5px;
+
+    @media (max-width: $breakpoint-md) {
+      font-size: $font-lg;
+    }
+  }
+}
+
 // Promo Cards Grid
 .promoCardsGrid {
   display: grid;
