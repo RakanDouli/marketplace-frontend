@@ -13,6 +13,7 @@ import { ListingLimitModal } from "@/components/ListingLimitModal";
 import { useChatStore } from "@/stores/chatStore";
 import { useUserAuthStore } from "@/stores/userAuthStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
+import { useNotificationStore } from "@/stores/notificationStore";
 import styles from "./Header.module.scss";
 import { Container } from "../slices";
 import { Preheader } from "../Preheader";
@@ -28,6 +29,12 @@ export const Header: React.FC = () => {
   const { user, userPackage, openAuthModal } = useUserAuthStore();
   const { unreadCount, fetchUnreadCount, fetchMyThreads, subscribeGlobal, unsubscribeGlobal } = useChatStore();
   const { loadMyWishlist } = useWishlistStore();
+  const { addNotification } = useNotificationStore();
+
+  // Check if user is suspended or banned
+  const isSuspended = user?.status === 'SUSPENDED' || user?.status === 'suspended';
+  const isBanned = user?.status === 'BANNED' || user?.status === 'banned';
+  const isBlocked = isSuspended || isBanned;
 
   // Listing limit check
   const maxListings = userPackage?.userSubscription?.maxListings || 0;
@@ -102,12 +109,33 @@ export const Header: React.FC = () => {
     router.push('/dashboard/wishlist');
   };
 
-  // Handle create listing button click - check auth and limit
+  // Handle create listing button click - check auth, suspension, and limit
   const handleCreateListingClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
     if (!user) {
       openAuthModal('login');
+      return;
+    }
+
+    // Check if user is suspended or banned
+    if (isBlocked) {
+      const bannedUntilDate = user.bannedUntil
+        ? new Date(user.bannedUntil).toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+        : '';
+
+      addNotification({
+        type: 'error',
+        title: isBanned ? 'حسابك محظور' : 'حسابك موقوف مؤقتاً',
+        message: isBanned
+          ? 'تم حظر حسابك نهائياً. لا يمكنك إضافة إعلانات جديدة.'
+          : `حسابك موقوف مؤقتاً حتى ${bannedUntilDate}. لا يمكنك إضافة إعلانات جديدة.`,
+        duration: 10000,
+      });
       return;
     }
 
