@@ -209,6 +209,8 @@ async function fetchFilterAttributes(
               count: option.count,
               modelId: option.modelId,
               modelName: option.modelName,
+              ...(option.nameAr && { nameAr: option.nameAr }),
+              ...(option.logoUrl && { logoUrl: option.logoUrl }),
             }));
           }
         }

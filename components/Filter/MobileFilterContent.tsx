@@ -34,7 +34,7 @@ export type MobileFilterScreen =
 
 // Brand/Model data for dedicated filter
 interface BrandModelData {
-  brandOptions: Array<{ key: string; value: string; count?: number }>;
+  brandOptions: Array<{ key: string; value: string; count?: number; nameAr?: string; logoUrl?: string }>;
   modelVariantOptions: Array<{
     key: string;
     value: string;
@@ -339,26 +339,52 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
         {/* Other dynamic filters */}
         {attributes.map((attribute) => {
           const valueDisplay = getValueDisplay(attribute);
+          const isLocationAttr = attribute.key === 'location' || attribute.key === 'province';
+          const selectedProvince = isLocationAttr
+            ? (draftFilters.specs?.location || draftFilters.province || appliedFilters.specs?.location || appliedFilters.province)
+            : null;
 
           return (
-            <button
-              key={attribute.id}
-              type="button"
-              className={styles.filterItem}
-              onClick={() => navigateToDetail(attribute)}
-            >
-              <div className={styles.filterItemContent}>
-                <Text variant="h4" className={styles.filterName}>
-                  {attribute.name}
-                </Text>
-                {valueDisplay && (
-                  <Text variant="small" className={styles.filterValue}>
-                    {valueDisplay}
+            <React.Fragment key={attribute.id}>
+              <button
+                type="button"
+                className={styles.filterItem}
+                onClick={() => navigateToDetail(attribute)}
+              >
+                <div className={styles.filterItemContent}>
+                  <Text variant="h4" className={styles.filterName}>
+                    {attribute.name}
                   </Text>
-                )}
-              </div>
-              <ChevronLeft size={20} className={styles.chevron} />
-            </button>
+                  {valueDisplay && (
+                    <Text variant="small" className={styles.filterValue}>
+                      {valueDisplay}
+                    </Text>
+                  )}
+                </div>
+                <ChevronLeft size={20} className={styles.chevron} />
+              </button>
+
+              {/* Radius selector - appears when province is selected */}
+              {isLocationAttr && selectedProvince && (
+                <div className={styles.radiusRow}>
+                  <Text variant="small" className={styles.radiusLabel}>ابحث ضمن محيط</Text>
+                  <select
+                    className={styles.radiusSelect}
+                    value={draftFilters.radiusKm?.toString() || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      onFilterChange('radiusKm', value ? parseInt(value) : undefined);
+                    }}
+                  >
+                    <option value="">الكل</option>
+                    <option value="10">10 كم</option>
+                    <option value="25">25 كم</option>
+                    <option value="50">50 كم</option>
+                    <option value="100">100 كم</option>
+                  </select>
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>
@@ -629,7 +655,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                     <Text variant="paragraph">{option.value}</Text>
                     {option.count !== undefined && (
                       <Text variant="small" className={styles.optionCount}>
-                        ({option.count})
+                        {option.count}
                       </Text>
                     )}
                   </div>
@@ -663,7 +689,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                         <Text variant="paragraph">{option.value}</Text>
                         {option.count !== undefined && (
                           <Text variant="small" className={styles.optionCount}>
-                            ({option.count})
+                            {option.count}
                           </Text>
                         )}
                       </div>
@@ -694,7 +720,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                   <div key={option.key} className={styles.groupHeader}>
                     <Text variant="h4" className={styles.groupHeaderText}>
                       {option.value}
-                      {option.count !== undefined && ` (${option.count})`}
+                      {option.count !== undefined && ` ${option.count}`}
                     </Text>
                   </div>
                 );
@@ -712,7 +738,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                     <Text variant="paragraph">{option.value}</Text>
                     {option.count !== undefined && (
                       <Text variant="small" className={styles.optionCount}>
-                        ({option.count})
+                        {option.count}
                       </Text>
                     )}
                   </div>
@@ -742,7 +768,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                   <Text variant="paragraph">{option.value}</Text>
                   {option.count !== undefined && (
                     <Text variant="small" className={styles.optionCount}>
-                      ({option.count})
+                      {option.count}
                     </Text>
                   )}
                 </div>
@@ -799,7 +825,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                   <Text variant="paragraph">{option.value}</Text>
                   {option.count !== undefined && (
                     <Text variant="small" className={styles.optionCount}>
-                      ({option.count})
+                      {option.count}
                     </Text>
                   )}
                 </div>
@@ -1048,10 +1074,17 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                   }}
                 >
                   <div className={styles.optionContent}>
-                    <Text variant="paragraph">{brand.value}</Text>
+                    <span className={styles.brandInfo}>
+                      {brand.logoUrl && (
+                        <img src={brand.logoUrl} alt="" className={styles.brandLogo} />
+                      )}
+                      <Text variant="paragraph">
+                        {brand.nameAr ? `${brand.nameAr} - ${brand.value}` : brand.value}
+                      </Text>
+                    </span>
                     {brand.count !== undefined && (
                       <Text variant="small" className={styles.optionCount}>
-                        ({brand.count})
+                        {brand.count}
                       </Text>
                     )}
                   </div>
@@ -1118,7 +1151,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                     <Text variant="paragraph">{model.value}</Text>
                     {model.count !== undefined && (
                       <Text variant="small" className={styles.optionCount}>
-                        ({model.count})
+                        {model.count}
                       </Text>
                     )}
                   </div>
@@ -1150,7 +1183,7 @@ export const MobileFilterContent: React.FC<MobileFilterContentProps> = ({
                         <Text variant="paragraph">{variant.value}</Text>
                         {variant.count !== undefined && (
                           <Text variant="small" className={styles.optionCount}>
-                            ({variant.count})
+                            {variant.count}
                           </Text>
                         )}
                       </div>

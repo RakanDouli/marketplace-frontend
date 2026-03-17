@@ -43,7 +43,8 @@ export function PublicLayoutClient({ children }: PublicLayoutClientProps) {
   // Don't show footer at all on these pages (both desktop and mobile)
   const isMessagesPage = pathname?.startsWith('/messages');
   const isCreateListingWizard = pathname?.startsWith('/dashboard/listings/create');
-  const hideFooterCompletely = isMessagesPage || isCreateListingWizard;
+  const isMapPage = pathname?.startsWith('/map');
+  const hideFooterCompletely = isMessagesPage || isCreateListingWizard || isMapPage;
 
   // Hide footer on mobile only for these pages (keep on desktop)
   // Categories page: /categories

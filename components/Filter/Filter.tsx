@@ -27,6 +27,7 @@ import {
   PriceFilter,
   BrandModelFilter,
 } from "./components";
+import { SYRIA_PROVINCE_COORDS } from "./provinceCoords";
 import styles from "./Filter.module.scss";
 
 
@@ -57,6 +58,11 @@ export interface FilterValues {
     }
     | number[] // Support array format for range filters
   >;
+
+  // Radius filter
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
 
   // Legacy support
   search?: string;
@@ -195,14 +201,14 @@ export const Filter: React.FC<FilterProps> = ({
     ) {
       // Show if there are any options (from seeder) or processedOptions
       const hasOptions = (attribute.options && attribute.options.length > 0) ||
-                        (attribute.processedOptions && attribute.processedOptions.length > 0);
+        (attribute.processedOptions && attribute.processedOptions.length > 0);
       return hasOptions;
     }
 
     // For RANGE_SELECTOR, show if options are defined
     if (attribute.type === AttributeType.RANGE_SELECTOR) {
       const hasOptions = (attribute.options && attribute.options.length > 0) ||
-                        (attribute.processedOptions && attribute.processedOptions.length > 0);
+        (attribute.processedOptions && attribute.processedOptions.length > 0);
       return hasOptions;
     }
 
@@ -369,6 +375,17 @@ export const Filter: React.FC<FilterProps> = ({
     const provinceValue = freshDraftFilters.specs?.location || freshDraftFilters.province;
     if (provinceValue) {
       storeFilters.province = provinceValue;
+
+      // Radius filter - look up province coords and apply
+      if (freshDraftFilters.radiusKm) {
+        const provinceKey = typeof provinceValue === 'string' ? provinceValue.toLowerCase() : '';
+        const coords = SYRIA_PROVINCE_COORDS[provinceKey];
+        if (coords) {
+          storeFilters.lat = coords.lat;
+          storeFilters.lng = coords.lng;
+          storeFilters.radiusKm = freshDraftFilters.radiusKm;
+        }
+      }
     }
     if (freshDraftFilters.city) {
       storeFilters.city = freshDraftFilters.city;
@@ -437,6 +454,41 @@ export const Filter: React.FC<FilterProps> = ({
               count: opt.count,
             }))}
           />
+        );
+      }
+
+      // Location selector: add radius dropdown after province selection
+      if (attribute.key === 'location') {
+        const selectedProvince = getSingleSelectorValue(attribute.key);
+        return (
+          <div key={attribute.id}>
+            <SelectFilter
+              attributeKey={attribute.key}
+              label={attribute.name}
+              options={attribute.processedOptions}
+              value={selectedProvince}
+              onChange={(value) => handleSpecChange(attribute.key, value)}
+              hideLabel
+            />
+            {selectedProvince && (
+              <SelectFilter
+                attributeKey="radiusKm"
+                label="ابحث ضمن محيط"
+                options={[
+                  { key: '', value: 'الكل', count: 0 },
+                  { key: '10', value: '10 كم', count: 0 },
+                  { key: '25', value: '25 كم', count: 0 },
+                  { key: '50', value: '50 كم', count: 0 },
+                  { key: '100', value: '100 كم', count: 0 },
+                ]}
+                value={draftFilters.radiusKm?.toString() || ''}
+                onChange={(value) => {
+                  setDraftFilter('radiusKm', value ? parseInt(value) : undefined);
+                }}
+                hideLabel={false}
+              />
+            )}
+          </div>
         );
       }
 

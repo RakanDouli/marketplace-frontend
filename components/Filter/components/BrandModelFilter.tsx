@@ -10,6 +10,8 @@ interface BrandOption {
   key: string;
   value: string;
   count?: number;
+  nameAr?: string;
+  logoUrl?: string;
 }
 
 interface ModelVariantOption {
@@ -66,8 +68,9 @@ export const BrandModelFilter: React.FC<BrandModelFilterProps> = ({
   const brandSelectOptions = useMemo(() => {
     return brandOptions.map(opt => ({
       value: opt.key,
-      label: opt.value,
+      label: opt.nameAr ? `${opt.nameAr} - ${opt.value}` : opt.value,
       count: showCounts ? opt.count : undefined,
+      logoUrl: opt.logoUrl,
     }));
   }, [brandOptions, showCounts]);
 
@@ -78,8 +81,9 @@ export const BrandModelFilter: React.FC<BrandModelFilterProps> = ({
     if (opt) {
       return {
         value: opt.key,
-        label: opt.value,
+        label: opt.nameAr ? `${opt.nameAr} - ${opt.value}` : opt.value,
         count: showCounts ? opt.count : undefined,
+        logoUrl: opt.logoUrl,
       };
     }
     return null;

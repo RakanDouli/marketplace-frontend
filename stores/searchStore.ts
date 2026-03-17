@@ -35,6 +35,17 @@ export interface SearchFilters {
   // Dynamic specs (all attribute filters)
   specs?: Record<string, any>;
 
+  // Radius filter
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+
+  // Map bounds filter
+  northLat?: number;
+  southLat?: number;
+  eastLng?: number;
+  westLng?: number;
+
   // Pagination
   page?: number;
   limit?: number;

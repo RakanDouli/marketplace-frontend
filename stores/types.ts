@@ -68,6 +68,15 @@ export interface ListingsState {
     search?: string;
     // Sorting
     sort?: string;
+    // Radius filter
+    lat?: number;
+    lng?: number;
+    radiusKm?: number;
+    // Map bounds filter
+    northLat?: number;
+    southLat?: number;
+    eastLng?: number;
+    westLng?: number;
   };
   pagination: {
     page: number;

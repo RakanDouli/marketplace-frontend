@@ -11,6 +11,10 @@ export interface SelectOption {
   key: string;
   value: string;
   count?: number;
+  /** Arabic name (for brands) */
+  nameAr?: string;
+  /** Logo URL (for brands) */
+  logoUrl?: string;
   /** Group key for optgroup display (e.g., modelId for variants) */
   groupKey?: string;
   /** Group label for optgroup display (e.g., modelName for variants) */
@@ -269,7 +273,7 @@ export const SelectFilter: React.FC<SelectFilterProps> = ({
           { value: "", label: t("search.selectOption") },
           ...processedOptions.map((option) => ({
             value: option.key,
-            label: option.value,
+            label: option.nameAr ? `${option.nameAr} - ${option.value}` : option.value,
             count: showCounts ? option.count : undefined,
           })),
         ]}

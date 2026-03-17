@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { formatPrice } from "../../utils/formatPrice";
-import { Grid3X3, List, Search } from "lucide-react";
+import { Grid3X3, List, Search, Map as MapIcon } from "lucide-react";
+import Link from "next/link";
 import { ListingCard, Text, Pagination } from "../slices";
 import { Loading } from "../slices/Loading/Loading";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -350,6 +351,14 @@ export const ListingArea: React.FC<ListingAreaProps> = ({
         </div>
 
         <div className={styles.headerRight}>
+          <Link
+            href={`/map?category=${categorySlug}&listingType=${listingTypeSlug}`}
+            className={styles.mapButton}
+          >
+            <MapIcon size={18} />
+            <span>الخريطة</span>
+          </Link>
+
           <SortControls
             currentSort={currentSort}
             onSortChange={handleSortChange}

@@ -104,7 +104,23 @@
 .optionContent {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex: 1;
   gap: $space-sm;
+}
+
+.brandInfo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+}
+
+.brandLogo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
 }
 
 .optionName {
@@ -114,6 +130,11 @@
 
 .optionCount {
   color: $text-muted;
+  font-size: $font-xs;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  padding: 2px $space-sm;
 }
 
 .chevron {

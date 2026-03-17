@@ -230,6 +230,9 @@ async function getAllFilterData(categorySlug: string, listingType?: string) {
             ...(attr.key === "modelId" && option.hasVariants !== undefined && {
               hasVariants: option.hasVariants,
             }),
+            // For brands: include nameAr and logoUrl
+            ...(option.nameAr && { nameAr: option.nameAr }),
+            ...(option.logoUrl && { logoUrl: option.logoUrl }),
           }));
         } else {
           processedOptions = [];
@@ -316,6 +319,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
                   ...(attr.key === "modelId" && option.hasVariants !== undefined && {
                     hasVariants: option.hasVariants,
                   }),
+                  // For brands: include nameAr and logoUrl
+                  ...(option.nameAr && { nameAr: option.nameAr }),
+                  ...(option.logoUrl && { logoUrl: option.logoUrl }),
                 })
               );
             } else {
@@ -529,6 +535,8 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
                 sortOrder: 0,
                 isActive: true,
                 count: option.count,
+                ...(option.nameAr && { nameAr: option.nameAr }),
+                ...(option.logoUrl && { logoUrl: option.logoUrl }),
               }));
             }
           }
@@ -542,9 +550,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
             if (rawAttributeData?.options) {
               processedOptions = rawAttributeData.options.map(
                 (option: any) => ({
-                  id: option.key || option.value, // Use key (UUID) as id, fallback to value
-                  key: option.key || option.value, // Use key (UUID) for filtering
-                  value: option.value, // Use readable name for display
+                  id: option.key || option.value,
+                  key: option.key || option.value,
+                  value: option.value,
                   sortOrder: 0,
                   isActive: true,
                   count: option.count,
@@ -557,6 +565,9 @@ export const useFiltersStore = create<FiltersStore>((set, get) => ({
                   ...(attr.key === "modelId" && option.hasVariants !== undefined && {
                     hasVariants: option.hasVariants,
                   }),
+                  // For brands: include nameAr and logoUrl
+                  ...(option.nameAr && { nameAr: option.nameAr }),
+                  ...(option.logoUrl && { logoUrl: option.logoUrl }),
                 })
               );
             } else {

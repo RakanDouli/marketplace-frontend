@@ -71,6 +71,8 @@ export const GET_LISTING_AGGREGATIONS_QUERY = `
           key
           modelId
           modelName
+          nameAr
+          logoUrl
         }
       }
     }

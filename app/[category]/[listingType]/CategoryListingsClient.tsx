@@ -97,6 +97,8 @@ export default function CategoryListingsClient({
       id: opt.key || opt.id,
       name: opt.value,
       count: opt.count,
+      nameAr: opt.nameAr,
+      logoUrl: opt.logoUrl,
     }));
   }, [initialAttributes]);
 
@@ -471,8 +473,6 @@ export default function CategoryListingsClient({
           <Text variant="h2" className={styles.pageTitle}>
             {currentCategory.nameAr} <span className={styles.typeBadge}>{typeLabel}</span>
           </Text>
-          {/* Tablet Filter Button - only shows between lg and md */}
-
         </div>
 
         {/* Mobile Filter Bar - below MobileBackButton, only visible on mobile */}

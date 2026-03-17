@@ -11,6 +11,8 @@ interface CatalogOption {
   id: string;
   name: string;
   count?: number;
+  nameAr?: string;
+  logoUrl?: string;
   /** Model name for grouping variants */
   modelName?: string;
   /** Model ID for variants (to identify which model this variant belongs to) */
@@ -227,7 +229,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
                       </Text>
                       {option.count !== undefined && (
                         <Text variant="small" className={styles.optionCount}>
-                          ({option.count})
+                          {option.count}
                         </Text>
                       )}
                     </div>
@@ -261,7 +263,7 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
                       </Text>
                       {model.count !== undefined && (
                         <Text variant="small" className={styles.optionCount}>
-                          ({model.count})
+                          {model.count}
                         </Text>
                       )}
                     </div>
@@ -290,12 +292,17 @@ export const MobileCatalogSelector: React.FC<MobileCatalogSelectorProps> = ({
                 onClick={() => handleOptionSelect(option)}
               >
                 <div className={styles.optionContent}>
-                  <Text variant="paragraph" className={styles.optionName}>
-                    {option.name}
-                  </Text>
+                  <span className={styles.brandInfo}>
+                    {option.logoUrl && (
+                      <img src={option.logoUrl} alt="" className={styles.brandLogo} />
+                    )}
+                    <Text variant="paragraph" className={styles.optionName}>
+                      {option.nameAr ? `${option.nameAr} - ${option.name}` : option.name}
+                    </Text>
+                  </span>
                   {option.count !== undefined && (
                     <Text variant="small" className={styles.optionCount}>
-                      ({option.count})
+                      {option.count}
                     </Text>
                   )}
                 </div>

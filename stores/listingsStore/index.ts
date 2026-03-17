@@ -245,6 +245,22 @@ export const useListingsStore = create<ListingsStore>((set, get) => ({
         graphqlFilter.city = finalFilters.city;
       }
 
+      // Radius filter
+      if (finalFilters.lat != null && finalFilters.lng != null && finalFilters.radiusKm != null) {
+        graphqlFilter.lat = finalFilters.lat;
+        graphqlFilter.lng = finalFilters.lng;
+        graphqlFilter.radiusKm = finalFilters.radiusKm;
+      }
+
+      // Map bounds filter
+      if (finalFilters.northLat != null && finalFilters.southLat != null
+          && finalFilters.eastLng != null && finalFilters.westLng != null) {
+        graphqlFilter.northLat = finalFilters.northLat;
+        graphqlFilter.southLat = finalFilters.southLat;
+        graphqlFilter.eastLng = finalFilters.eastLng;
+        graphqlFilter.westLng = finalFilters.westLng;
+      }
+
       // Seller type filter - convert to uppercase for GraphQL enum
       if (finalFilters.accountType) {
         graphqlFilter.accountType = finalFilters.accountType.toUpperCase();
