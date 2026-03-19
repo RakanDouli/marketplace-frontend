@@ -1,44 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Text, Button } from "../../components/slices";
 import Container from "../../components/slices/Container/Container";
 import { optimizeListingImage } from "../../utils/cloudflare-images";
-import { cachedGraphQLRequest } from "../../utils/graphql-cache";
+import { useListingsStore } from "../../stores/listingsStore";
 import { SYRIA_PROVINCE_COORDS } from "../../components/Filter/provinceCoords";
 import styles from "./MapSearch.module.scss";
-
-// Map-specific query with coordinates
-const MAP_LISTINGS_QUERY = `
-  query MapListings($filter: ListingFilterInput) {
-    listingsSearch(filter: $filter) {
-      id
-      title
-      priceMinor
-      imageKeys
-      location {
-        province
-        coordinates {
-          lat
-          lng
-        }
-      }
-    }
-  }
-`;
-
-interface MapListing {
-  id: string;
-  title: string;
-  priceMinor: number;
-  imageKeys: string[];
-  location?: {
-    province?: string;
-    coordinates?: { lat?: number; lng?: number };
-  };
-}
 
 // Dynamically import Leaflet map (no SSR)
 const MapContainer = dynamic(
@@ -56,31 +26,15 @@ export default function MapSearchPage() {
   const category = searchParams.get("category") || "";
   const listingType = searchParams.get("listingType") || "sell";
 
-  const [listings, setListings] = useState<MapListing[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { listings, isLoading, fetchListingsByCategory } = useListingsStore();
 
-  // Fetch all listings for category - plot on map using province coords fallback
+  // Use same store as listings page
   useEffect(() => {
-    const fetchMapListings = async () => {
-      setIsLoading(true);
-      try {
-        const filter: any = {
-          status: "ACTIVE",
-          limit: 100,
-        };
-        if (category) filter.categoryId = category;
-        if (listingType) filter.listingType = listingType === "rent" ? "RENT" : "SALE";
-
-        const data = await cachedGraphQLRequest(MAP_LISTINGS_QUERY, { filter }, { ttl: 60000 });
-        setListings(data?.listingsSearch || []);
-      } catch (err) {
-        console.error("Map listings fetch error:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMapListings();
+    if (category) {
+      fetchListingsByCategory(category, {
+        listingType: listingType === "rent" ? "RENT" : "SALE",
+      }, "grid");
+    }
   }, [category, listingType]);
 
   // Build markers from all listings - use coordinates or province center fallback
