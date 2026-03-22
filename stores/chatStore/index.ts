@@ -695,27 +695,38 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
           // If message is from another user (not current user)
           if (newMessage.senderId !== userId) {
+            const activeThread = get().activeThreadId;
+
             // Update threads state: increment unreadCount and update lastMessageAt
-            // ALSO add message to messages array if we have that thread loaded
-            set((state) => ({
-              threads: state.threads.map(t =>
-                t.id === newMessage.threadId
-                  ? {
-                      ...t,
-                      lastMessageAt: newMessage.createdAt,
-                      unreadCount: (t.unreadCount || 0) + 1,
-                    }
-                  : t
-              ),
-              // ✅ Add message to local messages state
-              messages: {
-                ...state.messages,
-                [newMessage.threadId]: [
-                  ...(state.messages[newMessage.threadId] || []),
-                  newMessage
-                ],
-              },
-            }));
+            // Only add message to messages array if thread is NOT active
+            // (active thread subscription handles message insertion to avoid duplicates)
+            set((state) => {
+              const updates: any = {
+                threads: state.threads.map(t =>
+                  t.id === newMessage.threadId
+                    ? {
+                        ...t,
+                        lastMessageAt: newMessage.createdAt,
+                        unreadCount: (t.unreadCount || 0) + 1,
+                      }
+                    : t
+                ),
+              };
+
+              // Only add to messages if this is NOT the active thread
+              if (newMessage.threadId !== activeThread) {
+                const existingMessages = state.messages[newMessage.threadId] || [];
+                const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
+                if (!messageExists) {
+                  updates.messages = {
+                    ...state.messages,
+                    [newMessage.threadId]: [...existingMessages, newMessage],
+                  };
+                }
+              }
+
+              return updates;
+            });
 
             // Refresh unread count badge
             get().fetchUnreadCount();
